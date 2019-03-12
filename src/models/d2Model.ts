@@ -63,3 +63,9 @@ export class IndicatorModel extends D2Model {
 export class ValidationRuleModel extends D2Model {
     protected static metadataType = "validationRule";
 }
+
+export function defaultModel(pascalCaseModelName: string): any {
+    return class DefaultModel extends D2Model {
+        protected static metadataType = pascalCaseModelName;
+    };
+}
