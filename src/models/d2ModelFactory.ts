@@ -1,4 +1,5 @@
 import {
+    D2Model,
     DataElementModel,
     defaultModel,
     IndicatorModel,
@@ -6,7 +7,7 @@ import {
     ValidationRuleModel,
 } from "./d2Model";
 
-const classes = {
+const classes: { [modelName: string]: typeof D2Model } = {
     OrganisationUnitModel,
     DataElementModel,
     IndicatorModel,
@@ -18,7 +19,7 @@ const classes = {
  * If the class doesn't exist a new default class is created
  * d2ModelName: string (singular name property from d2.models)
  */
-export function d2ModelFactory(d2ModelName) {
+export function d2ModelFactory(d2ModelName: string): typeof D2Model {
     const modelName = d2ModelName.charAt(0).toUpperCase() + d2ModelName.slice(1) + "Model";
-    return classes[modelName] ? classes[modelName] : defaultModel(d2ModelName);
+    return classes[modelName] || defaultModel(d2ModelName);
 }
