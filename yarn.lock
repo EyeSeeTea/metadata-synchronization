@@ -1052,7 +1052,7 @@
     recompose "0.28.0 - 0.30.0"
     warning "^4.0.1"
 
-"@material-ui/icons@^3.0.1":
+"@material-ui/icons@^3.0.1", "@material-ui/icons@^3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@material-ui/icons/-/icons-3.0.2.tgz#d67a6dd1ec8312d3a88ec97944a63daeef24fe10"
   integrity sha512-QY/3gJnObZQ3O/e6WjH+0ah2M3MOgLOzCy8HTUoUx9B6dDrS18vP7Ycw3qrDEKlB6q1KNxy6CZHm5FCauWGy2g==
@@ -3634,10 +3634,10 @@ d2-manifest@^1.0.0:
     minimist "^1.1.0"
     readline-sync "^1.4.1"
 
-d2-ui-components@^0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/d2-ui-components/-/d2-ui-components-0.0.9.tgz#a9ebcb331ca5a29ca47c7ee27dfacc213b9ab05b"
-  integrity sha512-oUFgthhz0KsaCiHx/hDMQvTnfiDJHMUclWMOrGjCbMCu6Li8O0teRGI1wyWwnOpG4hS+tun8PsyHErioFzQa3w==
+d2-ui-components@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/d2-ui-components/-/d2-ui-components-0.0.12.tgz#6354469c94c2400a55400acbf6fd7042804d5e8f"
+  integrity sha512-Q4UQvIrJ7PGfXVV5eaXYJtLf7TSUPm/pC1b721/ZiEY1WJynYNiPSFA1cmllb2KfqsOr6P/WzuVPMvmas4/wMQ==
   dependencies:
     "@date-io/moment" "^1.0.2"
     "@dhis2/d2-i18n" "^1.0.3"
