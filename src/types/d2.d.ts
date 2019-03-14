@@ -46,6 +46,7 @@ export interface ModelCollection {
 
 export interface ModelDefinition {
     list(params?: Params): ModelCollection;
+    get(id: string, params?: Params): Promise<Model>;
     apiEndpoint: string;
     attributeProperties: any;
     displayName: string;

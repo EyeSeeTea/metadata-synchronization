@@ -20,3 +20,38 @@ export const d2BaseModelDetails = [
 export function cleanOptions(options) {
     return _.omitBy(options, value => _.isArray(value) && _.isEmpty(value));
 }
+
+export function cleanModelName(id, caller) {
+    const alias = ["parent", "children", "ancestors"];
+    return alias.includes(id) ? caller : id;
+}
+
+export function cleanObject(element, excludeRules) {
+    return _.pick(element, _.difference(_.keys(element), excludeRules));
+}
+
+export function isD2Model(d2, modelName) {
+    return d2.models[modelName] !== undefined;
+}
+
+export function isValidUid(code) {
+    const CODE_PATTERN = /^[a-zA-Z][a-zA-Z0-9]{10}$/;
+    return code !== null && CODE_PATTERN.test(code);
+}
+
+export function getAllReferences(d2, obj, type, parents = []) {
+    let result = {};
+    _.forEach(obj, (value, key) => {
+        if (_.isObject(value) || _.isArray(value)) {
+            const recursive = getAllReferences(d2, value, type, [...parents, key]);
+            result = _.mergeWith(result, recursive, (obj, src) => _.isArray(obj) ? obj.concat(src) : src);
+        } else if (isValidUid(value)) {
+            const metadataType = _(parents).map(k => cleanModelName(k, type)).filter(k => isD2Model(d2, k)).first();
+            if (metadataType) {
+                result[metadataType] = result[metadataType] || [];
+                result[metadataType].push(value);
+            }
+        }
+    });
+    return result;
+}
