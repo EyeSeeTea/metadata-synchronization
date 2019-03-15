@@ -1,5 +1,6 @@
 import _ from "lodash";
 import i18n from "@dhis2/d2-i18n";
+import { mergeCustomizer } from "./lodash";
 
 export const d2BaseModelColumns = [
     { name: "displayName", text: i18n.t("Name"), sortable: true },
@@ -17,7 +18,7 @@ export const d2BaseModelDetails = [
     { name: "href", text: i18n.t("API link") },
 ];
 
-export function cleanOptions(options) {
+export function cleanParams(options) {
     return _.omitBy(options, value => _.isArray(value) && _.isEmpty(value));
 }
 
@@ -44,9 +45,12 @@ export function getAllReferences(d2, obj, type, parents = []) {
     _.forEach(obj, (value, key) => {
         if (_.isObject(value) || _.isArray(value)) {
             const recursive = getAllReferences(d2, value, type, [...parents, key]);
-            result = _.mergeWith(result, recursive, (obj, src) => _.isArray(obj) ? obj.concat(src) : src);
+            result = _.mergeWith(result, recursive, mergeCustomizer);
         } else if (isValidUid(value)) {
-            const metadataType = _(parents).map(k => cleanModelName(k, type)).filter(k => isD2Model(d2, k)).first();
+            const metadataType = _(parents)
+                .map(k => cleanModelName(k, type))
+                .filter(k => isD2Model(d2, k))
+                .first();
             if (metadataType) {
                 result[metadataType] = result[metadataType] || [];
                 result[metadataType].push(value);

@@ -7,6 +7,7 @@ import Fab from "@material-ui/core/Fab";
 import { withStyles } from "@material-ui/core/styles";
 import SyncIcon from '@material-ui/icons/Sync';
 import PageHeader from "../shared/PageHeader";
+import { queryMetadata } from "../../logic/synchronization";
 
 const styles = theme => ({
     fab: {
@@ -21,7 +22,7 @@ const styles = theme => ({
 class BaseSyncConfigurator extends React.Component {
     state = {
         tableKey: Math.random(),
-        selection: []
+        selection: [],
     };
 
     static propTypes = {
@@ -44,12 +45,15 @@ class BaseSyncConfigurator extends React.Component {
         this.props.history.push("/");
     };
 
-    selectionChange = (selection) => {
+    selectionChange = selection => {
         this.setState({ selection });
     };
 
     startSynchronization = () => {
         // TODO: Render new dialog to show summary and select destination instances
+        queryMetadata(this.props.d2, "organisationUnit", "zGv4gjlRmCX").then(result =>
+            console.log(result)
+        );
     };
 
     render() {

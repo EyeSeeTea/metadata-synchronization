@@ -1,5 +1,5 @@
 import _ from "lodash";
-import {cleanOptions, d2BaseModelColumns, d2BaseModelDetails} from "../utils/d2";
+import { cleanParams, d2BaseModelColumns, d2BaseModelDetails } from "../utils/d2";
 import { TableFilters, TableLabel, TableList, TablePagination } from "../types/d2-ui-components";
 import { D2, ModelDefinition } from "../types/d2";
 
@@ -28,8 +28,8 @@ export abstract class D2Model {
         const order = `${field}:i${direction}`;
         const filter = _.compact([search ? `displayName:ilike:${search}` : null]);
 
-        const listOptions = cleanOptions({ fields, filter, page, pageSize, order });
-        const collection = await this.getD2Model(d2).list(listOptions);
+        const listParams = cleanParams({ fields, filter, page, pageSize, order });
+        const collection = await this.getD2Model(d2).list(listParams);
         return { pager: collection.pager, objects: collection.toArray() };
     }
 
@@ -66,13 +66,14 @@ export class OrganisationUnitModel extends D2Model {
     protected static metadataType = "organisationUnit";
     protected static excludeRules = [
         "legendSets",
-        "dataSets",
         "user",
-        "userGroups",
+        "users",
+        "userAccesses",
+        "userGroupAccesses",
         "organisationUnitGroups.userGroups",
     ];
     protected static includeRules = [
-        "attributes",
+        "attribute",
         "organisationUnitGroups",
         "organisationUnitGroups.attributes",
         "organisationUnitGroups.organisationUnitGroupSets",

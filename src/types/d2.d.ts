@@ -19,6 +19,7 @@ export interface Params {
 export interface D2Api {
     get(url: string, data: Params): Dictionary<any>;
     post(url: string, data: Dictionary<any>): Dictionary<any>;
+    baseUrl: string;
 }
 
 export interface Pager {
