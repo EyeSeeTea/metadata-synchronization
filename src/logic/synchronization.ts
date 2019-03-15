@@ -1,4 +1,5 @@
 import _ from "lodash";
+import axios from "axios";
 import { d2ModelFactory } from "../models/d2ModelFactory";
 import { cleanObject, getAllReferences } from "../utils/d2";
 import { D2 } from "../types/d2";
@@ -23,6 +24,17 @@ function buildNestedRules(rules: string[]): NestedRules {
     );
 }
 
+async function get(d2: D2, elements: string[]): Promise<any> {
+    let promises = [];
+    for (let i = 0; i < elements.length; i += 100) {
+        let requestUrl = d2.Api.getApi().baseUrl +
+            '/metadata.json?fields=:all&filter=id:in:[' + elements.slice(i, i + 100).toString() + ']';
+        promises.push(axios.get(requestUrl, { withCredentials: true }));
+    }
+    let result = await Promise.all(promises);
+    return _.merge({}, ...result.map(result => result.data));
+}
+
 export async function fetchMetadata(
     d2: D2,
     type: string,
@@ -36,10 +48,9 @@ export async function fetchMetadata(
     const nestedExcludeRules: NestedRules = buildNestedRules(excludeRules);
     const nestedIncludeRules: NestedRules = buildNestedRules(includeRules);
 
-    // TODO: Improve model.get(id) approach
-    for (const id of ids) {
-        const element = await model.get(id);
-        const object = cleanObject(element.toJSON(), excludeRules);
+    const elements = await get(d2, ids);
+    for (const element of elements[model.plural]) {
+        const object = cleanObject(element, excludeRules);
 
         // Store Organisation Unit in result object
         result[model.plural] = result[model.plural] || [];
