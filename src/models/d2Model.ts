@@ -70,14 +70,19 @@ export class OrganisationUnitModel extends D2Model {
         "users",
         "userAccesses",
         "userGroupAccesses",
-        "organisationUnitGroups.userGroups",
+        "organisationUnitGroups.user",
+        "organisationUnitGroups.userAccesses",
+        "organisationUnitGroups.userGroupAccesses",
+        "organisationUnitGroups.groupSets.user",
+        "organisationUnitGroups.groupSets.userAccesses",
+        "organisationUnitGroups.groupSets.userGroupAccesses",
     ];
     protected static includeRules = [
         "attribute",
         "organisationUnitGroups",
-        "organisationUnitGroups.attributes",
-        "organisationUnitGroups.organisationUnitGroupSets",
-        "organisationUnitGroups.organisationUnitGroupSets.attributes",
+        "organisationUnitGroups.attribute",
+        "organisationUnitGroups.groupSets",
+        "organisationUnitGroups.groupSets.attribute",
     ];
 }
 
