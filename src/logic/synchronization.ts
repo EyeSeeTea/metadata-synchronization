@@ -27,8 +27,11 @@ function buildNestedRules(rules: string[]): NestedRules {
 async function get(d2: D2, elements: string[]): Promise<any> {
     let promises = [];
     for (let i = 0; i < elements.length; i += 100) {
-        let requestUrl = d2.Api.getApi().baseUrl +
-            '/metadata.json?fields=:all&filter=id:in:[' + elements.slice(i, i + 100).toString() + ']';
+        let requestUrl =
+            d2.Api.getApi().baseUrl +
+            "/metadata.json?fields=:all&filter=id:in:[" +
+            elements.slice(i, i + 100).toString() +
+            "]";
         promises.push(axios.get(requestUrl, { withCredentials: true }));
     }
     let result = await Promise.all(promises);
