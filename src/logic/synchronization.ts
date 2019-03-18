@@ -1,45 +1,26 @@
 import _ from "lodash";
 import "../utils/lodash-mixins";
-import axios from "axios";
 
 import { d2ModelFactory } from "../models/d2ModelFactory";
 import { D2 } from "../types/d2";
-import { cleanObject, getAllReferences } from "../utils/d2";
+import {cleanObject, getAllReferences, getMetadata} from "../utils/d2";
 import {
+    FetchBuilder,
     NestedRules,
     SynchronizationBuilder,
     SynchronizationResult,
 } from "../types/synchronization";
 import { buildNestedRules } from "../utils/synchronization";
 
-async function get(d2: D2, elements: string[]): Promise<any> {
-    let promises = [];
-    for (let i = 0; i < elements.length; i += 100) {
-        let requestUrl =
-            d2.Api.getApi().baseUrl +
-            "/metadata.json?fields=:all&filter=id:in:[" +
-            elements.slice(i, i + 100).toString() +
-            "]&defaults=EXCLUDE";
-        promises.push(axios.get(requestUrl, { withCredentials: true }));
-    }
-    let result = await Promise.all(promises);
-    return _.merge({}, ...result.map(result => result.data));
-}
-
-export async function fetchMetadata(
-    d2: D2,
-    type: string,
-    ids: string[],
-    excludeRules: string[],
-    includeRules: string[]
-): Promise<SynchronizationResult> {
+export async function fetchMetadata(d2: D2, builder: FetchBuilder): Promise<SynchronizationResult> {
+    const {type, ids, excludeRules, includeRules} = builder;
     const model = d2ModelFactory(d2, type).getD2Model(d2);
     const result: SynchronizationResult = {};
 
     const nestedExcludeRules: NestedRules = buildNestedRules(excludeRules);
     const nestedIncludeRules: NestedRules = buildNestedRules(includeRules);
 
-    const elements = await get(d2, ids);
+    const elements = await getMetadata(d2, ids);
     for (const element of elements[model.plural]) {
         const object = cleanObject(element, excludeRules);
 
@@ -50,15 +31,14 @@ export async function fetchMetadata(
         // Get all the referenced metadata
         const references: any = getAllReferences(d2, object, model.name);
         const referenceTypes = _.intersection(_.keys(references), includeRules);
-        const promises = _.map(referenceTypes, type =>
-            fetchMetadata(
-                d2,
+        const promises = _.map(referenceTypes, type => {
+            return {
                 type,
-                references[type],
-                nestedExcludeRules[type],
-                nestedIncludeRules[type]
-            )
-        );
+                ids: references[type],
+                excludeRules: nestedExcludeRules[type],
+                includeRules: nestedIncludeRules[type]
+            }
+        }).map(newBuilder => fetchMetadata(d2, newBuilder));
         const promisesResult: any[] = await Promise.all(promises);
         _.deepMerge(result, ...promisesResult);
     }
@@ -66,27 +46,15 @@ export async function fetchMetadata(
     return result;
 }
 
-export async function queryMetadata(
-    d2: D2,
-    type: string,
-    ids: string | string[]
-): Promise<SynchronizationResult> {
-    const myClass = d2ModelFactory(d2, type);
-
-    // Fetch metadata API to export
-    const elements = _.isArray(ids) ? ids : [ids];
-    return await fetchMetadata(
-        d2,
-        type,
-        elements,
-        myClass.getExcludeRules(),
-        myClass.getIncludeRules()
-    );
-}
-
 export async function startSynchronization(d2: D2, builder: SynchronizationBuilder): Promise<void> {
-    const fetchPromises = _.keys(builder.metadata).map(type =>
-        queryMetadata(d2, type, builder.metadata[type])
-    );
+    const fetchPromises = _.keys(builder.metadata).map(type => {
+        const myClass = d2ModelFactory(d2, type);
+        return {
+            type,
+            ids: builder.metadata[type],
+            excludeRules: myClass.getExcludeRules(),
+            includeRules: myClass.getIncludeRules()
+        }
+    }).map(newBuilder => fetchMetadata(d2, newBuilder));
     await Promise.all(fetchPromises);
 }

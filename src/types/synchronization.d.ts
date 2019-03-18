@@ -6,6 +6,13 @@ export interface SynchronizationBuilder {
     };
 }
 
+export interface FetchBuilder {
+    type: string;
+    ids: string[];
+    excludeRules: string[];
+    includeRules: string[];
+}
+
 export interface SynchronizationResult {
     [metadataType: string]: any[];
 }

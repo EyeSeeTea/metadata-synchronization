@@ -1,6 +1,7 @@
 import _ from "lodash";
 import "../utils/lodash-mixins";
 import i18n from "@dhis2/d2-i18n";
+import axios from "axios";
 
 export const d2BaseModelColumns = [
     { name: "displayName", text: i18n.t("Name"), sortable: true },
@@ -58,4 +59,18 @@ export function getAllReferences(d2, obj, type, parents = []) {
         }
     });
     return result;
+}
+
+export async function getMetadata(d2, elements) {
+    let promises = [];
+    for (let i = 0; i < elements.length; i += 100) {
+        let requestUrl =
+            d2.Api.getApi().baseUrl +
+            "/metadata.json?fields=:all&filter=id:in:[" +
+            elements.slice(i, i + 100).toString() +
+            "]&defaults=EXCLUDE";
+        promises.push(axios.get(requestUrl, { withCredentials: true }));
+    }
+    let result = await Promise.all(promises);
+    return _.deepMerge({}, ...result.map(result => result.data));
 }
