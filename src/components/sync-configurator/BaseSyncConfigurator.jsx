@@ -7,7 +7,6 @@ import Fab from "@material-ui/core/Fab";
 import { withStyles } from "@material-ui/core/styles";
 import SyncIcon from "@material-ui/icons/Sync";
 import PageHeader from "../shared/PageHeader";
-import { queryMetadata } from "../../logic/synchronization";
 
 const styles = theme => ({
     fab: {
@@ -51,9 +50,6 @@ class BaseSyncConfigurator extends React.Component {
 
     startSynchronization = () => {
         // TODO: Render new dialog to show summary and select destination instances
-        queryMetadata(this.props.d2, "organisationUnit", "zGv4gjlRmCX").then(result =>
-            console.log(result)
-        );
     };
 
     render() {
