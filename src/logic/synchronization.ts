@@ -19,7 +19,7 @@ async function get(d2: D2, elements: string[]): Promise<any> {
             d2.Api.getApi().baseUrl +
             "/metadata.json?fields=:all&filter=id:in:[" +
             elements.slice(i, i + 100).toString() +
-            "]";
+            "]&defaults=EXCLUDE";
         promises.push(axios.get(requestUrl, { withCredentials: true }));
     }
     let result = await Promise.all(promises);
