@@ -3,27 +3,14 @@ import "../utils/lodash-mixins";
 import axios from "axios";
 
 import { d2ModelFactory } from "../models/d2ModelFactory";
-import { cleanObject, getAllReferences } from "../utils/d2";
 import { D2 } from "../types/d2";
+import { cleanObject, getAllReferences } from "../utils/d2";
 import {
     NestedRules,
     SynchronizationBuilder,
     SynchronizationResult,
 } from "../types/synchronization";
-
-function buildNestedRules(rules: string[]): NestedRules {
-    return _.transform(
-        rules,
-        (result, value) => {
-            const [parentType, childType] = value.split(".");
-            result[parentType] = result[parentType] || [];
-            if (childType && !result[parentType].includes(childType)) {
-                result[parentType].push(childType);
-            }
-        },
-        {}
-    );
-}
+import { buildNestedRules } from "../utils/synchronization";
 
 async function get(d2: D2, elements: string[]): Promise<any> {
     let promises = [];

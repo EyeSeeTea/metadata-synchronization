@@ -7,8 +7,7 @@ declare module "lodash" {
 }
 
 function deepMerge(obj: any, ...src: any): any {
-    const mergeCustomizer = (obj: any, src: any): any =>
-        _.isArray(obj) ? obj.concat(src) : src;
+    const mergeCustomizer = (obj: any, src: any): any => (_.isArray(obj) ? obj.concat(src) : src);
     return _.mergeWith(obj, src, mergeCustomizer);
 }
 
