@@ -3,7 +3,7 @@ import "../utils/lodash-mixins";
 
 import { d2ModelFactory } from "../models/d2ModelFactory";
 import { D2 } from "../types/d2";
-import {cleanObject, getAllReferences, getMetadata} from "../utils/d2";
+import { cleanObject, getAllReferences, getMetadata } from "../utils/d2";
 import {
     FetchBuilder,
     NestedRules,
@@ -13,7 +13,7 @@ import {
 import { buildNestedRules } from "../utils/synchronization";
 
 export async function fetchMetadata(d2: D2, builder: FetchBuilder): Promise<SynchronizationResult> {
-    const {type, ids, excludeRules, includeRules} = builder;
+    const { type, ids, excludeRules, includeRules } = builder;
     const model = d2ModelFactory(d2, type).getD2Model(d2);
     const result: SynchronizationResult = {};
 
@@ -36,8 +36,8 @@ export async function fetchMetadata(d2: D2, builder: FetchBuilder): Promise<Sync
                 type,
                 ids: references[type],
                 excludeRules: nestedExcludeRules[type],
-                includeRules: nestedIncludeRules[type]
-            }
+                includeRules: nestedIncludeRules[type],
+            };
         }).map(newBuilder => fetchMetadata(d2, newBuilder));
         const promisesResult: any[] = await Promise.all(promises);
         _.deepMerge(result, ...promisesResult);
@@ -47,14 +47,16 @@ export async function fetchMetadata(d2: D2, builder: FetchBuilder): Promise<Sync
 }
 
 export async function startSynchronization(d2: D2, builder: SynchronizationBuilder): Promise<void> {
-    const fetchPromises = _.keys(builder.metadata).map(type => {
-        const myClass = d2ModelFactory(d2, type);
-        return {
-            type,
-            ids: builder.metadata[type],
-            excludeRules: myClass.getExcludeRules(),
-            includeRules: myClass.getIncludeRules()
-        }
-    }).map(newBuilder => fetchMetadata(d2, newBuilder));
+    const fetchPromises = _.keys(builder.metadata)
+        .map(type => {
+            const myClass = d2ModelFactory(d2, type);
+            return {
+                type,
+                ids: builder.metadata[type],
+                excludeRules: myClass.getExcludeRules(),
+                includeRules: myClass.getIncludeRules(),
+            };
+        })
+        .map(newBuilder => fetchMetadata(d2, newBuilder));
     await Promise.all(fetchPromises);
 }

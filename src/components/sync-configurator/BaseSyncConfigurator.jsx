@@ -5,7 +5,7 @@ import i18n from "@dhis2/d2-i18n";
 import { ObjectsTable } from "d2-ui-components";
 import Fab from "@material-ui/core/Fab";
 import { withStyles } from "@material-ui/core/styles";
-import SyncIcon from '@material-ui/icons/Sync';
+import SyncIcon from "@material-ui/icons/Sync";
 import PageHeader from "../shared/PageHeader";
 import { queryMetadata } from "../../logic/synchronization";
 
