@@ -1,5 +1,7 @@
 import _ from "lodash";
+import "../utils/lodash-mixins";
 import axios from "axios";
+
 import { d2ModelFactory } from "../models/d2ModelFactory";
 import { cleanObject, getAllReferences } from "../utils/d2";
 import { D2 } from "../types/d2";
@@ -8,7 +10,6 @@ import {
     SynchronizationBuilder,
     SynchronizationResult,
 } from "../types/synchronization";
-import { mergeCustomizer } from "../utils/lodash";
 
 function buildNestedRules(rules: string[]): NestedRules {
     return _.transform(
@@ -72,7 +73,7 @@ export async function fetchMetadata(
             )
         );
         const promisesResult: any[] = await Promise.all(promises);
-        _.mergeWith(result, ...promisesResult, mergeCustomizer);
+        _.deepMerge(result, ...promisesResult);
     }
 
     return result;

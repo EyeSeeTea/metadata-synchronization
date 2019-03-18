@@ -1,6 +1,6 @@
 import _ from "lodash";
+import "../utils/lodash-mixins";
 import i18n from "@dhis2/d2-i18n";
-import { mergeCustomizer } from "./lodash";
 
 export const d2BaseModelColumns = [
     { name: "displayName", text: i18n.t("Name"), sortable: true },
@@ -45,7 +45,7 @@ export function getAllReferences(d2, obj, type, parents = []) {
     _.forEach(obj, (value, key) => {
         if (_.isObject(value) || _.isArray(value)) {
             const recursive = getAllReferences(d2, value, type, [...parents, key]);
-            result = _.mergeWith(result, recursive, mergeCustomizer);
+            result = _.deepMerge(result, recursive);
         } else if (isValidUid(value)) {
             const metadataType = _(parents)
                 .map(k => cleanModelName(k, type))
