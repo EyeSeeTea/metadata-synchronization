@@ -9,7 +9,7 @@ if (!dhis2AuthEnvValue) {
     throw new Error("CYPRESS_DHIS2_AUTH=user1:pass1[,user2:pass2,...] not set");
 }
 
-const dhis2Auth = _(dhis2AuthEnvValue)
+export const dhis2Auth = _(dhis2AuthEnvValue)
     .split(",")
     .map(auth => auth.split(":"))
     .fromPairs()
