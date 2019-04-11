@@ -957,7 +957,17 @@
     lodash "^4.17.10"
     material-ui "^0.20.0"
 
-"@dhis2/d2-ui-core@^1.3.5", "@dhis2/d2-ui-core@^1.4.0":
+"@dhis2/d2-ui-core@5.3.1", "@dhis2/d2-ui-core@^5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@dhis2/d2-ui-core/-/d2-ui-core-5.3.1.tgz#73d8c91b7191f4e6813201598848ea379f3417eb"
+  integrity sha512-g/Ub9bCyDFIs3FPtSDOt4m+aRGBUX0R+cmcSRCNn7+pW2b9VS8yjRm5pfCvm+sv+PkfAmEt1jaOIwb9SA5AOsA==
+  dependencies:
+    babel-runtime "^6.26.0"
+    d2 "~31.7"
+    lodash "^4.17.10"
+    material-ui "^0.20.0"
+
+"@dhis2/d2-ui-core@^1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@dhis2/d2-ui-core/-/d2-ui-core-1.4.0.tgz#123d071e507c862f2c0c316ff0bda052a676c262"
   integrity sha512-J2NeaHXhYUzz7CGsIN4s6o+zOknKXrEG25Wk1XiSX9aO9shh8CTU++lzQJIgezF/UWHx2VDTwn171DTJI2ckJw==
@@ -967,12 +977,12 @@
     lodash "^4.17.10"
     material-ui "^0.20.0"
 
-"@dhis2/d2-ui-forms@^5.1.3":
-  version "5.2.11"
-  resolved "https://registry.yarnpkg.com/@dhis2/d2-ui-forms/-/d2-ui-forms-5.2.11.tgz#e372511953c64229b2a55ee289c8fc908927a17c"
-  integrity sha512-q0QjsDANslkrz9pYU8nogLNGFdkDV8b9s7O4kqRlqdtyh6GzAq84H4JchC8T9HQCQ4QUBf8ewlcTAseQJX53cA==
+"@dhis2/d2-ui-forms@^5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@dhis2/d2-ui-forms/-/d2-ui-forms-5.3.1.tgz#4090937358cbc4d431092dd4e49960a9f0db1415"
+  integrity sha512-yFQONMlk3wFS2KwSqyxe1K78M5W8nTKDzcdQmx3N1/XD/KwVp4405hxLcmJfeGg9pE/8CeSensoMfSykvppRxA==
   dependencies:
-    "@dhis2/d2-ui-core" "5.2.11"
+    "@dhis2/d2-ui-core" "5.3.1"
     babel-runtime "^6.26.0"
     classnames "^2.2.5"
     d2 "~31.1"
@@ -1036,6 +1046,39 @@
   version "3.9.2"
   resolved "https://registry.yarnpkg.com/@material-ui/core/-/core-3.9.2.tgz#41ed1a470e981d199829eb5d9317a671c66a6f7d"
   integrity sha512-aukR3mSH3g115St2OnqoeMRtmxzxxx+Mch7pFKRV3Tz3URExBlZwOolimjxKZpG4LGec8HlhREawafLsDzjVWQ==
+  dependencies:
+    "@babel/runtime" "^7.2.0"
+    "@material-ui/system" "^3.0.0-alpha.0"
+    "@material-ui/utils" "^3.0.0-alpha.2"
+    "@types/jss" "^9.5.6"
+    "@types/react-transition-group" "^2.0.8"
+    brcast "^3.0.1"
+    classnames "^2.2.5"
+    csstype "^2.5.2"
+    debounce "^1.1.0"
+    deepmerge "^3.0.0"
+    dom-helpers "^3.2.1"
+    hoist-non-react-statics "^3.2.1"
+    is-plain-object "^2.0.4"
+    jss "^9.8.7"
+    jss-camel-case "^6.0.0"
+    jss-default-unit "^8.0.2"
+    jss-global "^3.0.0"
+    jss-nested "^6.0.1"
+    jss-props-sort "^6.0.0"
+    jss-vendor-prefixer "^7.0.0"
+    normalize-scroll-left "^0.1.2"
+    popper.js "^1.14.1"
+    prop-types "^15.6.0"
+    react-event-listener "^0.6.2"
+    react-transition-group "^2.2.1"
+    recompose "0.28.0 - 0.30.0"
+    warning "^4.0.1"
+
+"@material-ui/core@^3.9.3":
+  version "3.9.3"
+  resolved "https://registry.yarnpkg.com/@material-ui/core/-/core-3.9.3.tgz#d378c1f4beb18df9a534ca7258c2c33fb8e0e51f"
+  integrity sha512-REIj62+zEvTgI/C//YL4fZxrCVIySygmpZglsu/Nl5jPqy3CDjZv1F9ubBYorHqmRgeVPh64EghMMWqk4egmfg==
   dependencies:
     "@babel/runtime" "^7.2.0"
     "@material-ui/system" "^3.0.0-alpha.0"
@@ -3824,10 +3867,10 @@ d2@31.1.1, d2@~31.1:
     jsdoc "^3.5.5"
     whatwg-fetch "^2.0.3"
 
-d2@^31.1.1:
-  version "31.6.0"
-  resolved "https://registry.yarnpkg.com/d2/-/d2-31.6.0.tgz#de30c97764db9efd973e67f4c118d23d3c5c8836"
-  integrity sha512-ztT7+n8qRflXnAuwQoT0YyX08E/CtF5LD8kcrMZBMu03jteTsOpsmwWUeqrFsfphPugESOCx/MBP7pkrejXQOA==
+d2@^31.1.1, d2@^31.7.0, d2@~31.7:
+  version "31.7.0"
+  resolved "https://registry.yarnpkg.com/d2/-/d2-31.7.0.tgz#3a843240fecaafdf213da78b55aed9b8611ee22e"
+  integrity sha512-+ubKyPWKxUz90g5RHCYIt4KxKPzcCOBvDS7X0076XSycecfx4qvtkGBcKyFmXdz27iwTLUpNtruL9pUK9aTi/A==
   dependencies:
     isomorphic-fetch "^2.2.1"
 
