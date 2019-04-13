@@ -5,11 +5,10 @@ context("Landing Page", () => {
         cy.server();
         cy.fixture("app-config.json").then(json => cy.route("GET", "app-config.json", json));
         cy.login("admin");
+        cy.visit('/');
     });
 
-    beforeEach(() => {
-        cy.loadPage();
-    });
+    beforeEach(() => {});
 
     it("Has page title", () => {
         cy.title().should("equal", "Metadata Synchronization");

@@ -7,14 +7,22 @@ context("Instance Configurator", function() {
         cy.server();
         cy.fixture("app-config.json").then(json => cy.route("GET", "app-config.json", json));
         cy.login("admin");
+        cy.visit("/#/instance-configurator");
+
     });
 
-    beforeEach(() => {
-        cy.route("/#/instance-configurator").as("instanceConfigurator");
+    beforeEach(() => {});
 
-        cy.loadPage("/#/instance-configurator");
+    it("Page title is correct", function () {
         cy.get(dataTest("page-header-title")).contains("Instances");
+    });
 
+    it("Open new instance page", function() {
+        cy.get(dataTest("list-action-bar")).click();
+        cy.get(dataTest("page-header-title")).contains("New Instance");
+    });
+
+    it("TODO", function () {
         /** TODO: Waiting to add more data selectors to dialog in d2-ui-components
          cy.get(".data-table__rows__row").each((element, index) => {
              cy.wrap(element).trigger("contextmenu");
@@ -37,10 +45,5 @@ context("Instance Configurator", function() {
 
          cy.wait("@instanceConfigurator");
          */
-    });
-
-    it("Open new instance page", function() {
-        cy.get(dataTest("list-action-bar")).click();
-        cy.get(dataTest("page-header-title")).contains("New Instance");
     });
 });
