@@ -144,11 +144,35 @@ export class DataElementModel extends D2Model {
 export class IndicatorModel extends D2Model {
     protected static metadataType = "indicator";
     protected static groupFilterName = "indicatorGroups";
+    
+    protected static excludeRules = [
+        "dataSets",
+        "programs",
+        "indicatorGroups.indicators",
+        "indicatorGroups.indicatorGroupSet.indicatorGroups",
+    ];
+    protected static includeRules = [
+        "attributes",
+        "legendSets",
+        "indicatorType",
+        "indicatorGroups",
+        "indicatorGroups.attributes",
+        "indicatorGroups.indicatorGroupSet",
+    ];
 }
 
 export class ValidationRuleModel extends D2Model {
     protected static metadataType = "validationRule";
     protected static groupFilterName = "validationRuleGroups";
+    protected static excludeRules = [
+        "legendSets",
+        "validationRuleGroups.validationRules",
+    ];
+    protected static includeRules = [
+        "attributes",
+        "validationRuleGroups",
+        "validationRuleGroups.attributes",
+    ];
 }
 
 export function defaultModel(pascalCaseModelName: string): any {
