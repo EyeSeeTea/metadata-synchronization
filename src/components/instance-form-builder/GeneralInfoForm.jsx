@@ -235,16 +235,22 @@ class GeneralInfoForm extends React.Component {
                     />
                     <div className={classes.buttonContainer}>
                         <div>
-                            <SaveButton onClick={this.saveAction} isSaving={this.state.isSaving} />
+                            <SaveButton
+                                onClick={this.saveAction}
+                                isSaving={this.state.isSaving}
+                                data-test={"save-button"}
+                            />
                             <RaisedButton
                                 label={i18n.t("Cancel")}
                                 onClick={this.props.cancelAction}
+                                data-test={"cancel-button"}
                             />
                         </div>
                         <div className={classes.testButton}>
                             <RaisedButton
                                 label={i18n.t("Test Connection")}
                                 onClick={this.testConnection}
+                                data-test={"test-connection-button"}
                             />
                         </div>
                     </div>
