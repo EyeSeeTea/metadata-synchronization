@@ -41,19 +41,19 @@ Cypress.Commands.add("login", (username, _password = null) => {
     }
 });
 
-Cypress.Commands.overwrite('visit', (originalFn, url, options) => {
+Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
     return originalFn(url, {
         onBeforeLoad: win => {
             win.fetch = null;
         },
-        ...options
+        ...options,
     });
 });
 
-Cypress.Commands.overwrite('get', (originalFn, selector, options) => {
+Cypress.Commands.overwrite("get", (originalFn, selector, options) => {
     return originalFn(selector, {
         timeout: 30000,
-        ...options
+        ...options,
     });
 });
 

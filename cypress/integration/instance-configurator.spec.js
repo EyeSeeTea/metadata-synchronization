@@ -1,6 +1,4 @@
-import { dataTest, dataField } from "../support/utils";
-import { dhis2Auth } from "../support/commands";
-import { externalUrl } from "../support/network-fixtures";
+import { dataTest } from "../support/utils";
 
 context("Instance Configurator", function() {
     before(() => {
@@ -8,12 +6,11 @@ context("Instance Configurator", function() {
         cy.fixture("app-config.json").then(json => cy.route("GET", "app-config.json", json));
         cy.login("admin");
         cy.visit("/#/instance-configurator");
-
     });
 
     beforeEach(() => {});
 
-    it("Page title is correct", function () {
+    it("Page title is correct", function() {
         cy.get(dataTest("page-header-title")).contains("Instances");
     });
 
