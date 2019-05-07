@@ -5,10 +5,11 @@ context("Instance Configurator", function() {
         cy.server();
         cy.fixture("app-config.json").then(json => cy.route("GET", "app-config.json", json));
         cy.login("admin");
-        cy.visit("/#/instance-configurator");
     });
 
-    beforeEach(() => {});
+    beforeEach(() => {
+        cy.visit("/#/instance-configurator");
+    });
 
     it("Page title is correct", function() {
         cy.get(dataTest("page-header-title")).contains("Instances");

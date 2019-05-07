@@ -5,10 +5,11 @@ context("Landing Page", () => {
         cy.server();
         cy.fixture("app-config.json").then(json => cy.route("GET", "app-config.json", json));
         cy.login("admin");
-        cy.visit("/");
     });
 
-    beforeEach(() => {});
+    beforeEach(() => {
+        cy.visit("/#/");
+    });
 
     it("Has page title", () => {
         cy.title().should("equal", "Metadata Synchronization");
@@ -31,30 +32,25 @@ context("Landing Page", () => {
     it("Enter Instance Configurator Page", function() {
         cy.get(dataTest("page-instance-configurator")).click();
         cy.get(dataTest("page-header-title")).contains("Instances");
-        cy.go("back");
     });
 
     it("Enter Organisation Units Synchronization Page", function() {
         cy.get(dataTest("page-sync/organisationUnits")).click();
         cy.get(dataTest("page-header-title")).contains("Organisation Units Synchronization");
-        cy.go("back");
     });
 
     it("Enter Data Elements Synchronization Page", function() {
         cy.get(dataTest("page-sync/dataElements")).click();
         cy.get(dataTest("page-header-title")).contains("Data Elements Synchronization");
-        cy.go("back");
     });
 
     it("Enter Indicators Synchronization Page", function() {
         cy.get(dataTest("page-sync/indicators")).click();
         cy.get(dataTest("page-header-title")).contains("Indicators Synchronization");
-        cy.go("back");
     });
 
     it("Enter Validation Rules Synchronization Page", function() {
         cy.get(dataTest("page-sync/validationRules")).click();
         cy.get(dataTest("page-header-title")).contains("Validation Rules Synchronization");
-        cy.go("back");
     });
 });
