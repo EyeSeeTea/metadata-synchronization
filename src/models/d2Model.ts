@@ -48,7 +48,9 @@ export abstract class D2Model {
 
         const details = this.details.map(e => e.name);
         const columns = this.columns.map(e => e.name);
-        const fields = overriddenFields ? overriddenFields : _.union(details, columns, customFields);
+        const fields = overriddenFields
+            ? overriddenFields
+            : _.union(details, columns, customFields);
 
         const [field, direction] = sorting;
         const order = `${field}:i${direction}`;
@@ -144,7 +146,7 @@ export class DataElementModel extends D2Model {
 export class IndicatorModel extends D2Model {
     protected static metadataType = "indicator";
     protected static groupFilterName = "indicatorGroups";
-    
+
     protected static excludeRules = [
         "dataSets",
         "programs",
@@ -164,10 +166,7 @@ export class IndicatorModel extends D2Model {
 export class ValidationRuleModel extends D2Model {
     protected static metadataType = "validationRule";
     protected static groupFilterName = "validationRuleGroups";
-    protected static excludeRules = [
-        "legendSets",
-        "validationRuleGroups.validationRules",
-    ];
+    protected static excludeRules = ["legendSets", "validationRuleGroups.validationRules"];
     protected static includeRules = [
         "attributes",
         "validationRuleGroups",
