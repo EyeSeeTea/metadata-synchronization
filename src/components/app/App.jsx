@@ -8,11 +8,11 @@ import OldMuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import { SnackbarProvider, LoadingProvider } from "d2-ui-components";
 import _ from "lodash";
 
+import { muiTheme } from "../../themes/dhis2.theme";
+import muiThemeLegacy from "../../themes/dhis2-legacy.theme";
 import "./App.css";
 import Root from "./Root";
 import Share from "../share/Share";
-import { muiTheme } from "../../themes/dhis2.theme";
-import muiThemeLegacy from "../../themes/dhis2-legacy.theme";
 
 const generateClassName = createGenerateClassName({
     dangerouslyUseGlobalCSS: false,
@@ -49,17 +49,15 @@ class App extends Component {
                     <MuiThemeProvider theme={muiTheme}>
                         <OldMuiThemeProvider muiTheme={muiThemeLegacy}>
                             <LoadingProvider>
-                                <React.Fragment>
-                                    {showHeader && <HeaderBar d2={d2} />}
+                                {showHeader && <HeaderBar d2={d2} />}
 
-                                    <div id="app" className="content">
-                                        <SnackbarProvider>
-                                            <Root d2={d2} appConfig={appConfig} />
-                                        </SnackbarProvider>
-                                    </div>
+                                <div id="app" className="content">
+                                    <SnackbarProvider>
+                                        <Root d2={d2} appConfig={appConfig} />
+                                    </SnackbarProvider>
+                                </div>
 
-                                    <Share visible={showShareButton} />
-                                </React.Fragment>
+                                <Share visible={showShareButton} />
                             </LoadingProvider>
                         </OldMuiThemeProvider>
                     </MuiThemeProvider>
