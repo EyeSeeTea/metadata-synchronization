@@ -4,10 +4,10 @@ context("Landing Page", () => {
     before(() => {
         cy.server();
         cy.fixture("app-config.json").then(json => cy.route("GET", "app-config.json", json));
-        cy.login("admin");
     });
 
     beforeEach(() => {
+        cy.login("admin");
         cy.visit("/#/");
     });
 
