@@ -85,7 +85,7 @@ class GeneralInfoForm extends React.Component {
                     floatingLabelText: i18n.t("Server name (*)"),
                     style: { width: "100%" },
                     changeEvent: "onBlur",
-                    "data-field": "name",
+                    "data-test": "name",
                 },
                 validators: [
                     {
@@ -104,7 +104,7 @@ class GeneralInfoForm extends React.Component {
                     floatingLabelText: i18n.t("Description"),
                     style: { width: "100%" },
                     changeEvent: "onBlur",
-                    "data-field": "description",
+                    "data-test": "description",
                 },
                 validators: [],
             },
@@ -116,7 +116,7 @@ class GeneralInfoForm extends React.Component {
                     floatingLabelText: i18n.t("URL endpoint (*)"),
                     style: { width: "100%" },
                     changeEvent: "onBlur",
-                    "data-field": "url",
+                    "data-test": "url",
                 },
                 validators: [
                     {
@@ -141,7 +141,7 @@ class GeneralInfoForm extends React.Component {
                     floatingLabelText: i18n.t("Username (*)"),
                     style: { width: "100%" },
                     changeEvent: "onBlur",
-                    "data-field": "username",
+                    "data-test": "username",
                 },
                 validators: [
                     {
@@ -162,7 +162,7 @@ class GeneralInfoForm extends React.Component {
                     changeEvent: "onBlur",
                     type: "password",
                     autoComplete: "new-password",
-                    "data-field": "password",
+                    "data-test": "password",
                 },
                 validators: [
                     {

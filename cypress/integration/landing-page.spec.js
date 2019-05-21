@@ -1,6 +1,6 @@
 import { dataTest } from "../support/utils";
 
-context("Landing Page", () => {
+context("Landing page", () => {
     before(() => {
         cy.server();
         cy.fixture("app-config.json").then(json => cy.route("GET", "app-config.json", json));
@@ -11,11 +11,11 @@ context("Landing Page", () => {
         cy.visit("/#/");
     });
 
-    it("Has page title", () => {
+    it("has expected page title", () => {
         cy.title().should("equal", "Metadata Synchronization");
     });
 
-    it("Render table with 7 pages of the application", () => {
+    it("renders a table with all pages of the application", () => {
         cy.get(dataTest("pages"))
             .should("have.length", 1)
             .should("be.visible");
@@ -29,27 +29,27 @@ context("Landing Page", () => {
         cy.contains("Notifications");
     });
 
-    it("Enter Instance Configurator Page", function() {
+    it("enters the Instance Configurator page", function() {
         cy.get(dataTest("page-instance-configurator")).click();
         cy.get(dataTest("page-header-title")).contains("Instances");
     });
 
-    it("Enter Organisation Units Synchronization Page", function() {
+    it("enters the Organisation Units Synchronization page", function() {
         cy.get(dataTest("page-sync/organisationUnits")).click();
         cy.get(dataTest("page-header-title")).contains("Organisation Units Synchronization");
     });
 
-    it("Enter Data Elements Synchronization Page", function() {
+    it("enter the Data Elements Synchronization page", function() {
         cy.get(dataTest("page-sync/dataElements")).click();
         cy.get(dataTest("page-header-title")).contains("Data Elements Synchronization");
     });
 
-    it("Enter Indicators Synchronization Page", function() {
+    it("enter the Indicators Synchronization page", function() {
         cy.get(dataTest("page-sync/indicators")).click();
         cy.get(dataTest("page-header-title")).contains("Indicators Synchronization");
     });
 
-    it("Enter Validation Rules Synchronization Page", function() {
+    it("enter the Validation Rules Synchronization page", function() {
         cy.get(dataTest("page-sync/validationRules")).click();
         cy.get(dataTest("page-header-title")).contains("Validation Rules Synchronization");
     });

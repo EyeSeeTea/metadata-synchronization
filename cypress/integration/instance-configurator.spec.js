@@ -11,11 +11,7 @@ context("Instance Configurator", function() {
         cy.visit("/#/instance-configurator");
     });
 
-    it("Page title is correct", function() {
-        cy.get(dataTest("page-header-title")).contains("Instances");
-    });
-
-    it("Open new instance page", function() {
+    it("opens a new instance page", function() {
         cy.get(dataTest("list-action-bar")).click();
         cy.get(dataTest("page-header-title")).contains("New Instance");
     });

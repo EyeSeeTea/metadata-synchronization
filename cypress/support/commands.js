@@ -9,7 +9,7 @@ if (!dhis2AuthEnvValue) {
     throw new Error("CYPRESS_DHIS2_AUTH=user1:pass1[,user2:pass2,...] not set");
 }
 
-export const dhis2Auth = _(dhis2AuthEnvValue)
+const dhis2Auth = _(dhis2AuthEnvValue)
     .split(",")
     .map(auth => auth.split(":"))
     .fromPairs()
@@ -46,13 +46,6 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
         onBeforeLoad: win => {
             win.fetch = null;
         },
-        ...options,
-    });
-});
-
-Cypress.Commands.overwrite("get", (originalFn, selector, options) => {
-    return originalFn(selector, {
-        timeout: 30000,
         ...options,
     });
 });
