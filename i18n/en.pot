@@ -5,13 +5,19 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2019-11-04T11:50:46.344Z\n"
-"PO-Revision-Date: 2019-11-04T11:50:46.344Z\n"
+"POT-Creation-Date: 2019-11-04T15:26:28.063Z\n"
+"PO-Revision-Date: 2019-11-04T15:26:28.063Z\n"
 
 msgid "Metadata Synchronization"
 msgstr ""
 
 msgid "Actions"
+msgstr ""
+
+msgid "Loading details..."
+msgstr ""
+
+msgid "No detail fields provided"
 msgstr ""
 
 msgid "There are {{total}} items selected in all pages."

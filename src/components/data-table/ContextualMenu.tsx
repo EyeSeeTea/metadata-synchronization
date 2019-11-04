@@ -11,6 +11,18 @@ const useStyles = makeStyles({
     root: {
         position: "fixed",
     },
+    item: {
+        paddingTop: "8px",
+        paddingBottom: "8px",
+    },
+    icon: {
+        paddingLeft: "6px",
+        paddingRight: "10px",
+    },
+    text: {
+        paddingLeft: "10px",
+        paddingRight: "15px",
+    },
 });
 
 export interface ContextualMenuProps {
@@ -45,15 +57,16 @@ export function ContextualMenu(props: ContextualMenuProps) {
         >
             {actions.map(action => (
                 <MenuItem
+                    className={classes.item}
                     key={action.name}
                     onClick={() => {
                         if (action.onClick) action.onClick(rows);
                         closeContextMenu();
                     }}
                 >
-                    <DetailsIcon style={{ marginRight: "10px" }} fontSize="small" />
+                    <DetailsIcon className={classes.icon} fontSize="small" />
 
-                    <Typography variant="inherit" noWrap>
+                    <Typography className={classes.text} variant="inherit" noWrap>
                         {action.text}
                     </Typography>
                 </MenuItem>

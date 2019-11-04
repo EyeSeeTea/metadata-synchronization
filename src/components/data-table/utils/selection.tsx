@@ -35,7 +35,7 @@ export function getActionRows(row: TableObject, rows: TableObject[], selection: 
 
 export function parseActions(actionRows: TableObject[], availableActions: TableAction[]) {
     return _(availableActions)
-        .filter(actionRows.length > 1 ? "multiple" : "id")
+        .filter(actionRows.length > 1 ? "multiple" : "name")
         .filter(action => !action.isActive || action.isActive(actionRows))
         .value();
 }

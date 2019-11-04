@@ -1,10 +1,9 @@
 import React, { useState, ReactNode } from "react";
-import _ from "lodash";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 
 import DataTable, { DataTableProps } from "./DataTable";
 //import { cleanObjects } from "./utils/sorting";
-import { TableObject, TablePagination } from "./types";
+import { TableObject, ObjectsTableDetailField } from "./types";
 import { DetailsBox } from "./DetailsBox";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -21,9 +20,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export interface ObjectsTableProps extends DataTableProps {
-    pagination?: TablePagination; // Uncontrolled
-    initialPagination?: TablePagination;
-    onChangePagination?(pagination: TablePagination): void;
+    detailFields?: ObjectsTableDetailField[];
     initialSearch?: string;
     onChangeSearch?(search: string): void;
     onButtonClick?: Function;
@@ -34,18 +31,36 @@ export interface ObjectsTableProps extends DataTableProps {
 }
 
 export default function ObjectsTable(props: ObjectsTableProps) {
+    const { detailFields = [], actions = [], ...rest } = props;
     const classes = useStyles();
 
-    // Details
-    //@ts-ignore
-    const [openDetailsPane, setOpenDetailsPane] = useState(false);
-    //@ts-ignore
     const [detailsPaneObject, setDetailsPaneObject] = useState<TableObject | null>(null);
+
+    const handleDetailsBoxClose = () => {
+        setDetailsPaneObject(null);
+    };
+
+    const objectsTableActions = actions.map(action => ({
+        ...action,
+        onClick:
+            action.name === "details"
+                ? (rows: TableObject[]) => {
+                      setDetailsPaneObject(rows[0]);
+                      if (action.onClick) action.onClick(rows);
+                  }
+                : action.onClick,
+    }));
 
     return (
         <div className={classes.root}>
-            <DataTable rows={props.rows} columns={props.columns}>
-                <DetailsBox />
+            <DataTable {...rest} actions={objectsTableActions}>
+                {detailsPaneObject && (
+                    <DetailsBox
+                        detailFields={detailFields}
+                        data={detailsPaneObject}
+                        onClose={handleDetailsBoxClose}
+                    />
+                )}
             </DataTable>
         </div>
     );

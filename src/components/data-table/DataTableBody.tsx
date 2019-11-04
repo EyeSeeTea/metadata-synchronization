@@ -10,6 +10,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import i18n from "@dhis2/d2-i18n";
 
 import { isEventCtrlClick, updateSelection } from "./utils/selection";
+import { formatRowValue } from "./utils/formatting";
 import { TableObject, TableColumn } from "./types";
 
 const useStyles = makeStyles({
@@ -96,7 +97,7 @@ export function DataTableBody(props: DataTableBodyProps) {
                                 padding="none"
                                 align="left"
                             >
-                                {row[column.name]}
+                                {formatRowValue(column, row)}
                             </TableCell>
                         ))}
                         <TableCell

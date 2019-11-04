@@ -11,8 +11,7 @@ export interface TableColumn {
     name: string;
     text: string;
     sortable: boolean;
-    getValue?: Function;
-    contents?: HTMLElement | null;
+    getValue?(row: TableObject, defaultValue: ReactNode): ReactNode;
 }
 
 export interface TableAction {
@@ -44,3 +43,5 @@ export interface TableNotification {
     link: string;
     newSelection: string[];
 }
+
+export type ObjectsTableDetailField = Omit<TableColumn, "sortable">;
