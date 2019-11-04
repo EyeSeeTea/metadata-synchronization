@@ -20,7 +20,7 @@ export interface TableAction {
     text: string;
     icon?: ReactNode;
     multiple?: boolean;
-    isPrimary?: boolean;
+    primary?: boolean;
     onClick?(rows: TableObject[]): void;
     isActive?: Function;
 }
@@ -35,4 +35,12 @@ export interface TablePagination {
     pageSize: number;
     total: number;
     page: number;
+}
+
+export type TableSelectionKind = "all" | "hidden" | "none";
+
+export interface TableNotification {
+    message: string;
+    link: string;
+    newSelection: string[];
 }

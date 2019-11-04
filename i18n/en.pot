@@ -5,10 +5,30 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2019-10-24T13:56:46.666Z\n"
-"PO-Revision-Date: 2019-10-24T13:56:46.666Z\n"
+"POT-Creation-Date: 2019-11-04T11:50:46.344Z\n"
+"PO-Revision-Date: 2019-11-04T11:50:46.344Z\n"
 
 msgid "Metadata Synchronization"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "There are {{total}} items selected in all pages."
+msgstr ""
+
+msgid "Clear selection"
+msgstr ""
+
+msgid "There are {{count}} items selected ({{invisible}} on other pages)."
+msgid_plural "There are {{count}} items selected ({{invisible}} on other pages)."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "All {{total}} items on this page are selected."
+msgstr ""
+
+msgid "Select all {{total}} items in all pages"
 msgstr ""
 
 msgid "<No value>"
