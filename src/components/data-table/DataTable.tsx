@@ -19,6 +19,10 @@ const useStyles = makeStyles((theme: Theme) =>
         root: {
             width: "100%",
         },
+        toolbar: {
+            paddingLeft: 0,
+            paddingRight: 0,
+        },
         paper: {
             flex: "1 1 0%",
             display: "flex",
@@ -137,7 +141,7 @@ export default function DataTable(props: DataTableProps) {
 
     return (
         <div className={classes.root}>
-            <Toolbar>
+            <Toolbar className={classes.toolbar}>
                 {filterComponents}
                 <div className={classes.tablePagination}>
                     <DataTablePagination

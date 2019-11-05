@@ -1,4 +1,5 @@
 import React, { useState, ReactNode, MouseEvent } from "react";
+import _ from "lodash";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import DetailsIcon from "@material-ui/icons/Details";
 
@@ -6,6 +7,8 @@ import DataTable, { DataTableProps } from "./DataTable";
 import { DetailsBox } from "./DetailsBox";
 import { TableObject, ObjectsTableDetailField } from "./types";
 import { ActionButton } from "./ActionButton";
+import { SearchBox } from "d2-ui-components";
+import { filterObjects } from "./utils/filtering";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -17,6 +20,10 @@ const useStyles = makeStyles((theme: Theme) =>
         title: {
             flex: "1 1 auto",
         },
+        searchBox: {
+            maxWidth: "350px",
+            width: "33%",
+        },
     })
 );
 
@@ -26,22 +33,32 @@ export interface ObjectsTableProps extends DataTableProps {
     onChangeSearch?(search: string): void;
     onButtonClick?(event: MouseEvent<unknown>): void;
     buttonLabel?: ReactNode;
-    customFilters?: ReactNode;
-    hideSearchBox?: boolean;
-    forceSelectionColumn?: boolean;
+    searchBoxLabel?: string;
 }
 
 export default function ObjectsTable(props: ObjectsTableProps) {
-    const { detailFields = [], actions = [], onButtonClick, buttonLabel, ...rest } = props;
+    const {
+        rows: parentRows,
+        detailFields = [],
+        actions: parentActions = [],
+        filterComponents: parentFilterComponents,
+        onButtonClick,
+        buttonLabel,
+        initialSearch,
+        searchBoxLabel,
+        onChangeSearch = () => {},
+        ...rest
+    } = props;
     const classes = useStyles();
 
     const [detailsPaneObject, setDetailsPaneObject] = useState<TableObject | null>(null);
+    const [searchValue, setSearchValue] = useState(initialSearch);
 
     const handleDetailsBoxClose = () => {
         setDetailsPaneObject(null);
     };
 
-    const objectsTableActions = actions.map(action => ({
+    const actions = parentActions.map(action => ({
         ...action,
         icon: action.name === "details" && !action.icon ? <DetailsIcon /> : action.icon,
         onClick:
@@ -53,9 +70,28 @@ export default function ObjectsTable(props: ObjectsTableProps) {
                 : action.onClick,
     }));
 
+    const handleSearchChange = (newSearch: string) => {
+        setSearchValue(newSearch);
+        onChangeSearch(newSearch);
+    };
+
+    const filterComponents = _.isNull(searchBoxLabel)
+        ? parentFilterComponents
+        : [
+              <div className={classes.searchBox}>
+                  <SearchBox
+                      hintText={searchBoxLabel || "Search items"}
+                      onChange={handleSearchChange}
+                  />
+              </div>,
+              parentFilterComponents,
+          ];
+
+    const rows = searchValue ? filterObjects(parentRows, searchValue) : parentRows;
+
     return (
         <div className={classes.root}>
-            <DataTable {...rest} actions={objectsTableActions}>
+            <DataTable rows={rows} actions={actions} filterComponents={filterComponents} {...rest}>
                 {detailsPaneObject && (
                     <DetailsBox
                         detailFields={detailFields}
