@@ -2,9 +2,9 @@ import { MouseEvent } from "react";
 import _ from "lodash";
 import i18n from "@dhis2/d2-i18n";
 
-import { TableObject, TableAction, TablePagination, TableNotification } from "../types";
+import { ReferenceObject, TableAction, TablePagination, TableNotification } from "../types";
 
-export function updateSelection(selected: string[], row: TableObject) {
+export function updateSelection<T extends ReferenceObject>(selected: string[], row: T) {
     let newSelected: string[] = [];
     const selectedIndex = selected.indexOf(row.id);
 
@@ -28,21 +28,26 @@ export function isEventCtrlClick(event: MouseEvent<unknown>) {
     return event && event.ctrlKey;
 }
 
-export function getActionRows(row: TableObject, rows: TableObject[], selection: string[]) {
+export function getActionRows<T extends ReferenceObject>(row: T, rows: T[], selection: string[]) {
     const rowInSelection = !!selection.find(id => row.id === id);
 
-    return rowInSelection ? _.compact(selection.map(id => _.find(rows, { id }))) : [row];
+    return rowInSelection
+        ? _.compact(selection.map(id => _.find(rows, { id } as T))) as T[]
+        : [row];
 }
 
-export function parseActions(actionRows: TableObject[], availableActions: TableAction[]) {
+export function parseActions<T extends ReferenceObject>(
+    actionRows: T[],
+    availableActions: TableAction<T>[]
+) {
     return _(availableActions)
         .filter(actionRows.length > 1 ? "multiple" : "name")
         .filter(action => !action.isActive || action.isActive(actionRows))
         .value();
 }
 
-export function getSelectionMessages(
-    rows: TableObject[],
+export function getSelectionMessages<T extends ReferenceObject>(
+    rows: T[],
     selection: string[],
     pagination: TablePagination,
     ids: string[]

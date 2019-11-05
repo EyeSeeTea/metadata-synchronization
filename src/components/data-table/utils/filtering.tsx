@@ -1,11 +1,15 @@
 import _ from "lodash";
 import { TableObject } from "../types";
 
-export function filterObjects<T extends TableObject>(objects: T[], search: string) {
+export function filterObjects<T extends TableObject>(
+    objects: T[],
+    searchColumns: (keyof T)[],
+    searchValue: string
+) {
     return _.filter(objects, o =>
         _(o)
             .keys()
-            .filter(k => typeof o[k] === "string")
-            .some(k => o[k].toLowerCase().includes(search.toLowerCase()))
+            .filter(k => searchColumns.includes(k))
+            .some(k => o[k].toLowerCase().includes(searchValue.toLowerCase()))
     );
 }

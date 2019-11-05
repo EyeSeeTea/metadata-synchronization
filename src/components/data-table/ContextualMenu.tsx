@@ -4,7 +4,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Typography from "@material-ui/core/Typography";
 
-import { TableAction, TableObject } from "./types";
+import { TableAction, ReferenceObject } from "./types";
 
 const useStyles = makeStyles({
     root: {
@@ -25,20 +25,20 @@ const useStyles = makeStyles({
     },
 });
 
-export interface ContextualMenuProps {
+export interface ContextualMenuProps<T extends ReferenceObject> {
     isOpen: boolean;
-    rows: TableObject[];
+    rows: T[];
     positionLeft: number;
     positionTop: number;
     onClose(): void;
-    actions: TableAction[];
+    actions: TableAction<T>[];
 }
 
-export function ContextualMenu(props: ContextualMenuProps) {
+export function ContextualMenu<T extends ReferenceObject>(props: ContextualMenuProps<T>) {
     const classes = useStyles();
     const { isOpen, rows, positionLeft, positionTop, onClose, actions } = props;
 
-    const handleActionClick = (action: TableAction) => {
+    const handleActionClick = (action: TableAction<T>) => {
         return () => {
             if (rows.length > 0 && action.onClick) action.onClick(rows);
             onClose();

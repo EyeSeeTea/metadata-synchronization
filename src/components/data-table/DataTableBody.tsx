@@ -12,7 +12,7 @@ import i18n from "@dhis2/d2-i18n";
 
 import { isEventCtrlClick, updateSelection } from "./utils/selection";
 import { formatRowValue } from "./utils/formatting";
-import { TableObject, TableColumn, TableAction } from "./types";
+import { ReferenceObject, TableColumn, TableAction } from "./types";
 
 const useStyles = makeStyles({
     cell: {
@@ -21,17 +21,17 @@ const useStyles = makeStyles({
     },
 });
 
-export interface DataTableBodyProps<T extends TableObject> {
+export interface DataTableBodyProps<T extends ReferenceObject> {
     rows: T[];
     columns: TableColumn<T>[];
-    primaryAction?: TableAction;
+    primaryAction?: TableAction<T>;
     selected: string[];
     onChange?(newSelection: string[]): void;
-    openContextualMenu?(row: TableObject, positionLeft: number, positionTop: number): void;
+    openContextualMenu?(row: T, positionLeft: number, positionTop: number): void;
     enableMultipleAction?: boolean;
 }
 
-export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T>) {
+export function DataTableBody<T extends ReferenceObject>(props: DataTableBodyProps<T>) {
     const {
         rows,
         columns,
@@ -44,7 +44,7 @@ export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T
     const classes = useStyles();
     const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
-    const contextualAction = (row: TableObject, event: MouseEvent<unknown>) => {
+    const contextualAction = (row: T, event: MouseEvent<unknown>) => {
         event.stopPropagation();
         openContextualMenu(row, event.clientY, event.clientX);
     };
@@ -66,7 +66,7 @@ export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T
     return (
         <TableBody>
             {rows.map((row, index) => {
-                const isItemSelected = isSelected(row.name);
+                const isItemSelected = isSelected(row.id);
                 const labelId = `data-table-row-${index}`;
 
                 return (
@@ -76,7 +76,7 @@ export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T
                         onContextMenu={event => handleClick(event, row)}
                         role="checkbox"
                         tabIndex={-1}
-                        key={row.name}
+                        key={`table-row-${row.id}`}
                         selected={isItemSelected}
                     >
                         {enableMultipleAction && (

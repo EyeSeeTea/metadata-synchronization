@@ -4,7 +4,7 @@ import Paper from "@material-ui/core/Paper";
 import CloseIcon from "@material-ui/icons/Close";
 import i18n from "@dhis2/d2-i18n";
 
-import { TableObject, ObjectsTableDetailField } from "./types";
+import { ReferenceObject, ObjectsTableDetailField } from "./types";
 import { formatRowValue } from "./utils/formatting";
 
 const useStyles = makeStyles({
@@ -42,13 +42,13 @@ const useStyles = makeStyles({
     },
 });
 
-export interface DetailsBoxProps<T extends TableObject> {
+export interface DetailsBoxProps<T extends ReferenceObject> {
     details: ObjectsTableDetailField<T>[];
     data: T;
     onClose(): void;
 }
 
-export function DetailsBox<T extends TableObject>(props: DetailsBoxProps<T>) {
+export function DetailsBox<T extends ReferenceObject>(props: DetailsBoxProps<T>) {
     const classes = useStyles();
     const { details, data, onClose } = props;
 

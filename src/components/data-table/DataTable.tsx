@@ -17,6 +17,7 @@ import {
     TableNotification,
     TableInitialState,
     TableState,
+    ReferenceObject,
 } from "./types";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableBody } from "./DataTableBody";
@@ -52,10 +53,10 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export interface DataTableProps<T extends TableObject> {
+export interface DataTableProps<T extends ReferenceObject> {
     rows: T[];
     columns: TableColumn<T>[];
-    actions?: TableAction[];
+    actions?: TableAction<T>[];
     initialState?: TableInitialState<T>;
     forceSelectionColumn?: boolean;
     tableNotifications?: TableNotification[];
@@ -69,7 +70,9 @@ export interface DataTableProps<T extends TableObject> {
     onChange?(state: TableState<T>): void;
 }
 
-export default function DataTable<T extends TableObject = TableObject>(props: DataTableProps<T>) {
+export default function DataTable<T extends ReferenceObject = TableObject>(
+    props: DataTableProps<T>
+) {
     const classes = useStyles();
     const {
         rows,
@@ -120,8 +123,8 @@ export default function DataTable<T extends TableObject = TableObject>(props: Da
 
     // Contextual menu
     const [contextMenuTarget, setContextMenuTarget] = useState<number[] | null>(null);
-    const [contextMenuActions, setContextMenuActions] = useState<TableAction[]>([]);
-    const [contextMenuRows, setContextMenuRows] = useState<TableObject[]>([]);
+    const [contextMenuActions, setContextMenuActions] = useState<TableAction<T>[]>([]);
+    const [contextMenuRows, setContextMenuRows] = useState<T[]>([]);
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const ids = rowObjects.map(n => n.id);
@@ -150,11 +153,7 @@ export default function DataTable<T extends TableObject = TableObject>(props: Da
         onChange({ selection, pagination, sorting });
     };
 
-    const handleOpenContextualMenu = (
-        row: TableObject,
-        positionLeft: number,
-        positionTop: number
-    ) => {
+    const handleOpenContextualMenu = (row: T, positionLeft: number, positionTop: number) => {
         const actionRows = getActionRows(row, rows, selection);
         const actions = parseActions(actionRows, availableActions);
         if (actions.length > 0) {

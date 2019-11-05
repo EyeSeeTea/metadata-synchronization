@@ -2,13 +2,13 @@ import React, { useState, ReactNode, MouseEvent } from "react";
 import _ from "lodash";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import DetailsIcon from "@material-ui/icons/Details";
+import { SearchBox } from "d2-ui-components"; // TODO: Migrate when in d2-ui-components
 
 import DataTable, { DataTableProps } from "./DataTable";
 import { DetailsBox } from "./DetailsBox";
-import { TableObject, ObjectsTableDetailField } from "./types";
 import { ActionButton } from "./ActionButton";
-import { SearchBox } from "d2-ui-components";
 import { filterObjects } from "./utils/filtering";
+import { TableObject, ObjectsTableDetailField, ReferenceObject } from "./types";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -27,16 +27,17 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export interface ObjectsTableProps<T extends TableObject> extends DataTableProps<T> {
+export interface ObjectsTableProps<T extends ReferenceObject> extends DataTableProps<T> {
     details?: ObjectsTableDetailField<T>[];
     initialSearch?: string;
     onChangeSearch?(search: string): void;
     searchBoxLabel?: string;
+    searchBoxColumns?: (keyof T)[];
     onActionButtonClick?(event: MouseEvent<unknown>): void;
     actionButtonLabel?: ReactNode;
 }
 
-export default function ObjectsTable<T extends TableObject = TableObject>(
+export default function ObjectsTable<T extends ReferenceObject = TableObject>(
     props: ObjectsTableProps<T>
 ) {
     const {
@@ -44,6 +45,7 @@ export default function ObjectsTable<T extends TableObject = TableObject>(
         initialSearch,
         onChangeSearch = _.noop,
         searchBoxLabel,
+        searchBoxColumns,
         onActionButtonClick,
         actionButtonLabel,
         rows: parentRows,
@@ -78,7 +80,7 @@ export default function ObjectsTable<T extends TableObject = TableObject>(
         onChangeSearch(newSearch);
     };
 
-    const filterComponents = !_.isNull(searchBoxLabel)
+    const filterComponents = searchBoxColumns
         ? [
               <div key={"objects-table-search-box"} className={classes.searchBox}>
                   <SearchBox
@@ -102,7 +104,10 @@ export default function ObjectsTable<T extends TableObject = TableObject>(
           ]
         : parentSideComponents;
 
-    const rows = searchValue ? filterObjects(parentRows, searchValue) : parentRows;
+    const rows =
+        searchBoxColumns && searchValue
+            ? filterObjects(parentRows, searchBoxColumns, searchValue)
+            : parentRows;
 
     return (
         <div className={classes.root}>

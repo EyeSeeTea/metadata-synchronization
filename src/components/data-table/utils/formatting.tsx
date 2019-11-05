@@ -1,7 +1,7 @@
 import React, { ReactNode } from "react";
 import moment from "moment";
 
-import { TableColumn, TableObject } from "../types";
+import { TableColumn, ReferenceObject } from "../types";
 
 const urlRegex = /https?:\/\/[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#()?&//=]*)/;
 
@@ -36,7 +36,7 @@ function defaultFormatter(value: any): ReactNode {
     }
 }
 
-export function formatRowValue<T extends TableObject>(
+export function formatRowValue<T extends ReferenceObject>(
     column: Pick<TableColumn<T>, "name" | "getValue">,
     row: T
 ): ReactNode {

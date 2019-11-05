@@ -9,7 +9,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ViewColumnIcon from "@material-ui/icons/ViewColumn";
 
-import { TableSorting, TableColumn, TableNotification, TableObject } from "./types";
+import { TableSorting, TableColumn, TableNotification, ReferenceObject } from "./types";
 import IconButton from "@material-ui/core/IconButton";
 import { DataTableNotifications } from "./DataTableNotifications";
 
@@ -31,7 +31,7 @@ const useStyles = makeStyles({
     },
 });
 
-export interface DataTableHeaderProps<T extends TableObject> {
+export interface DataTableHeaderProps<T extends ReferenceObject> {
     columns: TableColumn<T>[];
     sorting: TableSorting<T>;
     onChange?(newSorting: TableSorting<T>): void;
@@ -42,7 +42,7 @@ export interface DataTableHeaderProps<T extends TableObject> {
     enableMultipleAction?: boolean;
 }
 
-export function DataTableHeader<T extends TableObject>(props: DataTableHeaderProps<T>) {
+export function DataTableHeader<T extends ReferenceObject>(props: DataTableHeaderProps<T>) {
     const classes = useStyles();
     const {
         onSelectAllClick,

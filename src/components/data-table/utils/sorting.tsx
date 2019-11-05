@@ -1,8 +1,8 @@
 import _ from "lodash";
 
-import { TableObject, TablePagination, TableSorting } from "../types";
+import { ReferenceObject, TablePagination, TableSorting } from "../types";
 
-export function sortObjects<T extends TableObject>(
+export function sortObjects<T extends ReferenceObject>(
     rows: T[],
     tablePagination: TablePagination,
     tableSorting: TableSorting<T>
