@@ -54,8 +54,6 @@ export interface DataTableProps {
     rows: TableObject[];
     columns: TableColumn[];
     actions?: TableAction[];
-    forceRowActionButton?: boolean;
-    forceRowCheckboxes?: boolean;
     initialSorting?: TableSorting;
     sorting?: TableSorting; // Uncontrolled
     initialSelection?: string[];

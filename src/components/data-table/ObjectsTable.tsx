@@ -80,6 +80,7 @@ export default function ObjectsTable(props: ObjectsTableProps) {
         : [
               <div key={"objects-table-search-box"} className={classes.searchBox}>
                   <SearchBox
+                      value={searchValue}
                       hintText={searchBoxLabel || "Search items"}
                       onChange={handleSearchChange}
                   />
