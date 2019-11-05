@@ -40,12 +40,17 @@ export function DataTableNotifications(props: DataTableNotificationsProps) {
             {messages.map((notification, index) => (
                 <div className={classes.notification} key={"notification-" + index}>
                     <span className={classes.notificationText}>{notification.message}</span>
-                    <span
-                        className={classes.notificationLink}
-                        onClick={() => updateSelection(notification.newSelection)}
-                    >
-                        {notification.link}
-                    </span>
+                    {notification.link && (
+                        <span
+                            className={classes.notificationLink}
+                            onClick={() =>
+                                notification.newSelection &&
+                                updateSelection(notification.newSelection)
+                            }
+                        >
+                            {notification.link}
+                        </span>
+                    )}
                 </div>
             ))}
         </div>

@@ -8,7 +8,14 @@ import Paper from "@material-ui/core/Paper";
 
 import { DataTableHeader } from "./DataTableHeader";
 import { ContextualMenu } from "./ContextualMenu";
-import { TableObject, TablePagination, TableSorting, TableColumn, TableAction } from "./types";
+import {
+    TableObject,
+    TablePagination,
+    TableSorting,
+    TableColumn,
+    TableAction,
+    TableNotification,
+} from "./types";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableBody } from "./DataTableBody";
 import { sortObjects } from "./utils/sorting";
@@ -58,6 +65,7 @@ export interface DataTableProps {
     onChange?(selection: string[], sorting: TableSorting, pagination: TablePagination): void;
     idsForSelectInAllPages?: string[]; // Enables/disables selection in all pages
     forceSelectionColumn?: boolean;
+    tableNotifications?: TableNotification[];
     filterComponents?: ReactNode; // Portal to the navigation toolbar
     children?: ReactNode; // Portal to right-most of the Data Table
 }
@@ -76,6 +84,7 @@ export default function DataTable(props: DataTableProps) {
         initialPagination = { pageSize: 10, total: rows.length, page: 1, pageSizeOptions: [10] },
         pagination: uncontrolledPagination,
         forceSelectionColumn,
+        tableNotifications = [],
         filterComponents,
         children,
     } = props;
@@ -175,7 +184,7 @@ export default function DataTable(props: DataTableProps) {
                             onChange={handleSortingChange}
                             onSelectAllClick={handleSelectAllClick}
                             allSelected={allSelected}
-                            selectionMessages={selectionMessages}
+                            tableNotifications={[...tableNotifications, ...selectionMessages]}
                             handleSelectionChange={handleSelectionChange}
                             enableMultipleAction={enableMultipleAction}
                         />

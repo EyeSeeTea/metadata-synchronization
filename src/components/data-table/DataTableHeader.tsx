@@ -35,7 +35,7 @@ export interface DataTableHeaderProps {
     sorting: TableSorting;
     onChange?(newSorting: TableSorting): void;
     allSelected?: boolean;
-    selectionMessages?: TableNotification[];
+    tableNotifications?: TableNotification[];
     handleSelectionChange?(newSelection: string[]): void;
     onSelectAllClick?: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void;
     enableMultipleAction?: boolean;
@@ -49,7 +49,7 @@ export function DataTableHeader(props: DataTableHeaderProps) {
         allSelected = false,
         columns,
         onChange = () => {},
-        selectionMessages = [],
+        tableNotifications = [],
         handleSelectionChange,
         enableMultipleAction,
     } = props;
@@ -102,11 +102,11 @@ export function DataTableHeader(props: DataTableHeaderProps) {
                     </IconButton>
                 </TableCell>
             </TableRow>
-            {selectionMessages.length > 0 && (
+            {tableNotifications.length > 0 && (
                 <TableRow>
                     <TableCell padding="none" colSpan={columns.length + 2}>
                         <DataTableNotifications
-                            messages={selectionMessages}
+                            messages={tableNotifications}
                             updateSelection={handleSelectionChange}
                         />
                     </TableCell>

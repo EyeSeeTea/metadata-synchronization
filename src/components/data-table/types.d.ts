@@ -39,9 +39,9 @@ export interface TablePagination {
 export type TableSelectionKind = "all" | "hidden" | "none";
 
 export interface TableNotification {
-    message: string;
-    link: string;
-    newSelection: string[];
+    message: ReactNode;
+    link?: string; // TODO: This shall be renamed as actionLabel or something similar
+    newSelection?: string[]; // TODO: This shall be refactored to be a generic onClick
 }
 
 export type ObjectsTableDetailField = Omit<TableColumn, "sortable">;
