@@ -58,7 +58,7 @@ export function ContextualMenu(props: ContextualMenuProps) {
                     className={classes.item}
                     key={action.name}
                     onClick={() => {
-                        if (action.onClick) action.onClick(rows);
+                        if (rows.length > 0 && action.onClick) action.onClick(rows);
                         onClose();
                     }}
                 >
