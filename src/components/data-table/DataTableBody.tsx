@@ -55,7 +55,7 @@ export function DataTableBody(props: DataTableBodyProps) {
         if (event.type === "contextmenu") {
             event.preventDefault();
             contextualAction(row, event);
-        } else if (isEventCtrlClick(event) || isCheckboxClick) {
+        } else if (enableMultipleAction && (isEventCtrlClick(event) || isCheckboxClick)) {
             onChange(updateSelection(selected, row));
         } else if (primaryAction && primaryAction.onClick) {
             primaryAction.onClick([row]);
