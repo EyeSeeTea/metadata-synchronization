@@ -1,10 +1,10 @@
 import React, { useState, ReactNode } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import DetailsIcon from "@material-ui/icons/Details";
 
 import DataTable, { DataTableProps } from "./DataTable";
-//import { cleanObjects } from "./utils/sorting";
-import { TableObject, ObjectsTableDetailField } from "./types";
 import { DetailsBox } from "./DetailsBox";
+import { TableObject, ObjectsTableDetailField } from "./types";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -42,6 +42,7 @@ export default function ObjectsTable(props: ObjectsTableProps) {
 
     const objectsTableActions = actions.map(action => ({
         ...action,
+        icon: action.name === "details" && !action.icon ? <DetailsIcon /> : action.icon,
         onClick:
             action.name === "details"
                 ? (rows: TableObject[]) => {

@@ -3,7 +3,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Typography from "@material-ui/core/Typography";
-import DetailsIcon from "@material-ui/icons/Details";
 
 import { TableAction, TableObject } from "./types";
 
@@ -34,10 +33,8 @@ export interface ContextualMenuProps {
     actions: TableAction[];
 }
 
-//TODO: Icon
 export function ContextualMenu(props: ContextualMenuProps) {
     const classes = useStyles();
-    //@ts-ignore
     const { isOpen, rows, positionLeft, positionTop, closeContextMenu, actions } = props;
 
     return (
@@ -64,7 +61,7 @@ export function ContextualMenu(props: ContextualMenuProps) {
                         closeContextMenu();
                     }}
                 >
-                    <DetailsIcon className={classes.icon} fontSize="small" />
+                    <div className={classes.icon}>{action.icon}</div>
 
                     <Typography className={classes.text} variant="inherit" noWrap>
                         {action.text}
