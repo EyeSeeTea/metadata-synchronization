@@ -145,7 +145,11 @@ export default function DataTable(props: DataTableProps) {
                 {filterComponents}
                 <div className={classes.tablePagination}>
                     <DataTablePagination
-                        pagination={uncontrolledPagination ? uncontrolledPagination : pagination}
+                        pagination={
+                            uncontrolledPagination
+                                ? uncontrolledPagination
+                                : { ...pagination, total: rows.length }
+                        }
                         onChange={handlePaginationChange}
                     />
                 </div>

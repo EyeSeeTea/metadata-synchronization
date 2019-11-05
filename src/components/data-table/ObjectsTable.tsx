@@ -78,7 +78,7 @@ export default function ObjectsTable(props: ObjectsTableProps) {
     const filterComponents = _.isNull(searchBoxLabel)
         ? parentFilterComponents
         : [
-              <div className={classes.searchBox}>
+              <div key={"objects-table-search-box"} className={classes.searchBox}>
                   <SearchBox
                       hintText={searchBoxLabel || "Search items"}
                       onChange={handleSearchChange}
