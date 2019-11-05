@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { TableObject } from "../types";
 
-export function filterObjects(objects: TableObject[], search: string) {
+export function filterObjects<T extends TableObject>(objects: T[], search: string) {
     return _.filter(objects, o =>
         _(o)
             .keys()

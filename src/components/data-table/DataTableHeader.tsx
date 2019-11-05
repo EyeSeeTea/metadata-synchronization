@@ -9,7 +9,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ViewColumnIcon from "@material-ui/icons/ViewColumn";
 
-import { TableSorting, TableColumn, TableNotification } from "./types";
+import { TableSorting, TableColumn, TableNotification, TableObject } from "./types";
 import IconButton from "@material-ui/core/IconButton";
 import { DataTableNotifications } from "./DataTableNotifications";
 
@@ -31,10 +31,10 @@ const useStyles = makeStyles({
     },
 });
 
-export interface DataTableHeaderProps {
-    columns: TableColumn[];
-    sorting: TableSorting;
-    onChange?(newSorting: TableSorting): void;
+export interface DataTableHeaderProps<T extends TableObject> {
+    columns: TableColumn<T>[];
+    sorting: TableSorting<T>;
+    onChange?(newSorting: TableSorting<T>): void;
     allSelected?: boolean;
     tableNotifications?: TableNotification[];
     handleSelectionChange?(newSelection: string[]): void;
@@ -42,7 +42,7 @@ export interface DataTableHeaderProps {
     enableMultipleAction?: boolean;
 }
 
-export function DataTableHeader(props: DataTableHeaderProps) {
+export function DataTableHeader<T extends TableObject>(props: DataTableHeaderProps<T>) {
     const classes = useStyles();
     const {
         onSelectAllClick,
@@ -57,7 +57,7 @@ export function DataTableHeader(props: DataTableHeaderProps) {
 
     const { orderBy, order } = sorting;
 
-    const createSortHandler = (property: string) => (_event: React.MouseEvent<unknown>) => {
+    const createSortHandler = (property: keyof T) => (_event: React.MouseEvent<unknown>) => {
         const isDesc = orderBy === property && order === "desc";
         onChange({ orderBy: property, order: isDesc ? "asc" : "desc" });
     };
@@ -77,7 +77,7 @@ export function DataTableHeader(props: DataTableHeaderProps) {
                 {columns.map(column => (
                     <TableCell
                         className={classes.cell}
-                        key={column.name}
+                        key={`data-table-cell-${column.name}`}
                         align="left"
                         padding={enableMultipleAction ? "none" : undefined}
                         sortDirection={orderBy === column.name ? order : false}

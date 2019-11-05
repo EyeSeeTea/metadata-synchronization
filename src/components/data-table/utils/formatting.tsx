@@ -36,9 +36,9 @@ function defaultFormatter(value: any): ReactNode {
     }
 }
 
-export function formatRowValue(
-    column: Pick<TableColumn, "name" | "getValue">,
-    row: TableObject
+export function formatRowValue<T extends TableObject>(
+    column: Pick<TableColumn<T>, "name" | "getValue">,
+    row: T
 ): ReactNode {
     const defaultValue = defaultFormatter(row[column.name]);
     return column.getValue ? column.getValue(row, defaultValue) : defaultValue;

@@ -27,31 +27,34 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export interface ObjectsTableProps extends DataTableProps {
-    detailFields?: ObjectsTableDetailField[];
+export interface ObjectsTableProps<T extends TableObject> extends DataTableProps<T> {
+    details?: ObjectsTableDetailField<T>[];
     initialSearch?: string;
     onChangeSearch?(search: string): void;
-    onButtonClick?(event: MouseEvent<unknown>): void;
-    buttonLabel?: ReactNode;
     searchBoxLabel?: string;
+    onActionButtonClick?(event: MouseEvent<unknown>): void;
+    actionButtonLabel?: ReactNode;
 }
 
-export default function ObjectsTable(props: ObjectsTableProps) {
+export default function ObjectsTable<T extends TableObject = TableObject>(
+    props: ObjectsTableProps<T>
+) {
     const {
+        details = [],
+        initialSearch,
+        onChangeSearch = _.noop,
+        searchBoxLabel,
+        onActionButtonClick,
+        actionButtonLabel,
         rows: parentRows,
-        detailFields = [],
         actions: parentActions = [],
         filterComponents: parentFilterComponents,
-        onButtonClick,
-        buttonLabel,
-        initialSearch,
-        searchBoxLabel,
-        onChangeSearch = _.noop,
+        sideComponents: parentSideComponents,
         ...rest
     } = props;
     const classes = useStyles();
 
-    const [detailsPaneObject, setDetailsPaneObject] = useState<TableObject | null>(null);
+    const [detailsPaneObject, setDetailsPaneObject] = useState<T | null>(null);
     const [searchValue, setSearchValue] = useState(initialSearch);
 
     const handleDetailsBoxClose = () => {
@@ -63,7 +66,7 @@ export default function ObjectsTable(props: ObjectsTableProps) {
         icon: action.name === "details" && !action.icon ? <DetailsIcon /> : action.icon,
         onClick:
             action.name === "details"
-                ? (rows: TableObject[]) => {
+                ? (rows: T[]) => {
                       setDetailsPaneObject(rows[0]);
                       if (action.onClick) action.onClick(rows);
                   }
@@ -75,9 +78,8 @@ export default function ObjectsTable(props: ObjectsTableProps) {
         onChangeSearch(newSearch);
     };
 
-    const filterComponents = _.isNull(searchBoxLabel)
-        ? parentFilterComponents
-        : [
+    const filterComponents = !_.isNull(searchBoxLabel)
+        ? [
               <div key={"objects-table-search-box"} className={classes.searchBox}>
                   <SearchBox
                       value={searchValue}
@@ -86,22 +88,34 @@ export default function ObjectsTable(props: ObjectsTableProps) {
                   />
               </div>,
               parentFilterComponents,
-          ];
+          ]
+        : parentFilterComponents;
+
+    const sideComponents = detailsPaneObject
+        ? [
+              <DetailsBox
+                  details={details}
+                  data={detailsPaneObject}
+                  onClose={handleDetailsBoxClose}
+              />,
+              parentSideComponents,
+          ]
+        : parentSideComponents;
 
     const rows = searchValue ? filterObjects(parentRows, searchValue) : parentRows;
 
     return (
         <div className={classes.root}>
-            <DataTable rows={rows} actions={actions} filterComponents={filterComponents} {...rest}>
-                {detailsPaneObject && (
-                    <DetailsBox
-                        detailFields={detailFields}
-                        data={detailsPaneObject}
-                        onClose={handleDetailsBoxClose}
-                    />
-                )}
-            </DataTable>
-            {onButtonClick && <ActionButton onClick={onButtonClick} label={buttonLabel} />}
+            <DataTable
+                rows={rows}
+                actions={actions}
+                filterComponents={filterComponents}
+                sideComponents={sideComponents}
+                {...rest}
+            />
+            {onActionButtonClick && (
+                <ActionButton onClick={onActionButtonClick} label={actionButtonLabel} />
+            )}
         </div>
     );
 }

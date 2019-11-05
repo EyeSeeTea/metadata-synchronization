@@ -43,7 +43,7 @@ export function ContextualMenu(props: ContextualMenuProps) {
             if (rows.length > 0 && action.onClick) action.onClick(rows);
             onClose();
         };
-    }
+    };
 
     return (
         <Menu

@@ -42,30 +42,30 @@ const useStyles = makeStyles({
     },
 });
 
-export interface DetailsBoxProps {
-    detailFields: ObjectsTableDetailField[];
-    data: TableObject;
+export interface DetailsBoxProps<T extends TableObject> {
+    details: ObjectsTableDetailField<T>[];
+    data: T;
     onClose(): void;
 }
 
-export function DetailsBox(props: DetailsBoxProps) {
+export function DetailsBox<T extends TableObject>(props: DetailsBoxProps<T>) {
     const classes = useStyles();
-    const { detailFields, data, onClose } = props;
+    const { details, data, onClose } = props;
 
     const getDetailBoxContent = () => {
         if (!data) {
             return <div>{i18n.t("Loading details...")}</div>;
-        } else if (detailFields.length === 0) {
+        } else if (details.length === 0) {
             return <div>{i18n.t("No detail fields provided")}</div>;
         }
 
-        return detailFields.map(field => {
+        return details.map(field => {
             const fieldName = field.name;
             const valueToRender = formatRowValue(field, data);
             if (valueToRender === null) return null;
 
             return (
-                <div key={fieldName} className={classes.field}>
+                <div key={`details-box-${fieldName}`} className={classes.field}>
                     <div className={`${classes.fieldValue} ${classes.label}`}>{field.text}</div>
 
                     <div className={classes.fieldValue}>{valueToRender || "-"}</div>

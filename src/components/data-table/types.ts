@@ -1,16 +1,14 @@
 import { ReactNode } from "react";
 
-export type Order = "asc" | "desc";
-
 export interface TableObject {
     id: string;
     [key: string]: any;
 }
 
-export interface TableColumn {
-    name: string;
+export interface TableColumn<T extends TableObject> {
+    name: keyof T;
     text: string;
-    sortable: boolean;
+    sortable?: boolean;
     getValue?(row: TableObject, defaultValue: ReactNode): ReactNode;
 }
 
@@ -21,11 +19,11 @@ export interface TableAction {
     multiple?: boolean;
     primary?: boolean;
     onClick?(rows: TableObject[]): void;
-    isActive?: Function;
+    isActive?(rows: TableObject[]): boolean;
 }
 
-export interface TableSorting {
-    orderBy: string;
+export interface TableSorting<T extends TableObject> {
+    orderBy: keyof T;
     order: "asc" | "desc";
 }
 
@@ -36,12 +34,24 @@ export interface TablePagination {
     page: number;
 }
 
-export type TableSelectionKind = "all" | "hidden" | "none";
+type Optional<T, K> = { [P in Extract<keyof T, K>]?: T[P] };
 
-export interface TableNotification {
-    message: ReactNode;
-    link?: string; // TODO: This shall be renamed as actionLabel or something similar
-    newSelection?: string[]; // TODO: This shall be refactored to be a generic onClick
+export interface TableState<T extends TableObject> {
+    selection: string[];
+    sorting: TableSorting<T>;
+    pagination: TablePagination;
 }
 
-export type ObjectsTableDetailField = Omit<TableColumn, "sortable">;
+export type TableInitialState<T extends TableObject> = Optional<
+    TableState<T>,
+    "sorting" | "selection" | "pagination"
+>;
+
+export interface TableNotification {
+    // These props should be refactored and included everything into (...args) => ReactNode
+    message: ReactNode;
+    link?: string;
+    newSelection?: string[];
+}
+
+export type ObjectsTableDetailField<T extends TableObject> = Omit<TableColumn<T>, "sortable">;

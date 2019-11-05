@@ -15,6 +15,8 @@ import {
     TableColumn,
     TableAction,
     TableNotification,
+    TableInitialState,
+    TableState,
 } from "./types";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableBody } from "./DataTableBody";
@@ -50,53 +52,62 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export interface DataTableProps {
-    rows: TableObject[];
-    columns: TableColumn[];
+export interface DataTableProps<T extends TableObject> {
+    rows: T[];
+    columns: TableColumn<T>[];
     actions?: TableAction[];
-    initialSorting?: TableSorting;
-    sorting?: TableSorting; // Uncontrolled
-    initialSelection?: string[];
-    selection?: string[]; // Uncontrolled
-    initialPagination?: TablePagination;
-    pagination?: TablePagination; // Uncontrolled
-    onChange?(selection: string[], sorting: TableSorting, pagination: TablePagination): void;
-    idsForSelectInAllPages?: string[] | null; // Enables selection in all pages (force disabled with null)
+    initialState?: TableInitialState<T>;
     forceSelectionColumn?: boolean;
     tableNotifications?: TableNotification[];
     filterComponents?: ReactNode; // Portal to the navigation toolbar
-    children?: ReactNode; // Portal to right-most of the Data Table
+    sideComponents?: ReactNode; // Portal to right-most of the Data Table
+    ids?: string[]; // Enables selection in all pages (disabled with [])
+    // State controlled by parent
+    sorting?: TableSorting<T>;
+    selection?: string[];
+    pagination?: TablePagination;
+    onChange?(state: TableState<T>): void;
 }
 
-export default function DataTable(props: DataTableProps) {
+export default function DataTable<T extends TableObject = TableObject>(props: DataTableProps<T>) {
     const classes = useStyles();
     const {
         rows,
         columns,
         actions: availableActions = [],
-        initialSorting = { orderBy: columns[0].name, order: "asc" },
-        sorting: uncontrolledSorting,
-        initialSelection = [],
-        selection: uncontrolledSelection,
-        idsForSelectInAllPages = rows.map(row => row.id),
-        initialPagination = { pageSize: 10, total: rows.length, page: 1, pageSizeOptions: [10] },
-        pagination: uncontrolledPagination,
+        initialState = {},
         forceSelectionColumn,
         tableNotifications = [],
         filterComponents,
-        children,
+        sideComponents,
+        ids = rows.map(row => row.id),
+        sorting: controlledSorting,
+        selection: controlledSelection,
+        pagination: controlledPagination,
+        onChange = _.noop,
     } = props;
 
-    const [sorting, updateSorting] = useState(initialSorting as TableSorting);
-    const [selection, updateSelection] = useState(initialSelection);
-    const [pagination, updatePagination] = useState(initialPagination);
+    const initialSorting = initialState.sorting || {
+        orderBy: columns[0].name,
+        order: "asc" as const,
+    };
+    const initialSelection = initialState.selection || [];
+    const initialPagination = initialState.pagination || {
+        pageSize: 10,
+        total: rows.length,
+        page: 1,
+        pageSizeOptions: [10],
+    };
 
-    const rowObjects = sortObjects(
-        rows,
-        uncontrolledPagination ? uncontrolledPagination : pagination,
-        uncontrolledSorting ? uncontrolledSorting : sorting
-    );
+    const [stateSorting, updateSorting] = useState(initialSorting);
+    const [stateSelection, updateSelection] = useState(initialSelection);
+    const [statePagination, updatePagination] = useState(initialPagination);
 
+    const sorting = controlledSorting ? controlledSorting : stateSorting;
+    const selection = controlledSelection ? controlledSelection : stateSelection;
+    const pagination = controlledPagination ? controlledPagination : statePagination;
+
+    const rowObjects = sortObjects(rows, pagination, sorting);
     const primaryAction = _(availableActions).find({ primary: true }) || availableActions[0];
     const allSelected =
         rowObjects.length > 0 &&
@@ -105,12 +116,7 @@ export default function DataTable(props: DataTableProps) {
         ? !!_(availableActions).find({ multiple: true })
         : forceSelectionColumn;
 
-    const selectionMessages = getSelectionMessages(
-        rowObjects,
-        uncontrolledSelection ? uncontrolledSelection : selection,
-        uncontrolledPagination ? uncontrolledPagination : pagination,
-        idsForSelectInAllPages || []
-    );
+    const selectionMessages = getSelectionMessages(rowObjects, selection, pagination, ids);
 
     // Contextual menu
     const [contextMenuTarget, setContextMenuTarget] = useState<number[] | null>(null);
@@ -129,16 +135,19 @@ export default function DataTable(props: DataTableProps) {
         setContextMenuTarget(null);
     };
 
-    const handlePaginationChange = (newPagination: TablePagination) => {
-        updatePagination(newPagination);
+    const handlePaginationChange = (pagination: TablePagination) => {
+        updatePagination(pagination);
+        onChange({ selection, pagination, sorting });
     };
 
-    const handleSortingChange = (newSorting: TableSorting) => {
-        updateSorting(newSorting);
+    const handleSortingChange = (sorting: TableSorting<T>) => {
+        updateSorting(sorting);
+        onChange({ selection, pagination, sorting });
     };
 
-    const handleSelectionChange = (newSelection: string[]) => {
-        updateSelection(newSelection);
+    const handleSelectionChange = (selection: string[]) => {
+        updateSelection(selection);
+        onChange({ selection, pagination, sorting });
     };
 
     const handleOpenContextualMenu = (
@@ -161,11 +170,7 @@ export default function DataTable(props: DataTableProps) {
                 {filterComponents}
                 <div className={classes.tablePagination}>
                     <DataTablePagination
-                        pagination={
-                            uncontrolledPagination
-                                ? uncontrolledPagination
-                                : { ...pagination, total: rows.length }
-                        }
+                        pagination={{ ...pagination, total: rows.length }} // TODO: Verify this
                         onChange={handlePaginationChange}
                     />
                 </div>
@@ -180,7 +185,7 @@ export default function DataTable(props: DataTableProps) {
                     >
                         <DataTableHeader
                             columns={columns}
-                            sorting={uncontrolledSorting ? uncontrolledSorting : sorting}
+                            sorting={sorting}
                             onChange={handleSortingChange}
                             onSelectAllClick={handleSelectAllClick}
                             allSelected={allSelected}
@@ -191,7 +196,7 @@ export default function DataTable(props: DataTableProps) {
                         <DataTableBody
                             rows={rowObjects}
                             columns={columns}
-                            selected={uncontrolledSelection ? uncontrolledSelection : selection}
+                            selected={selection}
                             onChange={handleSelectionChange}
                             openContextualMenu={handleOpenContextualMenu}
                             primaryAction={primaryAction}
@@ -199,7 +204,7 @@ export default function DataTable(props: DataTableProps) {
                         />
                     </Table>
                 </Paper>
-                {children}
+                {sideComponents}
             </div>
             {contextMenuTarget && (
                 <ContextualMenu

@@ -21,9 +21,9 @@ const useStyles = makeStyles({
     },
 });
 
-export interface DataTableBodyProps {
-    rows: TableObject[];
-    columns: TableColumn[];
+export interface DataTableBodyProps<T extends TableObject> {
+    rows: T[];
+    columns: TableColumn<T>[];
     primaryAction?: TableAction;
     selected: string[];
     onChange?(newSelection: string[]): void;
@@ -31,7 +31,7 @@ export interface DataTableBodyProps {
     enableMultipleAction?: boolean;
 }
 
-export function DataTableBody(props: DataTableBodyProps) {
+export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T>) {
     const {
         rows,
         columns,

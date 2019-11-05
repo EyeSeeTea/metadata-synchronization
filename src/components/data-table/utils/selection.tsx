@@ -45,7 +45,7 @@ export function getSelectionMessages(
     rows: TableObject[],
     selection: string[],
     pagination: TablePagination,
-    idsForSelectInAllPages: string[]
+    ids: string[]
 ): TableNotification[] {
     if (_.isEmpty(rows)) return [];
 
@@ -53,7 +53,7 @@ export function getSelectionMessages(
     const selectionInOtherPages = _.difference(selection, rows.map(dr => dr.id));
     const allSelectedInPage = rows.every(row => _.includes(selection, row.id));
     const multiplePagesAvailable = pagination.total > rows.length;
-    const selectAllImplemented = idsForSelectInAllPages.length === pagination.total;
+    const selectAllImplemented = ids.length === pagination.total;
 
     return _.compact([
         allSelected
@@ -83,7 +83,7 @@ export function getSelectionMessages(
                   link: i18n.t("Select all {{total}} items in all pages", {
                       total: pagination.total,
                   }),
-                  newSelection: idsForSelectInAllPages,
+                  newSelection: ids,
               }
             : null,
     ]);
