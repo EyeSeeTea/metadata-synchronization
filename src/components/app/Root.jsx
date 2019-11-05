@@ -13,6 +13,7 @@ import MetadadaSyncRulesWizard from "../wizard/metadata/MetadataSyncRulesWizard"
 import MetadataSyncRulesPage from "../rules-list-page/MetadataSyncRulesPage";
 import DataSyncRulesPage from "../rules-list-page/DataSyncRulesPage";
 import DataSyncRulesWizard from "../wizard/data/DataSyncRulesWizard";
+import TestPage from "../../pages/TestPage";
 
 class Root extends React.Component {
     static propTypes = {
@@ -71,6 +72,8 @@ class Root extends React.Component {
                     path="/data-synchronization-rules"
                     render={props => <DataSyncRulesPage {...this.props} {...props} />}
                 />
+
+                <Route path="/test" render={props => <TestPage />} />
 
                 <Route render={() => <LandingPage {...this.props} />} />
             </Switch>
