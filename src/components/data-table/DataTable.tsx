@@ -103,9 +103,9 @@ export default function DataTable<T extends TableObject = TableObject>(props: Da
     const [stateSelection, updateSelection] = useState(initialSelection);
     const [statePagination, updatePagination] = useState(initialPagination);
 
-    const sorting = controlledSorting ? controlledSorting : stateSorting;
-    const selection = controlledSelection ? controlledSelection : stateSelection;
-    const pagination = controlledPagination ? controlledPagination : statePagination;
+    const sorting = controlledSorting || stateSorting;
+    const selection = controlledSelection || stateSelection;
+    const pagination = controlledPagination || statePagination;
 
     const rowObjects = sortObjects(rows, pagination, sorting);
     const primaryAction = _(availableActions).find({ primary: true }) || availableActions[0];
@@ -113,7 +113,7 @@ export default function DataTable<T extends TableObject = TableObject>(props: Da
         rowObjects.length > 0 &&
         _.difference(rowObjects.map(row => row.id), selection).length === 0;
     const enableMultipleAction = _.isUndefined(forceSelectionColumn)
-        ? !!_(availableActions).find({ multiple: true })
+        ? _.some(availableActions, "multiple")
         : forceSelectionColumn;
 
     const selectionMessages = getSelectionMessages(rowObjects, selection, pagination, ids);
