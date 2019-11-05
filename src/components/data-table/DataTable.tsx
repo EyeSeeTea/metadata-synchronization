@@ -57,6 +57,7 @@ export interface DataTableProps {
     pagination?: TablePagination; // Uncontrolled
     onChange?(selection: string[], sorting: TableSorting, pagination: TablePagination): void;
     idsForSelectInAllPages?: string[]; // Enables/disables selection in all pages
+    forceSelectionColumn?: boolean;
     filterComponents?: ReactNode; // Portal to the navigation toolbar
     children?: ReactNode; // Portal to right-most of the Data Table
 }
@@ -74,6 +75,7 @@ export default function DataTable(props: DataTableProps) {
         idsForSelectInAllPages = rows.map(row => row.id),
         initialPagination = { pageSize: 10, total: rows.length, page: 1, pageSizeOptions: [10] },
         pagination: uncontrolledPagination,
+        forceSelectionColumn,
         filterComponents,
         children,
     } = props;
@@ -82,24 +84,28 @@ export default function DataTable(props: DataTableProps) {
     const [selection, updateSelection] = useState(initialSelection);
     const [pagination, updatePagination] = useState(initialPagination);
 
-    // Contextual menu
-    const [contextMenuTarget, setContextMenuTarget] = useState<number[] | null>(null);
-    const [contextMenuActions, setContextMenuActions] = useState<TableAction[]>([]);
-    const [contextMenuRows, setContextMenuRows] = useState<TableObject[]>([]);
-
-    const primaryAction = _(availableActions).find({ primary: true }) || availableActions[0];
     const rowObjects = sortObjects(
         rows,
         uncontrolledPagination ? uncontrolledPagination : pagination,
         uncontrolledSorting ? uncontrolledSorting : sorting
     );
+
+    const primaryAction = _(availableActions).find({ primary: true }) || availableActions[0];
+    const enableMultipleAction =
+        !!_(availableActions).find({ multiple: true }) || forceSelectionColumn;
     const allSelected = _.difference(rowObjects.map(row => row.id), selection).length === 0;
+
     const selectionMessages = getSelectionMessages(
         rowObjects,
         uncontrolledSelection ? uncontrolledSelection : selection,
         uncontrolledPagination ? uncontrolledPagination : pagination,
         idsForSelectInAllPages
     );
+
+    // Contextual menu
+    const [contextMenuTarget, setContextMenuTarget] = useState<number[] | null>(null);
+    const [contextMenuActions, setContextMenuActions] = useState<TableAction[]>([]);
+    const [contextMenuRows, setContextMenuRows] = useState<TableObject[]>([]);
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const ids = rowObjects.map(n => n.id);
@@ -170,6 +176,7 @@ export default function DataTable(props: DataTableProps) {
                             allSelected={allSelected}
                             selectionMessages={selectionMessages}
                             handleSelectionChange={handleSelectionChange}
+                            enableMultipleAction={enableMultipleAction}
                         />
                         <DataTableBody
                             rows={rowObjects}
@@ -178,6 +185,7 @@ export default function DataTable(props: DataTableProps) {
                             onChange={handleSelectionChange}
                             openContextualMenu={handleOpenContextualMenu}
                             primaryAction={primaryAction}
+                            enableMultipleAction={enableMultipleAction}
                         />
                     </Table>
                 </Paper>

@@ -27,6 +27,7 @@ export interface DataTableBodyProps {
     selected: string[];
     onChange?(newSelection: string[]): void;
     openContextualMenu?(row: TableObject, positionLeft: number, positionTop: number): void;
+    enableMultipleAction?: boolean;
 }
 
 export function DataTableBody(props: DataTableBodyProps) {
@@ -37,6 +38,7 @@ export function DataTableBody(props: DataTableBodyProps) {
         selected,
         onChange = () => {},
         openContextualMenu = () => {},
+        enableMultipleAction,
     } = props;
     const classes = useStyles();
     const isSelected = (name: string) => selected.indexOf(name) !== -1;
@@ -77,22 +79,23 @@ export function DataTableBody(props: DataTableBodyProps) {
                         key={row.name}
                         selected={isItemSelected}
                     >
-                        <TableCell
-                            className={classes.cell}
-                            key={`${labelId}-checkbox`}
-                            padding="checkbox"
-                        >
-                            <Checkbox
-                                checked={isItemSelected}
-                                inputProps={{ "aria-labelledby": labelId }}
-                            />
-                        </TableCell>
+                        {enableMultipleAction && (
+                            <TableCell
+                                className={classes.cell}
+                                key={`${labelId}-checkbox`}
+                                padding="checkbox"
+                            >
+                                <Checkbox
+                                    checked={isItemSelected}
+                                    inputProps={{ "aria-labelledby": labelId }}
+                                />
+                            </TableCell>
+                        )}
                         {columns.map(column => (
                             <TableCell
                                 className={classes.cell}
                                 key={`${labelId}-column-${column.name}`}
                                 scope="row"
-                                padding="none"
                                 align="left"
                             >
                                 {formatRowValue(column, row)}

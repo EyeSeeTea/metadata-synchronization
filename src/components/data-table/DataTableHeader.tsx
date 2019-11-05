@@ -38,6 +38,7 @@ export interface DataTableHeaderProps {
     selectionMessages?: TableNotification[];
     handleSelectionChange?(newSelection: string[]): void;
     onSelectAllClick?: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void;
+    enableMultipleAction?: boolean;
 }
 
 export function DataTableHeader(props: DataTableHeaderProps) {
@@ -50,6 +51,7 @@ export function DataTableHeader(props: DataTableHeaderProps) {
         onChange = () => {},
         selectionMessages = [],
         handleSelectionChange,
+        enableMultipleAction,
     } = props;
 
     const { orderBy, order } = sorting;
@@ -62,19 +64,20 @@ export function DataTableHeader(props: DataTableHeaderProps) {
     return (
         <TableHead>
             <TableRow>
-                <TableCell className={classes.cell} padding="checkbox">
-                    <Checkbox
-                        checked={allSelected}
-                        onChange={onSelectAllClick}
-                        inputProps={{ "aria-label": "select all items" }}
-                    />
-                </TableCell>
+                {enableMultipleAction && (
+                    <TableCell className={classes.cell} padding="checkbox">
+                        <Checkbox
+                            checked={allSelected}
+                            onChange={onSelectAllClick}
+                            inputProps={{ "aria-label": "select all items" }}
+                        />
+                    </TableCell>
+                )}
                 {columns.map(column => (
                     <TableCell
                         className={classes.cell}
                         key={column.name}
                         align="left"
-                        padding={"none"}
                         sortDirection={orderBy === column.name ? order : false}
                     >
                         <TableSortLabel
