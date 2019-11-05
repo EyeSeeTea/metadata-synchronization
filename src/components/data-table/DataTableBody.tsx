@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MouseEvent } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -41,14 +41,13 @@ export function DataTableBody(props: DataTableBodyProps) {
     const classes = useStyles();
     const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
-    const contextualAction = (row: TableObject, event: React.MouseEvent<unknown>) => {
+    const contextualAction = (row: TableObject, event: MouseEvent<unknown>) => {
         event.stopPropagation();
         openContextualMenu(row, event.clientY, event.clientX);
     };
 
-    const handleClick = (event: React.MouseEvent<unknown>, row: any) => {
-        const { tagName } = event.target as HTMLElement;
-        const { type = null } = event.target as HTMLInputElement;
+    const handleClick = (event: MouseEvent<unknown>, row: any) => {
+        const { tagName, type = null } = event.target as HTMLAnchorElement;
         const isCheckboxClick = tagName.localeCompare("input") && type === "checkbox";
 
         if (event.type === "contextmenu") {
@@ -105,11 +104,13 @@ export function DataTableBody(props: DataTableBodyProps) {
                             padding="none"
                             align={"center"}
                         >
-                            {primaryAction && <Tooltip title={i18n.t("Actions")} aria-label="actions">
-                                <IconButton onClick={event => contextualAction(row, event)}>
-                                    <MoreVertIcon />
-                                </IconButton>
-                            </Tooltip>}
+                            {primaryAction && (
+                                <Tooltip title={i18n.t("Actions")} aria-label="actions">
+                                    <IconButton onClick={event => contextualAction(row, event)}>
+                                        <MoreVertIcon />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
                         </TableCell>
                     </TableRow>
                 );

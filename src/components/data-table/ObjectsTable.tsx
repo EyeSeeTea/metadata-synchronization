@@ -1,10 +1,11 @@
-import React, { useState, ReactNode } from "react";
+import React, { useState, ReactNode, MouseEvent } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import DetailsIcon from "@material-ui/icons/Details";
 
 import DataTable, { DataTableProps } from "./DataTable";
 import { DetailsBox } from "./DetailsBox";
 import { TableObject, ObjectsTableDetailField } from "./types";
+import { ActionButton } from "./ActionButton";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -23,7 +24,7 @@ export interface ObjectsTableProps extends DataTableProps {
     detailFields?: ObjectsTableDetailField[];
     initialSearch?: string;
     onChangeSearch?(search: string): void;
-    onButtonClick?: Function;
+    onButtonClick?(event: MouseEvent<unknown>): void;
     buttonLabel?: ReactNode;
     customFilters?: ReactNode;
     hideSearchBox?: boolean;
@@ -31,7 +32,7 @@ export interface ObjectsTableProps extends DataTableProps {
 }
 
 export default function ObjectsTable(props: ObjectsTableProps) {
-    const { detailFields = [], actions = [], ...rest } = props;
+    const { detailFields = [], actions = [], onButtonClick, buttonLabel, ...rest } = props;
     const classes = useStyles();
 
     const [detailsPaneObject, setDetailsPaneObject] = useState<TableObject | null>(null);
@@ -63,6 +64,7 @@ export default function ObjectsTable(props: ObjectsTableProps) {
                     />
                 )}
             </DataTable>
+            {onButtonClick && <ActionButton onClick={onButtonClick} label={buttonLabel} />}
         </div>
     );
 }

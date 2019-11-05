@@ -15,6 +15,7 @@ const useStyles = makeStyles({
         paddingBottom: "8px",
     },
     icon: {
+        display: "flex",
         paddingLeft: "6px",
         paddingRight: "10px",
     },

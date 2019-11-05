@@ -1,3 +1,4 @@
+import { MouseEvent } from "react";
 import _ from "lodash";
 import i18n from "@dhis2/d2-i18n";
 
@@ -23,7 +24,7 @@ export function updateSelection(selected: string[], row: TableObject) {
     return newSelected;
 }
 
-export function isEventCtrlClick(event: React.MouseEvent<unknown>) {
+export function isEventCtrlClick(event: MouseEvent<unknown>) {
     return event && event.ctrlKey;
 }
 
