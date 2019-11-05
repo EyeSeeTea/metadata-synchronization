@@ -55,6 +55,7 @@ export const headCells: any[] = [
     { name: "protein", text: "Protein (g)" },
 ];
 
+//@ts-ignore
 const actions: TableAction[] = [
     {
         name: "details",
@@ -71,8 +72,46 @@ const actions: TableAction[] = [
         text: "Single",
         onClick: (...rest) => console.log("single", ...rest),
     },
+];
+
+//@ts-ignore
+const justMultiple: TableAction[] = [
     {
-        name: "priamry",
+        name: "multiple",
+        text: "Multiple",
+        multiple: true,
+        onClick: (...rest) => console.log("multiple", ...rest),
+    },
+];
+
+//@ts-ignore
+const justSingle: TableAction[] = [
+    {
+        name: "single",
+        text: "Single",
+        onClick: (...rest) => console.log("single", ...rest),
+    },
+];
+
+//@ts-ignore
+const differentPrimary: TableAction[] = [
+    {
+        name: "details",
+        text: "Details",
+    },
+    {
+        name: "multiple",
+        text: "Multiple",
+        multiple: true,
+        onClick: (...rest) => console.log("multiple", ...rest),
+    },
+    {
+        name: "single",
+        text: "Single",
+        onClick: (...rest) => console.log("single", ...rest),
+    },
+    {
+        name: "primary",
         text: "Primary",
         onClick: (...rest) => console.log("primary", ...rest),
     },
@@ -87,14 +126,24 @@ export default function Example() {
                 <ObjectsTable
                     rows={filteredRows}
                     columns={headCells}
-                    actions={actions}
-                    detailFields={headCells}
-                    initialSorting={{ orderBy: "carbs", order: "asc" }}
+                    //initialSorting={{ orderBy: "carbs", order: "asc" }}
+                    /**initialPagination={{
+                        pageSizeOptions: [5, 10, 15],
+                        total: filteredRows.length,
+                        page: 1,
+                        pageSize: 10
+                    }}**/
+                    //actions={actions}
+                    //initialSelection={["Cupcake", "Donut", "Eclair"]}
+                    //detailFields={headCells}
+                    //actions={justMultiple}
+                    //actions={justSingle}
+                    //actions={differentPrimary}
                     //initialSearch={"eclair"}
                     //onButtonClick={() => console.log("Button clicked")}
                     //buttonLabel={"Create dessert"}
                     //onChangeSearch={search => updateRows(search ? [rows[0]] : rows)}
-                    //idsForSelectInAllPages={null}
+                    //idsForSelectInAllPages={null} // equivalent to [], pending to study with arnau
                     //forceSelectionColumn={false}
                     /**tableNotifications={[{
                         message: <Typography style={{color: "red"}}>Fatal error!</Typography>
