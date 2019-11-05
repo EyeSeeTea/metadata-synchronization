@@ -98,7 +98,9 @@ export default function DataTable(props: DataTableProps) {
     );
 
     const primaryAction = _(availableActions).find({ primary: true }) || availableActions[0];
-    const allSelected = _.difference(rowObjects.map(row => row.id), selection).length === 0;
+    const allSelected =
+        rowObjects.length > 0 &&
+        _.difference(rowObjects.map(row => row.id), selection).length === 0;
     const enableMultipleAction = _.isUndefined(forceSelectionColumn)
         ? !!_(availableActions).find({ multiple: true })
         : forceSelectionColumn;
