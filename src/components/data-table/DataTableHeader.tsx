@@ -78,6 +78,7 @@ export function DataTableHeader(props: DataTableHeaderProps) {
                         className={classes.cell}
                         key={column.name}
                         align="left"
+                        padding={enableMultipleAction ? "none" : undefined}
                         sortDirection={orderBy === column.name ? order : false}
                     >
                         <TableSortLabel

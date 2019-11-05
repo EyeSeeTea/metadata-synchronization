@@ -91,9 +91,10 @@ export default function DataTable(props: DataTableProps) {
     );
 
     const primaryAction = _(availableActions).find({ primary: true }) || availableActions[0];
-    const enableMultipleAction =
-        !!_(availableActions).find({ multiple: true }) || forceSelectionColumn;
     const allSelected = _.difference(rowObjects.map(row => row.id), selection).length === 0;
+    const enableMultipleAction = _.isUndefined(forceSelectionColumn)
+        ? !!_(availableActions).find({ multiple: true })
+        : forceSelectionColumn;
 
     const selectionMessages = getSelectionMessages(
         rowObjects,

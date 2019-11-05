@@ -96,6 +96,7 @@ export function DataTableBody(props: DataTableBodyProps) {
                                 className={classes.cell}
                                 key={`${labelId}-column-${column.name}`}
                                 scope="row"
+                                padding={enableMultipleAction ? "none" : undefined}
                                 align="left"
                             >
                                 {formatRowValue(column, row)}
