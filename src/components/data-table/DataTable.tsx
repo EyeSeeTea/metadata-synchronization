@@ -63,7 +63,7 @@ export interface DataTableProps {
     initialPagination?: TablePagination;
     pagination?: TablePagination; // Uncontrolled
     onChange?(selection: string[], sorting: TableSorting, pagination: TablePagination): void;
-    idsForSelectInAllPages?: string[]; // Enables/disables selection in all pages
+    idsForSelectInAllPages?: string[] | null; // Enables selection in all pages (force disabled with null)
     forceSelectionColumn?: boolean;
     tableNotifications?: TableNotification[];
     filterComponents?: ReactNode; // Portal to the navigation toolbar
@@ -109,7 +109,7 @@ export default function DataTable(props: DataTableProps) {
         rowObjects,
         uncontrolledSelection ? uncontrolledSelection : selection,
         uncontrolledPagination ? uncontrolledPagination : pagination,
-        idsForSelectInAllPages
+        idsForSelectInAllPages || []
     );
 
     // Contextual menu
