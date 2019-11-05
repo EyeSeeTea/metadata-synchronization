@@ -27,13 +27,15 @@ export function DataTablePagination(props: DataTablePaginationProps) {
         });
     };
 
+    const currentPage = pagination.total > 0 ? pagination.page - 1 : 0;
+
     return (
         <Pagination
             rowsPerPageOptions={pagination.pageSizeOptions}
             component="div"
             count={pagination.total}
             rowsPerPage={pagination.pageSize}
-            page={pagination.page - 1}
+            page={currentPage}
             backIconButtonProps={{
                 "aria-label": "previous page",
             }}
