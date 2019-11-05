@@ -67,11 +67,7 @@ export function DataTableHeader<T extends TableObject>(props: DataTableHeaderPro
             <TableRow>
                 {enableMultipleAction && (
                     <TableCell className={classes.cell} padding="checkbox">
-                        <Checkbox
-                            checked={allSelected}
-                            onChange={onSelectAllClick}
-                            inputProps={{ "aria-label": "select all items" }}
-                        />
+                        <Checkbox checked={allSelected} onChange={onSelectAllClick} />
                     </TableCell>
                 )}
                 {columns.map(column => (
@@ -87,20 +83,14 @@ export function DataTableHeader<T extends TableObject>(props: DataTableHeaderPro
                             direction={order}
                             onClick={createSortHandler(column.name)}
                             IconComponent={ExpandMoreIcon}
+                            disabled={column.sortable === false}
                         >
                             {column.text}
-                            {orderBy === column.name ? (
-                                <span className={classes.visuallyHidden}>
-                                    {order === "desc" ? "sorted descending" : "sorted ascending"}
-                                </span>
-                            ) : null}
                         </TableSortLabel>
                     </TableCell>
                 ))}
                 <TableCell className={classes.cell} padding="none" align={"center"}>
-                    <IconButton>
-                        <ViewColumnIcon />
-                    </IconButton>
+                    <IconButton>{false && <ViewColumnIcon />}</IconButton>
                 </TableCell>
             </TableRow>
             {tableNotifications.length > 0 && (

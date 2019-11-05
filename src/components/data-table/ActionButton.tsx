@@ -27,7 +27,6 @@ export function ActionButton(props: ActionButtonProps) {
     return (
         <Fab
             color="primary"
-            aria-label="Add"
             className={classes.root}
             size="large"
             onClick={onClick}

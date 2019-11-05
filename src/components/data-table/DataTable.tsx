@@ -177,12 +177,7 @@ export default function DataTable<T extends TableObject = TableObject>(props: Da
             </Toolbar>
             <div className={classes.tableWrapper}>
                 <Paper className={classes.paper} square>
-                    <Table
-                        className={classes.table}
-                        aria-labelledby="tableTitle"
-                        size={"medium"}
-                        aria-label="data table"
-                    >
+                    <Table className={classes.table} size={"medium"}>
                         <DataTableHeader
                             columns={columns}
                             sorting={sorting}

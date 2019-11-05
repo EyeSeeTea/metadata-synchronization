@@ -75,7 +75,6 @@ export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T
                         onClick={event => handleClick(event, row)}
                         onContextMenu={event => handleClick(event, row)}
                         role="checkbox"
-                        aria-checked={isItemSelected}
                         tabIndex={-1}
                         key={row.name}
                         selected={isItemSelected}
@@ -86,10 +85,7 @@ export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T
                                 key={`${labelId}-checkbox`}
                                 padding="checkbox"
                             >
-                                <Checkbox
-                                    checked={isItemSelected}
-                                    inputProps={{ "aria-labelledby": labelId }}
-                                />
+                                <Checkbox checked={isItemSelected} />
                             </TableCell>
                         )}
                         {columns.map(column => (
@@ -110,7 +106,7 @@ export function DataTableBody<T extends TableObject>(props: DataTableBodyProps<T
                             align={"center"}
                         >
                             {primaryAction && (
-                                <Tooltip title={i18n.t("Actions")} aria-label="actions">
+                                <Tooltip title={i18n.t("Actions")}>
                                     <IconButton onClick={event => contextualAction(row, event)}>
                                         <MoreVertIcon />
                                     </IconButton>

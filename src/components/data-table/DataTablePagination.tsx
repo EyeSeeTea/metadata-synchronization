@@ -37,12 +37,6 @@ export function DataTablePagination(props: DataTablePaginationProps) {
             count={pagination.total}
             rowsPerPage={pagination.pageSize}
             page={currentPage}
-            backIconButtonProps={{
-                "aria-label": "previous page",
-            }}
-            nextIconButtonProps={{
-                "aria-label": "next page",
-            }}
             onChangePage={handleChangePage}
             onChangeRowsPerPage={handleChangePageSize}
         />
