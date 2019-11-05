@@ -46,7 +46,7 @@ export default function ObjectsTable(props: ObjectsTableProps) {
         buttonLabel,
         initialSearch,
         searchBoxLabel,
-        onChangeSearch = () => {},
+        onChangeSearch = _.noop,
         ...rest
     } = props;
     const classes = useStyles();

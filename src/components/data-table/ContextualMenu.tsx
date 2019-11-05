@@ -38,6 +38,13 @@ export function ContextualMenu(props: ContextualMenuProps) {
     const classes = useStyles();
     const { isOpen, rows, positionLeft, positionTop, onClose, actions } = props;
 
+    const handleActionClick = (action: TableAction) => {
+        return () => {
+            if (rows.length > 0 && action.onClick) action.onClick(rows);
+            onClose();
+        };
+    }
+
     return (
         <Menu
             className={classes.root}
@@ -57,10 +64,7 @@ export function ContextualMenu(props: ContextualMenuProps) {
                 <MenuItem
                     className={classes.item}
                     key={action.name}
-                    onClick={() => {
-                        if (rows.length > 0 && action.onClick) action.onClick(rows);
-                        onClose();
-                    }}
+                    onClick={handleActionClick(action)}
                 >
                     <div className={classes.icon}>{action.icon}</div>
 

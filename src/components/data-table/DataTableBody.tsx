@@ -1,4 +1,5 @@
 import React, { MouseEvent } from "react";
+import _ from "lodash";
 import { makeStyles } from "@material-ui/core/styles";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -36,8 +37,8 @@ export function DataTableBody(props: DataTableBodyProps) {
         columns,
         primaryAction,
         selected,
-        onChange = () => {},
-        openContextualMenu = () => {},
+        onChange = _.noop,
+        openContextualMenu = _.noop,
         enableMultipleAction,
     } = props;
     const classes = useStyles();

@@ -1,4 +1,5 @@
 import React from "react";
+import _ from "lodash";
 import Pagination from "@material-ui/core/TablePagination";
 
 import { TablePagination } from "./types";
@@ -9,7 +10,7 @@ export interface DataTablePaginationProps {
 }
 
 export function DataTablePagination(props: DataTablePaginationProps) {
-    const { pagination, onChange = () => {} } = props;
+    const { pagination, onChange = _.noop } = props;
 
     const handleChangePage = (_event: unknown, page: number) => {
         onChange({

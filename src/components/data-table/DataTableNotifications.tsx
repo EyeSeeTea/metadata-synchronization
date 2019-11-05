@@ -1,4 +1,5 @@
 import React from "react";
+import _ from "lodash";
 import { makeStyles } from "@material-ui/core/styles";
 
 import { TableNotification } from "./types";
@@ -32,7 +33,7 @@ export interface DataTableNotificationsProps {
 }
 
 export function DataTableNotifications(props: DataTableNotificationsProps) {
-    const { messages, updateSelection = () => {} } = props;
+    const { messages, updateSelection = _.noop } = props;
     const classes = useStyles();
 
     return (
