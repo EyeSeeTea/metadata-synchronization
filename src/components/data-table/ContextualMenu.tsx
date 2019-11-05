@@ -29,13 +29,13 @@ export interface ContextualMenuProps {
     rows: TableObject[];
     positionLeft: number;
     positionTop: number;
-    closeContextMenu(): void;
+    onClose(): void;
     actions: TableAction[];
 }
 
 export function ContextualMenu(props: ContextualMenuProps) {
     const classes = useStyles();
-    const { isOpen, rows, positionLeft, positionTop, closeContextMenu, actions } = props;
+    const { isOpen, rows, positionLeft, positionTop, onClose, actions } = props;
 
     return (
         <Menu
@@ -50,7 +50,7 @@ export function ContextualMenu(props: ContextualMenuProps) {
                 vertical: "center",
                 horizontal: "center",
             }}
-            onClose={closeContextMenu}
+            onClose={onClose}
         >
             {actions.map(action => (
                 <MenuItem
@@ -58,12 +58,12 @@ export function ContextualMenu(props: ContextualMenuProps) {
                     key={action.name}
                     onClick={() => {
                         if (action.onClick) action.onClick(rows);
-                        closeContextMenu();
+                        onClose();
                     }}
                 >
                     <div className={classes.icon}>{action.icon}</div>
 
-                    <Typography className={classes.text} variant="inherit" noWrap>
+                    <Typography className={classes.text} noWrap>
                         {action.text}
                     </Typography>
                 </MenuItem>

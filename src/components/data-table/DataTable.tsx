@@ -169,7 +169,7 @@ export default function DataTable(props: DataTableProps) {
                             selected={uncontrolledSelection ? uncontrolledSelection : selection}
                             onChange={handleSelectionChange}
                             openContextualMenu={handleOpenContextualMenu}
-                            primaryAction={primaryAction.onClick}
+                            primaryAction={primaryAction}
                         />
                     </Table>
                 </Paper>
@@ -179,10 +179,10 @@ export default function DataTable(props: DataTableProps) {
                 <ContextualMenu
                     isOpen={!!contextMenuTarget}
                     rows={contextMenuRows}
+                    actions={contextMenuActions}
                     positionLeft={contextMenuTarget[0]}
                     positionTop={contextMenuTarget[1]}
-                    closeContextMenu={handleCloseContextMenu}
-                    actions={contextMenuActions}
+                    onClose={handleCloseContextMenu}
                 />
             )}
         </div>

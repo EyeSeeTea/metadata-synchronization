@@ -11,7 +11,7 @@ import i18n from "@dhis2/d2-i18n";
 
 import { isEventCtrlClick, updateSelection } from "./utils/selection";
 import { formatRowValue } from "./utils/formatting";
-import { TableObject, TableColumn } from "./types";
+import { TableObject, TableColumn, TableAction } from "./types";
 
 const useStyles = makeStyles({
     cell: {
@@ -23,9 +23,9 @@ const useStyles = makeStyles({
 export interface DataTableBodyProps {
     rows: TableObject[];
     columns: TableColumn[];
+    primaryAction?: TableAction;
     selected: string[];
     onChange?(newSelection: string[]): void;
-    primaryAction?(rows: TableObject[]): void;
     openContextualMenu?(row: TableObject, positionLeft: number, positionTop: number): void;
 }
 
@@ -33,9 +33,9 @@ export function DataTableBody(props: DataTableBodyProps) {
     const {
         rows,
         columns,
+        primaryAction,
         selected,
         onChange = () => {},
-        primaryAction = () => {},
         openContextualMenu = () => {},
     } = props;
     const classes = useStyles();
@@ -56,8 +56,8 @@ export function DataTableBody(props: DataTableBodyProps) {
             contextualAction(row, event);
         } else if (isEventCtrlClick(event) || isCheckboxClick) {
             onChange(updateSelection(selected, row));
-        } else {
-            primaryAction(row);
+        } else if (primaryAction && primaryAction.onClick) {
+            primaryAction.onClick([row]);
         }
     };
 

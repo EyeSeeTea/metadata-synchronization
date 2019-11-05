@@ -15,11 +15,11 @@ const useStyles = makeStyles({
         padding: "1.5rem",
         opacity: 1,
         maxWidth: 500,
-        minWidth: 250,
+        minWidth: 220,
         height: "0%",
     },
     content: {
-        display: "block",
+        display: "inline-block",
     },
     label: {
         fontWeight: "bold",

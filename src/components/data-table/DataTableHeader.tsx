@@ -61,7 +61,7 @@ export function DataTableHeader(props: DataTableHeaderProps) {
 
     return (
         <TableHead>
-            <TableRow style={{ borderBottom: "3px solid #E0E0E0" }}>
+            <TableRow>
                 <TableCell className={classes.cell} padding="checkbox">
                     <Checkbox
                         checked={allSelected}
