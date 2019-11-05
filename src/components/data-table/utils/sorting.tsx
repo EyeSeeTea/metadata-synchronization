@@ -27,7 +27,7 @@ function getSorting<K extends keyof any>(
     return order === "desc" ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
 }
 
-export function cleanObjects(
+export function sortObjects(
     rows: TableObject[],
     tablePagination: TablePagination,
     tableSorting: TableSorting

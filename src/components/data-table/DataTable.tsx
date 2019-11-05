@@ -11,7 +11,7 @@ import { ContextualMenu } from "./ContextualMenu";
 import { TableObject, TablePagination, TableSorting, TableColumn, TableAction } from "./types";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableBody } from "./DataTableBody";
-import { cleanObjects } from "./utils/sorting";
+import { sortObjects } from "./utils/sorting";
 import { parseActions, getActionRows, getSelectionMessages } from "./utils/selection";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -84,7 +84,7 @@ export default function DataTable(props: DataTableProps) {
     const [contextMenuRows, setContextMenuRows] = useState<TableObject[]>([]);
 
     const primaryAction = _(availableActions).find({ primary: true }) || availableActions[0];
-    const rowObjects = cleanObjects(
+    const rowObjects = sortObjects(
         rows,
         uncontrolledPagination ? uncontrolledPagination : pagination,
         uncontrolledSorting ? uncontrolledSorting : sorting

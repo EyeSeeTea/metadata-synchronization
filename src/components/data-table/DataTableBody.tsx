@@ -91,7 +91,6 @@ export function DataTableBody(props: DataTableBodyProps) {
                         {columns.map(column => (
                             <TableCell
                                 className={classes.cell}
-                                component="th"
                                 key={`${labelId}-column-${column.name}`}
                                 scope="row"
                                 padding="none"
@@ -106,11 +105,11 @@ export function DataTableBody(props: DataTableBodyProps) {
                             padding="none"
                             align={"center"}
                         >
-                            <Tooltip title={i18n.t("Actions")} aria-label="actions">
+                            {primaryAction && <Tooltip title={i18n.t("Actions")} aria-label="actions">
                                 <IconButton onClick={event => contextualAction(row, event)}>
                                     <MoreVertIcon />
                                 </IconButton>
-                            </Tooltip>
+                            </Tooltip>}
                         </TableCell>
                     </TableRow>
                 );
