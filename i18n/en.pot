@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2019-09-17T10:45:09.309Z\n"
-"PO-Revision-Date: 2019-09-17T10:45:09.309Z\n"
+"POT-Creation-Date: 2020-01-17T11:34:13.730Z\n"
+"PO-Revision-Date: 2020-01-17T11:34:13.730Z\n"
 
 msgid "Metadata Synchronization"
 msgstr ""
@@ -220,6 +220,9 @@ msgstr ""
 msgid "Metadata"
 msgstr ""
 
+msgid "Include Exclude Selection"
+msgstr ""
+
 msgid "Instance Selection"
 msgstr ""
 
@@ -288,6 +291,9 @@ msgid "Cancel synchronization rule creation"
 msgstr ""
 
 msgid "Cancel synchronization rule editing"
+msgstr ""
+
+msgid "Use default configuration"
 msgstr ""
 
 msgid "Selected {{difference}} elements"

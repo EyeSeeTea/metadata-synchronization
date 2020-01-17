@@ -12,6 +12,7 @@ import InstanceSelectionStep from "./steps/InstanceSelectionStep";
 import SchedulerStep from "./steps/SchedulerStep";
 import SaveStep from "./steps/SaveStep";
 import { getValidationMessages } from "../../utils/validations";
+import IncludeExcludeStep from "./steps/IncludeExcludeSelectionStep";
 
 class SyncRulesWizard extends React.Component {
     static propTypes = {
@@ -33,6 +34,14 @@ class SyncRulesWizard extends React.Component {
             label: i18n.t("Metadata"),
             component: MetadataStep,
             validationKeys: ["metadataIds"],
+            description: undefined,
+            help: undefined,
+        },
+        {
+            key: "include-exclude",
+            label: i18n.t("Include Exclude Selection"),
+            component: IncludeExcludeStep,
+            validationKeys: undefined,
             description: undefined,
             help: undefined,
         },
