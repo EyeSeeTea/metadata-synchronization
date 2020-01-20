@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2020-01-17T11:34:13.730Z\n"
-"PO-Revision-Date: 2020-01-17T11:34:13.730Z\n"
+"POT-Creation-Date: 2020-01-20T08:59:13.382Z\n"
+"PO-Revision-Date: 2020-01-20T08:59:13.382Z\n"
 
 msgid "Metadata Synchronization"
 msgstr ""
@@ -313,13 +313,16 @@ msgstr ""
 msgid "Yes"
 msgstr ""
 
-msgid "Target instances [{{total}}]"
+msgid "Use default include exclude configuration"
 msgstr ""
 
 msgid "Enabled"
 msgstr ""
 
 msgid "Disabled"
+msgstr ""
+
+msgid "Target instances [{{total}}]"
 msgstr ""
 
 msgid "Frequency"

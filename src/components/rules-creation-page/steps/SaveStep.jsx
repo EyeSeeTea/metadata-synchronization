@@ -91,7 +91,9 @@ const SaveStep = ({ d2, syncRule, classes, onCancel, snackbar }) => {
 
                 <LiEntry
                     label={i18n.t("Use default include exclude configuration")}
-                    value={syncRule.useDefaultIncludeExclude ? i18n.t("Enabled") : i18n.t("Disabled")}
+                    value={
+                        syncRule.useDefaultIncludeExclude ? i18n.t("Enabled") : i18n.t("Disabled")
+                    }
                 />
 
                 <LiEntry
