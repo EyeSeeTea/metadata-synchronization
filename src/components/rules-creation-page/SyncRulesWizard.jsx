@@ -127,7 +127,6 @@ class SyncRulesWizard extends React.Component {
     };
 
     onStepChangeRequest = async currentStep => {
-        debugger;
         return getValidationMessages(
             this.props.d2,
             this.state.syncRule,
