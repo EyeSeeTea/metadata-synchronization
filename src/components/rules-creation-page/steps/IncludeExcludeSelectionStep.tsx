@@ -9,8 +9,13 @@ interface IncludeExcludeSelectionStepProps {
     onChange: (syncRule: SyncRule) => void;
 }
 
-const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = ({ syncRule, onChange }) => {
-    const [useDefaultIncludeExclude, setUseDefaultIncludeExclude] = useState(syncRule.useDefaultIncludeExclude);
+const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = ({
+    syncRule,
+    onChange,
+}) => {
+    const [useDefaultIncludeExclude, setUseDefaultIncludeExclude] = useState(
+        syncRule.useDefaultIncludeExclude
+    );
 
     const changeUseDefaultIncludeExclude = (useDefault: boolean) => {
         debugger;
