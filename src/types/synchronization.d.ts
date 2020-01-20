@@ -2,6 +2,7 @@ import { MetadataImportResponse, MetadataImportStats } from "./d2";
 import SyncReport from "../models/syncReport";
 
 export interface SynchronizationBuilder {
+    useDefaultIncludeExclude: boolean;
     targetInstances: string[];
     metadataIds: string[];
     syncRule?: string;

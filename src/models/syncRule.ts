@@ -42,6 +42,10 @@ export default class SyncRule {
         return this.syncRule.builder.metadataIds;
     }
 
+    public get useDefaultIncludeExclude(): boolean {
+        return this.syncRule.builder.useDefaultIncludeExclude;
+    }
+
     public get targetInstances(): string[] {
         return this.syncRule.builder.targetInstances;
     }
@@ -78,6 +82,7 @@ export default class SyncRule {
             name: "",
             description: "",
             builder: {
+                useDefaultIncludeExclude: true,
                 targetInstances: [],
                 metadataIds: [],
             },
@@ -138,6 +143,16 @@ export default class SyncRule {
             builder: {
                 ...this.syncRule.builder,
                 metadataIds,
+            },
+        });
+    }
+
+    public updateUseDefaultIncludeExclude(useDefaultIncludeExclude: boolean): SyncRule {
+        return SyncRule.build({
+            ...this.syncRule,
+            builder: {
+                ...this.syncRule.builder,
+                useDefaultIncludeExclude,
             },
         });
     }
@@ -203,6 +218,7 @@ export default class SyncRule {
                       }
                     : null,
             ]),
+            includeExclude: [],
             targetInstances: _.compact([
                 this.targetInstances.length === 0
                     ? {

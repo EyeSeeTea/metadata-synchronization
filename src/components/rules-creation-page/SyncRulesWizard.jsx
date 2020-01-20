@@ -38,10 +38,10 @@ class SyncRulesWizard extends React.Component {
             help: undefined,
         },
         {
-            key: "include-exclude",
+            key: "include-exclude-selection",
             label: i18n.t("Include Exclude Selection"),
             component: IncludeExcludeStep,
-            validationKeys: undefined,
+            validationKeys: ["includeExclude"],
             description: undefined,
             help: undefined,
         },
@@ -127,6 +127,7 @@ class SyncRulesWizard extends React.Component {
     };
 
     onStepChangeRequest = async currentStep => {
+        debugger;
         return getValidationMessages(
             this.props.d2,
             this.state.syncRule,
