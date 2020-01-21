@@ -5,7 +5,7 @@ import i18n from "../../../locales";
 import { Toggle } from "../../toogle/Toogle";
 import { getMetadata } from "../../../utils/synchronization";
 import { getBaseUrl } from "../../../utils/d2";
-import { D2 } from "../../../types/d2";
+import { D2, ModelDefinition } from "../../../types/d2";
 import _ from "lodash";
 import Dropdown from "../../dropdown/Dropdown";
 import { d2ModelFactory } from "../../../models/d2ModelFactory";
@@ -29,7 +29,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     syncRule,
     onChange,
 }) => {
-    const [types, setTypes] = useState<Array<ModelSelectItem>>([]);
+    const [modelSelectItems, setModelSelectItems] = useState<Array<ModelSelectItem>>([]);
     const [models, setModels] = useState<Array<typeof D2Model>>([]);
     const [selectedType, setSelectedType] = useState<string | undefined>();
 
@@ -39,19 +39,20 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                 return d2ModelFactory(d2, type);
             });
 
+            const parseModels = (models: typeof D2Model[]) =>
+                models
+                    .map((model: typeof D2Model) => model.getD2Model(d2))
+                    .map((model: ModelDefinition) => ({
+                        name: model.displayName,
+                        id: model.name,
+                    }));
+
             setModels(models);
-            setTypes(parseMetadataTypes(metadata));
+            setModelSelectItems(parseModels(models));
         });
 
         console.log(syncRule.metadataExcludeIncludeRules);
     }, [d2, syncRule]);
-
-    const parseMetadataTypes = (metadata: any) => {
-        return _.keys(metadata).map(type => ({
-            name: type,
-            id: type,
-        }));
-    };
 
     const changeUseDefaultIncludeExclude = (useDefault: boolean) => {
         onChange(
@@ -124,7 +125,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                 >
                     <Dropdown
                         key={"model-selection"}
-                        items={types}
+                        items={modelSelectItems}
                         onChange={changeModelName}
                         value={selectedType ? selectedType : ""}
                         label={i18n.t("Metadata type")}

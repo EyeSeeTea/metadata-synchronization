@@ -182,7 +182,7 @@ export default class SyncRule {
         const metadataIncludeExcludeRules: MetadataIncludeExcludeRules = models.reduce(
             (accumulator: any, model: typeof D2Model) => ({
                 ...accumulator,
-                [model.getMetadataType() + "s"]: {
+                [model.getMetadataType()]: {
                     includeRules: model.getIncludeRules().map(array => array.join(".")),
                     excludeRules: model.getExcludeRules().map(array => array.join(".")),
                 },

@@ -62,7 +62,7 @@ describe("SyncRule", () => {
 
             expect(editedSyncRule.useDefaultIncludeExclude).toEqual(false);
             expect(editedSyncRule.metadataExcludeIncludeRules).toEqual({
-                indicators: {
+                indicator: {
                     includeRules: [
                         "attributes",
                         "legendSets",
@@ -73,7 +73,7 @@ describe("SyncRule", () => {
                     ],
                     excludeRules: ["dataSets", "programs"],
                 },
-                dataElements: {
+                dataElement: {
                     includeRules: [
                         "attributes",
                         "dataSets",
