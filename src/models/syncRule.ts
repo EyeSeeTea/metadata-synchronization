@@ -153,7 +153,7 @@ export default class SyncRule {
                 },
             });
         } else {
-            // When metadataIds really has changed we should reset 
+            // When metadataIds really has changed we should reset
             // useDefaultIncludeExclude and metadataIncludeExcludeRules
             return SyncRule.build({
                 ...this.syncRule,
@@ -186,7 +186,9 @@ export default class SyncRule {
                     includeRules: model.getIncludeRules().map(array => array.join(".")),
                     excludeRules: model.getExcludeRules().map(array => array.join(".")),
                 },
-            }), {});
+            }),
+            {}
+        );
 
         return SyncRule.build({
             ...this.syncRule,
@@ -258,42 +260,42 @@ export default class SyncRule {
             name: _.compact([
                 !this.name.trim()
                     ? {
-                        key: "cannot_be_blank",
-                        namespace: { field: "name" },
-                    }
+                          key: "cannot_be_blank",
+                          namespace: { field: "name" },
+                      }
                     : null,
             ]),
             metadataIds: _.compact([
                 this.metadataIds.length === 0
                     ? {
-                        key: "cannot_be_empty",
-                        namespace: { element: "metadata element" },
-                    }
+                          key: "cannot_be_empty",
+                          namespace: { element: "metadata element" },
+                      }
                     : null,
             ]),
             includeExclude: [],
             targetInstances: _.compact([
                 this.targetInstances.length === 0
                     ? {
-                        key: "cannot_be_empty",
-                        namespace: { element: "instance" },
-                    }
+                          key: "cannot_be_empty",
+                          namespace: { element: "instance" },
+                      }
                     : null,
             ]),
             frequency: _.compact([
                 this.frequency && !isValidCronExpression(this.frequency)
                     ? {
-                        key: "cron_expression_must_be_valid",
-                        namespace: { expression: "frequency" },
-                    }
+                          key: "cron_expression_must_be_valid",
+                          namespace: { expression: "frequency" },
+                      }
                     : null,
             ]),
             enabled: _.compact([
                 this.enabled && !isValidCronExpression(this.frequency)
                     ? {
-                        key: "cannot_enable_without_valid",
-                        namespace: { expression: "frequency" },
-                    }
+                          key: "cannot_enable_without_valid",
+                          namespace: { expression: "frequency" },
+                      }
                     : null,
             ]),
         });

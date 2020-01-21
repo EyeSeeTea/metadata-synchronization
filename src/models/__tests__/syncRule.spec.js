@@ -16,8 +16,12 @@ describe("SyncRule", () => {
 
             const editedSyncRule = syncRule.updateMetadataIds(syncRule.metadataIds);
 
-            expect(editedSyncRule.useDefaultIncludeExclude).toEqual(syncRule.useDefaultIncludeExclude);
-            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual(syncRule.metadataExcludeIncludeRules);
+            expect(editedSyncRule.useDefaultIncludeExclude).toEqual(
+                syncRule.useDefaultIncludeExclude
+            );
+            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual(
+                syncRule.metadataExcludeIncludeRules
+            );
         });
     });
 });
