@@ -144,13 +144,27 @@ export default class SyncRule {
     }
 
     public updateMetadataIds(metadataIds: string[]): SyncRule {
-        return SyncRule.build({
-            ...this.syncRule,
-            builder: {
-                ...this.syncRule.builder,
-                metadataIds,
-            },
-        });
+        if (_.isEqual(this.metadataIds, metadataIds)) {
+            return SyncRule.build({
+                ...this.syncRule,
+                builder: {
+                    ...this.syncRule.builder,
+                    metadataIds,
+                },
+            });
+        } else {
+            // When metadataIds really has changed we should reset 
+            // useDefaultIncludeExclude and metadataIncludeExcludeRules
+            return SyncRule.build({
+                ...this.syncRule,
+                builder: {
+                    ...this.syncRule.builder,
+                    metadataIds,
+                    useDefaultIncludeExclude: true,
+                    metadataIncludeExcludeRules: undefined,
+                },
+            });
+        }
     }
 
     public markToUseDefaultIncludeExclude(): SyncRule {
@@ -165,7 +179,7 @@ export default class SyncRule {
     }
 
     public markToNotUseDefaultIncludeExclude(models: Array<typeof D2Model>): SyncRule {
-        const metadataIncludeExcludeRules:MetadataIncludeExcludeRules = models.reduce(
+        const metadataIncludeExcludeRules: MetadataIncludeExcludeRules = models.reduce(
             (accumulator: any, model: typeof D2Model) => ({
                 ...accumulator,
                 [model.getMetadataType() + "s"]: {
