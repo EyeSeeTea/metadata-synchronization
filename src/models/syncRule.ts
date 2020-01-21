@@ -9,6 +9,7 @@ import { D2 } from "../types/d2";
 import { SyncRuleTableFilters, TableList, TablePagination } from "../types/d2-ui-components";
 import { SynchronizationRule, MetadataIncludeExcludeRules } from "../types/synchronization";
 import { Validation } from "../types/validations";
+import { D2Model } from "./d2Model";
 
 const dataStoreKey = "rules";
 
@@ -46,7 +47,7 @@ export default class SyncRule {
         return this.syncRule.builder.useDefaultIncludeExclude;
     }
 
-    public get metadataExcludeIncludeRules(): MetadataIncludeExcludeRules|undefined {
+    public get metadataExcludeIncludeRules(): MetadataIncludeExcludeRules | undefined {
         return this.syncRule.builder.metadataIncludeExcludeRules;
     }
 
@@ -152,17 +153,44 @@ export default class SyncRule {
         });
     }
 
-    public updateUseDefaultIncludeExclude(useDefaultIncludeExclude: boolean): SyncRule {
+    public markToUseDefaultIncludeExclude(): SyncRule {
         return SyncRule.build({
             ...this.syncRule,
             builder: {
                 ...this.syncRule.builder,
-                useDefaultIncludeExclude,
+                useDefaultIncludeExclude: true,
+                metadataIncludeExcludeRules: undefined
             },
         });
     }
 
-    public updateMetadataIncludeExcludeRules(metadataIncludeExcludeRules: MetadataIncludeExcludeRules|undefined): SyncRule {
+    public markToNotUseDefaultIncludeExclude(models: Array<typeof D2Model>): SyncRule {
+        const metadataIncludeExcludeRules =
+            models.reduce((r: any, model: typeof D2Model) =>
+                ({
+                    ...r,
+                    [model.getMetadataType()]:
+                    {
+                        includeRules: model.getIncludeRules().map(array => array.join('.')),
+                        excludeRules: model.getExcludeRules().map(array => array.join('.'))
+                    }
+                }), {});
+
+        debugger;
+
+        return SyncRule.build({
+            ...this.syncRule,
+            builder: {
+                ...this.syncRule.builder,
+                useDefaultIncludeExclude: false,
+                metadataIncludeExcludeRules
+            },
+        });
+    }
+
+    public updateMetadataIncludeExcludeRules(
+        metadataIncludeExcludeRules: MetadataIncludeExcludeRules | undefined
+    ): SyncRule {
         return SyncRule.build({
             ...this.syncRule,
             builder: {
@@ -220,42 +248,42 @@ export default class SyncRule {
             name: _.compact([
                 !this.name.trim()
                     ? {
-                          key: "cannot_be_blank",
-                          namespace: { field: "name" },
-                      }
+                        key: "cannot_be_blank",
+                        namespace: { field: "name" },
+                    }
                     : null,
             ]),
             metadataIds: _.compact([
                 this.metadataIds.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "metadata element" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "metadata element" },
+                    }
                     : null,
             ]),
             includeExclude: [],
             targetInstances: _.compact([
                 this.targetInstances.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "instance" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "instance" },
+                    }
                     : null,
             ]),
             frequency: _.compact([
                 this.frequency && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cron_expression_must_be_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cron_expression_must_be_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
             enabled: _.compact([
                 this.enabled && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cannot_enable_without_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cannot_enable_without_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
         });

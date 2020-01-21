@@ -8,6 +8,8 @@ import { getBaseUrl } from "../../../utils/d2";
 import { D2 } from "../../../types/d2";
 import _ from "lodash";
 import Dropdown from "../../dropdown/Dropdown";
+import { d2ModelFactory } from "../../../models/d2ModelFactory";
+import { D2Model } from "../../../models/d2Model";
 
 interface IncludeExcludeSelectionStepProps {
     classes: any;
@@ -29,16 +31,24 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     const [useDefaultIncludeExclude, setUseDefaultIncludeExclude] = useState<boolean>(
         syncRule.useDefaultIncludeExclude
     );
-    const [models, setModels] = useState<Array<ModelSelectItem>>([]);
+    const [types, setTypes] = useState<Array<ModelSelectItem>>([]);
+    const [models, setModels] = useState<Array<typeof D2Model>>([]);
     const [selectedModel, setSelectedModel] = useState<string | undefined>();
 
     useEffect(() => {
-        getMetadata(getBaseUrl(d2), syncRule.metadataIds, "id,name").then((metadata: any) =>
-            setModels(parseMetadataModels(metadata))
-        );
+        getMetadata(getBaseUrl(d2), syncRule.metadataIds, "id,name").then((metadata: any) => {
+            const models = _.keys(metadata).map((type: string) => {
+                return d2ModelFactory(d2, type);
+            });
+
+            setModels(models);
+            setTypes(parseMetadataTypes(metadata));
+        });
+
+        console.log(syncRule.metadataExcludeIncludeRules);
     }, [d2, syncRule]);
 
-    const parseMetadataModels = (metadata: any) => {
+    const parseMetadataTypes = (metadata: any) => {
         return _.keys(metadata).map(type => ({
             name: type,
             id: type,
@@ -47,7 +57,12 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
 
     const changeUseDefaultIncludeExclude = (useDefault: boolean) => {
         setUseDefaultIncludeExclude(useDefault);
-        onChange(syncRule.updateUseDefaultIncludeExclude(useDefault));
+
+        onChange(
+            useDefault
+                ? syncRule.markToUseDefaultIncludeExclude()
+                : syncRule.markToNotUseDefaultIncludeExclude(models)
+        );
     };
 
     const changeModelName = (event: any) => {
@@ -72,7 +87,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                 >
                     <Dropdown
                         key={"model-selection"}
-                        items={models}
+                        items={types}
                         onChange={changeModelName}
                         value={selectedModel ? selectedModel : ""}
                         label={i18n.t("Metadata type")}

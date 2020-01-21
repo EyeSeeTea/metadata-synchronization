@@ -2,7 +2,7 @@ import { MetadataImportResponse, MetadataImportStats } from "./d2";
 import SyncReport from "../models/syncReport";
 
 export interface SynchronizationBuilder {
-    metadataIncludeExcludeRules: MetadataIncludeExcludeRules|undefined;
+    metadataIncludeExcludeRules: MetadataIncludeExcludeRules | undefined;
     useDefaultIncludeExclude: boolean;
     targetInstances: string[];
     metadataIds: string[];
@@ -14,8 +14,8 @@ export interface MetadataIncludeExcludeRules {
 }
 
 export interface ExcludeIncludeRules {
-    excludeRules: string[][];
-    includeRules: string[][];
+    excludeRules: string[];
+    includeRules: string[];
 }
 
 export interface ExportBuilder {
