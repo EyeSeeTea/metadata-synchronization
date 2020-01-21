@@ -10,6 +10,7 @@ import _ from "lodash";
 import Dropdown from "../../dropdown/Dropdown";
 import { d2ModelFactory } from "../../../models/d2ModelFactory";
 import { D2Model } from "../../../models/d2Model";
+import { MultiSelector } from "d2-ui-components";
 
 interface IncludeExcludeSelectionStepProps {
     classes: any;
@@ -28,12 +29,9 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     syncRule,
     onChange,
 }) => {
-    const [useDefaultIncludeExclude, setUseDefaultIncludeExclude] = useState<boolean>(
-        syncRule.useDefaultIncludeExclude
-    );
     const [types, setTypes] = useState<Array<ModelSelectItem>>([]);
     const [models, setModels] = useState<Array<typeof D2Model>>([]);
-    const [selectedModel, setSelectedModel] = useState<string | undefined>();
+    const [selectedType, setSelectedType] = useState<string | undefined>();
 
     useEffect(() => {
         getMetadata(getBaseUrl(d2), syncRule.metadataIds, "id,name").then((metadata: any) => {
@@ -56,8 +54,6 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     };
 
     const changeUseDefaultIncludeExclude = (useDefault: boolean) => {
-        setUseDefaultIncludeExclude(useDefault);
-
         onChange(
             useDefault
                 ? syncRule.markToUseDefaultIncludeExclude()
@@ -66,14 +62,55 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     };
 
     const changeModelName = (event: any) => {
-        setSelectedModel(event.target.value);
+        setSelectedType(event.target.value);
+    };
+
+    const changeInclude = (includeRules: any) => {
+        const type: string = selectedType ?? "";
+
+        const rules = {
+            ...syncRule.metadataExcludeIncludeRules,
+            [type]: {
+                includeRules: includeRules,
+                excludeRules: getAllRules().filter(rule => !includeRules.includes(rule)),
+            },
+        };
+
+        onChange(syncRule.updateMetadataIncludeExcludeRules(rules));
+    };
+
+    const getAllRules = () => {
+        const allRules =
+            selectedType && syncRule.metadataExcludeIncludeRules
+                ? [
+                      ...syncRule.metadataExcludeIncludeRules[selectedType].excludeRules,
+                      ...syncRule.metadataExcludeIncludeRules[selectedType].includeRules,
+                  ].sort()
+                : [];
+
+        return allRules;
+    };
+
+    const getOptions = () => {
+        const allRules = getAllRules();
+
+        return allRules.map(rule => ({
+            value: rule,
+            text: rule,
+        }));
+    };
+
+    const getIncludeRules = () => {
+        return selectedType && syncRule.metadataExcludeIncludeRules
+            ? syncRule.metadataExcludeIncludeRules[selectedType].includeRules
+            : [];
     };
 
     return (
         <React.Fragment>
             <Toggle
                 label={i18n.t("Use default configuration")}
-                value={useDefaultIncludeExclude}
+                value={syncRule.useDefaultIncludeExclude}
                 onValueChange={changeUseDefaultIncludeExclude}
             />
             {!syncRule.useDefaultIncludeExclude && (
@@ -89,9 +126,19 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                         key={"model-selection"}
                         items={types}
                         onChange={changeModelName}
-                        value={selectedModel ? selectedModel : ""}
+                        value={selectedType ? selectedType : ""}
                         label={i18n.t("Metadata type")}
                     />
+
+                    {selectedType && (
+                        <MultiSelector
+                            d2={d2}
+                            height={300}
+                            onChange={changeInclude}
+                            options={getOptions()}
+                            selected={getIncludeRules()}
+                        />
+                    )}
                 </div>
             )}
         </React.Fragment>

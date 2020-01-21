@@ -159,31 +159,27 @@ export default class SyncRule {
             builder: {
                 ...this.syncRule.builder,
                 useDefaultIncludeExclude: true,
-                metadataIncludeExcludeRules: undefined
+                metadataIncludeExcludeRules: undefined,
             },
         });
     }
 
     public markToNotUseDefaultIncludeExclude(models: Array<typeof D2Model>): SyncRule {
-        const metadataIncludeExcludeRules =
-            models.reduce((r: any, model: typeof D2Model) =>
-                ({
-                    ...r,
-                    [model.getMetadataType()]:
-                    {
-                        includeRules: model.getIncludeRules().map(array => array.join('.')),
-                        excludeRules: model.getExcludeRules().map(array => array.join('.'))
-                    }
-                }), {});
-
-        debugger;
+        const metadataIncludeExcludeRules:MetadataIncludeExcludeRules = models.reduce(
+            (accumulator: any, model: typeof D2Model) => ({
+                ...accumulator,
+                [model.getMetadataType() + "s"]: {
+                    includeRules: model.getIncludeRules().map(array => array.join(".")),
+                    excludeRules: model.getExcludeRules().map(array => array.join(".")),
+                },
+            }), {});
 
         return SyncRule.build({
             ...this.syncRule,
             builder: {
                 ...this.syncRule.builder,
                 useDefaultIncludeExclude: false,
-                metadataIncludeExcludeRules
+                metadataIncludeExcludeRules,
             },
         });
     }
