@@ -2,10 +2,20 @@ import { MetadataImportResponse, MetadataImportStats } from "./d2";
 import SyncReport from "../models/syncReport";
 
 export interface SynchronizationBuilder {
+    metadataIncludeExcludeRules: MetadataIncludeExcludeRules|undefined;
     useDefaultIncludeExclude: boolean;
     targetInstances: string[];
     metadataIds: string[];
     syncRule?: string;
+}
+
+export interface MetadataIncludeExcludeRules {
+    [metadataType: string]: ExcludeIncludeRules;
+}
+
+export interface ExcludeIncludeRules {
+    excludeRules: string[][];
+    includeRules: string[][];
 }
 
 export interface ExportBuilder {

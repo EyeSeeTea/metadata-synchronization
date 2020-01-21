@@ -7,7 +7,7 @@ import { deleteData, getDataById, getPaginatedData, saveData } from "./dataStore
 import isValidCronExpression from "../utils/validCronExpression";
 import { D2 } from "../types/d2";
 import { SyncRuleTableFilters, TableList, TablePagination } from "../types/d2-ui-components";
-import { SynchronizationRule } from "../types/synchronization";
+import { SynchronizationRule, MetadataIncludeExcludeRules } from "../types/synchronization";
 import { Validation } from "../types/validations";
 
 const dataStoreKey = "rules";
@@ -46,6 +46,10 @@ export default class SyncRule {
         return this.syncRule.builder.useDefaultIncludeExclude;
     }
 
+    public get metadataExcludeIncludeRules(): MetadataIncludeExcludeRules|undefined {
+        return this.syncRule.builder.metadataIncludeExcludeRules;
+    }
+
     public get targetInstances(): string[] {
         return this.syncRule.builder.targetInstances;
     }
@@ -82,6 +86,7 @@ export default class SyncRule {
             name: "",
             description: "",
             builder: {
+                metadataIncludeExcludeRules: undefined,
                 useDefaultIncludeExclude: true,
                 targetInstances: [],
                 metadataIds: [],
@@ -153,6 +158,16 @@ export default class SyncRule {
             builder: {
                 ...this.syncRule.builder,
                 useDefaultIncludeExclude,
+            },
+        });
+    }
+
+    public updateMetadataIncludeExcludeRules(metadataIncludeExcludeRules: MetadataIncludeExcludeRules|undefined): SyncRule {
+        return SyncRule.build({
+            ...this.syncRule,
+            builder: {
+                ...this.syncRule.builder,
+                metadataIncludeExcludeRules,
             },
         });
     }

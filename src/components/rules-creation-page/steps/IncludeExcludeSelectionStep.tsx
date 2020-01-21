@@ -62,7 +62,14 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                 onValueChange={changeUseDefaultIncludeExclude}
             />
             {!syncRule.useDefaultIncludeExclude && (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", marginTop: "20px" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        marginTop: "20px",
+                    }}
+                >
                     <Dropdown
                         key={"model-selection"}
                         items={models}

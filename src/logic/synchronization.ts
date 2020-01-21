@@ -77,7 +77,7 @@ export async function* startSynchronization(
     d2: D2,
     builder: SynchronizationBuilder
 ): AsyncIterableIterator<SynchronizationState> {
-    const { targetInstances: targetInstanceIds, metadataIds, syncRule } = builder;
+    const { targetInstances: targetInstanceIds, metadataIds, syncRule, metadataIncludeExcludeRules } = builder;
     const { baseUrl } = d2.Api.getApi();
 
     // Phase 1: Export and package metadata from origin instance
@@ -90,8 +90,10 @@ export async function* startSynchronization(
             return {
                 type,
                 ids: metadata[type].map(e => e.id),
-                excludeRules: myClass.getExcludeRules(),
-                includeRules: myClass.getIncludeRules(),
+                excludeRules: metadataIncludeExcludeRules ?
+                    metadataIncludeExcludeRules[type].excludeRules : myClass.getExcludeRules(),
+                includeRules: metadataIncludeExcludeRules ?
+                    metadataIncludeExcludeRules[type].includeRules : myClass.getIncludeRules(),
             };
         })
         .map(newBuilder => exportMetadata(d2, newBuilder));
