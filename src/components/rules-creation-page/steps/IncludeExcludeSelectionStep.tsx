@@ -131,13 +131,16 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                     />
 
                     {selectedType && (
-                        <MultiSelector
-                            d2={d2}
-                            height={300}
-                            onChange={changeInclude}
-                            options={getOptions()}
-                            selected={getIncludeRules()}
-                        />
+                        <div style={{ width: "100%" }}>
+                            <MultiSelector
+                                style={{ width: "100%" }}
+                                d2={d2}
+                                height={300}
+                                onChange={changeInclude}
+                                options={getOptions()}
+                                selected={getIncludeRules()}
+                            />
+                        </div>
                     )}
                 </div>
             )}
