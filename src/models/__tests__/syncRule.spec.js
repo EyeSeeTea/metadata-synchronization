@@ -1,6 +1,30 @@
 import Instance from "../instance";
 import SyncRule from "../syncRule";
 
+function givenASyncRuleWithMetadataIncludeExcludeRules() {
+    return new SyncRule({
+        id: "",
+        name: "",
+        description: "",
+        builder: {
+            metadataIncludeExcludeRules: {
+                dataElements: {
+                    includeRules: ["attributtes", "legendSets"],
+                    excludeRules: ["categoryCombos"],
+                },
+                indicators: {
+                    includeRules: ["attributes", "legendSets"],
+                    excludeRules: ["dataSets", "programs"],
+                },
+            },
+            useDefaultIncludeExclude: false,
+            targetInstances: [],
+            metadataIds: ["id1", "id2"],
+        },
+        enabled: false,
+    });
+}
+
 describe("SyncRule", () => {
     describe("change metadataId", () => {
         it("should reset exclude include rules if really has changed", () => {
@@ -25,29 +49,5 @@ describe("SyncRule", () => {
         });
     });
 });
-
-function givenASyncRuleWithMetadataIncludeExcludeRules() {
-    return new SyncRule({
-        id: "",
-        name: "",
-        description: "",
-        builder: {
-            metadataIncludeExcludeRules: {
-                dataElements: {
-                    includeRules: ["attributtes", "legendSets"],
-                    excludeRules: ["categoryCombos"],
-                },
-                indicators: {
-                    includeRules: ["attributes", "legendSets"],
-                    excludeRules: ["dataSets", "programs"],
-                },
-            },
-            useDefaultIncludeExclude: false,
-            targetInstances: [],
-            metadataIds: ["id1", "id2"],
-        },
-        enabled: false,
-    });
-}
 
 export {};
