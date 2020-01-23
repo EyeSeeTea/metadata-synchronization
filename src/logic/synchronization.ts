@@ -93,15 +93,15 @@ export async function* startSynchronization(
         .map(type => {
             const myClass = d2ModelFactory(d2, type);
 
-            debugger;
+            const metadataType = myClass.getMetadataType();
             return {
                 type,
                 ids: metadata[type].map(e => e.id),
                 excludeRules: metadataIncludeExcludeRules
-                    ? metadataIncludeExcludeRules[type].excludeRules.map(_.toPath)
+                    ? metadataIncludeExcludeRules[metadataType].excludeRules.map(_.toPath)
                     : myClass.getExcludeRules(),
                 includeRules: metadataIncludeExcludeRules
-                    ? metadataIncludeExcludeRules[type].includeRules.map(_.toPath)
+                    ? metadataIncludeExcludeRules[metadataType].includeRules.map(_.toPath)
                     : myClass.getIncludeRules(),
             };
         })
