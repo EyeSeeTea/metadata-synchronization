@@ -200,7 +200,11 @@ describe("SyncRule", () => {
         it("should remove the rules from exclude and to add it to include list without duplicates if select parent and children to move", () => {
             const syncRule = givenASyncRuleWithMetadataIncludeExcludeRules();
 
-            const editedSyncRule = syncRule.moveRuleFromExcludeToInclude("organisationUnit", [1,3,4]);
+            const editedSyncRule = syncRule.moveRuleFromExcludeToInclude("organisationUnit", [
+                1,
+                3,
+                4,
+            ]);
 
             const expectedMetadataIncludeExcludeRules = {
                 organisationUnit: {
@@ -225,7 +229,6 @@ describe("SyncRule", () => {
                 expectedMetadataIncludeExcludeRules
             );
         });
-
     });
     describe("moveRuleFromIncludeToExclude", () => {
         it("should remove the rule from include and to add the rule to exclude list if select only one to move", () => {
