@@ -96,6 +96,39 @@ const SaveStep = ({ d2, syncRule, classes, onCancel, snackbar }) => {
                     }
                 />
 
+                {!syncRule.useDefaultIncludeExclude && (
+                    <LiEntry label={i18n.t("Include exclude configuration")}>
+                        <ul>
+                            {_.keys(syncRule.metadataExcludeIncludeRules).map(key => (
+                                <LiEntry key={key} label={key}>
+                                    <ul>
+                                        <LiEntry label={i18n.t("Include rules")} />
+                                        <ul>
+                                            {syncRule.metadataExcludeIncludeRules[
+                                                key
+                                            ].includeRules.map(includeRule => (
+                                                <ul>
+                                                    <LiEntry label={includeRule} />
+                                                </ul>
+                                            ))}
+                                        </ul>
+                                        <LiEntry label={i18n.t("Exclude rules")} />
+                                        <ul>
+                                            {syncRule.metadataExcludeIncludeRules[
+                                                key
+                                            ].excludeRules.map(excludeRule => (
+                                                <ul>
+                                                    <LiEntry label={excludeRule} />
+                                                </ul>
+                                            ))}
+                                        </ul>
+                                    </ul>
+                                </LiEntry>
+                            ))}
+                        </ul>
+                    </LiEntry>
+                )}
+
                 <LiEntry
                     label={i18n.t("Target instances [{{total}}]", {
                         total: syncRule.targetInstances.length,
