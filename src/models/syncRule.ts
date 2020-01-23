@@ -242,7 +242,7 @@ export default class SyncRule {
             );
 
             const excludeIncludeRules = {
-                includeRules: [...oldIncludeRules, ...rulesToIncludeWithParents],
+                includeRules: _.uniq([...oldIncludeRules, ...rulesToIncludeWithParents]),
                 excludeRules: oldExcludeRules.filter(
                     rule => !rulesToIncludeWithParents.includes(rule)
                 ),
@@ -253,9 +253,23 @@ export default class SyncRule {
             const rulesToExclude = oldIncludeRules.filter((_, index) =>
                 ruleIndexes.includes(index)
             );
+
+            const childrenFromRule = (rule: string) =>
+                oldIncludeRules.filter((children: string) => children.includes(rule + "."));
+
+            const rulesToExcludeWithChildren = _.uniq(
+                rulesToExclude.reduce(
+                    (array: string[], rule: string) => [
+                        ...array,
+                        rule,
+                        ...childrenFromRule(rule),
+                    ],
+                    []
+                ));
+
             const excludeIncludeRules = {
-                includeRules: oldIncludeRules.filter(rule => !rulesToExclude.includes(rule)),
-                excludeRules: [...oldExcludeRules, ...rulesToExclude],
+                includeRules: oldIncludeRules.filter(rule => !rulesToExcludeWithChildren.includes(rule)),
+                excludeRules: [...oldExcludeRules, ...rulesToExcludeWithChildren],
             };
 
             return this.updateIncludeExcludeRules(type, excludeIncludeRules);
@@ -328,42 +342,42 @@ export default class SyncRule {
             name: _.compact([
                 !this.name.trim()
                     ? {
-                          key: "cannot_be_blank",
-                          namespace: { field: "name" },
-                      }
+                        key: "cannot_be_blank",
+                        namespace: { field: "name" },
+                    }
                     : null,
             ]),
             metadataIds: _.compact([
                 this.metadataIds.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "metadata element" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "metadata element" },
+                    }
                     : null,
             ]),
             includeExclude: [],
             targetInstances: _.compact([
                 this.targetInstances.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "instance" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "instance" },
+                    }
                     : null,
             ]),
             frequency: _.compact([
                 this.frequency && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cron_expression_must_be_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cron_expression_must_be_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
             enabled: _.compact([
                 this.enabled && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cannot_enable_without_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cannot_enable_without_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
         });
