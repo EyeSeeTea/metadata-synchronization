@@ -7,7 +7,7 @@ import { deleteData, getDataById, getPaginatedData, saveData } from "./dataStore
 import isValidCronExpression from "../utils/validCronExpression";
 import { D2 } from "../types/d2";
 import { SyncRuleTableFilters, TableList, TablePagination } from "../types/d2-ui-components";
-import { SynchronizationRule, MetadataIncludeExcludeRules } from "../types/synchronization";
+import { SynchronizationRule, MetadataIncludeExcludeRules, ExcludeIncludeRules } from "../types/synchronization";
 import { Validation } from "../types/validations";
 import { D2Model } from "./d2Model";
 
@@ -200,9 +200,47 @@ export default class SyncRule {
         });
     }
 
-    public updateMetadataIncludeExcludeRules(
-        metadataIncludeExcludeRules: MetadataIncludeExcludeRules | undefined
-    ): SyncRule {
+    public moveRuleFromExcludeToInclude(type: string, ruleIndexes: number[]): SyncRule {
+        return this.moveIncludeExcludeRules(type, ruleIndexes, true);
+    }
+
+    public moveRuleFromIncludeToExclude(type: string, ruleIndexes: number[]): SyncRule {
+        return this.moveIncludeExcludeRules(type, ruleIndexes, false);
+    }
+
+    private moveIncludeExcludeRules(type: string, ruleIndexes: number[], include: boolean): SyncRule {
+        if (!this.metadataExcludeIncludeRules) {
+            throw Error("metadataExcludeIncludeRules is not defined");
+        }
+
+        const oldIncludeRules = this.metadataExcludeIncludeRules[type].includeRules;
+        const oldExcludeRules = this.metadataExcludeIncludeRules[type].excludeRules;
+
+        if (include) {
+            const rulesToInclude = oldExcludeRules.filter((_, index) => ruleIndexes.includes(index));
+            const excludeIncludeRules = {
+                includeRules: [...oldIncludeRules, ...rulesToInclude],
+                excludeRules: oldExcludeRules.filter(rule => !rulesToInclude.includes(rule)),
+            }
+
+            return this.updateIncludeExcludeRules(type, excludeIncludeRules);
+        } else {
+            const rulesToExclude = oldIncludeRules.filter((_, index) => ruleIndexes.includes(index));
+            const excludeIncludeRules = {
+                includeRules: oldIncludeRules.filter(rule => !rulesToExclude.includes(rule)),
+                excludeRules: [...oldExcludeRules, ...rulesToExclude],
+            }
+
+            return this.updateIncludeExcludeRules(type, excludeIncludeRules);
+        }
+    }
+
+    private updateIncludeExcludeRules(type: string, excludeIncludeRules: ExcludeIncludeRules): SyncRule {
+        const metadataIncludeExcludeRules = {
+            ...this.metadataExcludeIncludeRules,
+            [type]: excludeIncludeRules,
+        };
+
         return SyncRule.build({
             ...this.syncRule,
             builder: {
@@ -260,42 +298,42 @@ export default class SyncRule {
             name: _.compact([
                 !this.name.trim()
                     ? {
-                          key: "cannot_be_blank",
-                          namespace: { field: "name" },
-                      }
+                        key: "cannot_be_blank",
+                        namespace: { field: "name" },
+                    }
                     : null,
             ]),
             metadataIds: _.compact([
                 this.metadataIds.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "metadata element" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "metadata element" },
+                    }
                     : null,
             ]),
             includeExclude: [],
             targetInstances: _.compact([
                 this.targetInstances.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "instance" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "instance" },
+                    }
                     : null,
             ]),
             frequency: _.compact([
                 this.frequency && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cron_expression_must_be_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cron_expression_must_be_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
             enabled: _.compact([
                 this.enabled && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cannot_enable_without_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cannot_enable_without_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
         });

@@ -139,15 +139,21 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     const changeInclude = (includeRules: any) => {
         const type: string = selectedType ?? "";
 
-        const rules = {
-            ...syncRule.metadataExcludeIncludeRules,
-            [type]: {
-                includeRules: includeRules,
-                excludeRules: getAllRules().filter(rule => !includeRules.includes(rule)),
-            },
-        };
+        const oldIncludeRules = getIncludeRules();
+        const oldExcludeRules = getExcludeRules();
 
-        onChange(syncRule.updateMetadataIncludeExcludeRules(rules));
+        const ruleIndexesToExclude = _.difference(oldIncludeRules, includeRules).map(rule =>
+            oldIncludeRules.indexOf(rule)
+        );
+        const ruleIndexesToInclude = _.difference(includeRules, oldIncludeRules).map(rule =>
+            oldExcludeRules.indexOf(rule)
+        );
+
+        if (ruleIndexesToInclude.length > 0) {
+            onChange(syncRule.moveRuleFromExcludeToInclude(type, ruleIndexesToInclude));
+        } else if (ruleIndexesToExclude.length > 0) {
+            onChange(syncRule.moveRuleFromIncludeToExclude(type, ruleIndexesToExclude));
+        }
     };
 
     const getAllRules = () => {
@@ -156,7 +162,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                 ? [
                       ...syncRule.metadataExcludeIncludeRules[selectedType].excludeRules,
                       ...syncRule.metadataExcludeIncludeRules[selectedType].includeRules,
-                  ].sort()
+                  ]
                 : [];
 
         return allRules;
@@ -168,12 +174,20 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
             : [];
     };
 
+    const getExcludeRules = () => {
+        return selectedType && syncRule.metadataExcludeIncludeRules
+            ? syncRule.metadataExcludeIncludeRules[selectedType].excludeRules
+            : [];
+    };
+
     const getRuleOptions = () => {
         const allRules = getAllRules();
 
         return allRules.map(rule => ({
             value: rule,
-            text: includeExcludeRulesFriendlyNames[rule]? includeExcludeRulesFriendlyNames[rule]:rule,
+            text: includeExcludeRulesFriendlyNames[rule]
+                ? includeExcludeRulesFriendlyNames[rule]
+                : rule,
         }));
     };
 
