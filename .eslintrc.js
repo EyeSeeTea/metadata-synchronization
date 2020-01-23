@@ -17,6 +17,7 @@ module.exports = {
         "@typescript-eslint/indent": "off",
         "@typescript-eslint/member-delimiter-style": "off",
         "@typescript-eslint/type-annotation-spacing": "off",
+        "@typescript-eslint/no-use-before-define": "off",
         "no-extra-semi": "off",
         "no-mixed-spaces-and-tabs": "off",
         "react-hooks/rules-of-hooks": "error",
