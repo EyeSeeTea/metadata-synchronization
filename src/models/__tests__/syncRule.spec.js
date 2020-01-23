@@ -104,6 +104,65 @@ describe("SyncRule", () => {
                 expectedMetadataIncludeExcludeRules
             );
         });
+        it("should remove the rule and parent from exclude and to add it to include list if select only one but with parent to move", () => {
+            const syncRule = givenASyncRuleWithMetadataIncludeExcludeRules();
+
+            const editedSyncRule = syncRule.moveRuleFromExcludeToInclude("organisationUnit", [2]);
+
+            const expectedMetadataIncludeExcludeRules = {
+                organisationUnit: {
+                    includeRules: [
+                        "legendSets",
+                        "dataSets",
+                        "programs",
+                        "users",
+                        "organisationUnitGroups.attributes",
+                        "organisationUnitGroups",
+                    ],
+                    excludeRules: [
+                        "attributes",
+                        "organisationUnitGroups.organisationUnitGroupSets",
+                        "organisationUnitGroups.organisationUnitGroupSets.attributes",
+                    ],
+                },
+                indicators: {
+                    includeRules: ["attributes", "legendSets"],
+                    excludeRules: ["dataSets", "programs"],
+                },
+            };
+
+            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual(
+                expectedMetadataIncludeExcludeRules
+            );
+        });
+        it("should remove the rule and parents from exclude and to add it to include list if select only one but with parents to move", () => {
+            const syncRule = givenASyncRuleWithMetadataIncludeExcludeRules();
+
+            const editedSyncRule = syncRule.moveRuleFromExcludeToInclude("organisationUnit", [4]);
+
+            const expectedMetadataIncludeExcludeRules = {
+                organisationUnit: {
+                    includeRules: [
+                        "legendSets",
+                        "dataSets",
+                        "programs",
+                        "users",
+                        "organisationUnitGroups.organisationUnitGroupSets.attributes",
+                        "organisationUnitGroups.organisationUnitGroupSets",
+                        "organisationUnitGroups",
+                    ],
+                    excludeRules: ["attributes", "organisationUnitGroups.attributes"],
+                },
+                indicators: {
+                    includeRules: ["attributes", "legendSets"],
+                    excludeRules: ["dataSets", "programs"],
+                },
+            };
+
+            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual(
+                expectedMetadataIncludeExcludeRules
+            );
+        });
         it("should remove the rules from exclude and to add the rules to include list if select more of one to move", () => {
             const syncRule = givenASyncRuleWithMetadataIncludeExcludeRules();
 
@@ -138,6 +197,35 @@ describe("SyncRule", () => {
                 expectedMetadataIncludeExcludeRules
             );
         });
+        it("should remove the rules from exclude and to add it to include list without duplicates if select parent and children to move", () => {
+            const syncRule = givenASyncRuleWithMetadataIncludeExcludeRules();
+
+            const editedSyncRule = syncRule.moveRuleFromExcludeToInclude("organisationUnit", [1,3,4]);
+
+            const expectedMetadataIncludeExcludeRules = {
+                organisationUnit: {
+                    includeRules: [
+                        "legendSets",
+                        "dataSets",
+                        "programs",
+                        "users",
+                        "organisationUnitGroups",
+                        "organisationUnitGroups.organisationUnitGroupSets",
+                        "organisationUnitGroups.organisationUnitGroupSets.attributes",
+                    ],
+                    excludeRules: ["attributes", "organisationUnitGroups.attributes"],
+                },
+                indicators: {
+                    includeRules: ["attributes", "legendSets"],
+                    excludeRules: ["dataSets", "programs"],
+                },
+            };
+
+            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual(
+                expectedMetadataIncludeExcludeRules
+            );
+        });
+
     });
     describe("moveRuleFromIncludeToExclude", () => {
         it("should remove the rule from include and to add the rule to exclude list if select only one to move", () => {
@@ -201,9 +289,9 @@ describe("SyncRule", () => {
     });
 });
 
-function givenASyncRuleWithMetadataIncludeExcludeRules(metadataIncludeExcludeRules) {
-    if (!metadataIncludeExcludeRules) {
-        metadataIncludeExcludeRules = {
+function givenASyncRuleWithMetadataIncludeExcludeRules(dependantRulesInExclude = true) {
+    if (dependantRulesInExclude) {
+        return createASyncRuleWithMetadataIncludeExcludeRules({
             organisationUnit: {
                 includeRules: ["legendSets", "dataSets", "programs", "users"],
                 excludeRules: [
@@ -218,9 +306,28 @@ function givenASyncRuleWithMetadataIncludeExcludeRules(metadataIncludeExcludeRul
                 includeRules: ["attributes", "legendSets"],
                 excludeRules: ["dataSets", "programs"],
             },
-        };
+        });
+    } else {
+        return createASyncRuleWithMetadataIncludeExcludeRules({
+            organisationUnit: {
+                includeRules: [
+                    "attributes",
+                    "organisationUnitGroups",
+                    "organisationUnitGroups.attributes",
+                    "organisationUnitGroups.organisationUnitGroupSets",
+                    "organisationUnitGroups.organisationUnitGroupSets.attributes",
+                ],
+                excludeRules: ["legendSets", "dataSets", "programs", "users"],
+            },
+            indicators: {
+                includeRules: ["attributes", "legendSets"],
+                excludeRules: ["dataSets", "programs"],
+            },
+        });
     }
+}
 
+function createASyncRuleWithMetadataIncludeExcludeRules(metadataIncludeExcludeRules) {
     return new SyncRule({
         id: "",
         name: "",

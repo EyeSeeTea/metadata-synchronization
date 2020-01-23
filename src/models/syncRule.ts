@@ -14,6 +14,7 @@ import {
 } from "../types/synchronization";
 import { Validation } from "../types/validations";
 import { D2Model } from "./d2Model";
+import { extractParentsFromRule } from "../utils/extractParentsFromRule";
 
 const dataStoreKey = "rules";
 
@@ -228,9 +229,14 @@ export default class SyncRule {
             const rulesToInclude = oldExcludeRules.filter((_, index) =>
                 ruleIndexes.includes(index)
             );
+
+            const rulesToIncludeWithParents = _.uniq(rulesToInclude.reduce((array: string[], rule: string) =>
+                [...array, rule, ...extractParentsFromRule(rule)]
+                , []));
+
             const excludeIncludeRules = {
-                includeRules: [...oldIncludeRules, ...rulesToInclude],
-                excludeRules: oldExcludeRules.filter(rule => !rulesToInclude.includes(rule)),
+                includeRules: [...oldIncludeRules, ...rulesToIncludeWithParents],
+                excludeRules: oldExcludeRules.filter(rule => !rulesToIncludeWithParents.includes(rule)),
             };
 
             return this.updateIncludeExcludeRules(type, excludeIncludeRules);
@@ -313,42 +319,42 @@ export default class SyncRule {
             name: _.compact([
                 !this.name.trim()
                     ? {
-                          key: "cannot_be_blank",
-                          namespace: { field: "name" },
-                      }
+                        key: "cannot_be_blank",
+                        namespace: { field: "name" },
+                    }
                     : null,
             ]),
             metadataIds: _.compact([
                 this.metadataIds.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "metadata element" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "metadata element" },
+                    }
                     : null,
             ]),
             includeExclude: [],
             targetInstances: _.compact([
                 this.targetInstances.length === 0
                     ? {
-                          key: "cannot_be_empty",
-                          namespace: { element: "instance" },
-                      }
+                        key: "cannot_be_empty",
+                        namespace: { element: "instance" },
+                    }
                     : null,
             ]),
             frequency: _.compact([
                 this.frequency && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cron_expression_must_be_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cron_expression_must_be_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
             enabled: _.compact([
                 this.enabled && !isValidCronExpression(this.frequency)
                     ? {
-                          key: "cannot_enable_without_valid",
-                          namespace: { expression: "frequency" },
-                      }
+                        key: "cannot_enable_without_valid",
+                        namespace: { expression: "frequency" },
+                    }
                     : null,
             ]),
         });
