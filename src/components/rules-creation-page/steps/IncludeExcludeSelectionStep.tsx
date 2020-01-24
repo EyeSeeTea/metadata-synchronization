@@ -99,8 +99,8 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     syncRule,
     onChange,
 }) => {
-    const [modelSelectItems, setModelSelectItems] = useState<Array<ModelSelectItem>>([]);
-    const [models, setModels] = useState<Array<typeof D2Model>>([]);
+    const [modelSelectItems, setModelSelectItems] = useState<ModelSelectItem[]>([]);
+    const [models, setModels] = useState<typeof D2Model[]>([]);
     const [selectedType, setSelectedType] = useState<string | undefined>();
 
     useEffect(() => {
@@ -185,9 +185,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
 
         return allRules.map(rule => ({
             value: rule,
-            text: includeExcludeRulesFriendlyNames[rule]
-                ? includeExcludeRulesFriendlyNames[rule]
-                : rule,
+            text: includeExcludeRulesFriendlyNames[rule] ?? rule,
         }));
     };
 
