@@ -49,7 +49,8 @@ export default class SyncRule {
     }
 
     public get useDefaultIncludeExclude(): boolean {
-        return this.syncRule.builder.useDefaultIncludeExclude ?? true;
+        return this.syncRule.builder.useDefaultIncludeExclude !== undefined ?
+            this.syncRule.builder.useDefaultIncludeExclude : true;
     }
 
     public get metadataExcludeIncludeRules(): MetadataIncludeExcludeRules | undefined {

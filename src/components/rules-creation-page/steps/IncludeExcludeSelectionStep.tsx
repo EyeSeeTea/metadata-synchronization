@@ -137,7 +137,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     };
 
     const changeInclude = (includeRules: any) => {
-        const type: string = selectedType ?? "";
+        const type: string = selectedType || "";
 
         const oldIncludeRules = getIncludeRules();
         const oldExcludeRules = getExcludeRules();
@@ -185,7 +185,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
 
         return allRules.map(rule => ({
             value: rule,
-            text: includeExcludeRulesFriendlyNames[rule] ?? rule,
+            text: includeExcludeRulesFriendlyNames[rule] ? includeExcludeRulesFriendlyNames[rule] : rule,
         }));
     };
 
