@@ -53,8 +53,9 @@ export default class SyncRule {
             this.syncRule.builder.useDefaultIncludeExclude : true;
     }
 
-    public get metadataExcludeIncludeRules(): MetadataIncludeExcludeRules | undefined {
-        return this.syncRule.builder.metadataIncludeExcludeRules;
+    public get metadataExcludeIncludeRules(): MetadataIncludeExcludeRules {
+        return this.syncRule.builder.metadataIncludeExcludeRules !== undefined ?
+            this.syncRule.builder.metadataIncludeExcludeRules : {};
     }
 
     public get targetInstances(): string[] {
@@ -93,7 +94,7 @@ export default class SyncRule {
             name: "",
             description: "",
             builder: {
-                metadataIncludeExcludeRules: undefined,
+                metadataIncludeExcludeRules: {},
                 useDefaultIncludeExclude: true,
                 targetInstances: [],
                 metadataIds: [],
@@ -167,7 +168,7 @@ export default class SyncRule {
                     ...this.syncRule.builder,
                     metadataIds,
                     useDefaultIncludeExclude: true,
-                    metadataIncludeExcludeRules: undefined,
+                    metadataIncludeExcludeRules: {},
                 },
             });
         }
@@ -179,7 +180,7 @@ export default class SyncRule {
             builder: {
                 ...this.syncRule.builder,
                 useDefaultIncludeExclude: true,
-                metadataIncludeExcludeRules: undefined,
+                metadataIncludeExcludeRules: {},
             },
         });
     }
