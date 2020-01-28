@@ -41,7 +41,7 @@ class SyncRulesWizard extends React.Component {
             key: "include-exclude-selection",
             label: i18n.t("Include Exclude Selection"),
             component: IncludeExcludeStep,
-            validationKeys: ["includeExclude"],
+            validationKeys: ["metadataIncludeExclude"],
             description: undefined,
             help: undefined,
         },

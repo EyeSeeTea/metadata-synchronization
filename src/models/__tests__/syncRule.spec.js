@@ -11,7 +11,7 @@ describe("SyncRule", () => {
             const editedSyncRule = syncRule.markToUseDefaultIncludeExclude();
 
             expect(editedSyncRule.useDefaultIncludeExclude).toEqual(true);
-            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual(undefined);
+            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual({});
         });
         it("should assign default exclude include rules in models if set to false", () => {
             const syncRule = givenASyncRuleWithoutMetadataIncludeExcludeRules();
@@ -63,7 +63,7 @@ describe("SyncRule", () => {
             const editedSyncRule = syncRule.updateMetadataIds(["newId1", "newId2"]);
 
             expect(editedSyncRule.useDefaultIncludeExclude).toEqual(true);
-            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual(undefined);
+            expect(editedSyncRule.metadataExcludeIncludeRules).toEqual({});
         });
         it("should not reset exclude include rules if really has not changed", () => {
             const syncRule = givenASyncRuleWithMetadataIncludeExcludeRules();
@@ -480,7 +480,7 @@ function givenASyncRuleWithoutMetadataIncludeExcludeRules() {
         name: "",
         description: "",
         builder: {
-            metadataIncludeExcludeRules: undefined,
+            metadataIncludeExcludeRules: {},
             useDefaultIncludeExclude: true,
             targetInstances: [],
             metadataIds: ["id1", "id2"],

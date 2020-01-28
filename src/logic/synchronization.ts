@@ -82,6 +82,7 @@ export async function* startSynchronization(
         metadataIds,
         syncRule,
         metadataIncludeExcludeRules,
+        useDefaultIncludeExclude,
     } = builder;
     const { baseUrl } = d2.Api.getApi();
 
@@ -97,10 +98,10 @@ export async function* startSynchronization(
             return {
                 type,
                 ids: metadata[type].map(e => e.id),
-                excludeRules: metadataIncludeExcludeRules
+                excludeRules: !useDefaultIncludeExclude
                     ? metadataIncludeExcludeRules[metadataType].excludeRules.map(_.toPath)
                     : myClass.getExcludeRules(),
-                includeRules: metadataIncludeExcludeRules
+                includeRules: !useDefaultIncludeExclude
                     ? metadataIncludeExcludeRules[metadataType].includeRules.map(_.toPath)
                     : myClass.getIncludeRules(),
             };
