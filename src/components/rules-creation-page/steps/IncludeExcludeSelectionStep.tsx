@@ -24,11 +24,9 @@ interface ModelSelectItem {
     id: string;
 }
 
-interface friendlyRulesNamesDiccionary {
+const includeExcludeRulesFriendlyNames: {
     [metadataType: string]: string;
-}
-
-const includeExcludeRulesFriendlyNames: friendlyRulesNamesDiccionary = {
+} = {
     attributes: "Attributes",
     dataSets: "Data sets",
     categoryCombos: "Category combinations",
