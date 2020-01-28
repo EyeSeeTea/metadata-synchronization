@@ -185,7 +185,9 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
 
         return allRules.map(rule => ({
             value: rule,
-            text: includeExcludeRulesFriendlyNames[rule] ? includeExcludeRulesFriendlyNames[rule] : rule,
+            text: includeExcludeRulesFriendlyNames[rule]
+                ? includeExcludeRulesFriendlyNames[rule]
+                : rule,
         }));
     };
 
