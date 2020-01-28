@@ -122,6 +122,14 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
         console.log(syncRule.metadataExcludeIncludeRules);
     }, [d2, syncRule]);
 
+    const { includeRules = [], excludeRules = [] } =
+        syncRule.metadataExcludeIncludeRules[selectedType] || {};
+    const allRules = [...includeRules, ...excludeRules];
+    const ruleOptions = allRules.map(rule => ({
+        value: rule,
+        text: includeExcludeRulesFriendlyNames[rule] || rule,
+    }));
+
     const changeUseDefaultIncludeExclude = (useDefault: boolean) => {
         onChange(
             useDefault
@@ -134,16 +142,16 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
         setSelectedType(event.target.value);
     };
 
-    const changeInclude = (includeRules: any) => {
+    const changeInclude = (currentIncludeRules: any) => {
         const type: string = selectedType;
 
-        const oldIncludeRules = getIncludeRules();
-        const oldExcludeRules = getExcludeRules();
+        const oldIncludeRules: string[] = includeRules;
+        const oldExcludeRules: string[] = excludeRules;
 
-        const ruleIndexesToExclude = _.difference(oldIncludeRules, includeRules).map(rule =>
+        const ruleIndexesToExclude = _.difference(oldIncludeRules, currentIncludeRules).map(rule =>
             oldIncludeRules.indexOf(rule)
         );
-        const ruleIndexesToInclude = _.difference(includeRules, oldIncludeRules).map(rule =>
+        const ruleIndexesToInclude = _.difference(currentIncludeRules, oldIncludeRules).map(rule =>
             oldExcludeRules.indexOf(rule)
         );
 
@@ -152,41 +160,6 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
         } else if (ruleIndexesToExclude.length > 0) {
             onChange(syncRule.moveRuleFromIncludeToExclude(type, ruleIndexesToExclude));
         }
-    };
-
-    const getAllRules = () => {
-        const allRules =
-            selectedType && syncRule.metadataExcludeIncludeRules
-                ? [
-                      ...syncRule.metadataExcludeIncludeRules[selectedType].excludeRules,
-                      ...syncRule.metadataExcludeIncludeRules[selectedType].includeRules,
-                  ]
-                : [];
-
-        return allRules;
-    };
-
-    const getIncludeRules = () => {
-        return selectedType && syncRule.metadataExcludeIncludeRules
-            ? syncRule.metadataExcludeIncludeRules[selectedType].includeRules
-            : [];
-    };
-
-    const getExcludeRules = () => {
-        return selectedType && syncRule.metadataExcludeIncludeRules
-            ? syncRule.metadataExcludeIncludeRules[selectedType].excludeRules
-            : [];
-    };
-
-    const getRuleOptions = () => {
-        const allRules = getAllRules();
-
-        return allRules.map(rule => ({
-            value: rule,
-            text: includeExcludeRulesFriendlyNames[rule]
-                ? includeExcludeRulesFriendlyNames[rule]
-                : rule,
-        }));
     };
 
     return (
@@ -220,8 +193,8 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                                 d2={d2}
                                 height={300}
                                 onChange={changeInclude}
-                                options={getRuleOptions()}
-                                selected={getIncludeRules()}
+                                options={ruleOptions}
+                                selected={includeRules}
                             />
                         </div>
                     )}
