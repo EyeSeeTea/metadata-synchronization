@@ -358,7 +358,7 @@ export default class SyncRule {
                       }
                     : null,
             ]),
-            includeExclude: [],
+            metadataIncludeExclude: [],
             targetInstances: _.compact([
                 this.targetInstances.length === 0
                     ? {
