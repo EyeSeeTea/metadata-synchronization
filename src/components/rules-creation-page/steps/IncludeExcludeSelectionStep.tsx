@@ -99,7 +99,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
 }) => {
     const [modelSelectItems, setModelSelectItems] = useState<ModelSelectItem[]>([]);
     const [models, setModels] = useState<typeof D2Model[]>([]);
-    const [selectedType, setSelectedType] = useState<string | undefined>();
+    const [selectedType, setSelectedType] = useState<string>("");
 
     useEffect(() => {
         getMetadata(getBaseUrl(d2), syncRule.metadataIds, "id,name").then((metadata: any) => {
@@ -135,7 +135,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     };
 
     const changeInclude = (includeRules: any) => {
-        const type: string = selectedType || "";
+        const type: string = selectedType;
 
         const oldIncludeRules = getIncludeRules();
         const oldExcludeRules = getExcludeRules();
@@ -209,7 +209,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                         key={"model-selection"}
                         items={modelSelectItems}
                         onChange={changeModelName}
-                        value={selectedType ? selectedType : ""}
+                        value={selectedType}
                         label={i18n.t("Metadata type")}
                     />
 
