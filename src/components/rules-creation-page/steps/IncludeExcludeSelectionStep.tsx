@@ -11,8 +11,9 @@ import Dropdown from "../../dropdown/Dropdown";
 import { d2ModelFactory } from "../../../models/d2ModelFactory";
 import { D2Model } from "../../../models/d2Model";
 import { MultiSelector } from "d2-ui-components";
+import { WithStyles, withStyles, createStyles } from "@material-ui/core";
 
-interface IncludeExcludeSelectionStepProps {
+interface IncludeExcludeSelectionStepProps extends WithStyles<typeof styles> {
     classes: any;
     d2: D2;
     syncRule: SyncRule;
@@ -23,6 +24,18 @@ interface ModelSelectItem {
     name: string;
     id: string;
 }
+
+const styles = createStyles({
+    includeExcludeContainer: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        marginTop: "20px",
+    },
+    multiselectorContainer: {
+        width: "100%",
+    },
+});
 
 const includeExcludeRulesFriendlyNames: {
     [metadataType: string]: string;
@@ -96,6 +109,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     d2,
     syncRule,
     onChange,
+    classes,
 }) => {
     const [modelSelectItems, setModelSelectItems] = useState<ModelSelectItem[]>([]);
     const [models, setModels] = useState<typeof D2Model[]>([]);
@@ -118,8 +132,6 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
             setModels(models);
             setModelSelectItems(parseModels(models));
         });
-
-        console.log(syncRule.metadataExcludeIncludeRules);
     }, [d2, syncRule]);
 
     const { includeRules = [], excludeRules = [] } =
@@ -170,14 +182,7 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                 onValueChange={changeUseDefaultIncludeExclude}
             />
             {!syncRule.useDefaultIncludeExclude && (
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        marginTop: "20px",
-                    }}
-                >
+                <div className={classes.includeExcludeContainer}>
                     <Dropdown
                         key={"model-selection"}
                         items={modelSelectItems}
@@ -187,9 +192,8 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
                     />
 
                     {selectedType && (
-                        <div style={{ width: "100%" }}>
+                        <div className={classes.multiselectorContainer}>
                             <MultiSelector
-                                style={{ width: "100%" }}
                                 d2={d2}
                                 height={300}
                                 onChange={changeInclude}
@@ -204,4 +208,4 @@ const IncludeExcludeSelectionStep: React.FC<IncludeExcludeSelectionStepProps> = 
     );
 };
 
-export default withSnackbar(IncludeExcludeSelectionStep);
+export default withStyles(styles)(withSnackbar(IncludeExcludeSelectionStep));
