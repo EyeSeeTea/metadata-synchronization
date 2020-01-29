@@ -1,4 +1,4 @@
-import { extractParentsFromRule } from "../extractParentsFromRule";
+import { extractParentsFromRule, extractChildrenFromRules } from "../metadataIncludeExclude";
 
 describe("extractParentsFromRule", () => {
     it("should return empty array if does not exist parent", () => {
@@ -20,6 +20,33 @@ describe("extractParentsFromRule", () => {
         ];
 
         expect(extractParentsFromRule(rule)).toEqual(expectedParents);
+    });
+    it("should return children if rules contain children", () => {
+        const rule = "organisationUnitGroups";
+        const rules = [
+            "attributes",
+            "organisationUnitGroups",
+            "organisationUnitGroups.organisationUnitGroupSets",
+            "organisationUnitGroups.organisationUnitGroupSets.attributes",
+        ];
+        const expectedChildren = [
+            "organisationUnitGroups.organisationUnitGroupSets",
+            "organisationUnitGroups.organisationUnitGroupSets.attributes",
+        ];
+
+        expect(extractChildrenFromRules(rule, rules)).toEqual(expectedChildren);
+    });
+    it("should return empty children if rules does not contain children", () => {
+        const rule = "attributes";
+        const rules = [
+            "attributes",
+            "organisationUnitGroups",
+            "organisationUnitGroups.organisationUnitGroupSets",
+            "organisationUnitGroups.organisationUnitGroupSets.attributes",
+        ];
+        const expectedChildren = [];
+
+        expect(extractChildrenFromRules(rule, rules)).toEqual(expectedChildren);
     });
 });
 

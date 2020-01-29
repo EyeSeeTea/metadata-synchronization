@@ -16,3 +16,7 @@ export function extractParentsFromRule(rule: string): string[] {
         .drop(1)
         .value();
 }
+
+export function extractChildrenFromRules(rule: string, rules:string[]): string[] {
+    return rules.filter((children: string) => children.includes(rule + "."));
+}
