@@ -1,64 +1,101 @@
-import React, { useState } from "react";
-import { Typography, withStyles } from "@material-ui/core";
 import i18n from "@dhis2/d2-i18n";
-
-import { SynchronizationParams } from "../../types/synchronization";
+import { makeStyles, Typography } from "@material-ui/core";
+import React from "react";
+import SyncRule from "../../models/syncRule";
+import RadioButtonGroup from "../radio-button-group/RadioButtonGroup";
 import { Toggle } from "../toggle/Toggle";
 
-interface Props {
-    defaultParams: SynchronizationParams;
-    onChange(newParams: SynchronizationParams): void;
-    classes: any;
+interface SyncParamsSelectorProps {
+    generateNewUidDisabled?: boolean;
+    syncRule: SyncRule;
+    onChange(newParams: SyncRule): void;
 }
 
-interface PseudoEvent {
-    target: {
-        value: boolean;
-    };
-}
-
-const styles = () => ({
+const useStyles = makeStyles({
     advancedOptionsTitle: {
         marginTop: "40px",
         fontWeight: 500,
     },
 });
 
-const SyncParamsSelector = (props: Props) => {
-    const { defaultParams, onChange, classes } = props;
-    const [syncParams, updateSyncParams] = useState<SynchronizationParams>(defaultParams);
+const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({
+    syncRule,
+    onChange,
+    generateNewUidDisabled,
+}) => {
+    const classes = useStyles();
+    const { syncParams, dataParams } = syncRule;
 
-    const changeSharingSettings = (event: PseudoEvent) => {
-        const { value } = event.target;
-        const newParams: SynchronizationParams = {
-            ...syncParams,
-            includeSharingSettings: value,
-        };
-
-        updateSyncParams(newParams);
-        onChange(newParams);
+    const changeSharingSettings = (includeSharingSettings: boolean) => {
+        onChange(
+            syncRule.updateSyncParams({
+                ...syncParams,
+                includeSharingSettings,
+            })
+        );
     };
 
-    const changeAtomic = (event: PseudoEvent) => {
-        const { value } = event.target;
-        const newParams: SynchronizationParams = {
-            ...syncParams,
-            atomicMode: value ? "NONE" : "ALL",
-        };
-
-        updateSyncParams(newParams);
-        onChange(newParams);
+    const changeAtomic = (value: boolean) => {
+        onChange(
+            syncRule.updateSyncParams({
+                ...syncParams,
+                atomicMode: value ? "NONE" : "ALL",
+            })
+        );
     };
 
-    const changeReplace = (event: PseudoEvent) => {
-        const { value } = event.target;
-        const newParams: SynchronizationParams = {
-            ...syncParams,
-            mergeMode: value ? "REPLACE" : "MERGE",
-        };
+    const changeReplace = (value: boolean) => {
+        onChange(
+            syncRule.updateSyncParams({
+                ...syncParams,
+                mergeMode: value ? "REPLACE" : "MERGE",
+            })
+        );
+    };
 
-        updateSyncParams(newParams);
-        onChange(newParams);
+    const changeGenerateUID = (value: boolean) => {
+        onChange(
+            syncRule.updateDataParams({
+                ...dataParams,
+                generateNewUid: value,
+            })
+        );
+    };
+
+    const changeMetadataStrategy = (importStrategy: string) => {
+        onChange(
+            syncRule.updateSyncParams({
+                ...syncParams,
+                importStrategy: importStrategy as "CREATE_AND_UPDATE" | "CREATE" | "UPDATE",
+            })
+        );
+    };
+
+    const changeAggregatedStrategy = (strategy: string) => {
+        onChange(
+            syncRule.updateDataParams({
+                ...dataParams,
+                strategy: strategy as "NEW_AND_UPDATES" | "NEW" | "UPDATES",
+            })
+        );
+    };
+
+    const changeDryRun = (dryRun: boolean) => {
+        if (syncRule.type === "metadata" || syncRule.type === "deleted") {
+            onChange(
+                syncRule.updateSyncParams({
+                    ...syncParams,
+                    importMode: dryRun ? "VALIDATE" : "COMMIT",
+                })
+            );
+        } else {
+            onChange(
+                syncRule.updateDataParams({
+                    ...dataParams,
+                    dryRun,
+                })
+            );
+        }
     };
 
     return (
@@ -66,30 +103,85 @@ const SyncParamsSelector = (props: Props) => {
             <Typography className={classes.advancedOptionsTitle} variant={"subtitle1"} gutterBottom>
                 {i18n.t("Advanced options")}
             </Typography>
-            <div>
-                <Toggle
-                    label={i18n.t("Include user information and sharing settings")}
-                    onChange={changeSharingSettings}
-                    value={!!syncParams.includeSharingSettings}
+
+            {syncRule.type === "metadata" && (
+                <RadioButtonGroup
+                    value={syncParams.importStrategy || "CREATE_AND_UPDATE"}
+                    items={[
+                        { id: "CREATE_AND_UPDATE", name: i18n.t("Create and update") },
+                        { id: "CREATE", name: i18n.t("Create") },
+                        { id: "UPDATE", name: i18n.t("Update") },
+                    ]}
+                    onValueChange={changeMetadataStrategy}
                 />
-            </div>
+            )}
+
+            {syncRule.type === "metadata" && (
+                <div>
+                    <Toggle
+                        label={i18n.t("Include user information and sharing settings")}
+                        onValueChange={changeSharingSettings}
+                        value={!!syncParams.includeSharingSettings}
+                    />
+                </div>
+            )}
+
+            {syncRule.type === "metadata" && (
+                <div>
+                    <Toggle
+                        label={i18n.t("Disable atomic verification")}
+                        onValueChange={changeAtomic}
+                        value={syncParams.atomicMode === "NONE"}
+                    />
+                </div>
+            )}
+
+            {syncRule.type === "metadata" && (
+                <div>
+                    <Toggle
+                        label={i18n.t("Replace objects in destination instance")}
+                        onValueChange={changeReplace}
+                        value={syncParams.mergeMode === "REPLACE"}
+                    />
+                </div>
+            )}
+
+            {syncRule.type === "aggregated" && (
+                <RadioButtonGroup
+                    value={dataParams.strategy || "NEW_AND_UPDATES"}
+                    items={[
+                        { id: "NEW_AND_UPDATES", name: "New and updates" },
+                        { id: "NEW", name: "New" },
+                        { id: "UPDATES", name: "Updates" },
+                    ]}
+                    onValueChange={changeAggregatedStrategy}
+                />
+            )}
+
+            {syncRule.type === "events" && (
+                <div>
+                    <Toggle
+                        disabled={generateNewUidDisabled}
+                        label={i18n.t("Generate new UID")}
+                        onValueChange={changeGenerateUID}
+                        value={dataParams.generateNewUid ?? false}
+                    />
+                </div>
+            )}
 
             <div>
                 <Toggle
-                    label={i18n.t("Disable atomic verification")}
-                    onChange={changeAtomic}
-                    value={syncParams.atomicMode === "NONE"}
-                />
-            </div>
-            <div>
-                <Toggle
-                    label={i18n.t("Replace objects in destination instance")}
-                    onChange={changeReplace}
-                    value={syncParams.mergeMode === "REPLACE"}
+                    label={i18n.t("Dry Run")}
+                    onValueChange={changeDryRun}
+                    value={
+                        syncRule.type === "metadata" || syncRule.type === "deleted"
+                            ? syncParams.importMode === "VALIDATE"
+                            : dataParams.dryRun || false
+                    }
                 />
             </div>
         </React.Fragment>
     );
 };
 
-export default withStyles(styles)(SyncParamsSelector);
+export default SyncParamsSelector;

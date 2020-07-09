@@ -1,17 +1,30 @@
-import React from "react";
 import { FormControlLabel, Switch } from "@material-ui/core";
+import _ from "lodash";
+import React from "react";
 
 interface InputParameters {
+    disabled?: boolean;
     label: string;
-    onChange: Function;
+    onChange?: Function;
+    onValueChange?: Function;
     value: boolean;
 }
 
-export const Toggle = ({ label, onChange, value }: InputParameters) => (
+export const Toggle = ({
+    label,
+    onChange = _.noop,
+    onValueChange = _.noop,
+    value,
+    disabled,
+}: InputParameters) => (
     <FormControlLabel
         control={
             <Switch
-                onChange={e => onChange({ target: { value: e.target.checked } })}
+                disabled={disabled}
+                onChange={e => {
+                    onChange({ target: { value: e.target.checked } });
+                    onValueChange(e.target.checked);
+                }}
                 checked={value}
                 color="primary"
             />
