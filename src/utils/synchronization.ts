@@ -37,7 +37,55 @@ export async function getMetadata(
     if (results.system) delete results.system;
     return results;
 }
+//calculate how much days since last executed date
+/*
+I get current date and last executed date
+then do current date - last executed date
+and that number is the start number
+create a function that takes a sync rule and returns the object instead of just the const?
+*/
+function calculateDaysSinceLastExecuted(lastExecuted: Date | undefined) {
+    if (lastExecuted === undefined) {
+        return 0;
+    } else {
+        const todaysDate = new Date();
+        const Difference_In_Time = todaysDate.getTime() - lastExecuted.getTime();
+        const Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+        return Math.round(Difference_In_Days);
+    }
+}
 
+export function returnAvailablePeriods(syncRule: SynchronizationRule | undefined) {
+    const lastExecutedDate = calculateDaysSinceLastExecuted(syncRule?.lastExecuted);
+    return buildObject<{
+        name: string;
+        start?: [number, unitOfTime.DurationConstructor];
+        end?: [number, unitOfTime.DurationConstructor];
+    }>()({
+        ALL: { name: i18n.t("All time") },
+        FIXED: { name: i18n.t("Fixed period") },
+        TODAY: { name: i18n.t("Today"), start: [0, "day"] },
+        YESTERDAY: { name: i18n.t("Yesterday"), start: [1, "day"] },
+        LAST_EXECUTED_DATE: {
+            name: i18n.t("Since last executed date"),
+            start: [lastExecutedDate, "day"],
+        },
+        LAST_7_DAYS: { name: i18n.t("Last 7 days"), start: [7, "day"], end: [0, "day"] },
+        LAST_14_DAYS: { name: i18n.t("Last 14 days"), start: [14, "day"], end: [0, "day"] },
+        LAST_30_DAYS: { name: i18n.t("Last 30 days"), start: [30, "day"], end: [0, "day"] },
+        LAST_90_DAYS: { name: i18n.t("Last 90 days"), start: [90, "day"], end: [0, "day"] },
+        THIS_WEEK: { name: i18n.t("This week"), start: [0, "week"] },
+        LAST_WEEK: { name: i18n.t("Last week"), start: [1, "week"] },
+        THIS_MONTH: { name: i18n.t("This month"), start: [0, "month"] },
+        LAST_MONTH: { name: i18n.t("Last month"), start: [1, "month"] },
+        THIS_QUARTER: { name: i18n.t("This quarter"), start: [0, "quarter"] },
+        LAST_QUARTER: { name: i18n.t("Last quarter"), start: [1, "quarter"] },
+        THIS_YEAR: { name: i18n.t("This year"), start: [0, "year"] },
+        LAST_YEAR: { name: i18n.t("Last year"), start: [1, "year"] },
+        LAST_FIVE_YEARS: { name: i18n.t("Last 5 years"), start: [5, "year"], end: [1, "year"] },
+    });
+    //syncRule.lastExecuted
+}
 export const availablePeriods = buildObject<{
     name: string;
     start?: [number, unitOfTime.DurationConstructor];
@@ -47,6 +95,10 @@ export const availablePeriods = buildObject<{
     FIXED: { name: i18n.t("Fixed period") },
     TODAY: { name: i18n.t("Today"), start: [0, "day"] },
     YESTERDAY: { name: i18n.t("Yesterday"), start: [1, "day"] },
+    LAST_EXECUTED_DATE: {
+        name: i18n.t("Since last executed date"),
+        start: [0, "day"],
+    },
     LAST_7_DAYS: { name: i18n.t("Last 7 days"), start: [7, "day"], end: [0, "day"] },
     LAST_14_DAYS: { name: i18n.t("Last 14 days"), start: [14, "day"], end: [0, "day"] },
     LAST_30_DAYS: { name: i18n.t("Last 30 days"), start: [30, "day"], end: [0, "day"] },

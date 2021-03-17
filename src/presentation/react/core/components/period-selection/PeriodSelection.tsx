@@ -6,8 +6,10 @@ import React, { useCallback, useMemo } from "react";
 import { DataSyncPeriod } from "../../../../../domain/aggregated/types";
 import i18n from "../../../../../locales";
 import { Maybe } from "../../../../../types/utils";
-import { availablePeriods, PeriodType } from "../../../../../utils/synchronization";
+// availablePeriods,
+import { returnAvailablePeriods, PeriodType } from "../../../../../utils/synchronization";
 import Dropdown from "../dropdown/Dropdown";
+import { SynchronizationRule } from "../../../../../domain/rules/entities/SynchronizationRule";
 
 export interface ObjectWithPeriodInput {
     period: DataSyncPeriod;
@@ -24,6 +26,7 @@ export interface ObjectWithPeriod {
 export interface PeriodSelectionProps {
     periodTitle?: string;
     objectWithPeriod: ObjectWithPeriodInput;
+    syncRule?: SynchronizationRule;
     onChange?: (obj: ObjectWithPeriod) => void;
     onFieldChange?<Field extends keyof ObjectWithPeriod>(
         field: Field,
@@ -54,6 +57,7 @@ const useStyles = makeStyles({
 const PeriodSelection: React.FC<PeriodSelectionProps> = props => {
     const {
         objectWithPeriod: obj,
+        syncRule,
         onChange = _.noop as OnChange,
         onFieldChange = _.noop as OnFieldChange,
         skipPeriods = new Set(),
@@ -72,12 +76,12 @@ const PeriodSelection: React.FC<PeriodSelectionProps> = props => {
 
     const periodItems = useMemo(
         () =>
-            _(availablePeriods)
+            _(returnAvailablePeriods(syncRule))
                 .mapValues((value, key) => ({ ...value, id: key }))
                 .values()
                 .filter(period => !skipPeriods.has(period.id as PeriodType))
                 .value(),
-        [skipPeriods]
+        [skipPeriods, syncRule]
     );
 
     const updatePeriod = useCallback(
