@@ -3470,6 +3470,153 @@ export type UserAccess = {
     userUid: string;
 };
 
+export interface ReportingParams {
+    reportingPeriod: boolean;
+    grandParentOrganisationUnit: boolean;
+    parentOrganisationUnit: boolean;
+    organisationUnit: boolean;
+}
+
+export interface Axis {
+    dimensionalItem: string;
+    axis: number;
+}
+
+export type Visualization = {
+    access: Access;
+    aggregationType:
+        | "SUM"
+        | "AVERAGE"
+        | "AVERAGE_SUM_ORG_UNIT"
+        | "LAST"
+        | "LAST_AVERAGE_ORG_UNIT"
+        | "FIRST"
+        | "FIRST_AVERAGE_ORG_UNIT"
+        | "COUNT"
+        | "STDDEV"
+        | "VARIANCE"
+        | "MIN"
+        | "MAX"
+        | "NONE"
+        | "CUSTOM"
+        | "DEFAULT";
+    attributeDimensions: any[];
+    attributeValues: AttributeValue[];
+    baseLineLabel: string;
+    baseLineValue: number;
+    categoryDimensions: CategoryDimension[];
+    categoryOptionGroupSetDimensions: CategoryOptionGroupSetDimension[];
+    code: Id;
+    colSubTotals: boolean;
+    colTotals: boolean;
+    colorSet: ColorSet;
+    columnDimensions: string[];
+    columns: any[];
+    completedOnly: boolean;
+    created: string;
+    cumulativeValues: boolean;
+    dataDimensionItems: any[];
+    dataElementDimensions: TrackedEntityDataElementDimension[];
+    dataElementGroupSetDimensions: DataElementGroupSetDimension[];
+    description: string;
+    digitGroupSeparator: "COMMA" | "SPACE" | "NONE";
+    displayDensity: "COMFORTABLE" | "NORMAL" | "COMPACT" | "NONE";
+    displayDescription: string;
+    displayFormName: string;
+    displayName: string;
+    displayShortName: string;
+    domainAxisLabel: string;
+    endDate: string;
+    externalAccess: boolean;
+    favorite: boolean;
+    favorites: string[];
+    filterDimensions: string[];
+    filters: any[];
+    fontSize: "LARGE" | "NORMAL" | "SMALL";
+    formName: string;
+    hideEmptyColumns: boolean;
+    hideEmptyRowItems: "NONE" | "BEFORE_FIRST" | "AFTER_LAST" | "BEFORE_FIRST_AFTER_LAST" | "ALL";
+    hideEmptyRows: boolean;
+    hideLegend: boolean;
+    hideSubtitle: boolean;
+    hideTitle: boolean;
+    href: string;
+    id: Id;
+    interpretations: Interpretation[];
+    itemOrganisationUnitGroups: OrganisationUnitGroup[];
+    lastUpdated: string;
+    lastUpdatedBy: User;
+    legendDisplayStrategy: "FIXED" | "BY_DATA_ITEM";
+    legendDisplayStyle: "FILL" | "TEXT";
+    legendSet: LegendSet;
+    measureCriteria: string;
+    name: string;
+    noSpaceBetweenColumns: boolean;
+    numberType: "VALUE" | "ROW_PERCENTAGE" | "COLUMN_PERCENTAGE";
+    optionalAxes: Axis[];
+    orgUnitField: string;
+    organisationUnitGroupSetDimensions: OrganisationUnitGroupSetDimension[];
+    organisationUnitLevels: number[];
+    organisationUnits: OrganisationUnit[];
+    parentGraphMap: Map;
+    percentStackedValues: boolean;
+    periods: any[];
+    programIndicatorDimensions: TrackedEntityProgramIndicatorDimension[];
+    publicAccess: string;
+    rangeAxisDecimals: number;
+    rangeAxisLabel: string;
+    rangeAxisMaxValue: number;
+    rangeAxisMinValue: number;
+    rangeAxisSteps: number;
+    regression: boolean;
+    regressionType: "NONE" | "LINEAR" | "POLYNOMIAL" | "LOESS";
+    relativePeriods: any;
+    reportingParams: ReportingParams;
+    rowDimensions: string[];
+    rowSubTotals: boolean;
+    rowTotals: boolean;
+    rows: any[];
+    shortName: string;
+    showData: boolean;
+    showDimensionLabels: boolean;
+    showHierarchy: boolean;
+    skipRounding: boolean;
+    sortOrder: number;
+    startDate: string;
+    subscribed: boolean;
+    subscribers: string[];
+    subtitle: string;
+    targetLineLabel: string;
+    targetLineValue: number;
+    timeField: string;
+    title: string;
+    topLimit: number;
+    translations: Translation[];
+    type:
+        | "COLUMN"
+        | "STACKED_COLUMN"
+        | "BAR"
+        | "STACKED_BAR"
+        | "LINE"
+        | "AREA"
+        | "PIE"
+        | "RADAR"
+        | "GAUGE"
+        | "YEAR_OVER_YEAR_LINE"
+        | "YEAR_OVER_YEAR_COLUMN"
+        | "SINGLE_VALUE"
+        | "PIVOT_TABLE";
+    user: User;
+    userAccesses: UserAccess[];
+    userGroupAccesses: UserGroupAccess[];
+    userOrgUnitType: "DATA_CAPTURE" | "DATA_OUTPUT" | "TEI_SEARCH";
+    userOrganisationUnit: boolean;
+    userOrganisationUnitChildren: boolean;
+    userOrganisationUnitGrandChildren: boolean;
+    visualizationPeriodName: string;
+    yearlySeries: string[];
+};
+
 export type SqlView = {
     access: Access;
     attributeValues: AttributeValue[];
@@ -3563,6 +3710,7 @@ export type MetadataEntity =
     | Document
     | Dashboard
     | MessageConversation
+    | Visualization
     | SqlView;
 
 export type MetadataKey = "userRoles" | "attributes" | "";
@@ -3630,6 +3778,7 @@ export type MetadataEntities = {
     documents: Document[];
     dashboards: Dashboard[];
     messageConversations: MessageConversation[];
+    visualizations: Visualization[];
     sqlViews: SqlView[];
 };
 
