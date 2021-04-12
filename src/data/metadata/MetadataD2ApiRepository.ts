@@ -511,20 +511,16 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         fields = ":all",
         includeDefaults: boolean
     ): Promise<Record<string, T[]>> {
-        const promises = [];
-        for (let i = 0; i < elements.length; i += 100) {
-            const requestElements = elements.slice(i, i + 100).toString();
-            promises.push(
-                this.api
-                    .get("/metadata", {
-                        fields,
-                        filter: "id:in:[" + requestElements + "]",
-                        defaults: includeDefaults ? undefined : "EXCLUDE",
-                    })
-                    .getData()
-            );
-        }
-        const response = await Promise.all(promises);
+        const response = await promiseMap(_.chunk(elements, 300), requestElements =>
+            this.api
+                .get<MetadataPackage>("/metadata", {
+                    fields,
+                    filter: "id:in:[" + requestElements.toString() + "]",
+                    defaults: includeDefaults ? undefined : "EXCLUDE",
+                })
+                .getData()
+        );
+
         const results = _.deepMerge({}, ...response);
         if (results.system) delete results.system;
         return results;
