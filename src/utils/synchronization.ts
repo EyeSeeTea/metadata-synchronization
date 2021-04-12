@@ -1,6 +1,7 @@
 import FileSaver from "file-saver";
 import _ from "lodash";
 import moment, { unitOfTime } from "moment";
+import { Ref } from "../domain/common/entities/Ref";
 import {
     MetadataMapping,
     MetadataMappingDictionary,
@@ -93,27 +94,28 @@ export const mapCategoryOptionCombo = (
             ),
             { mappedId: "DISABLED" }
         );
+        const defaultValue = isDisabled ? "DISABLED" : undefined;
+
+        const originCategoryOptions = _.compact(
+            origin?.categoryOptions?.map(({ id }) => {
+                const nestedId = _.keys(categoryOptions).find(
+                    candidate => _.last(candidate.split("-")) === id
+                );
+
+                const { mappedId } = categoryOptions[nestedId ?? ""] ?? {};
+                return mappedId ? { id: mappedId } : undefined;
+            })
+        );
 
         // Candidates built from equal category options
-        const candidates = destinationCategoryOptionCombos.filter(o =>
-            _.isEqual(
-                _.sortBy(o.categoryOptions, ["id"]),
-                _.sortBy(
-                    origin?.categoryOptions?.map(({ id }) => {
-                        const nestedId = _.keys(categoryOptions).find(
-                            candidate => _.last(candidate.split("-")) === id
-                        );
-
-                        return nestedId
-                            ? {
-                                  id: categoryOptions[nestedId]?.mappedId,
-                              }
-                            : undefined;
-                    }),
-                    ["id"]
-                )
-            )
+        const candidates = destinationCategoryOptionCombos.filter(candidate =>
+            checkArrayEquality(_.compact(candidate.categoryOptions), originCategoryOptions)
         );
+
+        // If there's only one candidate, ignore the category combo, else provide exact object
+        if (candidates.length === 1) {
+            return _.first(candidates)?.id ?? defaultValue;
+        }
 
         // Exact object built from equal category options and combo
         const exactObject = _.find(candidates, o =>
@@ -124,14 +126,24 @@ export const mapCategoryOptionCombo = (
             })
         );
 
-        // If there's only one candidate, ignore the category combo, else provide exact object
-        const candidate = candidates.length === 1 ? _.first(candidates) : exactObject;
-        const defaultValue = isDisabled ? "DISABLED" : undefined;
-        const result = candidate?.id ?? defaultValue;
+        const result = exactObject?.id ?? defaultValue;
         if (result) return result;
     }
 
     return optionCombo;
+};
+
+const checkArrayEquality = (value: Ref[], other: Ref[]): boolean => {
+    // Check reference equality
+    if (value === other) return true;
+
+    // Check array type
+    if (!Array.isArray(value) || !Array.isArray(other)) return false;
+
+    // Check array length
+    if (value.length !== other.length) return false;
+
+    return _.isEqual(_.sortBy(value, ["id"]), _.sortBy(value, ["id"]));
 };
 
 export const mapOptionValue = (
