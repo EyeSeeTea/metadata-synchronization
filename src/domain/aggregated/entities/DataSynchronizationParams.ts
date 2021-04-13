@@ -1,5 +1,6 @@
 import { DataSyncAggregation } from "./DataSyncAggregation";
 import { DataSyncPeriod } from "./DataSyncPeriod";
+import { Moment } from "moment";
 
 export interface DataImportParams {
     idScheme?: "UID" | "CODE";
@@ -10,6 +11,11 @@ export interface DataImportParams {
     skipExistingCheck?: boolean;
     skipAudit?: boolean;
     strategy?: "NEW_AND_UPDATES" | "NEW" | "UPDATES" | "DELETES";
+}
+
+export interface DataPeriodFilter {
+    startDate: Moment;
+    endDate: Moment;
 }
 
 export interface DataSynchronizationParams extends DataImportParams {

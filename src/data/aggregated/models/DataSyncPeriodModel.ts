@@ -4,7 +4,7 @@ import { Codec, Schema } from "../../../utils/codec";
 export const DataSyncPeriodModel: Codec<DataSyncPeriod> = Schema.oneOf([
     Schema.exact("ALL"),
     Schema.exact("FIXED"),
-    Schema.exact("SINCE_LAST_EXECUTED_DATE"),
+    Schema.exact("LAST_EXECUTION"),
     Schema.exact("TODAY"),
     Schema.exact("YESTERDAY"),
     Schema.exact("LAST_7_DAYS"),

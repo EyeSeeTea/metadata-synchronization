@@ -1,7 +1,6 @@
 import cronstrue from "cronstrue";
 import { generateUid } from "d2/uid";
 import _ from "lodash";
-import moment from "moment";
 import { D2Model } from "../../../models/dhis/default";
 import {
     extractChildrenFromRules,
@@ -11,7 +10,10 @@ import { OldValidation } from "../../../utils/old-validations";
 import { UserInfo } from "../../../utils/permissions";
 import isValidCronExpression from "../../../utils/validCronExpression";
 import { DataSyncAggregation } from "../../aggregated/entities/DataSyncAggregation";
-import { DataSynchronizationParams } from "../../aggregated/entities/DataSynchronizationParams";
+import {
+    DataPeriodFilter,
+    DataSynchronizationParams,
+} from "../../aggregated/entities/DataSynchronizationParams";
 import { DataSyncPeriod } from "../../aggregated/entities/DataSyncPeriod";
 import { NamedRef, SharedRef } from "../../common/entities/Ref";
 import { SharingSetting } from "../../common/entities/SharingSetting";
@@ -26,6 +28,8 @@ import {
     SynchronizationBuilder,
 } from "../../synchronization/entities/SynchronizationBuilder";
 import { SynchronizationType } from "../../synchronization/entities/SynchronizationType";
+import moment from "moment";
+import { availablePeriods } from "../../../utils/synchronization";
 
 export class SynchronizationRule {
     private readonly syncRule: SynchronizationRuleData;
@@ -280,22 +284,7 @@ export class SynchronizationRule {
     }
 
     public static build(syncRule: SynchronizationRuleData | undefined): SynchronizationRule {
-        if (syncRule) {
-            return syncRule.builder?.dataParams?.period === "SINCE_LAST_EXECUTED_DATE"
-                ? new SynchronizationRule({
-                      ...syncRule,
-                      builder: {
-                          ...syncRule.builder,
-                          dataParams: {
-                              ...syncRule.builder.dataParams,
-                              startDate: syncRule.lastExecuted ?? new Date(),
-                          },
-                      },
-                  })
-                : new SynchronizationRule(syncRule);
-        } else {
-            return this.create();
-        }
+        return syncRule ? new SynchronizationRule(syncRule) : this.create();
     }
 
     public toBuilder(): SynchronizationBuilder {
@@ -614,6 +603,40 @@ export class SynchronizationRule {
                 .value().length > 0;
 
         return isUserOwner || isPublic || hasUserAccess || hasGroupAccess;
+    }
+
+    public get dataPeriodFilter(): DataPeriodFilter {
+        const { period = "ALL" } = this.dataParams;
+
+        const defaultStartDate = moment("1970-01-01");
+        const defaultEndDate = moment(moment().add(1, "years").endOf("year").format("YYYY-MM-DD"));
+        const lastExecuted = this.lastExecuted ?? new Date();
+
+        switch (period) {
+            case "ALL": {
+                return { startDate: defaultStartDate, endDate: defaultEndDate };
+            }
+            case "FIXED": {
+                const { startDate = defaultStartDate, endDate = defaultEndDate } = this.dataParams;
+                return { startDate: moment(startDate), endDate: moment(endDate) };
+            }
+            case "LAST_EXECUTION": {
+                return { startDate: moment(lastExecuted), endDate: moment() };
+            }
+            default: {
+                const { start, end = start } = availablePeriods[period];
+                if (start === undefined || end === undefined) {
+                    throw new Error("Unsupported period provided");
+                } else {
+                    const [startAmount, startType] = start;
+                    const [endAmount, endType] = end;
+                    return {
+                        startDate: moment().subtract(startAmount, startType).startOf(startType),
+                        endDate: moment().subtract(endAmount, endType).endOf(endType),
+                    };
+                }
+            }
+        }
     }
 
     private get usesFilterRules(): boolean {

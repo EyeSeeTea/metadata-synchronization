@@ -2,6 +2,9 @@ import moment, { Moment } from "moment";
 import { availablePeriods } from "../../utils/synchronization";
 import { DataSynchronizationParams } from "./entities/DataSynchronizationParams";
 
+/**
+ * @deprecated This function should not be used, please use SyncRule.dataPeriodFilter
+ */
 export function buildPeriodFromParams(
     params: Pick<DataSynchronizationParams, "period" | "startDate" | "endDate">
 ): { startDate: Moment; endDate: Moment } {
@@ -12,7 +15,7 @@ export function buildPeriodFromParams(
             startDate: moment(startDate ?? "1970-01-01"),
             endDate: moment(endDate ?? moment().add(1, "years").endOf("year").format("YYYY-MM-DD")),
         };
-    } else if (period === "SINCE_LAST_EXECUTED_DATE") {
+    } else if (period === "LAST_EXECUTION") {
         return {
             startDate: moment(startDate ?? "1970-01-01"),
             endDate: moment(),
