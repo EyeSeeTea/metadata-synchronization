@@ -1,18 +1,20 @@
 import _ from "lodash";
-import moment from "moment";
-import { Moment } from "moment";
+import moment, { Moment } from "moment";
 import { AggregatedPackage } from "../../domain/aggregated/entities/AggregatedPackage";
+import { DataSyncAggregation } from "../../domain/aggregated/entities/DataSyncAggregation";
+import {
+    DataImportParams,
+    DataSynchronizationParams,
+} from "../../domain/aggregated/entities/DataSynchronizationParams";
 import { DataValue } from "../../domain/aggregated/entities/DataValue";
 import { MappedCategoryOption } from "../../domain/aggregated/entities/MappedCategoryOption";
 import { AggregatedRepository } from "../../domain/aggregated/repositories/AggregatedRepository";
-import { DataSyncAggregation, DataSynchronizationParams } from "../../domain/aggregated/types";
 import { buildPeriodFromParams } from "../../domain/aggregated/utils";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { MetadataMappingDictionary } from "../../domain/mapping/entities/MetadataMapping";
 import { CategoryOptionCombo } from "../../domain/metadata/entities/MetadataEntities";
 import { SynchronizationResult } from "../../domain/reports/entities/SynchronizationResult";
 import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
-import { DataImportParams } from "../../types/d2";
 import { D2Api, DataValueSetsPostResponse } from "../../types/d2-api";
 import { cache } from "../../utils/cache";
 import { promiseMap } from "../../utils/common";
@@ -40,50 +42,83 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
 
         if (dataSet.length === 0 && dataElementGroup.length === 0) return { dataValues: [] };
 
-        const orgUnit = cleanOrgUnitPaths(orgUnitPaths);
+        const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
         const attributeOptionCombo = !allAttributeCategoryOptions
             ? attributeCategoryOptions
             : undefined;
 
-        try {
-            const { dataValues = [] } = await this.api
-                .get<AggregatedPackage>("/dataValueSets", {
-                    dataElementIdScheme: "UID",
-                    orgUnitIdScheme: "UID",
-                    categoryOptionComboIdScheme: "UID",
-                    includeDeleted: false,
-                    startDate: startDate.format("YYYY-MM-DD"),
-                    endDate: endDate.format("YYYY-MM-DD"),
-                    attributeOptionCombo,
-                    dataSet,
-                    dataElementGroup,
-                    orgUnit,
-                    lastUpdated: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
-                })
-                .getData();
+        const [defaultCategoryOptionCombo] = await this.getDefaultIds("categoryOptionCombos");
 
-            const [defaultCategoryOptionCombo] = await this.getDefaultIds("categoryOptionCombos");
+        const dimensions = _.uniqBy(
+            [
+                ...dataSet.map(id => ({ type: "dataSet", id })),
+                ...dataElementGroup.map(id => ({ type: "dataElementGroup", id })),
+            ],
+            ({ id }) => id
+        );
+
+        try {
+            // Chunked request by orgUnits and dimensions (dataSets and dataElementGroups) to avoid 414
+            const dataValues = await promiseMap(_.chunk(orgUnits, 100), orgUnit =>
+                promiseMap(_.chunk(dimensions, 200), dimensions => {
+                    const dataSet = dimensions
+                        .filter(({ type }) => type === "dataSet")
+                        .map(({ id }) => id);
+                    const dataElementGroup = dimensions
+                        .filter(({ type }) => type === "dataElementGroup")
+                        .map(({ id }) => id);
+
+                    return this.api.dataValues
+                        .getSet({
+                            dataElementIdScheme: "UID",
+                            orgUnitIdScheme: "UID",
+                            categoryOptionComboIdScheme: "UID",
+                            includeDeleted: false,
+                            startDate: startDate.format("YYYY-MM-DD"),
+                            endDate: endDate.format("YYYY-MM-DD"),
+                            attributeOptionCombo,
+                            dataSet,
+                            dataElementGroup,
+                            orgUnit,
+                            lastUpdated: lastUpdated
+                                ? moment(lastUpdated).format("YYYY-MM-DD")
+                                : undefined,
+                        })
+                        .map(({ data }) =>
+                            data.dataValues.map(
+                                ({
+                                    dataElement,
+                                    period,
+                                    orgUnit,
+                                    categoryOptionCombo,
+                                    attributeOptionCombo,
+                                    value,
+                                    comment,
+                                }) => ({
+                                    dataElement,
+                                    period,
+                                    orgUnit,
+                                    value,
+                                    comment,
+                                    categoryOptionCombo:
+                                        categoryOptionCombo ?? defaultCategoryOptionCombo,
+                                    attributeOptionCombo:
+                                        attributeOptionCombo ?? defaultCategoryOptionCombo,
+                                })
+                            )
+                        )
+                        .getData();
+                })
+            );
 
             return {
-                dataValues: dataValues.map(
-                    ({
-                        dataElement,
-                        period,
-                        orgUnit,
-                        categoryOptionCombo,
-                        attributeOptionCombo,
-                        value,
-                        comment,
-                    }) => ({
-                        dataElement,
-                        period,
-                        orgUnit,
-                        value,
-                        comment,
-                        categoryOptionCombo: categoryOptionCombo ?? defaultCategoryOptionCombo,
-                        attributeOptionCombo: attributeOptionCombo ?? defaultCategoryOptionCombo,
-                    })
-                ),
+                dataValues: _(dataValues)
+                    .flatten()
+                    .flatten()
+                    .uniqBy(({ orgUnit, period, dataElement, categoryOptionCombo }) =>
+                        [orgUnit, period, dataElement, categoryOptionCombo].join("-")
+                    )
+                    .value(),
             };
         } catch (error) {
             console.error(error);
@@ -275,31 +310,37 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
 
     public async save(
         data: AggregatedPackage,
-        params: DataImportParams | undefined
+        params: DataImportParams = {}
     ): Promise<SynchronizationResult> {
         try {
-            const response = await this.api
-                // TODO: Use this.api.dataValues.postSet
-                .post<DataValueSetsPostResponse>(
-                    "/dataValueSets",
+            const { response } = await this.api.dataValues
+                .postSetAsync(
                     {
-                        idScheme: params?.idScheme ?? "UID",
-                        dataElementIdScheme: params?.dataElementIdScheme ?? "UID",
-                        orgUnitIdScheme: params?.orgUnitIdScheme ?? "UID",
-                        preheatCache: params?.preheatCache ?? false,
-                        skipExistingCheck: params?.skipExistingCheck ?? false,
-                        skipAudit: params?.skipAudit ?? false,
-                        format: params?.format ?? "json",
-                        async: params?.async ?? false,
-                        dryRun: params?.dryRun ?? false,
-                        // TODO: Use importStrategy here
-                        strategy: params?.strategy ?? "NEW_AND_UPDATES",
+                        idScheme: params.idScheme ?? "UID",
+                        dataElementIdScheme: params.dataElementIdScheme ?? "UID",
+                        orgUnitIdScheme: params.orgUnitIdScheme ?? "UID",
+                        preheatCache: params.preheatCache ?? false,
+                        skipExistingCheck: params.skipExistingCheck ?? false,
+                        skipAudit: params.skipAudit ?? false,
+                        dryRun: params.dryRun ?? false,
+                        importStrategy: params.strategy ?? "CREATE_AND_UPDATE",
                     },
                     data
                 )
                 .getData();
 
-            return this.cleanAggregatedImportResponse(response);
+            const result = await this.api.system.waitFor(response.jobType, response.id).getData();
+
+            if (!result) {
+                return {
+                    status: "ERROR",
+                    instance: this.instance.toPublicObject(),
+                    date: new Date(),
+                    type: "aggregated",
+                };
+            }
+
+            return this.cleanAggregatedImportResponse(result);
         } catch (error) {
             if (error?.response?.data) {
                 return this.cleanAggregatedImportResponse(error.response.data);

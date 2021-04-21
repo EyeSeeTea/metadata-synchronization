@@ -1,6 +1,7 @@
 import _ from "lodash";
 import moment from "moment";
-import { DataSyncAggregation, DataSyncPeriod } from "../../../../domain/aggregated/types";
+import { DataSyncAggregation } from "../../../../domain/aggregated/entities/DataSyncAggregation";
+import { DataSyncPeriod } from "../../../../domain/aggregated/entities/DataSyncPeriod";
 import { buildPeriodFromParams } from "../../../../domain/aggregated/utils";
 import { Instance, PublicInstance } from "../../../../domain/instance/entities/Instance";
 import { ProgramIndicator } from "../../../../domain/metadata/entities/MetadataEntities";
@@ -8,7 +9,7 @@ import { SynchronizationReport } from "../../../../domain/reports/entities/Synch
 import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
 import { Store } from "../../../../domain/stores/entities/Store";
 import { SynchronizationBuilder } from "../../../../domain/synchronization/entities/SynchronizationBuilder";
-import { SynchronizationType } from "../../../../domain/synchronization/entities/SynchronizationType";
+import { SynchronizationResultType } from "../../../../domain/synchronization/entities/SynchronizationType";
 import { cleanOrgUnitPath } from "../../../../domain/synchronization/utils";
 import i18n from "../../../../locales";
 import { executeAnalytics } from "../../../../utils/analytics";
@@ -34,6 +35,10 @@ export async function executeAggregateData(
         if (userType === "admin" && !isAdmin) return;
         onAddProgressMessage(event);
     };
+
+    addEventToProgress(
+        _.toUpper(i18n.t(`Syncing process will stop if you leave the current page`))
+    );
 
     addEventToProgress(i18n.t(`Retrieving information from the system...`));
 
@@ -126,6 +131,8 @@ async function validatePreviousDataValues(
 
     addEventToProgress(i18n.t(`Checking data values in previous periods ....`), "admin");
 
+    const localInstance = await compositionRoot.instances.getLocal();
+
     const validationsErrors = await promiseMap(syncRules, async rule => {
         const targetInstances = await compositionRoot.instances.list({ ids: rule.targetInstances });
 
@@ -141,6 +148,7 @@ async function validatePreviousDataValues(
                 if (!lastExecutionDate) return [];
 
                 return compositionRoot.events.list(
+                    localInstance,
                     {
                         period: "FIXED",
                         lastUpdated: moment(lastExecutionDate).toDate(),
@@ -152,12 +160,18 @@ async function validatePreviousDataValues(
                 );
             });
 
-            const errorEvents = _.flatten(events).map(
-                ({ id, orgUnitName, orgUnit, eventDate, lastUpdated }) =>
-                    `\n- Event ${id} for org unit ${orgUnitName ?? orgUnit} on date ${moment(
-                        eventDate
-                    ).format("DD-MM-YYYY")} and updated ${moment(lastUpdated).format("DD-MM-YYYY")}`
-            );
+            const errorEvents = _(events)
+                .flatten()
+                .uniqBy("id")
+                .map(
+                    ({ id, orgUnitName, orgUnit, eventDate, lastUpdated }) =>
+                        `\n- Event ${id} for org unit ${orgUnitName ?? orgUnit} on date ${moment(
+                            eventDate
+                        ).format("DD-MM-YYYY")} and updated ${moment(lastUpdated).format(
+                            "DD-MM-YYYY"
+                        )}`
+                )
+                .value();
 
             if (errorEvents.length > 0) {
                 return `Sync rule '${rule.name}': we have found ${
@@ -240,12 +254,14 @@ async function executeSyncRule(
     return SynchronizationReport.create();
 }
 
-const getTypeName = (reportType: SynchronizationType, syncType: string) => {
+const getTypeName = (reportType: SynchronizationResultType, syncType: string) => {
     switch (reportType) {
         case "aggregated":
             return syncType === "events" ? i18n.t("Program Indicators") : i18n.t("Aggregated");
         case "events":
             return i18n.t("Events");
+        case "trackedEntityInstances":
+            return i18n.t("Tracked Entity Instances");
         case "metadata":
             return i18n.t("Metadata");
         case "deleted":
@@ -398,8 +414,8 @@ async function deletePreviousDataValues(
     for (const instanceId of targetInstances) {
         const instanceResult = await compositionRoot.instances.getById(instanceId);
 
-        instanceResult.match({
-            error: () =>
+        await instanceResult.match({
+            error: async () =>
                 addEventToProgress(
                     i18n.t(`Error retrieving instance {{name}} to delete previous data values`, {
                         name: instanceId,
