@@ -4,92 +4,46 @@ import {
 } from "../../domain/instance/repositories/InstanceFileRepository";
 import { Instance } from "../../domain/instance/entities/Instance";
 import mime from "mime-types";
-import { D2Document } from "../../types/d2-api";
-
-interface SaveApiResponse {
-    response: {
-        fileResource: {
-            id: string;
-        };
-    };
-}
+import { D2Api } from "../../types/d2-api";
+import { getD2APiFromInstance } from "../../utils/d2-utils";
+import { debug } from "../../utils/debug";
 
 export class InstanceFileD2Repository implements InstanceFileRepository {
-    constructor(private instance: Instance) {}
+    private api: D2Api;
+
+    constructor(private instance: Instance) {
+        this.api = getD2APiFromInstance(this.instance);
+    }
 
     public async getById(fileId: FileId): Promise<File> {
-        const auth = this.instance.auth;
+        debug("fileId: ", fileId);
+        const response = await this.api.files.get(fileId).getData();
+        debug("Response: ", response);
 
-        const authHeaders: Record<string, string> = this.getAuthHeaders(auth);
-
-        const fetchOptions: RequestInit = {
-            method: "GET",
-            headers: { ...authHeaders },
-            credentials: auth ? "omit" : ("include" as const),
-        };
-
-        const documentResponse = await fetch(
-            new URL(`/api/documents/${fileId}`, this.instance.url).href,
-            fetchOptions
-        );
-
-        const document: D2Document = JSON.parse(await documentResponse.text());
-
-        const response = await fetch(
-            new URL(`/api/documents/${fileId}/data`, this.instance.url).href,
-            fetchOptions
-        );
-
-        if (!response.ok) {
-            throw Error(
-                `An error has ocurred retrieving the file resource of document '${document.name}' from ${this.instance.name}`
-            );
+        if (!response) {
+            throw Error("An error has ocurred retrieving the file resource of document");
         } else {
-            const blob = await response.blob();
-
-            return this.blobToFile(blob, `${document.name}.${mime.extension(blob.type)}`);
+            const documentName = await this.api.models.documents
+                .get({ filter: { id: { eq: fileId } }, fields: { name: true } })
+                .getData();
+            debug("documentName: ", documentName);
+            return this.blobToFile(
+                response,
+                `${documentName.objects[0].name}.${mime.extension(response.type)}`
+            );
         }
     }
 
-    public async save(file: File): Promise<FileId> {
-        const auth = this.instance.auth;
-
-        const authHeaders: Record<string, string> = this.getAuthHeaders(auth);
-
-        const formdata = new FormData();
-        formdata.append("file", file);
-        formdata.append("filename", file.name);
-
-        const fetchOptions: RequestInit = {
-            method: "POST",
-            headers: { ...authHeaders },
-            body: formdata,
-            credentials: auth ? "omit" : ("include" as const),
-        };
-
-        const response = await fetch(
-            new URL(`/api/fileResources`, this.instance.url).href,
-            fetchOptions
-        );
-        if (!response.ok) {
-            const responseBody = JSON.parse(await response.text());
-
-            const bodyError = responseBody.message ? `: ${responseBody.message}` : "";
-
-            throw Error(
-                `An error has ocurred saving the resource file of the document '${file.name}' in ${this.instance.name}${bodyError}`
-            );
-        } else {
-            const apiResponse: SaveApiResponse = JSON.parse(await response.text());
-
-            return apiResponse.response.fileResource.id;
-        }
-    }
-
-    private getAuthHeaders(
-        auth: { username: string; password: string } | undefined
-    ): Record<string, string> {
-        return auth ? { Authorization: "Basic " + btoa(auth.username + ":" + auth.password) } : {};
+    public async save(documentId: string, file: File): Promise<FileId> {
+        const { fileResourceId } = await this.api.files
+            .upload({
+                id: documentId,
+                name: file.name,
+                data: file,
+            })
+            .getData();
+        debug("File ID", fileResourceId);
+        return fileResourceId;
     }
 
     private blobToFile = (blob: Blob, fileName: string): File => {
