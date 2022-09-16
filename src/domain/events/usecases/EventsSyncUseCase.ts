@@ -1,6 +1,7 @@
 import { generateUid } from "d2/uid";
 import _ from "lodash";
 import memoize from "nano-memoize";
+import { logTimeTrace } from "../../../presentation/webapp/msf-aggregate-data/pages/MSFHomePagePresenter";
 import { D2Program } from "../../../types/d2-api";
 import { debug } from "../../../utils/debug";
 import { DataValue } from "../../aggregated/entities/DataValue";
@@ -34,6 +35,8 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
         "id,name,programType,programStages[id,displayFormName,programStageDataElements[dataElement[id,displayFormName,name]]],programIndicators[id,name],program";
 
     public buildPayload = memoize(async () => {
+        const buildEventsdPayloadStart = new Date();
+
         const { dataParams = {}, excludedIds = [] } = this.builder;
         const { enableAggregation = false } = dataParams;
         const eventsRepository = await this.getEventsRepository();
@@ -87,6 +90,9 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
 
         const dataValues = _.reject(candidateDataValues, ({ dataElement }) => excludedIds.includes(dataElement));
 
+        const buildEventsdPayloadEnd = new Date();
+        logTimeTrace("Trace - build events Payload", buildEventsdPayloadStart, buildEventsdPayloadEnd);
+
         return { events, dataValues, trackedEntityInstances };
     });
 
@@ -98,8 +104,19 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
                 ? await this.postTEIsPayload(instance, trackedEntityInstances)
                 : undefined;
 
+        const postEventsPayloadStart = new Date();
         const eventsResponse = await this.postEventsPayload(instance, events, trackedEntityInstances);
+        const postEventsPayloadEnd = new Date();
+        logTimeTrace(`Trace - postEventsPayload events:${events.length}`, postEventsPayloadStart, postEventsPayloadEnd);
+
+        const postIndicatorPayloadStart = new Date();
         const indicatorsResponse = await this.postIndicatorPayload(instance, dataValues);
+        const postIndicatorPayloadEnd = new Date();
+        logTimeTrace(
+            `Trace - postIndicatorPayload dataValues:${dataValues.length}`,
+            postIndicatorPayloadStart,
+            postIndicatorPayloadEnd
+        );
 
         return _.compact([eventsResponse, indicatorsResponse, teisResponse]);
     }

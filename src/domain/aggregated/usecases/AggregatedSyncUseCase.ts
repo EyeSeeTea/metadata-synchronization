@@ -18,6 +18,7 @@ import { DataValue } from "../entities/DataValue";
 import { createAggregatedPayloadMapper } from "../mapper/AggregatedPayloadMapperFactory";
 import { getMinimumParents } from "../utils";
 import { promiseMap } from "../../../utils/common";
+import { logTimeTrace } from "../../../presentation/webapp/msf-aggregate-data/pages/MSFHomePagePresenter";
 
 export class AggregatedSyncUseCase extends GenericSyncUseCase {
     public readonly type = "aggregated";
@@ -27,10 +28,28 @@ export class AggregatedSyncUseCase extends GenericSyncUseCase {
     public buildPayload = memoize(async (remoteInstance?: Instance) => {
         const { dataParams: { enableAggregation = false } = {} } = this.builder;
 
+        const buildAggregateddPayloadStart = new Date();
+
         if (enableAggregation) {
-            return this.buildAnalyticsPayload(remoteInstance);
+            const result = this.buildAnalyticsPayload(remoteInstance);
+            const buildAggregateddPayloadEnd = new Date();
+            logTimeTrace(
+                "Trace - build aggregated analytics Payload",
+                buildAggregateddPayloadStart,
+                buildAggregateddPayloadEnd
+            );
+
+            return result;
         } else {
-            return this.buildNormalPayload(remoteInstance);
+            const result = this.buildNormalPayload(remoteInstance);
+            const buildAggregateddPayloadEnd = new Date();
+            logTimeTrace(
+                "Trace - build aggregated normal Payload",
+                buildAggregateddPayloadStart,
+                buildAggregateddPayloadEnd
+            );
+
+            return result;
         }
     });
 
@@ -155,7 +174,15 @@ export class AggregatedSyncUseCase extends GenericSyncUseCase {
         });
 
         const aggregatedRepository = await this.getAggregatedRepository(instance);
+        const postAggregatedPayloadStart = new Date();
         const syncResult = await aggregatedRepository.save(payload, dataParams);
+        const postAggregatedPayloadEnd = new Date();
+        logTimeTrace(
+            `Trace - post Aggregated Payload dataValues:${payload.dataValues.length}`,
+            postAggregatedPayloadStart,
+            postAggregatedPayloadEnd
+        );
+
         const origin = await this.getOriginInstance();
 
         return [{ ...syncResult, origin: origin.toPublicObject(), payload }];

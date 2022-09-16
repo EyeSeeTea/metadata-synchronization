@@ -21,6 +21,21 @@ import { NamedRef, Ref } from "../../../../domain/common/entities/Ref";
 
 type LoggerFunction = (event: string, userType?: "user" | "admin") => void;
 
+export function logTimeTrace(task: string, startDate: Date, endDate: Date) {
+    const milliseconds = endDate.getTime() - startDate.getTime();
+
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    const totalTime =
+        hours > 0 ? `${hours}h` : minutes > 0 ? `${minutes}min` : seconds > 0 ? `${seconds}seg` : `${milliseconds}ms`;
+
+    const trace = `${task}\t${startDate.toISOString()}\t${endDate.toISOString()}\t${milliseconds}\t${totalTime}`;
+
+    console.log(trace);
+}
+
 //TODO: maybe convert to class and presenter to use MVP, MVI or BLoC pattern
 export async function executeAggregateData(
     compositionRoot: CompositionRoot,
@@ -31,6 +46,10 @@ export async function executeAggregateData(
     onUpdateMsfSettings: (settings: MSFSettings) => Promise<void>,
     isAdmin: boolean
 ): Promise<SynchronizationReport[]> {
+    console.log(`Trace - executeAggregateData`);
+
+    const executeAggregateDataStart = new Date();
+
     const addEventToProgress: LoggerFunction = (event, userType = "user") => {
         if (userType === "admin" && !isAdmin) return;
         onAddProgressMessage(event);
@@ -40,14 +59,20 @@ export async function executeAggregateData(
 
     addEventToProgress(i18n.t(`Retrieving information from the system...`));
 
+    const getSyncRulesStart = new Date();
     const syncRules = await getSyncRules(compositionRoot, advancedSettings, msfSettings);
+    const getSyncRulesEnd = new Date();
+    logTimeTrace("Trace - getSyncRules", getSyncRulesStart, getSyncRulesEnd);
 
+    const validatePreviousDataValuesStart = new Date();
     const validationErrors = await validatePreviousDataValues(
         compositionRoot,
         syncRules,
         msfSettings,
         addEventToProgress
     );
+    const validatePreviousDataValuesEnd = new Date();
+    logTimeTrace("Trace - validatePreviousDataValues", validatePreviousDataValuesStart, validatePreviousDataValuesEnd);
 
     if (validationErrors.length > 0) {
         onValidationError(validationErrors);
@@ -59,7 +84,10 @@ export async function executeAggregateData(
     addEventToProgress(i18n.t(`Synchronizing aggregated data...`));
 
     if (isGlobalInstance() && msfSettings.runAnalyticsBefore === "false") {
+        const getLastAnalyticsExecutionStart = new Date();
         const lastExecution = await getLastAnalyticsExecution(compositionRoot);
+        const getLastAnalyticsExecutionEnd = new Date();
+        logTimeTrace("Trace - getLastAnalyticsExecution", getLastAnalyticsExecutionStart, getLastAnalyticsExecutionEnd);
 
         addEventToProgress(
             i18n.t("Run analytics after is disabled, last analytics execution: {{lastExecution}}", {
@@ -92,12 +120,16 @@ export async function executeAggregateData(
 
     if (runAnalyticsBeforeIsRequired) {
         const localInstance = await compositionRoot.instances.getLocal();
+
+        const runAnalyticsStart = new Date();
         await runAnalytics(localInstance, addEventToProgress, msfSettings.analyticsYears);
+        const runAnalyticsEnd = new Date();
+        logTimeTrace("Trace - runAnalytics Before", runAnalyticsStart, runAnalyticsEnd);
     }
 
-    const reports = await promiseMap(rulesWithoutRunAnalylics, syncRule =>
-        executeSyncRule(compositionRoot, syncRule, addEventToProgress, msfSettings)
-    );
+    const reports = await promiseMap(rulesWithoutRunAnalylics, syncRule => {
+        return executeSyncRule(compositionRoot, syncRule, addEventToProgress, msfSettings);
+    });
 
     const hasErrors = _(reports)
         .flatMap(report => report.getResults())
@@ -114,7 +146,12 @@ export async function executeAggregateData(
             const instance = await compositionRoot.instances.getById(instanceId);
 
             instance.match({
-                success: async instance => await runAnalytics(instance, addEventToProgress, msfSettings.analyticsYears),
+                success: async instance => {
+                    const runAnalyticsStart = new Date();
+                    await runAnalytics(instance, addEventToProgress, msfSettings.analyticsYears);
+                    const runAnalyticsEnd = new Date();
+                    logTimeTrace("Trace - runAnalytics After", runAnalyticsStart, runAnalyticsEnd);
+                },
                 error: () => {
                     addEventToProgress(
                         i18n.t(`An error has ocurred retrieving the instance {{name}}`, instance),
@@ -140,6 +177,9 @@ export async function executeAggregateData(
     }
 
     await compositionRoot.reports.clean();
+
+    const executeAggregateDataEnd = new Date();
+    logTimeTrace("Trace - executeAggregateData", executeAggregateDataStart, executeAggregateDataEnd);
 
     return reports;
 }
@@ -217,9 +257,12 @@ async function executeSyncRule(
     addEventToProgress: LoggerFunction,
     msfSettings: MSFSettings
 ): Promise<SynchronizationReport> {
+    const executeSyncRuleStart = new Date();
+
     const { name, builder, id: syncRule, type = "metadata", targetInstances } = rule;
 
     addEventToProgress(i18n.t(`Starting Sync Rule {{name}} ...`, { name }), "admin");
+    console.log(`Trace - Start Sync Rule ${name}`);
 
     if (msfSettings.deleteDataValuesBeforeSync) {
         await deletePreviousDataValues(compositionRoot, targetInstances, builder, addEventToProgress);
@@ -260,6 +303,9 @@ async function executeSyncRule(
             return syncReport;
         }
     }
+
+    const executeSyncRuleEnd = new Date();
+    logTimeTrace(`Trace - executeSyncRule '${name}'`, executeSyncRuleStart, executeSyncRuleEnd);
 
     return SynchronizationReport.create();
 }
