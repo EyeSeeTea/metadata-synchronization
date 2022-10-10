@@ -113,7 +113,7 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
         const indicatorsResponse = await this.postIndicatorPayload(instance, dataValues);
         const postIndicatorPayloadEnd = new Date();
         logTimeTrace(
-            `Trace - postIndicatorPayload dataValues:${dataValues.length}`,
+            `Trace - postIndicatorPayload dataValues (prefilter):${dataValues.length}`,
             postIndicatorPayloadStart,
             postIndicatorPayloadEnd
         );
@@ -185,11 +185,19 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
 
         const mappedPayload = await aggregatedSync.mapPayload(instance, { dataValues });
 
+        const existingPayloadStart = new Date();
         const existingPayload = dataParams.ignoreDuplicateExistingValues
             ? await aggregatedSync.mapPayload(instance, await aggregatedSync.buildPayload(instance))
             : { dataValues: [] };
 
         const payload = aggregatedSync.filterPayload(mappedPayload, existingPayload);
+        const existingPayloadEnd = new Date();
+        logTimeTrace(
+            `Trace - existingPayloadEnd dataValues:${payload.dataValues.length}`,
+            existingPayloadStart,
+            existingPayloadEnd
+        );
+
         debug("Program indicator package", {
             originalPayload: { dataValues },
             mappedPayload,
