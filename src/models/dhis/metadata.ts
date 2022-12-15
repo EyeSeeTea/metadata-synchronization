@@ -118,6 +118,23 @@ export class CategoryOptionGroupSetModel extends D2Model {
     ];
 }
 
+export class VisualizationsModel extends D2Model {
+    protected static metadataType = "visualization";
+    protected static collectionName = "visualizations" as const;
+
+    protected static excludeRules = [];
+    protected static includeRules = [
+        "programIndicators",
+        "indicators",
+        "organisationUnitGroupSets",
+        "organisationUnitGroups",
+        "categoryOptionGroupSets",
+        "categoryOptionGroups",
+        "dataElementGroupSets",
+        "dataElementGroups",
+    ];
+}
+
 export class ChartModel extends D2Model {
     protected static metadataType = "chart";
     protected static collectionName = "charts" as const;

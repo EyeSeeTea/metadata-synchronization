@@ -1,4 +1,4 @@
-import { FilterSingleOperatorBase } from "@eyeseetea/d2-api/api/common";
+import { FilterValueOperator } from "@eyeseetea/d2-api/api/common";
 import { ObjectsTableDetailField, TableColumn } from "@eyeseetea/d2-ui-components";
 import _ from "lodash";
 import { MetadataEntities } from "../../domain/metadata/entities/MetadataEntities";
@@ -7,7 +7,7 @@ import { d2BaseModelColumns, d2BaseModelDetails, d2BaseModelFields, MetadataType
 
 export interface SearchFilter {
     field: string;
-    operator: FilterSingleOperatorBase;
+    operator: FilterValueOperator;
 }
 
 // TODO: This concepts are our entity definition
