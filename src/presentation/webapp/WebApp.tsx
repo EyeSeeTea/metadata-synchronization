@@ -9,6 +9,7 @@ import _ from "lodash";
 //@ts-ignore
 import OldMuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import { useEffect, useState } from "react";
+import { Feedback } from "@eyeseetea/feedback-component";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { D2Api } from "../../types/d2-api";
 import { initializeAppRoles } from "../../utils/permissions";
@@ -21,7 +22,6 @@ import muiThemeLegacy from "../react/core/themes/dhis2-legacy.theme";
 import { muiTheme } from "../react/core/themes/dhis2.theme";
 import Root from "./Root";
 import "./WebApp.css";
-import { Feedback } from "@eyeseetea/feedback-component";
 import { appConfig } from "../../app-config";
 
 const generateClassName = createGenerateClassName({
