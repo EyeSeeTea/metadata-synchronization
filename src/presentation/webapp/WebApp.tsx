@@ -1,3 +1,4 @@
+import { Feedback } from "@eyeseetea/feedback-component";
 import { useConfig } from "@dhis2/app-runtime";
 //@ts-ignore
 import { HeaderBar } from "@dhis2/ui";
@@ -9,7 +10,6 @@ import _ from "lodash";
 //@ts-ignore
 import OldMuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import { useEffect, useState } from "react";
-import { Feedback } from "@eyeseetea/feedback-component";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { D2Api } from "../../types/d2-api";
 import { initializeAppRoles } from "../../utils/permissions";
