@@ -1,19 +1,18 @@
 import _ from "lodash";
-import { useSnackbar } from "@eyeseetea/d2-ui-components";
-import { Box, LinearProgress, List, makeStyles, Paper, Typography } from "@material-ui/core";
+import moment from "moment";
 import React from "react";
+import { useSnackbar } from "@eyeseetea/d2-ui-components";
+import { Box, Button, LinearProgress, List, makeStyles, Paper, Typography } from "@material-ui/core";
 import { SynchronizationRule } from "../../../domain/rules/entities/SynchronizationRule";
-import i18n from "../../../locales";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import { CompositionRoot } from "../../CompositionRoot";
 import { formatDateLong } from "../../../utils/date";
-import { SyncRuleButtonProps, SyncRuleButton } from "./SyncRuleButton";
 import { downloadFile } from "../../utils/download";
 import { SynchronizationReport } from "../../../domain/reports/entities/SynchronizationReport";
 import { SummaryTable } from "../../react/core/components/sync-summary/SummaryTable";
 import { SynchronizationResult, SynchronizationStats } from "../../../domain/reports/entities/SynchronizationResult";
-import moment from "moment";
 import { EmergencyType, getEmergencyResponseConfig } from "../../../domain/entities/EmergencyResponses";
+import i18n from "../../../locales";
 
 interface EmergencyResponsesSyncHomePageProps {
     emergencyType: EmergencyType;
@@ -27,12 +26,46 @@ export const EmergencyResponsesSyncHomePage: React.FC<EmergencyResponsesSyncHome
     const rules = useSyncRulesList(emergencyType);
     const [isRunning, runSyncRule] = useSyncRulesExecuter({ emergencyType, logs });
 
+    const executeRules = React.useCallback(
+        (rules: SynchronizationRule[]) =>
+            _.orderBy(rules, "name", "asc").forEach(rule => {
+                console.debug("Running: " + rule.name);
+                runSyncRule(rule);
+            }),
+        [runSyncRule]
+    );
+
+    const metadataRules = React.useMemo(() => {
+        const metadataRules = rules.filter(rule => rule.type === "metadata");
+        return { rules: rules, execute: () => executeRules(metadataRules) };
+    }, [rules, executeRules]);
+
+    const eventsRules = React.useMemo(() => {
+        const eventsRules = rules.filter(rule => rule.type === "events");
+        return { rules: rules, execute: () => executeRules(eventsRules) };
+    }, [rules, executeRules]);
+
     return (
         <Paper className={classes.root}>
             <Box m={1} display="flex" justifyContent="space-between" alignItems="center">
-                {rules.map(rule => (
-                    <SyncRuleButton key={rule.id} rule={rule} onClick={runSyncRule} disabled={isRunning} />
-                ))}
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={metadataRules.execute}
+                    disabled={isRunning}
+                    className={classes.runButton}
+                >
+                    {i18n.t("Get configuration from HQ server")}
+                </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={eventsRules.execute}
+                    disabled={isRunning}
+                    className={classes.runButton}
+                >
+                    {i18n.t("Push data to HQ server")}
+                </Button>
             </Box>
 
             <Paper className={classes.log}>
@@ -153,7 +186,7 @@ function useSyncRulesList(emergencyType: EmergencyType) {
 
                 const emergencyResponsesRules = _(rules)
                     .keyBy(rule => rule.code || "")
-                    .at([syncRules.metadata, syncRules.data])
+                    .at([...syncRules.metadata, ...syncRules.data])
                     .compact()
                     .value();
 
@@ -172,13 +205,13 @@ function useSyncRulesList(emergencyType: EmergencyType) {
 function useSyncRulesExecuter(options: { logs: Logs; emergencyType: EmergencyType }) {
     const { emergencyType, logs } = options;
 
-    const [isRunning, setRunning] = React.useState(false);
+    const [running, setRunning] = React.useState<Record<string, boolean>>();
     const { compositionRoot } = useAppContext();
     const snackbar = useSnackbar();
 
-    const execute = React.useCallback<SyncRuleButtonProps["onClick"]>(
+    const execute = React.useCallback(
         async rule => {
-            setRunning(true);
+            setRunning(running => (running ? { ...running, [rule.id]: true } : { [rule.id]: true }));
 
             try {
                 logs.clear();
@@ -187,11 +220,13 @@ function useSyncRulesExecuter(options: { logs: Logs; emergencyType: EmergencyTyp
                 logs.log(`Error: ${err.message}`);
                 snackbar.error(err.message);
             } finally {
-                setRunning(false);
+                setRunning(running => (running ? { ...running, [rule.id]: false } : { [rule.id]: false }));
             }
         },
         [compositionRoot, snackbar, logs, emergencyType]
     );
+
+    const isRunning = React.useMemo(() => Boolean(running && Object.values(running).some(Boolean)), [running]);
 
     return [isRunning, execute] as const;
 }
@@ -210,6 +245,9 @@ export const useStyles = makeStyles(theme => ({
         minHeight: 275,
         overflow: "auto",
         padding: 10,
+    },
+    runButton: {
+        margin: "0 auto",
     },
 }));
 
