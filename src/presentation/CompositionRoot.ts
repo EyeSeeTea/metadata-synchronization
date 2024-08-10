@@ -21,6 +21,7 @@ import { SystemInfoD2ApiRepository } from "../data/system-info/SystemInfoD2ApiRe
 import { TEID2ApiRepository } from "../data/tracked-entity-instances/TEID2ApiRepository";
 import { TransformationD2ApiRepository } from "../data/transformations/TransformationD2ApiRepository";
 import { UserD2ApiRepository } from "../data/user/UserD2ApiRepository";
+import { WmrSettingsD2Repository } from "../data/wmr/WmrSettingsD2Repository";
 import { AggregatedSyncUseCase } from "../domain/aggregated/usecases/AggregatedSyncUseCase";
 import { DeleteAggregatedUseCase } from "../domain/aggregated/usecases/DeleteAggregatedUseCase";
 import { ListAggregatedUseCase } from "../domain/aggregated/usecases/ListAggregatedUseCase";
@@ -31,6 +32,7 @@ import { GetStorageConfigUseCase } from "../domain/config/usecases/GetStorageCon
 import { SetStorageConfigUseCase } from "../domain/config/usecases/SetStorageConfigUseCase";
 import { GetCustomDataUseCase } from "../domain/custom-data/usecases/GetCustomDataUseCase";
 import { SaveCustomDataUseCase } from "../domain/custom-data/usecases/SaveCustomDataUseCase";
+import { GetWmrSettingsUseCase } from "../domain/entities/wmr/usecases/GetWmrSettingsUseCase";
 import { EventsSyncUseCase } from "../domain/events/usecases/EventsSyncUseCase";
 import { ListEventsUseCase } from "../domain/events/usecases/ListEventsUseCase";
 import { UpdateEmergencyResponseSyncRuleUseCase } from "../domain/events/usecases/UpdateEmergencyResponseSyncRuleUseCase";
@@ -148,6 +150,14 @@ export class CompositionRoot {
         this.repositoryFactory.bind(Repositories.MappingRepository, MappingD2ApiRepository);
         this.repositoryFactory.bind(Repositories.SchedulerRepository, SchedulerD2ApiRepository);
         this.repositoryFactory.bind(Repositories.SettingsRepository, SettingsD2ApiRepository);
+        this.repositoryFactory.bind(Repositories.WmrSettingsRepository, WmrSettingsD2Repository);
+    }
+
+    @cache()
+    public get wmr() {
+        return getExecute({
+            settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
+        });
     }
 
     @cache()

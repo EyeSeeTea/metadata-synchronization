@@ -1,0 +1,11 @@
+{
+    "dataSets": {
+        "MAL_WMR_COUNTRY_SYNC": {
+            "sections": {
+                "TEST_SECTION": {
+                    "viewType": "table"
+                }
+            }
+        }
+    }
+}

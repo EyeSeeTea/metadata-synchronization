@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2024-07-17T07:09:52.268Z\n"
+"POT-Creation-Date: 2024-08-07T02:46:01.537Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2207,6 +2207,50 @@ msgid "Consultations and Surgery (Events)"
 msgstr ""
 
 msgid "Patients (Tracked Entity Instances)"
+msgstr ""
+
+msgid "Have you installed the metadata package that creates the test data set?"
+msgstr ""
+
+msgid "Autogenform configuration"
+msgstr ""
+
+msgid "Tutorial: How to install metadata package"
+msgstr ""
+
+msgid ""
+"Select a DataSet. Then map your server data to the newly created test WMR "
+"form"
+msgstr ""
+
+msgid "Select a DataSet"
+msgstr ""
+
+msgid "Please select an Org. Unit"
+msgstr ""
+
+msgid "Data sent to new DataSet. Click Next to see the data imported"
+msgstr ""
+
+msgid "Send data to new DataSet"
+msgstr ""
+
+msgid "Select a organisation unit in the previous step"
+msgstr ""
+
+msgid "Download DataValues"
+msgstr ""
+
+msgid "Metadata package"
+msgstr ""
+
+msgid "Map Server data"
+msgstr ""
+
+msgid "Map Org units"
+msgstr ""
+
+msgid "Check Data"
 msgstr ""
 
 msgid "Widget cannot be used until an administrator opens the application"

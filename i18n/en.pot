@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2024-07-26T07:11:17.572Z\n"
-"PO-Revision-Date: 2024-07-26T07:11:17.572Z\n"
+"POT-Creation-Date: 2024-08-10T02:46:39.367Z\n"
+"PO-Revision-Date: 2024-08-10T02:46:39.367Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2203,6 +2203,50 @@ msgid "Consultations and Surgery (Events)"
 msgstr ""
 
 msgid "Patients (Tracked Entity Instances)"
+msgstr ""
+
+msgid "Have you installed the metadata package that creates the test data set?"
+msgstr ""
+
+msgid "Autogenform configuration"
+msgstr ""
+
+msgid "Tutorial: How to install metadata package"
+msgstr ""
+
+msgid ""
+"Select a DataSet. Then map your server data to the newly created test WMR "
+"form"
+msgstr ""
+
+msgid "Select a DataSet"
+msgstr ""
+
+msgid "Please select an Org. Unit"
+msgstr ""
+
+msgid "Data sent to new DataSet. Click Next to see the data imported"
+msgstr ""
+
+msgid "Send data to new DataSet"
+msgstr ""
+
+msgid "Select a organisation unit in the previous step"
+msgstr ""
+
+msgid "Download DataValues"
+msgstr ""
+
+msgid "Metadata package"
+msgstr ""
+
+msgid "Map Server data"
+msgstr ""
+
+msgid "Map Org units"
+msgstr ""
+
+msgid "Check Data"
 msgstr ""
 
 msgid "Widget cannot be used until an administrator opens the application"
