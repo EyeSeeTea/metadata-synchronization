@@ -26,6 +26,7 @@ import { MSFHistoryPage } from "./msf-aggregate-data/pages/MSFHistoryPage";
 import { MSFHomePage } from "./msf-aggregate-data/pages/MSFHomePage";
 import { AboutPage } from "./core/pages/about/AboutPage";
 import { About } from "../react/core/components/about/About";
+import { WmrPage } from "./wmr/WmrPage";
 
 const Root: React.FC = () => {
     const { api, compositionRoot } = useAppContext();
@@ -130,6 +131,14 @@ const VariantRoutes: React.FC<{ variant: AppVariant }> = ({ variant }) => {
                     <Redirect to="/efh" />
                 </Switch>
             );
+        case "wmr":
+            return (
+                <Switch>
+                    <RouteWithSession path="/wmr" exact render={() => <WmrPage />} />
+
+                    <Redirect to="/wmr" />
+                </Switch>
+            );
         default:
             return (
                 <Switch>
@@ -156,6 +165,7 @@ const isAppVariant = (variant?: string): variant is AppVariant => {
             "module-package-app",
             "msf-aggregate-data-app",
             "sp-emergency-responses",
+            "wmr",
         ].includes(variant)
     );
 };
@@ -165,6 +175,7 @@ export type AppVariant =
     | "data-metadata-app"
     | "module-package-app"
     | "msf-aggregate-data-app"
-    | "sp-emergency-responses";
+    | "sp-emergency-responses"
+    | "wmr";
 
 export default Root;

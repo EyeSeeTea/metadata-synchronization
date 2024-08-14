@@ -10,6 +10,7 @@ import {
 import { Icon, IconButton, makeStyles, Tooltip, Typography } from "@material-ui/core";
 import _ from "lodash";
 import React, { useCallback, useMemo, useState } from "react";
+import { Id } from "../../../../../domain/common/entities/Schemas";
 import { DataSource } from "../../../../../domain/instance/entities/DataSource";
 import { MappingConfig } from "../../../../../domain/mapping/entities/MappingConfig";
 import {
@@ -66,6 +67,7 @@ export interface MappingTableProps extends MetadataTableProps {
     onApplyGlobalMapping(type: string, id: string, mapping: MetadataMapping): Promise<void>;
     isChildrenMapping?: boolean;
     mappingPath?: string[];
+    filterMappingIds?: Id[];
 }
 
 export default function MappingTable({
@@ -80,6 +82,7 @@ export default function MappingTable({
     onApplyGlobalMapping,
     isChildrenMapping = false,
     mappingPath,
+    filterMappingIds = [],
     ...rest
 }: MappingTableProps) {
     const { compositionRoot } = useAppContext();
@@ -927,6 +930,7 @@ export default function MappingTable({
                     mapping={mapping}
                     onUpdateMapping={updateMapping}
                     onClose={closeMappingDialog}
+                    filterIds={filterMappingIds}
                 />
             )}
 

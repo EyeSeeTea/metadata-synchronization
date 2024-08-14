@@ -12,6 +12,7 @@ import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
 import { EXCLUDED_KEY } from "../mapping-table/utils";
 import MetadataTable from "../metadata-table/MetadataTable";
+import { Id } from "../../../../../domain/common/entities/Schemas";
 
 export interface MappingDialogConfig {
     elements: string[];
@@ -26,6 +27,7 @@ export interface MappingDialogProps {
     mapping: MetadataMappingDictionary;
     onUpdateMapping: (items: string[], id?: string) => void;
     onClose: () => void;
+    filterIds?: Id[];
 }
 
 const useStyles = makeStyles({
@@ -34,7 +36,14 @@ const useStyles = makeStyles({
     },
 });
 
-const MappingDialog: React.FC<MappingDialogProps> = ({ config, instance, mapping, onUpdateMapping, onClose }) => {
+const MappingDialog: React.FC<MappingDialogProps> = ({
+    config,
+    instance,
+    mapping,
+    onUpdateMapping,
+    onClose,
+    filterIds,
+}) => {
     const { api: defaultApi, compositionRoot } = useAppContext();
     const classes = useStyles();
     const [connectionSuccess, setConnectionSuccess] = useState(true);
@@ -140,6 +149,11 @@ const MappingDialog: React.FC<MappingDialogProps> = ({ config, instance, mapping
         </div>
     );
 
+    const metadataTableFilterRows = _(filterRows)
+        .concat(filterIds || [])
+        .compact()
+        .value();
+
     const MetadataMapper = (
         <MetadataTable
             models={[model]}
@@ -147,7 +161,7 @@ const MappingDialog: React.FC<MappingDialogProps> = ({ config, instance, mapping
             notifyNewSelection={onUpdateSelection}
             selectedIds={selected ? [selected] : undefined}
             hideSelectAll={true}
-            filterRows={filterRows}
+            filterRows={metadataTableFilterRows}
             initialShowOnlySelected={!!selected}
             viewFilters={_.compact(["group", "onlySelected", filterRows ? "disableFilterRows" : undefined])}
         />
