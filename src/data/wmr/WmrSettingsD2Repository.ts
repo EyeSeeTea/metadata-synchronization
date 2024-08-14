@@ -5,7 +5,7 @@ import { Instance } from "../../domain/instance/entities/Instance";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { Id } from "../../domain/common/entities/Schemas";
 
-const dataSetFields = {
+export const dataSetFields = {
     id: true,
     displayName: true,
     dataSetElements: { dataElement: { id: true, displayName: true } },
@@ -40,6 +40,7 @@ export class WmrSettingsD2Repository implements WmrSettingsRepository {
                     id: dataElement.id,
                     name: dataElement.displayName,
                 })),
+                orgUnits: [],
             })),
         });
     }

@@ -5,12 +5,13 @@ import i18n from "../../../types/i18n";
 import InstanceMappingPage from "../core/pages/instance-mapping/InstanceMappingPage";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
 import { Id } from "../../../domain/common/entities/Schemas";
+import { WmrSyncRule } from "./WmrPage";
 
-type MapWmrDataProps = { settings: WmrSettings };
+type MapWmrDataProps = { settings: WmrSettings; wmrSyncRule: WmrSyncRule };
 
 export function MapWmrData(props: MapWmrDataProps) {
     const [dataSetId, setDataSetId] = React.useState<Id>();
-    const { settings } = props;
+    const { wmrSyncRule, settings } = props;
 
     const dataSets = settings.dataSets.map(dataSet => {
         return { text: dataSet.name, value: dataSet.id };
@@ -18,6 +19,7 @@ export function MapWmrData(props: MapWmrDataProps) {
 
     const onChangeDataSet = (value: Id | undefined) => {
         setDataSetId(value);
+        wmrSyncRule.localDataSetId = value;
     };
 
     const allowedLocalDataElementsIds = settings.getDataElementsIds(dataSetId);

@@ -2,7 +2,7 @@ import { Maybe } from "../../../../types/utils";
 import { NamedRef } from "../../../common/entities/Ref";
 import { Id } from "../../../common/entities/Schemas";
 
-export type DataSetAttrs = NamedRef & { dataElements: NamedRef[] };
+export type DataSetAttrs = NamedRef & { dataElements: NamedRef[]; orgUnits: NamedRef[] };
 export type WmrSettingsAttrs = {
     countryDataSetId: Id;
     dataSets: DataSetAttrs[];

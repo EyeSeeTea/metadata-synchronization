@@ -8,19 +8,23 @@ import { PreviewWmr } from "./PreviewWmr";
 import { SynchronizationRule } from "../../../domain/rules/entities/SynchronizationRule";
 import { useWmrSettings } from "./hooks/useWmrSettings";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
+import { Id } from "../../../domain/common/entities/Schemas";
+import { Maybe } from "../../../types/utils";
 
 export type WmrPageProps = {};
+export type WmrSyncRule = { localDataSetId: Maybe<Id>; rule: SynchronizationRule };
 
 export function WmrPage() {
     const { settings } = useWmrSettings();
-    const [syncRule, updateRule] = React.useState<SynchronizationRule>(
-        SynchronizationRule.createOnDemand("aggregated")
+    const syncRuleRef = React.useRef<WmrSyncRule>({
+        localDataSetId: undefined,
+        rule: SynchronizationRule.createOnDemand("aggregated")
             .updateBuilder({ metadataIds: [] })
             .updateMetadataTypes(["dataElements"])
             .updateDataSyncOrgUnitPaths([])
             .updateDataSyncPeriod("LAST_YEAR")
-            .updateTargetInstances([WmrSettings.LOCAL_INSTANCE_ID])
-    );
+            .updateTargetInstances([WmrSettings.LOCAL_INSTANCE_ID]),
+    });
 
     const steps = React.useMemo((): WizardStep[] => {
         return [
@@ -30,22 +34,22 @@ export function WmrPage() {
                 label: i18n.t("Metadata package"),
             },
             {
-                component: () => <MapWmrData settings={settings} />,
+                component: () => <MapWmrData settings={settings} wmrSyncRule={syncRuleRef.current} />,
                 key: "map-server-data",
                 label: i18n.t("Map Server data"),
             },
             {
-                component: () => <MapWmrOrgUnits syncRule={syncRule} updateRule={updateRule} />,
+                component: () => <MapWmrOrgUnits settings={settings} wmrSyncRule={syncRuleRef.current} />,
                 key: "map-org-units",
                 label: i18n.t("Map Org units"),
             },
             {
-                component: () => <PreviewWmr settings={settings} syncRule={syncRule} />,
+                component: () => <PreviewWmr settings={settings} wmrSyncRule={syncRuleRef.current} />,
                 key: "check-data",
                 label: i18n.t("Check Data"),
             },
         ];
-    }, [settings, syncRule]);
+    }, [settings]);
 
     return <Wizard useSnackFeedback steps={steps} initialStepKey="metadata-package" />;
 }

@@ -1,29 +1,28 @@
 import React from "react";
 import _ from "lodash";
 import { useLoading } from "@eyeseetea/d2-ui-components";
-import { Grid, Button, Typography } from "@material-ui/core";
+import { Grid, Button, Typography, LinearProgress } from "@material-ui/core";
 import { CloudDownload } from "@material-ui/icons";
 
 import { Id } from "../../../domain/common/entities/Schemas";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
-import { SynchronizationRule } from "../../../domain/rules/entities/SynchronizationRule";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../types/i18n";
+import { WmrSyncRule } from "./WmrPage";
 
-type PreviewWmrProps = { settings: WmrSettings; syncRule: SynchronizationRule };
+type PreviewWmrProps = { settings: WmrSettings; wmrSyncRule: WmrSyncRule };
 
 export function PreviewWmr(props: PreviewWmrProps) {
     const { compositionRoot } = useAppContext();
-    const { syncRule, settings } = props;
+    const { wmrSyncRule, settings } = props;
     const loading = useLoading();
-
-    const path = _(syncRule.dataParams.orgUnitPaths).first() || "";
+    const path = _(wmrSyncRule.rule.dataParams.orgUnitPaths).first() || "";
 
     const onDownload = async () => {
         loading.show();
         await compositionRoot.rules.downloadPayloads({
             kind: "syncRule",
-            syncRule: syncRule,
+            syncRule: wmrSyncRule.rule,
         });
         loading.hide();
     };
@@ -53,7 +52,6 @@ type DataEntryProps = { dataSetId: Id; orgUnitId: Id; period: string };
 export function DataEntry(props: DataEntryProps) {
     const { dataSetId, orgUnitId, period } = props;
     const { api } = useAppContext();
-    const loading = useLoading();
     const [status, setStatus] = React.useState<"idle" | "loaded">("idle");
     const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
@@ -76,15 +74,13 @@ export function DataEntry(props: DataEntryProps) {
         }
 
         if (currentWindow) {
-            loading.show();
             currentWindow.addEventListener("load", onLoad);
         }
 
         return () => {
             currentWindow?.removeEventListener("load", onLoad);
-            loading.hide();
         };
-    }, [loading]);
+    }, []);
 
     React.useEffect(() => {
         const currentWindow = iframeRef.current?.contentWindow as (Window & DataEntryWindow) | null;
@@ -113,22 +109,24 @@ export function DataEntry(props: DataEntryProps) {
                 if (periodSelector.onchange) {
                     periodSelector.onchange(stubEvent);
                 }
-                loading.hide();
             }
         }
 
         getStatusAndSetValues();
-    }, [status, dataSetId, period, orgUnitId, loading]);
+    }, [status, dataSetId, period, orgUnitId]);
 
     return (
-        <iframe
-            className="mds-data-entry"
-            height="100%"
-            width="100%"
-            ref={iframeRef}
-            src={`${api.baseUrl}/dhis-web-dataentry/index.action`}
-            title="WMR - Data Entry"
-        />
+        <>
+            {status !== "loaded" && <LinearProgress color="primary" />}
+            <iframe
+                className="mds-data-entry"
+                height="100%"
+                width="100%"
+                ref={iframeRef}
+                src={`${api.baseUrl}/dhis-web-dataentry/index.action`}
+                title="WMR - Data Entry"
+            />
+        </>
     );
 }
 

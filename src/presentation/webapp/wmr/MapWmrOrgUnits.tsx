@@ -4,8 +4,11 @@ import { OrgUnitsSelector, useLoading, useSnackbar } from "@eyeseetea/d2-ui-comp
 
 import i18n from "../../../types/i18n";
 import { useAppContext } from "../../react/core/contexts/AppContext";
-import { SynchronizationRule } from "../../../domain/rules/entities/SynchronizationRule";
-import { useMappingDataElements } from "./hooks/useMappingDataElements";
+import { useGetDataSetOrgUnits, useMappingDataElements } from "./hooks/useMappingDataElements";
+import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
+import { WmrSyncRule } from "./WmrPage";
+import { WmrDataSet } from "../../../domain/entities/wmr/entities/WmrDataSet";
+import { Alert } from "@material-ui/lab";
 
 const orgUnitControls = {
     filterByLevel: false,
@@ -14,18 +17,17 @@ const orgUnitControls = {
     selectAll: false,
 };
 
-type MapWmrOrgUnitsProps = {
-    syncRule: SynchronizationRule;
-    updateRule: React.Dispatch<React.SetStateAction<SynchronizationRule>>;
-};
+type MapWmrOrgUnitsProps = { settings: WmrSettings; wmrSyncRule: WmrSyncRule };
 
 export function MapWmrOrgUnits(props: MapWmrOrgUnitsProps) {
-    const { syncRule, updateRule } = props;
+    const { settings, wmrSyncRule } = props;
     const { api, compositionRoot } = useAppContext();
     const loading = useLoading();
     const snackbar = useSnackbar();
     const [selectedOrgUnits, updateOrgUnits] = React.useState<string[]>([]);
     const { dataElementsToMigrate } = useMappingDataElements();
+    const { dataSet: localDataSet } = useGetDataSetOrgUnits({ id: wmrSyncRule.localDataSetId || "" });
+    const { dataSet: countryDataSet } = useGetDataSetOrgUnits({ id: settings.countryDataSetId || "" });
 
     async function onSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -34,7 +36,7 @@ export function MapWmrOrgUnits(props: MapWmrOrgUnitsProps) {
             return;
         }
 
-        const syncRuleUpdated = syncRule
+        const syncRuleUpdated = wmrSyncRule.rule
             .updateBuilder({ metadataIds: dataElementsToMigrate })
             .updateDataSyncOrgUnitPaths(selectedOrgUnits);
 
@@ -56,7 +58,7 @@ export function MapWmrOrgUnits(props: MapWmrOrgUnitsProps) {
         await result.match({
             success: async () => {
                 await synchronize();
-                updateRule(syncRuleUpdated);
+                wmrSyncRule.rule = syncRuleUpdated;
                 snackbar.success(i18n.t("Data sent to new DataSet. Click Next to see the data imported"));
             },
             error: async code => {
@@ -69,9 +71,22 @@ export function MapWmrOrgUnits(props: MapWmrOrgUnitsProps) {
         updateOrgUnits(orgUnitsPaths);
     };
 
+    const orgUnitsDifference =
+        localDataSet && countryDataSet ? WmrDataSet.getDifferenceOrgsUnits(localDataSet, countryDataSet) : undefined;
+
     return (
         <form onSubmit={onSubmit}>
             <Grid container spacing={3}>
+                {orgUnitsDifference && (
+                    <Grid item xs={12}>
+                        <Alert severity="warning">
+                            {i18n.t("Org. Unit: {{orgUnitsNames}} are not assigned to the Country DataSet", {
+                                orgUnitsNames: orgUnitsDifference.map(ou => ou.name).join(", "),
+                                nsSeparator: false,
+                            })}
+                        </Alert>
+                    </Grid>
+                )}
                 <Grid item xs={12}>
                     <OrgUnitsSelector
                         api={api}
@@ -79,6 +94,7 @@ export function MapWmrOrgUnits(props: MapWmrOrgUnitsProps) {
                         onChange={onOrgUnitChange}
                         selected={selectedOrgUnits}
                         singleSelection
+                        selectableIds={localDataSet ? WmrDataSet.getOrgUnitsIds(localDataSet) : undefined}
                     />
                 </Grid>
                 <Grid item xs={12}>

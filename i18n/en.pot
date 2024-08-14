@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2024-08-10T02:46:39.367Z\n"
-"PO-Revision-Date: 2024-08-10T02:46:39.367Z\n"
+"POT-Creation-Date: 2024-08-14T23:42:37.335Z\n"
+"PO-Revision-Date: 2024-08-14T23:42:37.335Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2226,6 +2226,9 @@ msgid "Please select an Org. Unit"
 msgstr ""
 
 msgid "Data sent to new DataSet. Click Next to see the data imported"
+msgstr ""
+
+msgid "Org. Unit: {{orgUnitsNames}} are not assigned to the Country DataSet"
 msgstr ""
 
 msgid "Send data to new DataSet"

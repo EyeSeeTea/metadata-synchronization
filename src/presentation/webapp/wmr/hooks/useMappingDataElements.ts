@@ -4,6 +4,27 @@ import { useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Id } from "../../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
+import { WmrDataSet } from "../../../../domain/entities/wmr/entities/WmrDataSet";
+
+export function useGetDataSetOrgUnits(props: { id: Id }) {
+    const { compositionRoot } = useAppContext();
+    const [dataSet, setDataSet] = React.useState<WmrDataSet>();
+    const loading = useLoading();
+    const snackbar = useSnackbar();
+
+    React.useEffect(() => {
+        async function getInstance() {
+            loading.show();
+            const dataSet = await compositionRoot.wmr.getDataSetById(props.id);
+            setDataSet(dataSet);
+            loading.hide();
+        }
+
+        getInstance();
+    }, [compositionRoot, loading, snackbar, props.id]);
+
+    return { dataSet };
+}
 
 export function useMappingDataElements() {
     const { compositionRoot } = useAppContext();
