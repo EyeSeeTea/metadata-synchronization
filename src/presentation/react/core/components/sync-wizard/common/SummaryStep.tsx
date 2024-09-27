@@ -4,6 +4,7 @@ import _ from "lodash";
 import moment from "moment";
 import React, { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
+import { DataStoreMetadata } from "../../../../../../domain/data-store/DataStoreMetadata";
 import { filterRuleToString } from "../../../../../../domain/metadata/entities/FilterRule";
 import {
     MetadataEntities,
@@ -158,6 +159,7 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
 
     const [metadata, updateMetadata] = useState<MetadataPackage<MetadataEntity>>({});
     const [instanceOptions, setInstanceOptions] = useState<{ value: string; text: string }[]>([]);
+    const [syncAllTypesLength, setSyncAllTypesLength] = useState<Record<string, number>>({});
 
     const aggregationItems = useMemo(buildAggregationItems, []);
 
@@ -183,6 +185,18 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
             result.match({
                 error: () => snackbar.error(i18n.t("Invalid origin instance")),
                 success: instance => {
+                    //TODO: UseCase should have all these Promise.all + map + ... 963#discussion_r1682399046
+                    Promise.all(
+                        syncRule.metadataModelsSyncAll.map(
+                            async type =>
+                                await compositionRoot.metadata
+                                    .listAll({ type: type as keyof MetadataEntities, fields: { id: true } }, instance)
+                                    .then(metadata => ({
+                                        [type]: metadata.filter(({ id }) => !syncRule.excludedIds.includes(id)).length,
+                                    }))
+                        )
+                    ).then(typeLength => setSyncAllTypesLength(Object.assign({}, ...typeLength)));
+
                     //type is required to transform visualizations to charts and report tables
                     compositionRoot.metadata.getByIds(ids, instance, "id,name,type").then(updateMetadata);
                 },
@@ -216,32 +230,52 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                 </ul>
             </LiEntry>
 
-            {_.keys(metadata).map(metadataType => {
-                //@ts-ignore
-                const modelByMetadataType = api.models[metadataType];
-                if (!modelByMetadataType) {
-                    console.warn(`Metadata type "${metadataType}" not supported in d2-api`);
-                    return null;
-                }
-                const itemsByType = metadata[metadataType as keyof MetadataEntities] || [];
+            {_(metadata)
+                .keys() //TODO: use keys() typed function and change both metadataType and metadataModelsSyncAll to keyof MetadataEntities
+                .concat(syncRule.metadataModelsSyncAll)
+                .uniq()
+                .sort()
+                .value()
+                .map(metadataType => {
+                    const modelByMetadataType = api.models[metadataType as keyof MetadataEntities]; //TODO: remove "as"
+                    if (!modelByMetadataType) {
+                        console.warn(`Metadata type "${metadataType}" not supported in d2-api`); //TODO: Remove d2-api reference (data layer) - here (presentation layer) 963#discussion_r1682402091
+                        return null;
+                    }
 
-                const items = itemsByType.filter(({ id }) => !syncRule.excludedIds.includes(id));
+                    if (modelByMetadataType.schema.displayName === "Key Json Value") return null;
 
-                return (
-                    items.length > 0 && (
-                        <LiEntry
-                            key={metadataType}
-                            label={`${modelByMetadataType.schema.displayName} [${items.length}]`}
-                        >
-                            <ul>
-                                {items.map(({ id, name }) => (
-                                    <LiEntry key={id} label={`${name} (${id})`} />
-                                ))}
-                            </ul>
-                        </LiEntry>
-                    )
-                );
-            })}
+                    if (syncRule.metadataModelsSyncAll.includes(metadataType)) {
+                        const length = syncAllTypesLength[metadataType];
+
+                        return (
+                            <LiEntry
+                                key={metadataType}
+                                label={`${modelByMetadataType.schema.displayName} [${length} - actual]: ALL`}
+                            />
+                        );
+                    }
+
+                    const itemsByType = metadata[metadataType as keyof MetadataEntities] || [];
+                    const items = itemsByType.filter(({ id }) => !syncRule.excludedIds.includes(id));
+
+                    return (
+                        items.length > 0 && (
+                            <LiEntry
+                                key={metadataType}
+                                label={`${modelByMetadataType.schema.displayName} [${items.length}]`}
+                            >
+                                <ul>
+                                    {items.map(({ id, name }) => (
+                                        <LiEntry key={id} label={`${name} (${id})`} />
+                                    ))}
+                                </ul>
+                            </LiEntry>
+                        )
+                    );
+                })}
+
+            <DataStoreSectionContent metadataIds={syncRule.metadataIds} />
 
             {syncRule.filterRules.length > 0 && (
                 <LiEntry
@@ -489,5 +523,31 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
 
             {syncRule.longFrequency && <LiEntry label={i18n.t("Frequency")} value={syncRule.longFrequency} />}
         </ul>
+    );
+};
+
+export const DataStoreSectionContent = (props: { metadataIds: string[] }) => {
+    const { metadataIds } = props;
+
+    const dataStoreInfo = React.useMemo(() => {
+        return metadataIds.filter(metadataId => {
+            return metadataId.includes(DataStoreMetadata.NS_SEPARATOR);
+        });
+    }, [metadataIds]);
+
+    if (dataStoreInfo.length === 0) return null;
+
+    return (
+        <>
+            <LiEntry label={`DataStore [${dataStoreInfo.length}]`}>
+                <ul>
+                    {dataStoreInfo.map(dataStore => {
+                        const [namespace, key] = dataStore.split(DataStoreMetadata.NS_SEPARATOR);
+                        const keyName = key ? `${key}` : "All Keys";
+                        return <LiEntry key={`${namespace}-${key}`} label={`${namespace} - ${keyName}`} />;
+                    })}
+                </ul>
+            </LiEntry>
+        </>
     );
 };

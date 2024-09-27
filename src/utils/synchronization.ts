@@ -1,6 +1,7 @@
 import FileSaver from "file-saver";
 import _ from "lodash";
 import moment, { unitOfTime } from "moment";
+import { D2MetadataUtils } from "../data/metadata/D2MetadataUtils";
 import { MetadataMapping, MetadataMappingDictionary } from "../domain/mapping/entities/MetadataMapping";
 import { CategoryOptionCombo } from "../domain/metadata/entities/MetadataEntities";
 import { SynchronizationRule } from "../domain/rules/entities/SynchronizationRule";
@@ -29,7 +30,9 @@ export async function getMetadata(api: D2Api, elements: string[], fields = ":all
     const response = await Promise.all(promises);
     const results = _.deepMerge({}, ...response);
     if (results.system) delete results.system;
-    return results;
+    const defaultIds = await D2MetadataUtils.getDefaultIds(api);
+    const metadataExcludeDefaults = await D2MetadataUtils.excludeDefaults(results, defaultIds);
+    return metadataExcludeDefaults;
 }
 
 export const availablePeriods = buildObject<{
@@ -40,6 +43,7 @@ export const availablePeriods = buildObject<{
     ALL: { name: i18n.t("All time") },
     FIXED: { name: i18n.t("Fixed period") },
     SINCE_LAST_EXECUTED_DATE: { name: i18n.t("Since last execution") },
+    SINCE_LAST_SUCCESSFUL_SYNC: { name: i18n.t("Since last successful execution") },
     TODAY: { name: i18n.t("Today"), start: [0, "day"] },
     YESTERDAY: { name: i18n.t("Yesterday"), start: [1, "day"] },
     LAST_7_DAYS: { name: i18n.t("Last 7 days"), start: [7, "day"], end: [0, "day"] },

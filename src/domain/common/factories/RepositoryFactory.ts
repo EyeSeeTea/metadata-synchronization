@@ -5,6 +5,7 @@ import {
 } from "../../aggregated/repositories/AggregatedRepository";
 import { ConfigRepositoryConstructor } from "../../config/repositories/ConfigRepository";
 import { CustomDataRepositoryConstructor } from "../../custom-data/repository/CustomDataRepository";
+import { DataStoreMetadataRepositoryConstructor } from "../../data-store/DataStoreMetadataRepository";
 import { EventsRepository, EventsRepositoryConstructor } from "../../events/repositories/EventsRepository";
 import { FileRepositoryConstructor } from "../../file/repositories/FileRepository";
 import { DataSource } from "../../instance/entities/DataSource";
@@ -19,6 +20,7 @@ import { ReportsRepositoryConstructor } from "../../reports/repositories/Reports
 import { FileRulesRepositoryConstructor } from "../../rules/repositories/FileRulesRepository";
 import { RulesRepositoryConstructor } from "../../rules/repositories/RulesRepository";
 import { SchedulerRepositoryConstructor } from "../../scheduler/repositories/SchedulerRepository";
+import { SettingsRepositoryConstructor } from "../../settings/SettingsRepository";
 import { DownloadRepositoryConstructor } from "../../storage/repositories/DownloadRepository";
 import { StoreRepositoryConstructor } from "../../stores/repositories/StoreRepository";
 import { TEIRepository, TEIRepositoryConstructor } from "../../tracked-entity-instances/repositories/TEIRepository";
@@ -120,6 +122,11 @@ export class RepositoryFactory {
     }
 
     @cache()
+    public dataStoreMetadataRepository(instance: Instance) {
+        return this.get<DataStoreMetadataRepositoryConstructor>(Repositories.DataStoreMetadataRepository, [instance]);
+    }
+
+    @cache()
     public teisRepository(instance: Instance): TEIRepository {
         return this.get<TEIRepositoryConstructor>(Repositories.TEIsRepository, [instance]);
     }
@@ -175,6 +182,12 @@ export class RepositoryFactory {
         const config = this.configRepository(instance);
         return this.get<SchedulerRepositoryConstructor>(Repositories.SchedulerRepository, [config]);
     }
+
+    @cache()
+    public settingsRepository(instance: Instance) {
+        const config = this.configRepository(instance);
+        return this.get<SettingsRepositoryConstructor>(Repositories.SettingsRepository, [config]);
+    }
 }
 
 type RepositoryKeys = typeof Repositories[keyof typeof Repositories];
@@ -200,5 +213,7 @@ export const Repositories = {
     TEIsRepository: "teisRepository",
     UserRepository: "userRepository",
     MappingRepository: "mappingRepository",
+    SettingsRepository: "settingsRepository",
     SchedulerRepository: "schedulerRepository",
+    DataStoreMetadataRepository: "dataStoreMetadataRepository",
 } as const;
