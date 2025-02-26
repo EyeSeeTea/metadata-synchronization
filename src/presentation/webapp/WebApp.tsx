@@ -1,3 +1,4 @@
+import { Feedback } from "@eyeseetea/feedback-component";
 import { useConfig } from "@dhis2/app-runtime";
 //@ts-ignore
 import { HeaderBar } from "@dhis2/ui";
@@ -18,7 +19,6 @@ import { muiTheme } from "../react/core/themes/dhis2.theme";
 import Root from "./Root";
 import "./WebApp.css";
 import { DeletingHistory } from "../react/core/components/deleting-history/DeletingHistory";
-import { Feedback } from "@eyeseetea/feedback-component";
 import { AppConfig } from "../../app-config.template";
 import { Maybe } from "../../types/utils";
 

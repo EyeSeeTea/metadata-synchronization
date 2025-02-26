@@ -1578,7 +1578,7 @@ msgid "Deleted Synchronization History"
 msgstr ""
 
 msgid "Aggregated Data Sync"
-msgstr ""
+msgstr "Sincronización de datos agregados"
 
 msgid "Manual sync"
 msgstr ""
