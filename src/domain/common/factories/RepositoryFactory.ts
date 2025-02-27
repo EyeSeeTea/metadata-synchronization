@@ -20,7 +20,8 @@ import { GitHubRepositoryConstructor } from "../../packages/repositories/GitHubR
 import { ReportsRepositoryConstructor } from "../../reports/repositories/ReportsRepository";
 import { FileRulesRepositoryConstructor } from "../../rules/repositories/FileRulesRepository";
 import { RulesRepositoryConstructor } from "../../rules/repositories/RulesRepository";
-import { SchedulerRepositoryConstructor } from "../../scheduler/repositories/SchedulerRepository";
+import { SchedulerExecutionInfoRepositoryConstructor } from "../../scheduler/repositories/SchedulerExecutionInfoRepositoryConstructor";
+import { SyncRuleJobConfigRepositoryConstructor } from "../../scheduler/repositories/SyncRuleJobConfigRepository";
 import { SettingsRepositoryConstructor } from "../../settings/SettingsRepository";
 import { DownloadRepositoryConstructor } from "../../storage/repositories/DownloadRepository";
 import { StoreRepositoryConstructor } from "../../stores/repositories/StoreRepository";
@@ -190,9 +191,10 @@ export class RepositoryFactory {
     }
 
     @cache()
-    public schedulerRepository(instance: Instance) {
-        const config = this.configRepository(instance);
-        return this.get<SchedulerRepositoryConstructor>(Repositories.SchedulerRepository, [config]);
+    public schedulerExecutionInfoRepository(instance: Instance) {
+        return this.get<SchedulerExecutionInfoRepositoryConstructor>(Repositories.SchedulerExecutionInfoRepository, [
+            instance,
+        ]);
     }
 
     @cache()
@@ -204,6 +206,11 @@ export class RepositoryFactory {
     @cache()
     public dhisReleasesRepository() {
         return this.get<DhisReleasesRepositoryConstructor>(Repositories.DhisReleasesRepository, []);
+    }
+
+    @cache()
+    public syncRuleJobConfigRepository(instance: Instance) {
+        return this.get<SyncRuleJobConfigRepositoryConstructor>(Repositories.SyncRuleJobConfigRepository, [instance]);
     }
 }
 
@@ -231,8 +238,9 @@ export const Repositories = {
     UserRepository: "userRepository",
     MappingRepository: "mappingRepository",
     SettingsRepository: "settingsRepository",
-    SchedulerRepository: "schedulerRepository",
+    SchedulerExecutionInfoRepository: "schedulerExecutionInfoRepository",
     DataStoreMetadataRepository: "dataStoreMetadataRepository",
     DhisReleasesRepository: "dhisReleasesRepository",
     TableColumnsRepository: "tableColumnsRepository",
+    SyncRuleJobConfigRepository: "syncRuleJobConfigRepository",
 } as const;
