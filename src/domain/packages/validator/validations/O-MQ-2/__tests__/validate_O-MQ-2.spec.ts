@@ -2,6 +2,7 @@ import { validate_O_MQ_2 } from "../validate_O-MQ-2";
 import O_MQ_2_success from "./data/O-MQ-2_success.json";
 import O_MQ_2_fail_by_first from "./data/O-MQ-2_fail_by_first.json";
 import O_MQ_2_fail_by_last from "./data/O-MQ-2_fail_by_last.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate O-MQ-2", () => {
     it("should not return errors for empty package", () => {

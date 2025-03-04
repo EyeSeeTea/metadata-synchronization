@@ -5,6 +5,7 @@ import { MetadataEntities, MetadataPackage } from "../../../domain/metadata/enti
 import { Transformation } from "../../../domain/transformations/entities/Transformation";
 import { TransformationD2ApiRepository } from "../TransformationD2ApiRepository";
 import { D2MetadataPackage } from "../types";
+import { describe, expect, it } from "vitest";
 
 const transformationRepository = new TransformationD2ApiRepository();
 

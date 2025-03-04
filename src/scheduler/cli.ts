@@ -3,12 +3,13 @@ import "dotenv/config";
 import fs from "fs";
 import { configure, getLogger } from "log4js";
 import path from "path";
-import { Future, FutureData } from "../domain/common/entities/Future";
+import { Future } from "../domain/common/entities/Future";
 import { Instance } from "../domain/instance/entities/Instance";
 import { CompositionRoot } from "../presentation/CompositionRoot";
 import { D2Api } from "../types/d2-api";
 import { ConfigModel, SchedulerConfig } from "./entities/SchedulerConfig";
 import Scheduler from "./scheduler";
+import { FutureData } from "../data/api-futures";
 
 const development = process.env.NODE_ENV === "development";
 
@@ -27,7 +28,7 @@ const checkMigrations = (compositionRoot: CompositionRoot): FutureData<boolean> 
         })
         .flatMap(pendingMigrations => {
             if (pendingMigrations) {
-                return Future.error<string, boolean>("There are pending migrations, unable to continue");
+                return Future.error(new Error("There are pending migrations, unable to continue"));
             }
 
             return Future.success(pendingMigrations);

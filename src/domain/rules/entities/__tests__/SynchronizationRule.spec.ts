@@ -1,5 +1,6 @@
 import { DataElementModel, IndicatorModel, OrganisationUnitModel } from "../../../../models/dhis/metadata";
 import { SynchronizationRule } from "../SynchronizationRule";
+import { describe, expect, it } from "vitest";
 
 const indicatorIncludeExcludeRules = {
     includeRules: [

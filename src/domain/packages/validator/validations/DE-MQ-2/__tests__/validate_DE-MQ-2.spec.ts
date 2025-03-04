@@ -1,6 +1,7 @@
 import { validate_DE_MQ_2 } from "../validate_DE-MQ-2";
 import DE_MQ_2_success from "./data/DE-MQ-2_success.json";
 import DE_MQ_2_fail from "./data/DE-MQ-2_fail.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate DE_MQ_2", () => {
     it("should not return errors for empty package", () => {

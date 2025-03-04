@@ -1,4 +1,5 @@
 import { cache, clear, memoize } from "../cache";
+import { describe, expect, it, beforeEach } from "vitest";
 
 class TestClass {
     constructor(private multiplier = 1) {}

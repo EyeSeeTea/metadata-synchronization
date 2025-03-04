@@ -4,5 +4,3 @@ global.console = {
     warn: jest.fn(),
     debug: jest.fn(),
 };
-
-jest.setTimeout(30000);

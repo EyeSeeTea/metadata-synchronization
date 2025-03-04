@@ -1,3 +1,4 @@
+//@refactored : true
 import { StorageType } from "../entities/Config";
 import { ConfigRepository } from "../repositories/ConfigRepository";
 

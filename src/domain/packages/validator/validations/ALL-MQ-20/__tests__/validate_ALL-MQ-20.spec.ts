@@ -3,6 +3,7 @@ import ALL_MQ_20_success from "./data/ALL-MQ-20_success.json";
 import ALL_MQ_20_fail_by_program_indicator from "./data/ALL-MQ-20_fail_by_program_indicator.json";
 import ALL_MQ_20_fail_by_program_rule from "./data/ALL-MQ-20_fail_by_program_rule.json";
 import ALL_MQ_20_fail_by_program_rule_action from "./data/ALL-MQ-20_fail_by_program_rule_action.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate ALL-MQ-20", () => {
     it("should not return errors for empty package", () => {

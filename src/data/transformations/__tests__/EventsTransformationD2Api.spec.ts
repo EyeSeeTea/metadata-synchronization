@@ -5,6 +5,7 @@ import { EventsPackage } from "../../../domain/events/entities/EventsPackage";
 import { Transformation } from "../../../domain/transformations/entities/Transformation";
 import { TransformationD2ApiRepository } from "../TransformationD2ApiRepository";
 import { D2EventsPackage } from "../types";
+import { describe, expect, it } from "vitest";
 
 const transformationRepository = new TransformationD2ApiRepository();
 

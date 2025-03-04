@@ -33,6 +33,7 @@ import PI_MQ_3_success from "../validations/PI-MQ-3/__tests__/data/PI-MQ-3_succe
 import PI_MQ_3_fail from "../validations/PI-MQ-3/__tests__/data/PI-MQ-3_fail_by_proportion.json";
 import ALL_MQ_20_success from "../validations/ALL-MQ-20/__tests__/data/ALL-MQ-20_success.json";
 import ALL_MQ_20_fail from "../validations/ALL-MQ-20/__tests__/data/ALL-MQ-20_fail_by_program_indicator.json";
+import { describe, expect, it } from "vitest";
 
 describe("Package contents validator", () => {
     describe("validate O-MQ-2", () => {

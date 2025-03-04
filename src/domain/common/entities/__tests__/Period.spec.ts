@@ -1,4 +1,5 @@
 import { Period } from "../Period";
+import { describe, expect, it } from "vitest";
 
 describe("Period", () => {
     it("should return success creating from a non fixed type", () => {

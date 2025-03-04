@@ -4,6 +4,7 @@ import PRV_MQ_2_fail_by_and from "./data/PRV-MQ-2_fail_by_and.json";
 import PRV_MQ_2_fail_by_or from "./data/PRV-MQ-2_fail_by_or.json";
 import PRV_MQ_2_fail_by_not from "./data/PRV-MQ-2_fail_by_not.json";
 import PRV_MQ_2_fail_by_unexpected_characters from "./data/PRV-MQ-2_fail_by_unexpected_characters.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate PRV-MQ-1", () => {
     it("should not return errors for empty package", () => {

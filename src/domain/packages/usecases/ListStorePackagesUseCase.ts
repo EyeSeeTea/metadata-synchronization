@@ -73,7 +73,8 @@ export class ListStorePackagesUseCase implements UseCase {
 
         const readFileResult = this.repositoryFactory.gitRepository().readFileContents<BaseModule>(encoding, content);
 
-        return readFileResult.matchWith({
+        return readFileResult.match({
+            //Sneha TO DO: Ask Arnau about the match
             success: module => module,
             error: () => unknownModule,
         });

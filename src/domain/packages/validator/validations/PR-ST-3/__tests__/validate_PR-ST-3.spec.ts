@@ -1,6 +1,7 @@
 import { validate_PR_ST_3 } from "../validate_PR-ST-3";
 import PR_ST_3_success from "./data/PR-ST-3_success.json";
 import PR_ST_3_fail from "./data/PR-ST-3_fail.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate PR-ST-3", () => {
     it("should not return errors for empty package", () => {

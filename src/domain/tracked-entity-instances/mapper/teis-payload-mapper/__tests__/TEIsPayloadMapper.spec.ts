@@ -48,6 +48,7 @@ import mappingTwoTrackerPrograms from "./data/tracker-to-event/mapping/mappingTw
 import teiWithTwoProgramsMapAllToTracker from "./data/tracker-to-event/expected/teiWithTwoProgramsMapAllToTracker.json";
 import teiWithTwoProgramsMapToOneTracker from "./data/tracker-to-event/expected/teiWithTwoProgramsMapToOneTracker.json";
 import teiWithTwoProgramsMapAllToEvent from "./data/tracker-to-event/expected/teiWithTwoProgramsMapAllToEvent.json";
+import { describe, expect, it } from "vitest";
 
 describe("TEIsPayloadMapper", () => {
     describe("tracker to tracker", () => {

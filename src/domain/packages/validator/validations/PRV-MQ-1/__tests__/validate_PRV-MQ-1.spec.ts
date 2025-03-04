@@ -1,6 +1,7 @@
 import { validate_PRV_MQ_1 } from "../validate_PRV-MQ-1";
 import PRV_MQ_1_success from "./data/PRV-MQ-1_success.json";
 import PRV_MQ_1_fail from "./data/PRV-MQ-1_fail.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate PRV-MQ-1", () => {
     it("should not return errors for empty package", () => {
@@ -20,5 +21,3 @@ describe("validate PRV-MQ-1", () => {
         expect(errors[0]).toBe("PRV-MQ-1 - In program auqdJ66DqAT, more than one PRV with the same name");
     });
 });
-
-export {};

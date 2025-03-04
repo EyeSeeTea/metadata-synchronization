@@ -1,4 +1,5 @@
 import { ExpressionParser } from "../expressionParser";
+import { describe, expect, it } from "vitest";
 
 describe("Expression parser", () => {
     it("data element - should find all properties", () => {

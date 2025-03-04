@@ -2,6 +2,7 @@ import { validate_ALL_MQ_18 } from "../validate_ALL-MQ-18";
 import ALL_MQ_18_success from "./data/ALL-MQ-18_success.json";
 import ALL_MQ_18_fail_by_option from "./data/ALL-MQ-18_fail_by_option.json";
 import ALL_MQ_18_fail_by_non_option from "./data/ALL-MQ-18_fail_by_non_option.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate ALL-MQ-18", () => {
     it("should not return errors for empty package", () => {

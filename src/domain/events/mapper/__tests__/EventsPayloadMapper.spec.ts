@@ -61,6 +61,7 @@ import eventAggregatedDataElementMapping from "./data/expected/event_aggregated_
 import emptyTrackerProgramStages from "./data/destination_tracker_programs_stages/empty_tracker_program_stages.json";
 import trackerProgramStage from "./data/destination_tracker_programs_stages/tracker_program_stage.json";
 import { EventsPackage } from "../../entities/EventsPackage";
+import { describe, expect, it } from "vitest";
 
 const singleEventPackage = singleEvent as EventsPackage;
 const singleEventCatOptions2Package = singleEventCatOptions2 as EventsPackage;

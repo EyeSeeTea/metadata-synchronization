@@ -5,6 +5,7 @@ import { AggregatedPackage } from "../../../domain/aggregated/entities/Aggregate
 import { Transformation } from "../../../domain/transformations/entities/Transformation";
 import { TransformationD2ApiRepository } from "../TransformationD2ApiRepository";
 import { D2AggregatedPackage } from "../types";
+import { describe, expect, it } from "vitest";
 
 const transformationRepository = new TransformationD2ApiRepository();
 

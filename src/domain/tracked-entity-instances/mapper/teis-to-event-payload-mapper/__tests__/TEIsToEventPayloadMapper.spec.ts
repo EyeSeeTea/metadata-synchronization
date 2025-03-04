@@ -26,6 +26,7 @@ import twoEventsWithAllValues from "./data/expected/twoEventsWithAllValues.json"
 import oneEventWithValues from "./data/expected/oneEventWithValues.json";
 import oneEvent_WithMappedOrgUnit from "./data/expected/oneEvent_WithMappedOrgUnit.json";
 import oneEvent_WithMappedOptions from "./data/expected/oneEvent_WithMappedOptions.json";
+import { describe, expect, it } from "vitest";
 
 describe("TEIsToEventPayloadMapper", () => {
     it("should return empty events if tracker programs are mapped to tracker programs", async () => {

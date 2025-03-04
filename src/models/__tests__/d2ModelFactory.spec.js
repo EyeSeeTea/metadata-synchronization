@@ -1,5 +1,6 @@
 import { modelFactory } from "../dhis/factory";
 import { DataElementGroupModel } from "../dhis/metadata";
+import { describe, expect, it } from "vitest";
 
 describe("d2ModelFactory", () => {
     describe("d2ModelFactory should return specific model", () => {

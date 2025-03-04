@@ -2,15 +2,15 @@ import _ from "lodash";
 import { Request, Server } from "miragejs";
 import { AnyRegistry } from "miragejs/-types";
 import Schema from "miragejs/orm/schema";
-import { Repositories, RepositoryFactory } from "../../../../domain/common/factories/RepositoryFactory";
-import { Instance } from "../../../../domain/instance/entities/Instance";
-import { MetadataSyncUseCase } from "../../../../domain/metadata/usecases/MetadataSyncUseCase";
-import { SynchronizationBuilder } from "../../../../domain/synchronization/entities/SynchronizationBuilder";
-import { startDhis } from "../../../../utils/dhisServer";
-import { ConfigAppRepository } from "../../../config/ConfigAppRepository";
-import { InstanceD2ApiRepository } from "../../../instance/InstanceD2ApiRepository";
-import { MetadataD2ApiRepository } from "../../../metadata/MetadataD2ApiRepository";
-import { TransformationD2ApiRepository } from "../../../transformations/TransformationD2ApiRepository";
+import { Repositories, RepositoryFactory } from "../../domain/common/factories/RepositoryFactory";
+import { Instance } from "../../domain/instance/entities/Instance";
+import { MetadataSyncUseCase } from "../../domain/metadata/usecases/MetadataSyncUseCase";
+import { SynchronizationBuilder } from "../../domain/synchronization/entities/SynchronizationBuilder";
+import { startDhis } from "../../utils/dhisServer";
+import { ConfigAppRepository } from "../config/ConfigAppRepository";
+import { InstanceD2ApiRepository } from "../instance/InstanceD2ApiRepository";
+import { MetadataD2ApiRepository } from "../metadata/MetadataD2ApiRepository";
+import { TransformationD2ApiRepository } from "./TransformationD2ApiRepository";
 
 export function buildRepositoryFactory() {
     const repositoryFactory: RepositoryFactory = new RepositoryFactory("");

@@ -43,6 +43,7 @@ import dataValuesIndicatorDataElementMapping from "./data/expected/dataValues_in
 import dataValuesCommentMapping from "./data/expected/dataValues_comment_option_mapping.json";
 import dataValuesProgramIndicatorDataElementMapping from "./data/expected/dataValues_program_indicator_de_mapping.json";
 import dataValuesProgramDataElementToAggregatedMapping from "./data/expected/dataValues_program_DE_Aggregated_mapping.json";
+import { describe, expect, it } from "vitest";
 
 describe("AggreggatedPayloadMapper", () => {
     it("should return the expected payload if mapping is empty", async () => {

@@ -1,3 +1,5 @@
+//@refactored : true
+
 import { Instance } from "../../instance/entities/Instance";
 import { StorageClient } from "../../storage/repositories/StorageClient";
 import { StorageType } from "../entities/Config";

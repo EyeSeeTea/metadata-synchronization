@@ -49,6 +49,7 @@
         "react-linkify": "1.0.0-alpha",
         "react-markdown": "^8.0.7",
         "react-router-dom": "5.3.0",
+        "real-cancellable-promise": "^1.1.2",
         "react-virtualized-auto-sizer": "1.0.6",
         "react-window": "1.8.6",
         "rehype-raw": "^6.1.1",
@@ -56,7 +57,8 @@
         "rxjs": "5.5.7",
         "semver": "7.5.2",
         "styled-components": "6.1.8",
-        "styled-jsx": "5.0.0"
+        "styled-jsx": "5.0.0",
+        "typed-immutable-map": "^0.1.1"
     },
     "scripts": {
         "clean": "npx rimraf build/ dist/",
@@ -66,7 +68,7 @@
         "build-scheduler": "ncc build src/scheduler/cli.ts -m -o $npm_package_name-server && zip -r $npm_package_name-server.zip $npm_package_name-server && npx rimraf $npm_package_name-server/",
         "run-ts": "ts-node --files -O '{\"module\":\"commonjs\"}'",
         "migrate": "yarn run-ts src/migrations/cli.ts",
-        "test": "jest",
+        "test": "vitest run --reporter=basic",
         "lint": "eslint src cypress --ext .js,.jsx,.ts,.tsx",
         "eject": "react-scripts eject",
         "prettify": "prettier \"./**/*.{js,jsx,json,css,ts,tsx}\" --write",
@@ -122,9 +124,9 @@
         "eslint-plugin-react": "7.26.1",
         "eslint-plugin-react-hooks": "4.2.0",
         "eslint-plugin-unused-imports": "1.1.5",
+        "expect-type": "^0.15.0",
         "http-proxy-middleware": "2.0.1",
         "husky": "7.0.2",
-        "jest": "27.3.0",
         "miragejs": "0.1.42",
         "mocha": "9.1.3",
         "mochawesome": "6.3.1",
@@ -135,9 +137,9 @@
         "rimraf": "3.0.2",
         "rxjs-compat": "6.6.7",
         "sinon": "11.1.2",
-        "ts-jest": "27.0.7",
         "ts-node": "^10.8.2",
         "typescript": "4.4.4",
+        "vitest": "^0.32.2",
         "wait-on": "6.0.0"
     },
     "resolutions": {

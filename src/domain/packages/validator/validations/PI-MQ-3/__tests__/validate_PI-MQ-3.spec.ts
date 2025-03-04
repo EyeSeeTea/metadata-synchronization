@@ -2,6 +2,7 @@ import { validate_PI_MQ_3 } from "../validate_PI-MQ-3";
 import PI_MQ_3_success from "./data/PI-MQ-3_success.json";
 import PI_MQ_3_fail_by_proportion from "./data/PI-MQ-3_fail_by_proportion.json";
 import PI_MQ_3_fail_by_percentage from "./data/PI-MQ-3_fail_by_percentage.json";
+import { describe, expect, it } from "vitest";
 
 describe("validate PI_MQ_3", () => {
     it("should not return errors for empty package", () => {
