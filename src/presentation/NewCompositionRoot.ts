@@ -14,7 +14,7 @@ type Repositories = {
 
 function getCompositionRoot(repositories: Repositories) {
     return {
-        config: {
+        storage: {
             getStorageClient: new GetStorageClientUseCase(repositories.storageClientRepository),
             setStorageClient: new SetStorageClientUseCase(repositories.storageClientRepository),
         },
