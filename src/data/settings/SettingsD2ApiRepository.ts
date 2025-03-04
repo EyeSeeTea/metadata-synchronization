@@ -1,19 +1,30 @@
-import { StorageClientRepository } from "../../domain/storage-client-config/repositories/StorageClientRepository";
 import { Settings, SettingsData } from "../../domain/settings/Settings";
 import { SettingsRepository } from "../../domain/settings/SettingsRepository";
+import { StorageClientRepository } from "../../domain/storage-client-config/repositories/StorageClientRepository";
 import { StorageClient } from "../../domain/storage/repositories/StorageClient";
 import { Namespace } from "../storage/Namespaces";
 
 export class SettingsD2ApiRepository implements SettingsRepository {
-    constructor(private configRepository: StorageClientRepository) {}
+    constructor(private storageClientRepository: StorageClientRepository) {}
 
     async get(): Promise<Settings> {
         const storageClient = await this.getStorageClient();
         const settingsData = await storageClient.getObject<SettingsData>(Namespace.SETTINGS);
 
-        return settingsData
-            ? Settings.create({ historyRetentionDays: settingsData.historyRetentionDays?.toString() }).getOrThrow()
-            : Settings.create({ historyRetentionDays: undefined }).getOrThrow();
+        const historyRetentionDays = settingsData ? settingsData.historyRetentionDays?.toString() : undefined;
+
+        const settings = Settings.create({
+            historyRetentionDays: historyRetentionDays,
+        }).match({
+            success: settings => {
+                return settings;
+            },
+            error: errors => {
+                throw new Error(errors.join(", "));
+            },
+        });
+
+        return settings;
     }
 
     async save(settings: Settings): Promise<void> {
@@ -26,6 +37,6 @@ export class SettingsD2ApiRepository implements SettingsRepository {
     }
 
     private getStorageClient(): Promise<StorageClient> {
-        return this.configRepository.getStorageClient();
+        return this.storageClientRepository.getStorageClient();
     }
 }

@@ -33,7 +33,7 @@ export function useSettings() {
     const [error, setError] = useState<string | undefined>(undefined);
 
     useEffect(() => {
-        newCompositionRoot.config.getStorageClient.execute().then(storage => {
+        newCompositionRoot.storage.getStorageClient.execute().then(storage => {
             setStorageType(storage);
             setSavedStorageType(storage);
         });
@@ -54,9 +54,9 @@ export function useSettings() {
     const changeStorage = useCallback(
         async (storage: AppStorageType) => {
             setLoadingMessage(i18n.t("Updating storage location, please wait..."));
-            await newCompositionRoot.config.setStorageClient.execute(storage);
+            await newCompositionRoot.storage.setStorageClient.execute(storage);
 
-            const newStorage = await newCompositionRoot.config.getStorageClient.execute();
+            const newStorage = await newCompositionRoot.storage.getStorageClient.execute();
             setStorageType(newStorage);
             setLoadingMessage(undefined);
             setGoHome(true);
@@ -65,16 +65,21 @@ export function useSettings() {
     );
 
     const saveSettings = useCallback(() => {
-        const settings = Settings.create({
+        Settings.create({
             historyRetentionDays: settingsForm.historyRetentionDays.value,
-        }).getOrThrow();
-
-        compositionRoot.settings
-            .save(settings)
-            .then(() => setGoHome(true))
-            .catch(error => {
-                setError(`${i18n.t("An error has occurred saving settings")}:${error}`);
-            });
+        }).match({
+            success: settings => {
+                compositionRoot.settings
+                    .save(settings)
+                    .then(() => setGoHome(true))
+                    .catch(error => {
+                        setError(`${i18n.t("An error has occurred saving settings")}:${error}`);
+                    });
+            },
+            error: () => {
+                setError(i18n.t("An error has occurred saving settings"));
+            },
+        });
     }, [compositionRoot.settings, settingsForm.historyRetentionDays.value]);
 
     const showConfirmationDialog = useCallback(() => {
