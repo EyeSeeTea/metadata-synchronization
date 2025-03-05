@@ -128,9 +128,13 @@ import { TableColumnsDataStoreRepository } from "../data/table-columns/TableColu
 import { getD2APiFromInstance } from "../utils/d2-utils";
 import { RoleD2ApiRepository } from "../data/role/RoleD2ApiRepository";
 import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
+import { D2Api } from "@eyeseetea/d2-api/2.36";
+import { SendEmailUseCase } from "../domain/email/SendEmailUseCase";
+import { EmailD2ApiRepository } from "../data/email/EmailD2ApiRepository";
 
 export class CompositionRoot {
     private repositoryFactory: RepositoryFactory;
+    private api: D2Api;
 
     constructor(public readonly localInstance: Instance, encryptionKey: string) {
         this.repositoryFactory = new RepositoryFactory(encryptionKey);
@@ -160,6 +164,8 @@ export class CompositionRoot {
         this.repositoryFactory.bind(Repositories.DataStoreMetadataRepository, DataStoreMetadataD2Repository);
         this.repositoryFactory.bind(Repositories.DhisReleasesRepository, DhisReleasesLocalRepository);
         this.repositoryFactory.bind(Repositories.TableColumnsRepository, TableColumnsDataStoreRepository);
+
+        this.api = getD2APiFromInstance(this.localInstance);
     }
 
     @cache()
@@ -427,10 +433,15 @@ export class CompositionRoot {
 
     @cache()
     public get roles() {
-        const api = getD2APiFromInstance(this.localInstance);
-
         return getExecute({
-            validate: new ValidateRolesUseCase(new RoleD2ApiRepository(api)),
+            validate: new ValidateRolesUseCase(new RoleD2ApiRepository(this.api)),
+        });
+    }
+
+    @cache()
+    public get email() {
+        return getExecute({
+            send: new SendEmailUseCase(new EmailD2ApiRepository(this.api)),
         });
     }
 

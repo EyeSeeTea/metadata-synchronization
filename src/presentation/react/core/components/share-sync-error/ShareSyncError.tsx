@@ -1,8 +1,8 @@
-import { ConfirmationDialog } from "@eyeseetea/d2-ui-components";
+import { ConfirmationDialog, useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { DialogContent, TextField } from "@material-ui/core";
 import { SynchronizationResult } from "../../../../../domain/reports/entities/SynchronizationResult";
 import i18n from "../../../../../locales";
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useShareSyncError } from "./useShareSyncError";
 
@@ -13,6 +13,24 @@ interface SyncSummaryProps {
 
 export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
     const state = useShareSyncError();
+    const snackbar = useSnackbar();
+    const loading = useLoading();
+
+    useEffect(() => {
+        if (state.messageToUser?.type === "success") {
+            snackbar.success(state.messageToUser.message);
+        } else if (state.messageToUser?.type === "error") {
+            snackbar.error(state.messageToUser.message);
+        }
+    }, [state.messageToUser, snackbar]);
+
+    useEffect(() => {
+        if (state.sending) {
+            loading.show(true, i18n.t("Sending email"));
+        } else {
+            loading.hide();
+        }
+    }, [state.sending, loading]);
 
     const handleToChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;
@@ -29,7 +47,7 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
     const handleMessageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;
 
-        state.onMessageChange(value);
+        state.onTextChange(value);
     };
 
     return (
@@ -37,7 +55,7 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
             isOpen={true}
             title={i18n.t("Share error information")}
             onCancel={onClose}
-            onSave={onClose}
+            onSave={state.onSendEmail}
             cancelText={i18n.t("Discard")}
             saveText={i18n.t("Send")}
             maxWidth={"lg"}
@@ -62,7 +80,7 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
                     <StyledTextField
                         label={i18n.t("Message")}
                         name="message"
-                        value={state.message}
+                        value={state.text}
                         onChange={handleMessageChange}
                         variant="outlined"
                         multiline
