@@ -32,6 +32,7 @@ import { NamedRef } from "../../../../../domain/common/entities/Ref";
 import { SummaryTable } from "./SummaryTable";
 
 import "react-json-view-lite/dist/index.css";
+import { ShareSyncError } from "../share-sync-error/ShareSyncError";
 
 const useStyles = makeStyles(theme => ({
     accordionHeading1: {
@@ -170,16 +171,11 @@ const SyncSummary = ({ report, onClose }: SyncSummaryProps) => {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
+    const [shareErrorOpen, setShareErrorOpen] = useState(false);
+
     const payloads = _.compact(report.getResults().map(({ payload }) => payload));
 
-    const errorStatus = useMemo(
-        () =>
-            report
-                .getResults()
-                .map(({ status }) => status)
-                .filter(status => status === "ERROR"),
-        [report]
-    );
+    const errorResults = useMemo(() => report.getResults().filter(result => result.status === "ERROR"), [report]);
 
     const downloadJSON = async () => {
         loading.show(true, i18n.t("Generating JSON"));
@@ -195,7 +191,12 @@ const SyncSummary = ({ report, onClose }: SyncSummaryProps) => {
         setAnchorEl(null);
     }, []);
 
+    const handleCloseShareError = useCallback(() => {
+        setShareErrorOpen(false);
+    }, []);
+
     const shareError = useCallback(() => {
+        setShareErrorOpen(true);
         setAnchorEl(null);
     }, []);
 
@@ -211,12 +212,12 @@ const SyncSummary = ({ report, onClose }: SyncSummaryProps) => {
                 title={i18n.t("Synchronization Results")}
                 onCancel={onClose}
                 onInfoAction={
-                    errorStatus.length > 0 ? handleOpenOptionsMenu : payloads.length > 0 ? downloadJSON : undefined
+                    errorResults.length > 0 ? handleOpenOptionsMenu : payloads.length > 0 ? downloadJSON : undefined
                 }
                 cancelText={i18n.t("Ok")}
                 maxWidth={"lg"}
                 fullWidth={true}
-                infoActionText={errorStatus.length > 0 ? i18n.t("Options") : i18n.t("Download JSON Payload")}
+                infoActionText={errorResults.length > 0 ? i18n.t("Options") : i18n.t("Download JSON Payload")}
             >
                 <DialogContent>
                     {results.map(
@@ -314,6 +315,7 @@ const SyncSummary = ({ report, onClose }: SyncSummaryProps) => {
                 <MenuItem onClick={downloadJSON}>{i18n.t("Download JSON Payload")}</MenuItem>
                 <MenuItem onClick={shareError}>{i18n.t("Share error information")}</MenuItem>
             </Menu>
+            {shareErrorOpen && <ShareSyncError onClose={handleCloseShareError} errorResults={errorResults} />}
         </>
     );
 };
