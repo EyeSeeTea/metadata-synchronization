@@ -1,6 +1,6 @@
-import { FutureData } from "../common/entities/Future";
-import { Email } from "./Email";
-import { EmailRepository } from "./EmailRepository";
+import { FutureData } from "../../common/entities/Future";
+import { Email } from "../entities/Email";
+import { EmailRepository } from "../repositories/EmailRepository";
 
 export class SendEmailUseCase {
     constructor(private emailRepository: EmailRepository) {}

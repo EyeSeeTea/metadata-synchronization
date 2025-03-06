@@ -12,7 +12,7 @@ interface SyncSummaryProps {
 }
 
 export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
-    const state = useShareSyncError();
+    const state = useShareSyncError(errorResults);
     const snackbar = useSnackbar();
     const loading = useLoading();
 
@@ -31,6 +31,14 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
             loading.hide();
         }
     }, [state.sending, loading]);
+
+    useEffect(() => {
+        if (state.attachingFiles) {
+            loading.show();
+        } else {
+            loading.hide();
+        }
+    }, [state.attachingFiles, loading]);
 
     const handleToChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;

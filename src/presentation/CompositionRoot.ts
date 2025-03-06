@@ -129,8 +129,10 @@ import { getD2APiFromInstance } from "../utils/d2-utils";
 import { RoleD2ApiRepository } from "../data/role/RoleD2ApiRepository";
 import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
 import { D2Api } from "@eyeseetea/d2-api/2.36";
-import { SendEmailUseCase } from "../domain/email/SendEmailUseCase";
+import { SendEmailUseCase } from "../domain/email/usecases/SendEmailUseCase";
 import { EmailD2ApiRepository } from "../data/email/EmailD2ApiRepository";
+import { AttachFileUseCase } from "../domain/email/usecases/AttachFileUseCase";
+import { AttachedFileD2ApiRepository } from "../data/email/AttachedFileD2ApiRepository";
 
 export class CompositionRoot {
     private repositoryFactory: RepositoryFactory;
@@ -442,6 +444,7 @@ export class CompositionRoot {
     public get email() {
         return getExecute({
             send: new SendEmailUseCase(new EmailD2ApiRepository(this.api)),
+            attachFile: new AttachFileUseCase(new AttachedFileD2ApiRepository(this.api)),
         });
     }
 

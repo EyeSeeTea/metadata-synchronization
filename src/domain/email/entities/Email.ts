@@ -1,4 +1,4 @@
-import { Struct } from "../common/entities/Struct";
+import { Struct } from "../../common/entities/Struct";
 
 export type EmailProps = {
     recipients: string[];
