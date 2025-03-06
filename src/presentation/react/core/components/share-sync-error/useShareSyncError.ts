@@ -8,13 +8,13 @@ import { Store } from "../../../../../domain/stores/entities/Store";
 import { useAppContext } from "../../contexts/AppContext";
 
 type ShareSyncState = {
-    to: string;
+    to: string[];
     subject: string;
     text: string;
     messageToUser: MessageToUser | undefined;
     sending: boolean;
     attachingFiles: boolean;
-    onToChange: (to: string) => void;
+    onToChange: (to: string[]) => void;
     onSubjectChange: (subject: string) => void;
     onTextChange: (message: string) => void;
     onSendEmail: () => void;
@@ -26,8 +26,8 @@ type MessageToUser = {
 };
 
 export function useShareSyncError(errorResults: SynchronizationResult[]): ShareSyncState {
-    const [to, setTo] = useState<string>("");
-    const [subject, setSubject] = useState<string>("");
+    const [to, setTo] = useState<string[]>([]);
+    const [subject, setSubject] = useState<string>("Error encountered when trying a migration in MetaData Sync");
     const [text, setText] = useState<string>("");
     const [messageToUser, setMessageToUser] = useState<MessageToUser>();
     const [sending, setSending] = useState(false);
@@ -48,7 +48,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
             .join("\n");
 
         const attachesFileTexts = attachedFiles.map(file => {
-            return `${file.name} - ${file.url}`;
+            return `- ${file.name}: ${file.url}`;
         });
 
         setText(`${initialText}\n${attachesFileTexts.join("\n")}`);
@@ -84,7 +84,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
         );
     }, [compositionRoot.email, errorResults]);
 
-    const onToChange = useCallback((to: string) => {
+    const onToChange = useCallback((to: string[]) => {
         setTo(to);
     }, []);
 
@@ -98,7 +98,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
 
     const onSendEmail = useCallback(async () => {
         const email = Email.create({
-            recipients: to.split(","),
+            recipients: to,
             subject,
             text,
         });

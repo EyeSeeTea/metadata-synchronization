@@ -5,6 +5,7 @@ import i18n from "../../../../../locales";
 import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useShareSyncError } from "./useShareSyncError";
+import { EmailInput } from "../email-input/EmailInput";
 
 interface SyncSummaryProps {
     errorResults: SynchronizationResult[];
@@ -40,12 +41,6 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
         }
     }, [state.attachingFiles, loading]);
 
-    const handleToChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = event.target;
-
-        state.onToChange(value);
-    };
-
     const handleSubjectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;
 
@@ -71,16 +66,18 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
         >
             <DialogContent>
                 <StyledForm>
-                    <StyledTextField
+                    <EmailInput
                         label={i18n.t("To")}
                         name="to"
-                        value={state.to}
-                        onChange={handleToChange}
+                        emails={state.to}
+                        onEmailsChange={state.onToChange}
                         variant="outlined"
                     />
+
                     <StyledTextField
                         label={i18n.t("Subject")}
                         name="subject"
+                        placeholder="."
                         value={state.subject}
                         onChange={handleSubjectChange}
                         variant="outlined"
@@ -88,6 +85,7 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
                     <StyledTextField
                         label={i18n.t("Message")}
                         name="message"
+                        placeholder="."
                         value={state.text}
                         onChange={handleMessageChange}
                         variant="outlined"
