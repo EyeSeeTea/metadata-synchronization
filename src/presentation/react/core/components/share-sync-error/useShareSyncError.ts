@@ -50,18 +50,16 @@ export function useShareSyncError(): ShareSyncState {
 
         setSending(true);
 
-        const response = await compositionRoot.email.send(email);
-
-        response.match({
-            error: error => {
-                setSending(false);
-                setMessageToUser({ message: error.message, type: "error" });
-            },
-            success: () => {
+        compositionRoot.email.send(email).run(
+            () => {
                 setSending(false);
                 setMessageToUser({ message: i18n.t("Email sending successfully"), type: "success" });
             },
-        });
+            error => {
+                setSending(false);
+                setMessageToUser({ message: error, type: "error" });
+            }
+        );
     }, [compositionRoot.email, text, subject, to]);
 
     return {

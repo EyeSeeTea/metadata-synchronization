@@ -1,12 +1,11 @@
-import { Either } from "../common/entities/Either";
+import { FutureData } from "../common/entities/Future";
 import { Email } from "./Email";
 import { EmailRepository } from "./EmailRepository";
-import { SendEmailError } from "./SendEmailError";
 
 export class SendEmailUseCase {
     constructor(private emailRepository: EmailRepository) {}
 
-    execute(email: Email): Promise<Either<SendEmailError, void>> {
+    execute(email: Email): FutureData<void> {
         return this.emailRepository.send(email);
     }
 }

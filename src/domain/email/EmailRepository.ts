@@ -1,7 +1,6 @@
-import { Either } from "../common/entities/Either";
+import { FutureData } from "../common/entities/Future";
 import { Email } from "./Email";
-import { SendEmailError } from "./SendEmailError";
 
 export interface EmailRepository {
-    send(message: Email): Promise<Either<SendEmailError, void>>;
+    send(message: Email): FutureData<void>;
 }
