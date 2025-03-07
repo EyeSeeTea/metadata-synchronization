@@ -1,12 +1,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-03-05T10:13:18.576Z\n"
+"POT-Creation-Date: 2025-03-06T12:38:40.098Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgid "Unknown error to send email"
+msgstr ""
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1001,6 +1004,9 @@ msgstr ""
 msgid "Scheduler"
 msgstr ""
 
+msgid "Sending email"
+msgstr ""
+
 msgid "Share error information"
 msgstr ""
 
@@ -1008,6 +1014,15 @@ msgid "Discard"
 msgstr ""
 
 msgid "Send"
+msgstr ""
+
+msgid "To"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Email sending successfully"
 msgstr ""
 
 msgid "The token is empty"
@@ -1120,9 +1135,6 @@ msgid "Org units"
 msgstr ""
 
 msgid "Property"
-msgstr ""
-
-msgid "Message"
 msgstr ""
 
 msgid "Program Indicators / Program Data Elements"
