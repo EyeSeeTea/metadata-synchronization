@@ -1,5 +1,5 @@
-import { Email } from "../../domain/email/entities/Email";
-import { EmailRepository } from "../../domain/email/repositories/EmailRepository";
+import { Email } from "../../domain/comunications/entities/Email";
+import { EmailRepository } from "../../domain/comunications/repositories/EmailRepository";
 import { D2Api } from "../../types/d2-api";
 import { apiToFuture } from "../common/utils/futures";
 import { FutureData } from "../../domain/common/entities/Future";

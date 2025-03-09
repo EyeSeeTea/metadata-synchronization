@@ -129,10 +129,12 @@ import { getD2APiFromInstance } from "../utils/d2-utils";
 import { RoleD2ApiRepository } from "../data/role/RoleD2ApiRepository";
 import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
 import { D2Api } from "@eyeseetea/d2-api/2.36";
-import { SendEmailUseCase } from "../domain/email/usecases/SendEmailUseCase";
-import { EmailD2ApiRepository } from "../data/email/EmailD2ApiRepository";
-import { AttachFileUseCase } from "../domain/email/usecases/AttachFileUseCase";
-import { AttachedFileD2ApiRepository } from "../data/email/AttachedFileD2ApiRepository";
+import { SendEmailUseCase } from "../domain/comunications/usecases/SendEmailUseCase";
+import { EmailD2ApiRepository } from "../data/comunications/EmailD2ApiRepository";
+import { AttachFileUseCase } from "../domain/comunications/usecases/AttachFileUseCase";
+import { AttachedFileD2ApiRepository } from "../data/comunications/AttachedFileD2ApiRepository";
+import { SendMessageUseCase } from "../domain/comunications/usecases/SendMessageUseCase";
+import { MessageD2ApiRepository } from "../data/comunications/MessageD2ApiRepository";
 
 export class CompositionRoot {
     private repositoryFactory: RepositoryFactory;
@@ -441,9 +443,9 @@ export class CompositionRoot {
     }
 
     @cache()
-    public get email() {
+    public get comunications() {
         return getExecute({
-            send: new SendEmailUseCase(new EmailD2ApiRepository(this.api)),
+            sendEmail: new SendEmailUseCase(new EmailD2ApiRepository(this.api)),
             attachFile: new AttachFileUseCase(new AttachedFileD2ApiRepository(this.api)),
         });
     }

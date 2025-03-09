@@ -1,8 +1,8 @@
 import i18n from "@eyeseetea/feedback-component/locales";
 import { useCallback, useEffect, useState } from "react";
 import { Future } from "../../../../../domain/common/entities/Future";
-import { AttachedFile } from "../../../../../domain/email/entities/AttachedFile";
-import { Email } from "../../../../../domain/email/entities/Email";
+import { AttachedFile } from "../../../../../domain/comunications/entities/AttachedFile";
+import { Email } from "../../../../../domain/comunications/entities/Email";
 import { ResultInstance, SynchronizationResult } from "../../../../../domain/reports/entities/SynchronizationResult";
 import { Store } from "../../../../../domain/stores/entities/Store";
 import { useAppContext } from "../../contexts/AppContext";
@@ -60,11 +60,11 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
         const futures = errorResults
             .map(result => {
                 return [
-                    compositionRoot.email.attachFile({
+                    compositionRoot.comunications.attachFile({
                         name: `${result.type}-payload.json`,
                         data: createJsonBobByObject(result.payload),
                     }),
-                    compositionRoot.email.attachFile({
+                    compositionRoot.comunications.attachFile({
                         name: `${result.type}-summary.json`,
                         data: createJsonBobByObject(result.response),
                     }),
@@ -82,7 +82,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                 setMessageToUser({ message: error, type: "error" });
             }
         );
-    }, [compositionRoot.email, errorResults]);
+    }, [compositionRoot.comunications, errorResults]);
 
     const onToChange = useCallback((to: string[]) => {
         setTo(to);
@@ -105,7 +105,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
 
         setSending(true);
 
-        compositionRoot.email.send(email).run(
+        compositionRoot.comunications.sendEmail(email).run(
             () => {
                 setSending(false);
                 setMessageToUser({ message: i18n.t("Email sending successfully"), type: "success" });
@@ -115,7 +115,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                 setMessageToUser({ message: error, type: "error" });
             }
         );
-    }, [compositionRoot.email, text, subject, to]);
+    }, [to, subject, text, compositionRoot.comunications]);
 
     return {
         to,
