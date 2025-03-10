@@ -17,7 +17,6 @@ export const EmailInput: React.FC<EmailInputProps> = ({
     onTextChange,
     ...textFieldProps
 }) => {
-    // Estados internos del custom hook
     const { internalText, internalEmails, handleInternalEmailInputChange, tryAddEmail, handleDelete } = useEmailInput(
         propEmails,
         propText,

@@ -4,8 +4,10 @@ import { SynchronizationResult } from "../../../../../domain/reports/entities/Sy
 import i18n from "../../../../../locales";
 import React, { useEffect } from "react";
 import styled from "styled-components";
-import { useShareSyncError } from "./useShareSyncError";
+import { ShareSyncType, useShareSyncError } from "./useShareSyncError";
 import { EmailInput } from "../email-input/EmailInput";
+import RadioButtonGroup from "../radio-button-group/RadioButtonGroup";
+import { MessageRecipients } from "../message-recipients/MessageRecipients";
 
 interface SyncSummaryProps {
     errorResults: SynchronizationResult[];
@@ -27,7 +29,7 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
 
     useEffect(() => {
         if (state.sending) {
-            loading.show(true, i18n.t("Sending email"));
+            loading.show(true, i18n.t("Sending"));
         } else {
             loading.hide();
         }
@@ -44,13 +46,17 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
     const handleSubjectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;
 
-        state.onSubjectChange(value);
+        state.changeSubject(value);
     };
 
     const handleMessageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;
 
-        state.onTextChange(value);
+        state.changeText(value);
+    };
+
+    const handleChangeType = (type: string) => {
+        state.changeType(type as ShareSyncType);
     };
 
     return (
@@ -58,21 +64,32 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
             isOpen={true}
             title={i18n.t("Share error information")}
             onCancel={onClose}
-            onSave={state.onSendEmail}
+            onSave={state.send}
             cancelText={i18n.t("Discard")}
             saveText={i18n.t("Send")}
             maxWidth={"lg"}
             fullWidth={true}
         >
             <DialogContent>
+                <RadioButtonGroup value={state.type} items={state.typeOptions} onValueChange={handleChangeType} />
                 <StyledForm>
-                    <EmailInput
-                        label={i18n.t("To")}
-                        name="to"
-                        emails={state.to}
-                        onEmailsChange={state.onToChange}
-                        variant="outlined"
-                    />
+                    {state.type === "Email" ? (
+                        <EmailInput
+                            label={i18n.t("To")}
+                            name="to"
+                            emails={state.toEmail}
+                            onEmailsChange={state.changeToEmail}
+                            variant="outlined"
+                        />
+                    ) : (
+                        <MessageRecipients
+                            label={i18n.t("To")}
+                            name="to"
+                            recipients={state.toMessageRecipients}
+                            onRecipientsChange={state.changeToMessageRecipients}
+                            variant="outlined"
+                        />
+                    )}
 
                     <StyledTextField
                         label={i18n.t("Subject")}
@@ -102,6 +119,7 @@ const StyledForm = styled.form`
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-top: 20px;
 `;
 
 const StyledTextField = styled(TextField)`

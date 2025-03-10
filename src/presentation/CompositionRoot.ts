@@ -135,6 +135,7 @@ import { AttachFileUseCase } from "../domain/comunications/usecases/AttachFileUs
 import { AttachedFileD2ApiRepository } from "../data/comunications/AttachedFileD2ApiRepository";
 import { SendMessageUseCase } from "../domain/comunications/usecases/SendMessageUseCase";
 import { MessageD2ApiRepository } from "../data/comunications/MessageD2ApiRepository";
+import { SearchMessageRecipientsUseCase } from "../domain/comunications/usecases/SearchMessageRecipientsUseCase";
 
 export class CompositionRoot {
     private repositoryFactory: RepositoryFactory;
@@ -444,8 +445,11 @@ export class CompositionRoot {
 
     @cache()
     public get comunications() {
+        const messageRepository = new MessageD2ApiRepository(this.api);
         return getExecute({
             sendEmail: new SendEmailUseCase(new EmailD2ApiRepository(this.api)),
+            sendMessage: new SendMessageUseCase(messageRepository),
+            searchMessageRecipients: new SearchMessageRecipientsUseCase(messageRepository),
             attachFile: new AttachFileUseCase(new AttachedFileD2ApiRepository(this.api)),
         });
     }

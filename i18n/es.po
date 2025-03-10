@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-03-06T12:38:40.098Z\n"
+"POT-Creation-Date: 2025-03-09T16:18:49.808Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1021,6 +1021,9 @@ msgid "To"
 msgstr ""
 
 msgid "Message"
+msgstr ""
+
+msgid "Email"
 msgstr ""
 
 msgid "Email sending successfully"
