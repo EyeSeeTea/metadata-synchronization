@@ -5,8 +5,11 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-03-04T08:39:23.402Z\n"
-"PO-Revision-Date: 2025-03-04T08:39:23.402Z\n"
+"POT-Creation-Date: 2025-03-10T14:03:49.733Z\n"
+"PO-Revision-Date: 2025-03-10T14:03:49.733Z\n"
+
+msgid "Unknown error to send email"
+msgstr ""
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1000,6 +1003,33 @@ msgstr ""
 msgid "Scheduler"
 msgstr ""
 
+msgid "Sending"
+msgstr ""
+
+msgid "Share error information"
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "To"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Email sent successfully"
+msgstr ""
+
+msgid "Message sent successfully"
+msgstr ""
+
 msgid "The token is empty"
 msgstr ""
 
@@ -1108,9 +1138,6 @@ msgid "Org units"
 msgstr ""
 
 msgid "Property"
-msgstr ""
-
-msgid "Message"
 msgstr ""
 
 msgid "Program Indicators / Program Data Elements"
