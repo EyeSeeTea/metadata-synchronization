@@ -1,17 +1,18 @@
 import { useState, useCallback, useEffect } from "react";
-import { MessageRecipient } from "../../../../../domain/comunications/entities/Message";
+import { MessageRecipientProps } from "../../../../../domain/comunications/entities/MessageRecipient";
+
 import { useAppContext } from "../../contexts/AppContext";
 
 export function useMessageRecipients(
-    recipients?: MessageRecipient[],
+    recipients?: MessageRecipientProps[],
     text?: string,
-    onRecipientsChange?: (recipients: MessageRecipient[]) => void,
+    onRecipientsChange?: (recipients: MessageRecipientProps[]) => void,
     onTextChange?: (text: string) => void
 ) {
     const { compositionRoot } = useAppContext();
     const [internalText, setInternalText] = useState(text || "");
-    const [internalRecipients, setInternalRecipients] = useState<MessageRecipient[]>(recipients || []);
-    const [recipientCandidates, setRecipientCandidates] = useState<MessageRecipient[]>([]);
+    const [internalRecipients, setInternalRecipients] = useState<MessageRecipientProps[]>(recipients || []);
+    const [recipientCandidates, setRecipientCandidates] = useState<MessageRecipientProps[]>([]);
 
     useEffect(() => {
         setInternalRecipients(recipients || []);

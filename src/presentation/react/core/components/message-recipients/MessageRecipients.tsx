@@ -1,13 +1,13 @@
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { TextField, Chip, TextFieldProps, Menu, MenuItem } from "@material-ui/core";
-import { MessageRecipient } from "../../../../../domain/comunications/entities/Message";
 import { useMessageRecipients } from "./useMessageRecipients";
+import { MessageRecipientProps } from "../../../../../domain/comunications/entities/MessageRecipient";
 
 interface MessageRecipientsProps extends Omit<TextFieldProps, "onChange" | "value"> {
-    recipients?: MessageRecipient[];
+    recipients?: MessageRecipientProps[];
     text?: string;
-    onRecipientsChange?: (recipients: MessageRecipient[]) => void;
+    onRecipientsChange?: (recipients: MessageRecipientProps[]) => void;
     onTextChange?: (text: string) => void;
 }
 

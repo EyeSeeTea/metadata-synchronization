@@ -2,8 +2,9 @@ import { D2Api, MetadataPick } from "../../types/d2-api";
 import { apiToFuture } from "../common/utils/futures";
 import { Future, FutureData } from "../../domain/common/entities/Future";
 import { MessageRepository } from "../../domain/comunications/repositories/MessageRepository";
-import { Message, MessageRecipient } from "../../domain/comunications/entities/Message";
+import { Message } from "../../domain/comunications/entities/Message";
 import { PostMessage } from "@eyeseetea/d2-api/api/messageConversations";
+import { MessageRecipient } from "../../domain/comunications/entities/MessageRecipient";
 
 export class MessageD2ApiRepository implements MessageRepository {
     constructor(private readonly d2Api: D2Api) {}
@@ -46,19 +47,19 @@ export class MessageD2ApiRepository implements MessageRepository {
     }
 
     buildUserRecipient(user: D2User): MessageRecipient {
-        return {
+        return MessageRecipient.create({
             type: "User",
             id: user.id,
             name: user.displayName,
-        };
+        }).getOrThrow();
     }
 
     buildUserGroupRecipient(userGroup: D2UserGroup): MessageRecipient {
-        return {
+        return MessageRecipient.create({
             type: "UserGroup",
             id: userGroup.id,
             name: userGroup.displayName,
-        };
+        }).getOrThrow();
     }
 }
 

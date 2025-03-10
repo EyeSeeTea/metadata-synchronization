@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { EmailAddress } from "../../../../../domain/comunications/entities/EmailAddress";
 
 export function useEmailInput(
     emails?: string[],
@@ -19,7 +20,9 @@ export function useEmailInput(
 
     const tryAddEmail = useCallback(
         (email: string) => {
-            if (isValidEmail(email.trim())) {
+            const emailAddress = EmailAddress.create(email);
+
+            if (emailAddress.isSuccess()) {
                 const emails = [...internalEmails, email.trim()];
                 setInternalEmails(emails);
                 setInternalText("");
@@ -66,9 +69,4 @@ export function useEmailInput(
         handleDelete,
         handleInternalEmailInputChange,
     };
-}
-
-// TODO: This is a temp function. This logic should be in domain
-function isValidEmail(email: string) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }

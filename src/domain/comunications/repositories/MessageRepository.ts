@@ -1,5 +1,6 @@
 import { FutureData } from "../../common/entities/Future";
-import { Message, MessageRecipient } from "../entities/Message";
+import { Message } from "../entities/Message";
+import { MessageRecipient } from "../entities/MessageRecipient";
 
 export interface MessageRepository {
     searchRecipients(text: string): FutureData<MessageRecipient[]>;

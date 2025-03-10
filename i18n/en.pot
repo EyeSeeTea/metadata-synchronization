@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-03-09T16:18:49.808Z\n"
-"PO-Revision-Date: 2025-03-09T16:18:49.808Z\n"
+"POT-Creation-Date: 2025-03-10T14:03:49.733Z\n"
+"PO-Revision-Date: 2025-03-10T14:03:49.733Z\n"
 
 msgid "Unknown error to send email"
 msgstr ""
@@ -1003,7 +1003,7 @@ msgstr ""
 msgid "Scheduler"
 msgstr ""
 
-msgid "Sending email"
+msgid "Sending"
 msgstr ""
 
 msgid "Share error information"
@@ -1024,7 +1024,10 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
-msgid "Email sending successfully"
+msgid "Email sent successfully"
+msgstr ""
+
+msgid "Message sent successfully"
 msgstr ""
 
 msgid "The token is empty"

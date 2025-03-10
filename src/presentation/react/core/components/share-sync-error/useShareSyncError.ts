@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Future } from "../../../../../domain/common/entities/Future";
 import { AttachedFile } from "../../../../../domain/comunications/entities/AttachedFile";
 import { Email } from "../../../../../domain/comunications/entities/Email";
-import { Message, MessageRecipient } from "../../../../../domain/comunications/entities/Message";
+import { Message } from "../../../../../domain/comunications/entities/Message";
+import { MessageRecipientProps } from "../../../../../domain/comunications/entities/MessageRecipient";
 import { ResultInstance, SynchronizationResult } from "../../../../../domain/reports/entities/SynchronizationResult";
 import { Store } from "../../../../../domain/stores/entities/Store";
 import { useAppContext } from "../../contexts/AppContext";
@@ -11,7 +12,7 @@ import { useAppContext } from "../../contexts/AppContext";
 type ShareSyncState = {
     type: ShareSyncType;
     toEmail: string[];
-    toMessageRecipients: MessageRecipient[];
+    toMessageRecipients: MessageRecipientProps[];
     subject: string;
     text: string;
     messageToUser: MessageToUser | undefined;
@@ -19,7 +20,7 @@ type ShareSyncState = {
     attachingFiles: boolean;
     changeType: (type: ShareSyncType) => void;
     changeToEmail: (to: string[]) => void;
-    changeToMessageRecipients: (to: MessageRecipient[]) => void;
+    changeToMessageRecipients: (to: MessageRecipientProps[]) => void;
     changeSubject: (subject: string) => void;
     changeText: (message: string) => void;
     send: () => void;
@@ -43,7 +44,7 @@ type MessageToUser = {
 export function useShareSyncError(errorResults: SynchronizationResult[]): ShareSyncState {
     const [type, setType] = useState<ShareSyncType>("Email");
     const [toEmail, setToEmail] = useState<string[]>([]);
-    const [toMessageRecipients, setToMessageRecipients] = useState<MessageRecipient[]>([]);
+    const [toMessageRecipients, setToMessageRecipients] = useState<MessageRecipientProps[]>([]);
     const [subject, setSubject] = useState<string>("Error encountered when trying a migration in MetaData Sync");
     const [text, setText] = useState<string>("");
     const [messageToUser, setMessageToUser] = useState<MessageToUser>();
@@ -110,7 +111,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
         setToEmail(to);
     }, []);
 
-    const changeToMessageRecipients = useCallback((recipients: MessageRecipient[]) => {
+    const changeToMessageRecipients = useCallback((recipients: MessageRecipientProps[]) => {
         setToMessageRecipients(recipients);
     }, []);
 
@@ -123,45 +124,59 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
     }, []);
 
     const sendEmail = useCallback(async () => {
-        const email = Email.create({
+        const emailValidation = Email.create({
             recipients: toEmail,
             subject,
             text,
         });
 
-        setSending(true);
+        emailValidation.match({
+            success: email => {
+                setSending(true);
 
-        compositionRoot.comunications.sendEmail(email).run(
-            () => {
-                setSending(false);
-                setMessageToUser({ message: i18n.t("Email sent successfully"), type: "success" });
+                compositionRoot.comunications.sendEmail(email).run(
+                    () => {
+                        setSending(false);
+                        setMessageToUser({ message: i18n.t("Email sent successfully"), type: "success" });
+                    },
+                    error => {
+                        setSending(false);
+                        setMessageToUser({ message: error, type: "error" });
+                    }
+                );
             },
-            error => {
-                setSending(false);
-                setMessageToUser({ message: error, type: "error" });
-            }
-        );
+            error: errors => {
+                setMessageToUser({ message: errors.join("\n"), type: "error" });
+            },
+        });
     }, [toEmail, subject, text, compositionRoot.comunications]);
 
     const sendMessage = useCallback(async () => {
-        const message = Message.create({
+        const messageValidation = Message.create({
             recipients: toMessageRecipients,
             subject,
             text,
         });
 
-        setSending(true);
+        messageValidation.match({
+            success: message => {
+                setSending(true);
 
-        compositionRoot.comunications.sendMessage(message).run(
-            () => {
-                setSending(false);
-                setMessageToUser({ message: i18n.t("Message sent successfully"), type: "success" });
+                compositionRoot.comunications.sendMessage(message).run(
+                    () => {
+                        setSending(false);
+                        setMessageToUser({ message: i18n.t("Message sent successfully"), type: "success" });
+                    },
+                    error => {
+                        setSending(false);
+                        setMessageToUser({ message: error, type: "error" });
+                    }
+                );
             },
-            error => {
-                setSending(false);
-                setMessageToUser({ message: error, type: "error" });
-            }
-        );
+            error: errors => {
+                setMessageToUser({ message: errors.join("\n"), type: "error" });
+            },
+        });
     }, [toMessageRecipients, subject, text, compositionRoot.comunications]);
 
     const send = useCallback(async () => {

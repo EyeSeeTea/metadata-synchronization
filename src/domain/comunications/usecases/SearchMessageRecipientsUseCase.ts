@@ -1,5 +1,5 @@
 import { FutureData } from "../../common/entities/Future";
-import { MessageRecipient } from "../entities/Message";
+import { MessageRecipient } from "../entities/MessageRecipient";
 import { MessageRepository } from "../repositories/MessageRepository";
 
 export class SearchMessageRecipientsUseCase {
