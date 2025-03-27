@@ -146,7 +146,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                 );
             },
             error: errors => {
-                setMessageToUser({ message: errors.join("\n"), type: "error" });
+                setMessageToUser({ message: errors.map(error => error.description).join("\n"), type: "error" });
             },
         });
     }, [toEmail, subject, text, compositionRoot.comunications]);
