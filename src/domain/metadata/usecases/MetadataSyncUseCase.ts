@@ -12,7 +12,7 @@ import { MappingMapper } from "../../mapping/helpers/MappingMapper";
 import { Stats } from "../../reports/entities/Stats";
 import { SynchronizationResult } from "../../reports/entities/SynchronizationResult";
 import { GenericSyncUseCase } from "../../synchronization/usecases/GenericSyncUseCase";
-import { Document, MetadataEntities, MetadataPackage, Program } from "../entities/MetadataEntities";
+import { Document, MetadataEntities, MetadataEntity, MetadataPackage, Program } from "../entities/MetadataEntities";
 import { NestedRules } from "../entities/MetadataExcludeIncludeRules";
 import { buildNestedRules, cleanObject, cleanReferences, getAllReferences } from "../utils";
 
@@ -29,6 +29,7 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                 includeSharingSettings,
                 removeOrgUnitReferences,
                 removeUserObjectsAndReferences,
+                removeUserNonEssentialObjects,
             } = builder;
 
             //TODO: when metadata entities schema exists on domain, move this factory to domain
@@ -61,7 +62,8 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                     excludeRules,
                     includeSharingSettings,
                     removeOrgUnitReferences,
-                    removeUserObjectsAndReferences
+                    removeUserObjectsAndReferences,
+                    removeUserNonEssentialObjects
                 );
 
                 result[collectionName] = result[collectionName] || [];
@@ -80,6 +82,7 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                         includeSharingSettings,
                         removeOrgUnitReferences,
                         removeUserObjectsAndReferences,
+                        removeUserNonEssentialObjects,
                     });
                 });
 
@@ -98,6 +101,7 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
             includeSharingSettings = true,
             removeOrgUnitReferences = false,
             removeUserObjectsAndReferences = false,
+            removeUserNonEssentialObjects = false,
             metadataIncludeExcludeRules = {},
             useDefaultIncludeExclude = {},
         } = syncParams ?? {};
@@ -138,6 +142,7 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                 includeSharingSettings,
                 removeOrgUnitReferences,
                 removeUserObjectsAndReferences,
+                removeUserNonEssentialObjects,
             });
         });
 
@@ -146,9 +151,16 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
             _.uniqBy(elements, "id")
         );
 
-        const { organisationUnits, users, ...rest } = metadataWithoutDuplicates;
+        const { organisationUnits, users, categories, categoryCombos, categoryOptions, categoryOptionCombos, ...rest } =
+            metadataWithoutDuplicates;
+
+        const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
         const finalMetadataPackage = {
+            categories: this.excludeDefaultMetadataObjects(categories, removeCategoryObjects),
+            categoryCombos: this.excludeDefaultMetadataObjects(categoryCombos, removeCategoryObjects),
+            categoryOptions: this.excludeDefaultMetadataObjects(categoryOptions, removeCategoryObjects),
+            categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
             organisationUnits: !syncParams?.removeOrgUnitObjects ? organisationUnits : undefined,
             users: !syncParams?.removeUserObjects && !syncParams?.removeUserObjectsAndReferences ? users : undefined,
             ...rest,
@@ -272,5 +284,14 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
             program: program.id,
         });
         return { ...program, programRules };
+    }
+
+    private excludeDefaultMetadataObjects(
+        metadata: MetadataEntity[] | undefined,
+        removeMetadataObjects: boolean
+    ): MetadataEntity[] | undefined {
+        return removeMetadataObjects && metadata
+            ? metadata.filter(metadataObject => metadataObject.name !== "default" || metadataObject.code !== "default")
+            : metadata;
     }
 }
