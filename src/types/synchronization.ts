@@ -5,10 +5,15 @@ export interface ExportBuilder {
     type: keyof MetadataEntities;
     ids: string[];
     excludeRules: string[][];
-    includeRules: string[][];
-    includeSharingSettings: boolean;
-    removeOrgUnitReferences: boolean;
-    removeUserObjectsAndReferences: boolean;
+    includeReferencesAndObjectsRules: string[][];
+    includeSharingSettingsObjectsAndReferences: boolean;
+    includeOnlySharingSettingsReferences: boolean;
+    includeUsersObjectsAndReferences: boolean;
+    includeOnlyUsersReferences: boolean;
+    includeOrgUnitsObjectsAndReferences: boolean;
+    includeOnlyOrgUnitsReferences: boolean;
+    sharingSettingsIncludeReferencesAndObjectsRules: string[][];
+    usersIncludeReferencesAndObjectsRules: string[][];
 }
 
 export interface SynchronizationState {
