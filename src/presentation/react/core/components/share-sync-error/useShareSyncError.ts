@@ -90,14 +90,14 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
             })
             .flat();
 
-        Future.parallel(futures).run(
+        Future.parallel(futures, { concurrency: 5 }).run(
             files => {
                 setAttachingFiles(false);
                 setAttachedFiles(files);
             },
             error => {
                 setAttachingFiles(false);
-                setMessageToUser({ message: error, type: "error" });
+                setMessageToUser({ message: error.message, type: "error" });
             }
         );
     }, [compositionRoot.comunications, errorResults]);
@@ -141,7 +141,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                     },
                     error => {
                         setSending(false);
-                        setMessageToUser({ message: error, type: "error" });
+                        setMessageToUser({ message: error.message, type: "error" });
                     }
                 );
             },
@@ -169,7 +169,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                     },
                     error => {
                         setSending(false);
-                        setMessageToUser({ message: error, type: "error" });
+                        setMessageToUser({ message: error.message, type: "error" });
                     }
                 );
             },

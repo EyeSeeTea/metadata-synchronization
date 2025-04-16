@@ -2,7 +2,7 @@ import { Future, FutureData } from "../../domain/common/entities/Future";
 import { AttachedFile, AttachedFileInput } from "../../domain/comunications/entities/AttachedFile";
 import { AttachedFileRepository } from "../../domain/comunications/repositories/AttachedFileRepository";
 import { D2Api } from "../../types/d2-api";
-import { apiToFuture } from "../common/utils/futures";
+import { apiToFuture } from "../common/utils/api-futures";
 
 export class AttachedFileD2ApiRepository implements AttachedFileRepository {
     constructor(private api: D2Api) {}

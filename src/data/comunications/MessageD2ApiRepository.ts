@@ -1,10 +1,10 @@
 import { D2Api, MetadataPick } from "../../types/d2-api";
-import { apiToFuture } from "../common/utils/futures";
 import { Future, FutureData } from "../../domain/common/entities/Future";
 import { MessageRepository } from "../../domain/comunications/repositories/MessageRepository";
 import { Message } from "../../domain/comunications/entities/Message";
 import { PostMessage } from "@eyeseetea/d2-api/api/messageConversations";
 import { MessageRecipient } from "../../domain/comunications/entities/MessageRecipient";
+import { apiToFuture } from "../common/utils/api-futures";
 
 export class MessageD2ApiRepository implements MessageRepository {
     constructor(private readonly d2Api: D2Api) {}
