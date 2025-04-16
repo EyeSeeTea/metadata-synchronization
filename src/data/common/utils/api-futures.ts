@@ -1,4 +1,3 @@
-import { AxiosError } from "axios";
 import { Future, FutureData } from "../../../domain/common/entities/Future";
 import { CancelableResponse } from "../../../types/d2-api";
 
