@@ -12,7 +12,7 @@ import { MappingMapper } from "../../mapping/helpers/MappingMapper";
 import { Stats } from "../../reports/entities/Stats";
 import { SynchronizationResult } from "../../reports/entities/SynchronizationResult";
 import { GenericSyncUseCase } from "../../synchronization/usecases/GenericSyncUseCase";
-import { Document, MetadataEntities, MetadataPackage, Program } from "../entities/MetadataEntities";
+import { Document, MetadataEntities, MetadataEntity, MetadataPackage, Program } from "../entities/MetadataEntities";
 import { NestedRules } from "../entities/MetadataExcludeIncludeRules";
 import { buildNestedRules, cleanObject, cleanReferences, getAllReferences } from "../utils";
 
@@ -25,10 +25,16 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                 type,
                 ids,
                 excludeRules,
-                includeRules,
-                includeSharingSettings,
-                removeOrgUnitReferences,
-                removeUserObjectsAndReferences,
+                includeReferencesAndObjectsRules,
+                includeSharingSettingsObjectsAndReferences,
+                includeOnlySharingSettingsReferences,
+                includeUsersObjectsAndReferences,
+                includeOnlyUsersReferences,
+                includeOrgUnitsObjectsAndReferences,
+                includeOnlyOrgUnitsReferences,
+                sharingSettingsIncludeReferencesAndObjectsRules,
+                usersIncludeReferencesAndObjectsRules,
+                removeUserNonEssentialObjects,
             } = builder;
 
             //TODO: when metadata entities schema exists on domain, move this factory to domain
@@ -38,10 +44,13 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
 
             // Each level of recursion traverse the exclude/include rules with nested values
             const nestedExcludeRules: NestedRules = buildNestedRules(excludeRules);
-            const nestedIncludeRules: NestedRules = buildNestedRules(includeRules);
+            const nestedIncludeReferencesAndObjectsRules: NestedRules = buildNestedRules(
+                includeReferencesAndObjectsRules
+            );
 
             // Get all the required metadata
-            const metadataRepository = await this.getMetadataRepository();
+            const originInstance = await this.getOriginInstance();
+            const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
             const syncMetadata = await metadataRepository.getMetadataByIds(ids);
             const elements = syncMetadata[collectionName] || [];
 
@@ -52,32 +61,58 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                     type === "programs" ? await this.requestAndIncludeProgramRules(element as Program) : element;
 
                 // Store metadata object in result
-                const object = cleanObject(
-                    this.api,
-                    schema.name,
-                    fixedElement,
-                    excludeRules,
-                    includeSharingSettings,
-                    removeOrgUnitReferences,
-                    removeUserObjectsAndReferences
-                );
+                const object = cleanObject({
+                    api: this.api,
+                    modelName: schema.name,
+                    element: fixedElement,
+                    excludeRules: excludeRules,
+                    includeSharingSettingsObjectsAndReferences,
+                    includeOnlySharingSettingsReferences,
+                    includeUsersObjectsAndReferences,
+                    includeOnlyUsersReferences,
+                    includeOrgUnitsObjectsAndReferences,
+                    includeOnlyOrgUnitsReferences,
+                    removeNonEssentialObjects: removeUserNonEssentialObjects,
+                });
 
                 result[collectionName] = result[collectionName] || [];
                 result[collectionName]?.push(object);
 
                 // Get all the referenced metadata
                 const references = getAllReferences(this.api, object, schema.name);
-                const includedReferences = cleanReferences(references, includeRules);
+                const includedReferences = cleanReferences(references, includeReferencesAndObjectsRules);
 
                 const partialResults = await promiseMap(includedReferences, type => {
+                    // TODO: Check why nestedIncludeReferencesAndObjectsRules[type] can be undefined
+                    const metadataTypeIncludeReferencesAndObjectsRules =
+                        nestedIncludeReferencesAndObjectsRules[type] || [];
+
+                    const nextIncludeReferencesAndObjectsRules =
+                        (includeSharingSettingsObjectsAndReferences || includeUsersObjectsAndReferences) &&
+                        type !== "users" &&
+                        type !== "userGroups" &&
+                        type !== "userRoles"
+                            ? [
+                                  ...metadataTypeIncludeReferencesAndObjectsRules,
+                                  ...sharingSettingsIncludeReferencesAndObjectsRules,
+                                  ...usersIncludeReferencesAndObjectsRules,
+                              ]
+                            : metadataTypeIncludeReferencesAndObjectsRules;
+
                     return recursiveExport({
                         type: type as keyof MetadataEntities,
                         ids: references[type],
                         excludeRules: nestedExcludeRules[type],
-                        includeRules: nestedIncludeRules[type],
-                        includeSharingSettings,
-                        removeOrgUnitReferences,
-                        removeUserObjectsAndReferences,
+                        includeReferencesAndObjectsRules: nextIncludeReferencesAndObjectsRules,
+                        includeSharingSettingsObjectsAndReferences,
+                        includeOnlySharingSettingsReferences,
+                        includeUsersObjectsAndReferences,
+                        includeOnlyUsersReferences,
+                        includeOrgUnitsObjectsAndReferences,
+                        includeOnlyOrgUnitsReferences,
+                        sharingSettingsIncludeReferencesAndObjectsRules,
+                        usersIncludeReferencesAndObjectsRules,
+                        removeUserNonEssentialObjects,
                     });
                 });
 
@@ -87,20 +122,47 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
             // Clean up result from duplicated elements
             return _.mapValues(result, objects => _.uniqBy(objects, "id"));
         };
-        return recursiveExport(originalBuilder);
+
+        const currentMetadataTypeIncludeReferencesAndObjectsRules = originalBuilder.includeReferencesAndObjectsRules;
+
+        const includeReferencesAndObjectsRules =
+            (originalBuilder.includeSharingSettingsObjectsAndReferences ||
+                originalBuilder.includeUsersObjectsAndReferences) &&
+            originalBuilder.type !== "users" &&
+            originalBuilder.type !== "userGroups" &&
+            originalBuilder.type !== "userRoles"
+                ? [
+                      ...currentMetadataTypeIncludeReferencesAndObjectsRules,
+                      ...originalBuilder.sharingSettingsIncludeReferencesAndObjectsRules,
+                      ...originalBuilder.usersIncludeReferencesAndObjectsRules,
+                  ]
+                : currentMetadataTypeIncludeReferencesAndObjectsRules;
+
+        return recursiveExport({
+            ...originalBuilder,
+            includeReferencesAndObjectsRules,
+        });
     }
 
+    // TODO: It is necessary to refactor this method as it should not be called from outside the use case
+    // and also to avoid the use of nested promises
     public buildPayload = memoize(async () => {
         const { metadataIds, syncParams, filterRules = [] } = this.builder;
         const {
-            includeSharingSettings = true,
-            removeOrgUnitReferences = false,
-            removeUserObjectsAndReferences = false,
+            includeSharingSettingsObjectsAndReferences = true,
+            includeOnlySharingSettingsReferences = false,
+            includeUsersObjectsAndReferences = true,
+            includeOnlyUsersReferences = false,
+            includeOrgUnitsObjectsAndReferences = true,
+            includeOnlyOrgUnitsReferences = false,
+            removeUserNonEssentialObjects = false,
             metadataIncludeExcludeRules = {},
             useDefaultIncludeExclude = {},
         } = syncParams ?? {};
 
-        const metadataRepository = await this.getMetadataRepository();
+        const originInstance = await this.getOriginInstance();
+        const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
+
         const filterRulesIds = await metadataRepository.getByFilterRules(filterRules);
         const allMetadataIds = _.union(metadataIds, filterRulesIds);
         const idsWithoutDataStore = allMetadataIds.filter(id => !DataStoreMetadata.isDataStoreId(id));
@@ -121,8 +183,20 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
             const myClass = modelFactory(type);
             const metadataType = myClass.getMetadataType();
             const collectionName = myClass.getCollectionName();
+            const userIncludeReferencesAndObjectsRules = modelFactory("user").getIncludeRules();
+            const userGroupIncludeReferencesAndObjectsRules = modelFactory("userGroup").getIncludeRules();
 
             if (metadataType === defaultName) return Promise.resolve({});
+
+            const sharingSettingsIncludeReferencesAndObjectsRules =
+                includeSharingSettingsObjectsAndReferences || includeOnlySharingSettingsReferences
+                    ? [...userIncludeReferencesAndObjectsRules, ...userGroupIncludeReferencesAndObjectsRules]
+                    : [];
+
+            const usersIncludeReferencesAndObjectsRules =
+                includeUsersObjectsAndReferences || includeOnlyUsersReferences
+                    ? userIncludeReferencesAndObjectsRules
+                    : [];
 
             return this.exportMetadata({
                 type: collectionName,
@@ -130,12 +204,18 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                 excludeRules: useDefaultIncludeExclude
                     ? myClass.getExcludeRules()
                     : metadataIncludeExcludeRules[metadataType].excludeRules.map(_.toPath),
-                includeRules: useDefaultIncludeExclude
+                includeReferencesAndObjectsRules: useDefaultIncludeExclude
                     ? myClass.getIncludeRules()
-                    : metadataIncludeExcludeRules[metadataType].includeRules.map(_.toPath),
-                includeSharingSettings,
-                removeOrgUnitReferences,
-                removeUserObjectsAndReferences,
+                    : metadataIncludeExcludeRules[metadataType].includeReferencesAndObjectsRules.map(_.toPath),
+                includeSharingSettingsObjectsAndReferences,
+                includeOnlySharingSettingsReferences,
+                includeUsersObjectsAndReferences,
+                includeOnlyUsersReferences,
+                includeOrgUnitsObjectsAndReferences,
+                includeOnlyOrgUnitsReferences,
+                sharingSettingsIncludeReferencesAndObjectsRules,
+                usersIncludeReferencesAndObjectsRules,
+                removeUserNonEssentialObjects,
             });
         });
 
@@ -144,11 +224,35 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
             _.uniqBy(elements, "id")
         );
 
-        const { organisationUnits, users, ...rest } = metadataWithoutDuplicates;
+        const {
+            organisationUnits,
+            users,
+            userGroups,
+            userRoles,
+            categories,
+            categoryCombos,
+            categoryOptions,
+            categoryOptionCombos,
+            ...rest
+        } = metadataWithoutDuplicates;
+
+        const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
         const finalMetadataPackage = {
-            organisationUnits: !syncParams?.removeOrgUnitObjects ? organisationUnits : undefined,
-            users: !syncParams?.removeUserObjects && !syncParams?.removeUserObjectsAndReferences ? users : undefined,
+            ...(categories && { categories: this.excludeDefaultMetadataObjects(categories, removeCategoryObjects) }),
+            ...(categoryCombos && {
+                categoryCombos: this.excludeDefaultMetadataObjects(categoryCombos, removeCategoryObjects),
+            }),
+            ...(categoryOptions && {
+                categoryOptions: this.excludeDefaultMetadataObjects(categoryOptions, removeCategoryObjects),
+            }),
+            ...(categoryOptionCombos && {
+                categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
+            }),
+            organisationUnits: includeOrgUnitsObjectsAndReferences ? organisationUnits : undefined,
+            users: includeUsersObjectsAndReferences ? users : undefined,
+            userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
+            userRoles: includeSharingSettingsObjectsAndReferences ? userRoles : undefined,
             ...rest,
         };
 
@@ -208,7 +312,8 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
         const dataStorePayload = DataStoreMetadata.combine(metadataIds, dataStoreLocal, dataStoreRemote, {
             action: syncParams?.mergeMode,
         });
-        return syncParams?.includeSharingSettings
+        return syncParams?.includeSharingSettingsObjectsAndReferences ||
+            syncParams?.includeOnlySharingSettingsReferences
             ? dataStorePayload
             : DataStoreMetadata.removeSharingSettings(dataStorePayload);
     }
@@ -263,12 +368,22 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
     }
 
     private async requestAndIncludeProgramRules(program: Program) {
-        const metadataRepository = await this.getMetadataRepository();
+        const defaultInstance = await this.getOriginInstance();
+        const metadataRepository = this.repositoryFactory.metadataRepository(defaultInstance);
         const programRules = await metadataRepository.listAllMetadata({
             type: "programRules",
             fields: { id: true },
             program: program.id,
         });
         return { ...program, programRules };
+    }
+
+    private excludeDefaultMetadataObjects(
+        metadata: MetadataEntity[] | undefined,
+        removeMetadataObjects: boolean
+    ): MetadataEntity[] | undefined {
+        return removeMetadataObjects && metadata
+            ? metadata.filter(metadataObject => metadataObject.name !== "default" || metadataObject.code !== "default")
+            : metadata;
     }
 }
