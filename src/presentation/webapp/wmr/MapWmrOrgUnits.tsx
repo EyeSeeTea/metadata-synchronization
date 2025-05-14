@@ -72,12 +72,12 @@ export function MapWmrOrgUnits(props: MapWmrOrgUnitsProps) {
     };
 
     const orgUnitsDifference =
-        localDataSet && countryDataSet ? WmrDataSet.getDifferenceOrgsUnits(localDataSet, countryDataSet) : undefined;
+        localDataSet && countryDataSet ? WmrDataSet.getDifferenceOrgsUnits(localDataSet, countryDataSet) : [];
 
     return (
         <form onSubmit={onSubmit}>
             <Grid container spacing={3}>
-                {orgUnitsDifference && (
+                {orgUnitsDifference.length > 0 && (
                     <Grid item xs={12}>
                         <Alert severity="warning">
                             {i18n.t("Org. Unit: {{orgUnitsNames}} are not assigned to the Country DataSet", {

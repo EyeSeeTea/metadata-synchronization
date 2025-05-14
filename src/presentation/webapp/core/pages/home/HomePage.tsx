@@ -20,6 +20,7 @@ const appVariantConfiguration: Record<AppVariant, string[]> = {
     "module-package-app": ["metadata-distribution", "configuration"],
     "msf-aggregate-data-app": ["aggregated", "events", "metadata", "other", "metadata-distribution", "configuration"],
     "sp-emergency-responses": ["aggregated", "events", "metadata", "other", "metadata-distribution", "configuration"],
+    wmr: [],
 };
 
 interface LandingPageProps {
