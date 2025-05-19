@@ -13,7 +13,7 @@ export function InstallMetadataPackage() {
             <Grid item xs={12}>
                 <Button
                     download="metadata.json"
-                    href="/wmr/metadata.json"
+                    href="wmr/metadata.json"
                     variant="contained"
                     color="primary"
                     endIcon={<CloudDownload />}
@@ -24,7 +24,7 @@ export function InstallMetadataPackage() {
             <Grid item xs={12}>
                 <Button
                     download="datastore_config.json"
-                    href="/wmr/dataStore.json"
+                    href="wmr/dataStore.json"
                     variant="contained"
                     color="primary"
                     endIcon={<CloudDownload />}
