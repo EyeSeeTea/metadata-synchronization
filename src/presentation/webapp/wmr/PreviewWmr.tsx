@@ -7,7 +7,7 @@ import { CloudDownload } from "@material-ui/icons";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
 import { useAppContext } from "../../react/core/contexts/AppContext";
-import i18n from "../../../types/i18n";
+import i18n from "../../../utils/i18n";
 import { WmrSyncRule } from "./WmrPage";
 
 type PreviewWmrProps = { settings: WmrSettings; wmrSyncRule: WmrSyncRule };

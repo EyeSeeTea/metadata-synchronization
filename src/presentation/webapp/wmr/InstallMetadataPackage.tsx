@@ -1,6 +1,6 @@
 import { Button, Grid, Typography } from "@material-ui/core";
 import { CloudDownload, HelpSharp } from "@material-ui/icons";
-import i18n from "../../../types/i18n";
+import i18n from "../../../utils/i18n";
 
 export function InstallMetadataPackage() {
     return (

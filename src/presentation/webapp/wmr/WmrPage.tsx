@@ -1,6 +1,6 @@
 import React from "react";
 import { Wizard, WizardStep } from "@eyeseetea/d2-ui-components";
-import i18n from "../../../types/i18n";
+import i18n from "../../../utils/i18n";
 import { InstallMetadataPackage } from "./InstallMetadataPackage";
 import { MapWmrData } from "./MapWmrData";
 import { MapWmrOrgUnits } from "./MapWmrOrgUnits";

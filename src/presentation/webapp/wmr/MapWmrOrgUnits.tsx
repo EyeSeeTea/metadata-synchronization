@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Grid } from "@material-ui/core";
 import { OrgUnitsSelector, useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
 
-import i18n from "../../../types/i18n";
+import i18n from "../../../utils/i18n";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import { useGetDataSetOrgUnits, useMappingDataElements } from "./hooks/useMappingDataElements";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";

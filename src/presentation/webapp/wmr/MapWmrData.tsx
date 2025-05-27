@@ -1,7 +1,7 @@
 import React from "react";
 import { Grid, Typography } from "@material-ui/core";
 import { Dropdown } from "@eyeseetea/d2-ui-components";
-import i18n from "../../../types/i18n";
+import i18n from "../../../utils/i18n";
 import InstanceMappingPage from "../core/pages/instance-mapping/InstanceMappingPage";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
 import { Id } from "../../../domain/common/entities/Schemas";
