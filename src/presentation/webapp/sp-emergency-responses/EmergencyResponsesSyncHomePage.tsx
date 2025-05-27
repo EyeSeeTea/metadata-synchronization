@@ -12,7 +12,7 @@ import { SynchronizationReport } from "../../../domain/reports/entities/Synchron
 import { SummaryTable } from "../../react/core/components/sync-summary/SummaryTable";
 import { SynchronizationResult, SynchronizationStats } from "../../../domain/reports/entities/SynchronizationResult";
 import { EmergencyType, getEmergencyResponseConfig } from "../../../domain/entities/EmergencyResponses";
-import i18n from "../../../locales";
+import i18n from "../../../utils/i18n";
 import { promiseMap } from "../../../utils/common";
 
 interface EmergencyResponsesSyncHomePageProps {
@@ -29,13 +29,10 @@ export const EmergencyResponsesSyncHomePage: React.FC<EmergencyResponsesSyncHome
 
     const executeRules = React.useCallback(
         (rules: SynchronizationRule[]) =>
-            promiseMap(
-                _.orderBy(rules, rule => rule.code === "EFH_METADATA_ORGUNITS", "desc"),
-                rule => {
-                    console.debug("Running: " + rule.name);
-                    return runSyncRule(rule);
-                }
-            ),
+            promiseMap(rules, rule => {
+                console.debug("Running: " + rule.name);
+                return runSyncRule(rule);
+            }),
         [runSyncRule]
     );
 

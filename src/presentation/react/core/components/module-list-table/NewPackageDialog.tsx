@@ -7,7 +7,7 @@ import semver from "semver";
 import { ValidationError } from "../../../../../domain/common/entities/Validations";
 import { Module } from "../../../../../domain/modules/entities/Module";
 import { Package } from "../../../../../domain/packages/entities/Package";
-import i18n from "../../../../../locales";
+import i18n from "../../../../../utils/i18n";
 import { Dictionary } from "../../../../../types/utils";
 import { useAppContext } from "../../contexts/AppContext";
 
@@ -120,7 +120,7 @@ export const NewPackageDialog: React.FC<NewPackageDialogProps> = ({ module, save
             <Autocomplete
                 className={classes.row}
                 multiple
-                options={["2.30", "2.31", "2.32", "2.33", "2.34"]}
+                options={["2.37", "2.38", "2.39", "2.40", "2.41"]}
                 value={versions}
                 onChange={(_event, value) => updateVersions(value)}
                 renderTags={(values: string[]) => values.sort().join(", ")}

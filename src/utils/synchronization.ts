@@ -5,7 +5,7 @@ import { D2MetadataUtils } from "../data/metadata/D2MetadataUtils";
 import { MetadataMapping, MetadataMappingDictionary } from "../domain/mapping/entities/MetadataMapping";
 import { CategoryOptionCombo } from "../domain/metadata/entities/MetadataEntities";
 import { SynchronizationRule } from "../domain/rules/entities/SynchronizationRule";
-import i18n from "../locales";
+import i18n from "../utils/i18n";
 import { MAPPED_BY_VALUE_KEY } from "../presentation/react/core/components/mapping-table/utils";
 import { D2Api } from "../types/d2-api";
 import { buildObject } from "../types/utils";
@@ -43,6 +43,7 @@ export const availablePeriods = buildObject<{
     ALL: { name: i18n.t("All time") },
     FIXED: { name: i18n.t("Fixed period") },
     SINCE_LAST_EXECUTED_DATE: { name: i18n.t("Since last execution") },
+    SINCE_LAST_SUCCESSFUL_SYNC: { name: i18n.t("Since last successful execution") },
     TODAY: { name: i18n.t("Today"), start: [0, "day"] },
     YESTERDAY: { name: i18n.t("Yesterday"), start: [1, "day"] },
     LAST_7_DAYS: { name: i18n.t("Last 7 days"), start: [7, "day"], end: [0, "day"] },

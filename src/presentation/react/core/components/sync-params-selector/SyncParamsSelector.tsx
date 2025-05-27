@@ -1,7 +1,9 @@
 import { makeStyles, Typography } from "@material-ui/core";
 import React from "react";
+import { DataSynchronizationParams } from "../../../../../domain/aggregated/entities/DataSynchronizationParams";
+import { MetadataSynchronizationParams } from "../../../../../domain/metadata/entities/MetadataSynchronizationParams";
 import { SynchronizationRule } from "../../../../../domain/rules/entities/SynchronizationRule";
-import i18n from "../../../../../locales";
+import i18n from "../../../../../utils/i18n";
 import RadioButtonGroup from "../radio-button-group/RadioButtonGroup";
 import { Toggle } from "../toggle/Toggle";
 
@@ -21,18 +23,6 @@ const useStyles = makeStyles({
 const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({ syncRule, onChange, generateNewUidDisabled }) => {
     const classes = useStyles();
     const { syncParams, dataParams } = syncRule;
-    const changeSharingSettings = (includeSharingSettings: boolean) => {
-        onChange(
-            syncRule.updateSyncParams({
-                ...syncParams,
-                includeSharingSettings,
-            })
-        );
-    };
-
-    const changeOrgUnitReferences = (removeOrgUnitReferences: boolean) => {
-        onChange(syncRule.updateSyncParams({ ...syncParams, removeOrgUnitReferences }));
-    };
 
     const changeAtomic = (value: boolean) => {
         onChange(
@@ -87,6 +77,13 @@ const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({ syncRule, onCha
                     importMode: dryRun ? "VALIDATE" : "COMMIT",
                 })
             );
+        } else if (syncRule.type === "events") {
+            onChange(
+                syncRule.updateDataParams({
+                    ...dataParams,
+                    importMode: dryRun ? "VALIDATE" : "COMMIT",
+                })
+            );
         } else {
             onChange(
                 syncRule.updateDataParams({
@@ -115,24 +112,20 @@ const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({ syncRule, onCha
         );
     };
 
-    const changeRemoveUserObjects = (removeUserObjects: boolean) => {
+    const changeRemoveDefaultCategoryObjects = (removeDefaultCategoryObjects: boolean) => {
         onChange(
             syncRule.updateSyncParams({
                 ...syncParams,
-                removeUserObjects,
+                removeDefaultCategoryObjects,
             })
         );
     };
 
-    const changeRemoveUserObjectsAndReferences = (removeUserObjectsAndReferences: boolean) => {
-        onChange(syncRule.updateSyncParams({ ...syncParams, removeUserObjectsAndReferences }));
-    };
-
-    const changeRemoveOrgUnitObjects = (removeOrgUnitObjects: boolean) => {
+    const changeRemoveNonEssentialUserObjects = (removeUserNonEssentialObjects: boolean) => {
         onChange(
             syncRule.updateSyncParams({
                 ...syncParams,
-                removeOrgUnitObjects,
+                removeUserNonEssentialObjects,
             })
         );
     };
@@ -158,9 +151,11 @@ const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({ syncRule, onCha
             {syncRule.type === "metadata" && (
                 <div>
                     <Toggle
-                        label={i18n.t("Include owner and sharing settings")}
-                        onValueChange={changeSharingSettings}
-                        value={!!syncParams.includeSharingSettings}
+                        label={i18n.t(
+                            "Remove default categories, categoryOptions, categoryCombos and categoryOptionCombos"
+                        )}
+                        onValueChange={changeRemoveDefaultCategoryObjects}
+                        value={syncParams.removeDefaultCategoryObjects || false}
                     />
                 </div>
             )}
@@ -168,40 +163,9 @@ const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({ syncRule, onCha
             {syncRule.type === "metadata" && (
                 <div>
                     <Toggle
-                        label={i18n.t("Remove organisation units and references (UID)")}
-                        onValueChange={changeOrgUnitReferences}
-                        value={!!syncParams.removeOrgUnitReferences}
-                    />
-                </div>
-            )}
-
-            {syncRule.type === "metadata" && (
-                <div>
-                    <Toggle
-                        disabled={syncParams.removeOrgUnitReferences}
-                        label={i18n.t("Remove organisation units and keep organisation units references (UID)")}
-                        onValueChange={changeRemoveOrgUnitObjects}
-                        value={syncParams.removeOrgUnitObjects || false}
-                    />
-                </div>
-            )}
-
-            {syncRule.type === "metadata" && (
-                <div>
-                    <Toggle
-                        label={i18n.t("Remove users and references (UID)")}
-                        onValueChange={changeRemoveUserObjectsAndReferences}
-                        value={syncParams.removeUserObjectsAndReferences || false}
-                    />
-                </div>
-            )}
-
-            {syncRule.type === "metadata" && (
-                <div>
-                    <Toggle
-                        label={i18n.t("Remove users and keep user references (UID)")}
-                        onValueChange={changeRemoveUserObjects}
-                        value={syncParams.removeUserObjects || false}
+                        label={i18n.t("Remove lastUpdated, lastUpdatedBy, created and createdBys")}
+                        onValueChange={changeRemoveNonEssentialUserObjects}
+                        value={syncParams.removeUserNonEssentialObjects || false}
                     />
                 </div>
             )}
@@ -253,11 +217,7 @@ const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({ syncRule, onCha
                 <Toggle
                     label={i18n.t("Dry Run")}
                     onValueChange={changeDryRun}
-                    value={
-                        syncRule.type === "metadata" || syncRule.type === "deleted"
-                            ? syncParams.importMode === "VALIDATE"
-                            : dataParams.dryRun || false
-                    }
+                    value={isDryRunEnabled(syncRule, syncParams, dataParams)}
                 />
             </div>
 
@@ -289,3 +249,17 @@ const SyncParamsSelector: React.FC<SyncParamsSelectorProps> = ({ syncRule, onCha
 };
 
 export default SyncParamsSelector;
+
+function isDryRunEnabled(
+    syncRule: SynchronizationRule,
+    syncParams: MetadataSynchronizationParams,
+    dataParams: DataSynchronizationParams
+): boolean {
+    if (syncRule.type === "metadata" || syncRule.type === "deleted") {
+        return syncParams.importMode === "VALIDATE";
+    } else if (syncRule.type === "events") {
+        return dataParams.importMode === "VALIDATE";
+    } else {
+        return dataParams.dryRun || false;
+    }
+}
