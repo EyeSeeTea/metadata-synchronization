@@ -8,6 +8,7 @@ import { CustomDataRepositoryConstructor } from "../../custom-data/repository/Cu
 import { DataStoreMetadataRepositoryConstructor } from "../../data-store/DataStoreMetadataRepository";
 import { DhisReleasesRepositoryConstructor } from "../../dhis-releases/repository/DhisReleasesRepository";
 import { WmrDataSetRepositoryConstructor } from "../../entities/wmr/repositories/WmrDataSetRepository";
+import { WmrRequisitesRepositoryConstructor } from "../../entities/wmr/repositories/WmrRequisitesRepository";
 import { WmrRepositoryConstructor } from "../../entities/wmr/repositories/WmrSettingsRepository";
 import { EventsRepository, EventsRepositoryConstructor } from "../../events/repositories/EventsRepository";
 import { FileRepositoryConstructor } from "../../file/repositories/FileRepository";
@@ -213,6 +214,11 @@ export class RepositoryFactory {
     public wmrDataSetRepository(instance: Instance) {
         return this.get<WmrDataSetRepositoryConstructor>(Repositories.WmrDataSetRepository, [instance]);
     }
+
+    @cache()
+    public wmrRequisitesRepository(instance: Instance) {
+        return this.get<WmrRequisitesRepositoryConstructor>(Repositories.WmrRequisitesRepository, [instance]);
+    }
 }
 
 type RepositoryKeys = typeof Repositories[keyof typeof Repositories];
@@ -244,4 +250,5 @@ export const Repositories = {
     TableColumnsRepository: "tableColumnsRepository",
     WmrSettingsRepository: "wmrSettingsRepository",
     WmrDataSetRepository: "wmrDataSetRepository",
+    WmrRequisitesRepository: "wmrRequisitesRepository",
 } as const;

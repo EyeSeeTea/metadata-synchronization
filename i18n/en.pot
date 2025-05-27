@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-05-27T13:03:37.615Z\n"
-"PO-Revision-Date: 2025-05-27T13:03:37.615Z\n"
+"POT-Creation-Date: 2025-05-27T17:37:11.999Z\n"
+"PO-Revision-Date: 2025-05-27T17:37:11.999Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2231,13 +2231,36 @@ msgstr ""
 msgid "Patients (Tracked Entity Instances)"
 msgstr ""
 
-msgid "Have you installed the metadata package that creates the test data set?"
+msgid "Checking {{itemName}}..."
+msgstr ""
+
+msgid "Uploading {{itemName}}..."
+msgstr ""
+
+msgid "The {{itemName}} is already installed."
+msgstr ""
+
+msgid ""
+"An error occurred while installing the {{itemName}}. Alternatively, you can "
+"download the configuration and import it manually"
+msgstr ""
+
+msgid "The {{itemName}} is not installed yet. Use the button below to install it."
+msgstr ""
+
+msgid "Setup WMR prerequisites"
+msgstr ""
+
+msgid "Metadata package"
+msgstr ""
+
+msgid "This package contains the WMR dataset and its dependencies"
 msgstr ""
 
 msgid "Autogenform configuration"
 msgstr ""
 
-msgid "Tutorial: How to install metadata package"
+msgid "Contains the dataStore configurations required by the autogenforms tool"
 msgstr ""
 
 msgid ""
@@ -2264,9 +2287,6 @@ msgid "Select a organisation unit in the previous step"
 msgstr ""
 
 msgid "Download DataValues"
-msgstr ""
-
-msgid "Metadata package"
 msgstr ""
 
 msgid "Map Server data"
