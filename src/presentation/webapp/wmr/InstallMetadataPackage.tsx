@@ -102,11 +102,12 @@ function PrerequisiteItem({
 }
 
 export function InstallMetadataPackage() {
-    const { setupStatuses, importMetadata, verifyMetadata } = useWmrSetup();
+    const { setupStatuses, setupRequisite, verifyRequisite } = useWmrSetup();
 
     React.useEffect(() => {
-        verifyMetadata();
-    }, [verifyMetadata]);
+        verifyRequisite("metadata");
+        verifyRequisite("dataStore");
+    }, [verifyRequisite]);
 
     return (
         <Grid container spacing={3}>
@@ -126,7 +127,7 @@ export function InstallMetadataPackage() {
                     type="metadata"
                     status={setupStatuses.metadata.status}
                     downloadUrl="wmr/metadata.json"
-                    importFunction={importMetadata}
+                    importFunction={setupRequisite}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -140,7 +141,7 @@ export function InstallMetadataPackage() {
                     type="dataStore"
                     status={setupStatuses.dataStore.status}
                     downloadUrl="wmr/dataStore.json"
-                    importFunction={importMetadata}
+                    importFunction={setupRequisite}
                 />
             </Grid>
         </Grid>

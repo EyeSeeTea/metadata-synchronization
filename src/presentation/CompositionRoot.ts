@@ -131,6 +131,7 @@ import { getD2APiFromInstance } from "../utils/d2-utils";
 import { RoleD2ApiRepository } from "../data/role/RoleD2ApiRepository";
 import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
 import { StorageDataStoreClient } from "../data/storage/StorageDataStoreClient";
+import { SetupWmrRequisitesByTypeUseCase } from "../domain/entities/wmr/usecases/SetupWmrRequisitesByTypeUseCase";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -178,6 +179,7 @@ export class CompositionRoot {
             settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
             getDataSetById: new GetDataSetByIdUseCase(this.repositoryFactory, this.localInstance),
             checkRequisites: new CheckWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
+            setupRequisites: new SetupWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
         });
     }
 

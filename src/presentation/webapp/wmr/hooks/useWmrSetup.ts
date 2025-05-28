@@ -20,37 +20,37 @@ export function useWmrSetup() {
         dataStore: { status: "loading" },
     });
 
-    const importMetadata = React.useCallback((type: WmrRequisiteType) => {
-        updateSetupItem(type, { status: "uploading" });
-        // TODO: implement import
-    }, []);
+    const verifyRequisite = React.useCallback(
+        (type: WmrRequisiteType) => {
+            updateSetupItem(type, { status: "loading" });
+            compositionRoot.wmr.checkRequisites(type).run(
+                result => {
+                    updateSetupItem(type, {
+                        status: result ? "done" : "pending",
+                    });
+                },
+                () => {
+                    updateSetupItem(type, { status: "error" });
+                }
+            );
+        },
+        [compositionRoot]
+    );
 
-    const verifyMetadata = React.useCallback(() => {
-        setSetupStatuses({
-            metadata: { status: "loading" },
-            dataStore: { status: "loading" },
-        });
-        compositionRoot.wmr.checkRequisites("metadata").run(
-            result => {
-                updateSetupItem("metadata", {
-                    status: result ? "done" : "pending",
-                });
-            },
-            () => {
-                updateSetupItem("metadata", { status: "error" });
-            }
-        );
-        compositionRoot.wmr.checkRequisites("dataStore").run(
-            result => {
-                updateSetupItem("dataStore", {
-                    status: result ? "done" : "pending",
-                });
-            },
-            () => {
-                updateSetupItem("dataStore", { status: "error" });
-            }
-        );
-    }, [compositionRoot]);
+    const setupRequisite = React.useCallback(
+        (type: WmrRequisiteType) => {
+            updateSetupItem(type, { status: "uploading" });
+            compositionRoot.wmr.setupRequisites(type).run(
+                () => {
+                    verifyRequisite(type);
+                },
+                () => {
+                    updateSetupItem(type, { status: "error" });
+                }
+            );
+        },
+        [compositionRoot, verifyRequisite]
+    );
 
     const updateSetupItem = (type: WmrRequisiteType, status: WmrSetupStatus) => {
         setSetupStatuses(prevStatuses => ({
@@ -61,7 +61,7 @@ export function useWmrSetup() {
 
     return {
         setupStatuses,
-        importMetadata,
-        verifyMetadata,
+        setupRequisite,
+        verifyRequisite,
     };
 }

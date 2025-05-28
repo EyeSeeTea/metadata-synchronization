@@ -8,4 +8,5 @@ export interface WmrRequisitesRepositoryConstructor {
 
 export interface WmrRequisitesRepository {
     checkWmrRequisites(requisiteType: WmrRequisiteType): FutureData<boolean>;
+    setupRequisite(requisiteType: WmrRequisiteType): FutureData<void>;
 }
