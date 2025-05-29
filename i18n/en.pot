@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-05-28T17:45:05.551Z\n"
-"PO-Revision-Date: 2025-05-28T17:45:05.551Z\n"
+"POT-Creation-Date: 2025-05-29T17:52:50.686Z\n"
+"PO-Revision-Date: 2025-05-29T17:52:50.686Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2289,6 +2289,30 @@ msgstr ""
 msgid "Download DataValues"
 msgstr ""
 
+msgid "Sending data to target instance..."
+msgstr ""
+
+msgid "Submit WMR Data"
+msgstr ""
+
+msgid "Create New Target Instance"
+msgstr ""
+
+msgid "Target Instance "
+msgstr ""
+
+msgid "Please select a target instance to submit the data"
+msgstr ""
+
+msgid "Target Organisation Unit Id"
+msgstr ""
+
+msgid "Please provide a target organisation unit ID and Validate it"
+msgstr ""
+
+msgid "Send DataValues to target instance"
+msgstr ""
+
 msgid "Map Server data"
 msgstr ""
 
@@ -2296,6 +2320,28 @@ msgid "Map Org units"
 msgstr ""
 
 msgid "Check Data"
+msgstr ""
+
+msgid "Submit Data"
+msgstr ""
+
+msgid ""
+"The Organisation Unit ID is not valid or does not exist in the target "
+"instance."
+msgstr ""
+
+msgid ""
+"There was a problem communicating with the instance. Please review the "
+"Instance settings."
+msgstr ""
+
+msgid "Target Organisation Unit ID (*)"
+msgstr ""
+
+msgid "The ID of the Organisation Unit where the data will be submitted"
+msgstr ""
+
+msgid "Validate Organisation Unit"
 msgstr ""
 
 msgid "Widget cannot be used until an administrator opens the application"

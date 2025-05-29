@@ -10,7 +10,7 @@ import { getJsonToFuture } from "../common/utils/request-futures";
 import { Id } from "../../domain/common/entities/Schemas";
 
 const AUTOGENFORMS_NAMESPACE = "d2-autogen-forms";
-const AUTOGENFORMS_MAL_WMR_KEY = "MAL-WMR-COUNTRY-SYNC";
+const AUTOGENFORMS_MAL_WMR_KEY = "MAL-WMR";
 export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
     private api: D2Api;
     constructor(private instance: Instance) {
@@ -119,5 +119,14 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
 
     private isValidMetadataPackage(data: unknown): data is { dataSets: any[] } {
         return !!data && typeof data === "object" && Array.isArray((data as any)?.dataSets);
+    }
+
+    validateOrgUnit(orgUnitId: string): FutureData<boolean> {
+        return apiToFuture(
+            this.api.models.organisationUnits.get({
+                filter: { id: { eq: orgUnitId } },
+                fields: { id: true },
+            })
+        ).map(response => response.objects.length > 0);
     }
 }

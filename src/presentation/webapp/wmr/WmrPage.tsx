@@ -10,6 +10,7 @@ import { useWmrSettings } from "./hooks/useWmrSettings";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { Maybe } from "../../../types/utils";
+import { SubmitWmr } from "./SubmitWmr";
 
 export type WmrPageProps = {};
 export type WmrSyncRule = { localDataSetId: Maybe<Id>; rule: SynchronizationRule };
@@ -47,6 +48,11 @@ export function WmrPage() {
                 component: () => <PreviewWmr settings={settings} wmrSyncRule={syncRuleRef.current} />,
                 key: "check-data",
                 label: i18n.t("Check Data"),
+            },
+            {
+                component: () => <SubmitWmr settings={settings} wmrSyncRule={syncRuleRef.current} />,
+                key: "submit-data",
+                label: i18n.t("Submit Data"),
             },
         ];
     }, [settings]);

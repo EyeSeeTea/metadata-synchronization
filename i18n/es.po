@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-05-27T16:11:26.398Z\n"
+"POT-Creation-Date: 2025-05-29T17:52:50.686Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2293,6 +2293,30 @@ msgstr ""
 msgid "Download DataValues"
 msgstr ""
 
+msgid "Sending data to target instance..."
+msgstr ""
+
+msgid "Submit WMR Data"
+msgstr ""
+
+msgid "Create New Target Instance"
+msgstr ""
+
+msgid "Target Instance "
+msgstr ""
+
+msgid "Please select a target instance to submit the data"
+msgstr ""
+
+msgid "Target Organisation Unit Id"
+msgstr ""
+
+msgid "Please provide a target organisation unit ID and Validate it"
+msgstr ""
+
+msgid "Send DataValues to target instance"
+msgstr ""
+
 msgid "Map Server data"
 msgstr ""
 
@@ -2300,6 +2324,28 @@ msgid "Map Org units"
 msgstr ""
 
 msgid "Check Data"
+msgstr ""
+
+msgid "Submit Data"
+msgstr ""
+
+msgid ""
+"The Organisation Unit ID is not valid or does not exist in the target "
+"instance."
+msgstr ""
+
+msgid ""
+"There was a problem communicating with the instance. Please review the "
+"Instance settings."
+msgstr ""
+
+msgid "Target Organisation Unit ID (*)"
+msgstr ""
+
+msgid "The ID of the Organisation Unit where the data will be submitted"
+msgstr ""
+
+msgid "Validate Organisation Unit"
 msgstr ""
 
 msgid "Widget cannot be used until an administrator opens the application"
