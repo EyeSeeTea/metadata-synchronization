@@ -9,7 +9,7 @@ import GeneralInfoForm from "../core/pages/instance-creation/GeneralInfoForm";
 import { Maybe } from "../../../types/utils";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { OrgUnitInput } from "./components/OrgUnitInput";
-import { muiTheme } from "../../react/core/themes/dhis2.theme";
+import { NoticeBox } from "./components/NoticeBox";
 
 type SubmitWmrProps = {};
 
@@ -100,36 +100,29 @@ export function SubmitWmr(_props: SubmitWmrProps) {
                 </Box>
             )}
             <Box p={2}>
-                <ul style={{ paddingLeft: "1em", marginTop: 0 }}>
-                    <li
-                        style={{
-                            color: selectedTargetInstance?.url
-                                ? muiTheme.palette.success.main
-                                : muiTheme.palette.error.main,
-                        }}
-                    >
-                        <Typography variant="body1">
-                            {selectedTargetInstance?.url
-                                ? `${i18n.t("Target Instance ")}: ${selectedTargetInstance.url}`
-                                : i18n.t("Please select a target instance to submit the data")}
-                        </Typography>
-                    </li>
-                    <li
-                        style={{ color: targetOrgUnitId ? muiTheme.palette.success.main : muiTheme.palette.error.main }}
-                    >
-                        <Typography variant="body1">
-                            {targetOrgUnitId
-                                ? `${i18n.t("Target Organisation Unit Id")}: ${targetOrgUnitId}`
-                                : i18n.t("Please provide a target organisation unit ID and Validate it")}
-                        </Typography>
-                    </li>
-                </ul>
+                <NoticeBox
+                    type={selectedTargetInstance?.url ? "success" : "error"}
+                    message={
+                        selectedTargetInstance?.url
+                            ? `${i18n.t("Target Instance ")}: ${selectedTargetInstance.url}`
+                            : i18n.t("Please select a target instance to submit the data")
+                    }
+                />
+                <NoticeBox
+                    type={targetOrgUnitId ? "success" : "error"}
+                    message={
+                        targetOrgUnitId
+                            ? `${i18n.t("Target Organisation Unit Id")}: ${targetOrgUnitId}`
+                            : i18n.t("Please provide a target organisation unit ID and Validate it")
+                    }
+                />
                 <Button
                     variant="contained"
                     color="primary"
                     onClick={onSubmit}
                     endIcon={<SyncIcon />}
                     disabled={sendIsDisabled}
+                    style={{ margin: "1em 0" }}
                 >
                     {i18n.t("Send DataValues to target instance")}
                 </Button>

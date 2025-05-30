@@ -1,42 +1,11 @@
-import { Box, Button, CircularProgress, Grid, Typography } from "@material-ui/core";
-import {
-    CloudDownload as CloudDownloadIcon,
-    CloudUpload as CloudUploadIcon,
-    Check as CheckIcon,
-    ErrorOutline as ErrorOutlineIcon,
-    InfoOutlined as InfoOutlinedIcon,
-} from "@material-ui/icons";
+import { Box, Button, Grid, Typography } from "@material-ui/core";
+import { CloudDownload as CloudDownloadIcon, CloudUpload as CloudUploadIcon } from "@material-ui/icons";
 import _ from "lodash";
 import React from "react";
 import { WmrRequisiteType } from "../../../domain/entities/wmr/entities/WmrRequisite";
 import i18n from "../../../utils/i18n";
-import { muiTheme } from "../../react/core/themes/dhis2.theme";
+import { NoticeBox } from "./components/NoticeBox";
 import { useWmrSetup, WmrSetupStatusType } from "./hooks/useWmrSetup";
-
-const colorByStatus: Record<WmrSetupStatusType, string> = {
-    loading: muiTheme.palette.primary.main,
-    uploading: muiTheme.palette.info.main,
-    done: muiTheme.palette.success.main,
-    error: muiTheme.palette.error.main,
-    pending: muiTheme.palette.warning.main,
-};
-
-function IconByStatus({ status }: { status: WmrSetupStatusType }) {
-    const DEFAULT_SIZE = 24;
-    switch (status) {
-        case "loading":
-        case "uploading":
-            return <CircularProgress size={DEFAULT_SIZE} />;
-        case "done":
-            return <CheckIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByStatus[status]} />;
-        case "error":
-            return <ErrorOutlineIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByStatus[status]} />;
-        case "pending":
-            return <InfoOutlinedIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByStatus[status]} />;
-        default:
-            return <InfoOutlinedIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByStatus[status]} />;
-    }
-}
 
 function PrerequisiteItem({
     type,
@@ -60,44 +29,48 @@ function PrerequisiteItem({
         ),
         pending: i18n.t("The {{itemName}} is not installed yet. Use the button below to install it.", { itemName }),
     };
+    const getTypeFromWmrStatus = (status: WmrSetupStatusType) => {
+        switch (status) {
+            case "loading":
+            case "uploading":
+                return "loading";
+            case "done":
+                return "success";
+            case "error":
+                return "error";
+            case "pending":
+                return "info";
+            default:
+                return "info";
+        }
+    };
     return (
-        <Box
-            display="flex"
-            flexDirection="row"
-            alignItems="center"
-            style={{ marginTop: "1rem", borderLeft: `4px solid ${colorByStatus[status]}` }}
-        >
-            <Box pl={2}>
-                <IconByStatus status={status} />
-            </Box>
-            <Box flexDirection="column" display="flex" pl={2} flexGrow>
-                <Typography>{messagesByStatus[status]}</Typography>
-                {status === "pending" ? (
-                    <Box py={2}>
-                        <Button
-                            onClick={() => importFunction(type)}
-                            variant="contained"
-                            color="primary"
-                            endIcon={<CloudUploadIcon />}
-                        >
-                            {i18n.t(`Setup ${itemName}`)}
-                        </Button>
-                    </Box>
-                ) : status === "error" ? (
-                    <Box py={2}>
-                        <Button
-                            download={`${_.snakeCase(itemName)}.json`}
-                            href={downloadUrl}
-                            variant="contained"
-                            color="primary"
-                            endIcon={<CloudDownloadIcon />}
-                        >
-                            {i18n.t(`Download ${itemName}`)}
-                        </Button>
-                    </Box>
-                ) : null}
-            </Box>
-        </Box>
+        <NoticeBox type={getTypeFromWmrStatus(status)} message={messagesByStatus[status]}>
+            {status === "pending" ? (
+                <Box py={2}>
+                    <Button
+                        onClick={() => importFunction(type)}
+                        variant="contained"
+                        color="primary"
+                        endIcon={<CloudUploadIcon />}
+                    >
+                        {i18n.t(`Setup ${itemName}`)}
+                    </Button>
+                </Box>
+            ) : status === "error" ? (
+                <Box py={2}>
+                    <Button
+                        download={`${_.snakeCase(itemName)}.json`}
+                        href={downloadUrl}
+                        variant="contained"
+                        color="primary"
+                        endIcon={<CloudDownloadIcon />}
+                    >
+                        {i18n.t(`Download ${itemName}`)}
+                    </Button>
+                </Box>
+            ) : null}
+        </NoticeBox>
     );
 }
 

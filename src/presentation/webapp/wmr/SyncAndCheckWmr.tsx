@@ -1,7 +1,7 @@
 import React from "react";
 import _ from "lodash";
 import { useLoading } from "@eyeseetea/d2-ui-components";
-import { Grid, Button, Typography, LinearProgress } from "@material-ui/core";
+import { Grid, Button, LinearProgress } from "@material-ui/core";
 import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
 
 import { Id } from "../../../domain/common/entities/Schemas";
@@ -9,6 +9,7 @@ import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
 import { useWmrContext } from "./context/WmrContext";
 import { useSyncLocalWmr } from "./hooks/useSyncLocalWmr";
+import { NoticeBox } from "./components/NoticeBox";
 
 type SyncAndCheckWmrProps = {};
 
@@ -61,14 +62,13 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                     <LinearProgress color="primary" style={{ position: "absolute", width: "100%" }} />
                 )}
                 {wmrLocalSyncResult?.type === "error" && (
-                    <Typography variant="body1" style={{ marginBottom: "1rem" }}>
-                        {i18n.t("Failed to synchronize WMR data")} {wmrLocalSyncResult.message}
-                    </Typography>
+                    <NoticeBox
+                        type="error"
+                        message={`${i18n.t("Failed to synchronize WMR data")} ${wmrLocalSyncResult.message}`}
+                    />
                 )}
                 {wmrLocalSyncResult?.type === "success" && (
-                    <Typography variant="body1" style={{ marginBottom: "1rem" }}>
-                        {i18n.t("WMR data synchronized successfully.")}
-                    </Typography>
+                    <NoticeBox type="success" message={i18n.t("WMR data synchronized successfully.")} />
                 )}
                 {settings.countryDataSetId && wmrLocalSyncResult?.type === "success" && path && (
                     <DataEntry

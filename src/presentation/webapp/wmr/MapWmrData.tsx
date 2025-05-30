@@ -7,6 +7,7 @@ import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { useWmrContext } from "./context/WmrContext";
 import { Maybe } from "../../../types/utils";
+import { NoticeBox } from "./components/NoticeBox";
 
 type MapWmrDataProps = {};
 
@@ -36,9 +37,10 @@ export function MapWmrData(_props: MapWmrDataProps) {
     return (
         <Grid container spacing={3}>
             <Grid item xs={12}>
-                <Typography>
-                    {i18n.t("Select a DataSet. Then map your server data to the newly created test WMR form")}
-                </Typography>
+                <NoticeBox
+                    type="info"
+                    message={i18n.t("Select a DataSet. Then map your server data to the newly created test WMR form")}
+                />
             </Grid>
             <Grid item xs={12}>
                 <Dropdown
