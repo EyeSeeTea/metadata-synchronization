@@ -5,13 +5,22 @@ import i18n from "../../../utils/i18n";
 import InstanceMappingPage from "../core/pages/instance-mapping/InstanceMappingPage";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
 import { Id } from "../../../domain/common/entities/Schemas";
-import { WmrSyncRule } from "./WmrPage";
+import { useWmrContext } from "./context/WmrContext";
+import { Maybe } from "../../../types/utils";
 
-type MapWmrDataProps = { settings: WmrSettings; wmrSyncRule: WmrSyncRule };
+type MapWmrDataProps = {};
 
-export function MapWmrData(props: MapWmrDataProps) {
-    const [dataSetId, setDataSetId] = React.useState<Id>();
-    const { wmrSyncRule, settings } = props;
+export function MapWmrData(_props: MapWmrDataProps) {
+    const { syncRule, settings, loadSettings } = useWmrContext();
+    const [dataSetId, setDataSetId] = React.useState<Maybe<Id>>(syncRule?.localDataSetId);
+
+    React.useEffect(() => {
+        loadSettings();
+    }, [loadSettings]);
+
+    if (!settings || !syncRule) {
+        return <Typography>{i18n.t("Loading settings...")}</Typography>;
+    }
 
     const dataSets = settings.dataSets.map(dataSet => {
         return { text: dataSet.name, value: dataSet.id };
@@ -19,7 +28,7 @@ export function MapWmrData(props: MapWmrDataProps) {
 
     const onChangeDataSet = (value: Id | undefined) => {
         setDataSetId(value);
-        wmrSyncRule.localDataSetId = value;
+        syncRule.localDataSetId = value;
     };
 
     const allowedLocalDataElementsIds = settings.getDataElementsIds(dataSetId);
@@ -36,7 +45,7 @@ export function MapWmrData(props: MapWmrDataProps) {
                     items={dataSets}
                     label={i18n.t("Select a DataSet")}
                     onChange={onChangeDataSet}
-                    value={dataSetId}
+                    value={dataSetId ?? ""}
                 />
             </Grid>
             {dataSetId && (

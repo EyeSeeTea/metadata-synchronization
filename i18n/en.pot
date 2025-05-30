@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-05-29T17:52:50.686Z\n"
-"PO-Revision-Date: 2025-05-29T17:52:50.686Z\n"
+"POT-Creation-Date: 2025-05-30T15:24:54.790Z\n"
+"PO-Revision-Date: 2025-05-30T15:24:54.790Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2263,30 +2263,15 @@ msgstr ""
 msgid "Contains the dataStore configurations required by the autogenforms tool"
 msgstr ""
 
+msgid "Loading settings..."
+msgstr ""
+
 msgid ""
 "Select a DataSet. Then map your server data to the newly created test WMR "
 "form"
 msgstr ""
 
 msgid "Select a DataSet"
-msgstr ""
-
-msgid "Please select an Org. Unit"
-msgstr ""
-
-msgid "Data sent to new DataSet. Click Next to see the data imported"
-msgstr ""
-
-msgid "Org. Unit: {{orgUnitsNames}} are not assigned to the Country DataSet"
-msgstr ""
-
-msgid "Send data to new DataSet"
-msgstr ""
-
-msgid "Select a organisation unit in the previous step"
-msgstr ""
-
-msgid "Download DataValues"
 msgstr ""
 
 msgid "Sending data to target instance..."
@@ -2313,13 +2298,28 @@ msgstr ""
 msgid "Send DataValues to target instance"
 msgstr ""
 
+msgid "Sync WMR Country Dataset"
+msgstr ""
+
+msgid "Download DataValues"
+msgstr ""
+
+msgid "Failed to synchronize WMR data"
+msgstr ""
+
+msgid "WMR data synchronized successfully."
+msgstr ""
+
+msgid "Please complete the prerequisites before proceeding."
+msgstr ""
+
+msgid "Please select a source data set before proceeding."
+msgstr ""
+
 msgid "Map Server data"
 msgstr ""
 
-msgid "Map Org units"
-msgstr ""
-
-msgid "Check Data"
+msgid "Sync & Check Data"
 msgstr ""
 
 msgid "Submit Data"

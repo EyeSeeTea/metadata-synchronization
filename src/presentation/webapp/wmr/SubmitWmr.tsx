@@ -2,9 +2,7 @@ import React from "react";
 import { useLoading } from "@eyeseetea/d2-ui-components";
 import { Button, Typography, Box } from "@material-ui/core";
 import { CloudUpload as SyncIcon } from "@material-ui/icons";
-import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
 import i18n from "../../../utils/i18n";
-import { WmrSyncRule } from "./WmrPage";
 import { InstanceSelectionDropdown } from "../../react/core/components/instance-selection-dropdown/InstanceSelectionDropdown";
 import { Instance } from "../../../domain/instance/entities/Instance";
 import GeneralInfoForm from "../core/pages/instance-creation/GeneralInfoForm";
@@ -13,7 +11,7 @@ import { Id } from "../../../domain/common/entities/Schemas";
 import { OrgUnitInput } from "./components/OrgUnitInput";
 import { muiTheme } from "../../react/core/themes/dhis2.theme";
 
-type SubmitWmrProps = { settings: WmrSettings; wmrSyncRule: WmrSyncRule };
+type SubmitWmrProps = {};
 
 export function SubmitWmr(_props: SubmitWmrProps) {
     const loading = useLoading();

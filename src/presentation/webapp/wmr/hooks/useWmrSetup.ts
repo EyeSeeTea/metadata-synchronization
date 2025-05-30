@@ -1,6 +1,7 @@
 import React from "react";
 import { WmrRequisiteType } from "../../../../domain/entities/wmr/entities/WmrRequisite";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
+import { useWmrContext } from "../context/WmrContext";
 
 export type WmrSetupStatusType = "loading" | "pending" | "done" | "error" | "uploading";
 
@@ -14,7 +15,7 @@ export type WmrSetupStatuses = {
 
 export function useWmrSetup() {
     const { compositionRoot } = useAppContext();
-
+    const { setRequisitesReady } = useWmrContext();
     const [setupStatuses, setSetupStatuses] = React.useState<WmrSetupStatuses>({
         metadata: { status: "loading" },
         dataStore: { status: "loading" },
@@ -58,6 +59,14 @@ export function useWmrSetup() {
             [type]: status,
         }));
     };
+
+    React.useEffect(() => {
+        if (Object.values(setupStatuses).every(item => item.status === "done")) {
+            setRequisitesReady(true);
+        } else {
+            setRequisitesReady(false);
+        }
+    }, [setupStatuses, setRequisitesReady]);
 
     return {
         setupStatuses,

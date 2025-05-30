@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { NamedRef } from "../../../common/entities/Ref";
 import { Id } from "../../../common/entities/Schemas";
 
@@ -14,14 +13,5 @@ export class WmrDataSet {
         this.name = data.name;
         this.dataElements = data.dataElements;
         this.orgUnits = data.orgUnits;
-    }
-
-    static getOrgUnitsIds(dataSet: WmrDataSet): Id[] {
-        return dataSet.orgUnits.map(ou => ou.id);
-    }
-
-    static getDifferenceOrgsUnits(dataSet: WmrDataSet, otherDataSet: WmrDataSet): NamedRef[] {
-        const difference = _(dataSet.orgUnits).differenceBy(otherDataSet.orgUnits, "id").value();
-        return difference;
     }
 }
