@@ -18,10 +18,12 @@ export function WmrWizard() {
                 return [i18n.t("Please complete the prerequisites before proceeding.")];
             } else if (currentStep.key === "map-server-data" && !syncRule?.localDataSetId) {
                 return [i18n.t("Please select a source data set before proceeding.")];
+            } else if (currentStep.key === "check-data" && !syncRule?.rule.metadataIds.length) {
+                return [i18n.t("Please Sync your server data to the WMR Country Sync form before proceeding.")];
             }
             return undefined;
         },
-        [requisitesReady, syncRule?.localDataSetId]
+        [requisitesReady, syncRule?.localDataSetId, syncRule?.rule.metadataIds.length]
     );
 
     const steps = React.useMemo((): WizardStep[] => {
