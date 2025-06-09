@@ -18,11 +18,20 @@ export class WmrSettingsD2Repository implements WmrSettingsRepository {
     }
 
     async get(): Promise<WmrSettings> {
+        const rootOrgUnitResponse = await this.api.models.organisationUnits
+            .get({ fields: { id: true }, filter: { level: { eq: "1" } } })
+            .getData();
+        const rootOrgUnit = rootOrgUnitResponse.objects[0];
+        if (!rootOrgUnit) {
+            throw new Error("Root organisation unit not found");
+        }
         const dataSetsResponse = await this.api.models.dataSets
             .get({
                 fields: dataSetFields,
+                // we filter by root orgUnit. If other dataSets are needed, we need to implement ou mapping at a local level.
                 // very unlikely to have hundreds of dataSets in an instance
                 // if it happens, we can get all dataSets page by page
+                filter: { "organisationUnits.id": { eq: rootOrgUnit.id } },
                 paging: false,
                 order: "displayName:asc",
             })
