@@ -50,7 +50,8 @@ export function NoticeBox({ type, message, children }: NoticeBoxProps) {
                 <IconByType status={type} />
             </Box>
             <Box flexDirection="column" display="flex" pl={2} flexGrow>
-                {message ? <Typography>{message}</Typography> : children ? children : null}
+                {message ? <Typography>{message}</Typography> : null}
+                {children}
             </Box>
         </Box>
     );

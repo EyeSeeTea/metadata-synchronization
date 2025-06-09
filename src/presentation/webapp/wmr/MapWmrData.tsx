@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, Typography } from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 import { Dropdown } from "@eyeseetea/d2-ui-components";
 import i18n from "../../../utils/i18n";
 import InstanceMappingPage from "../core/pages/instance-mapping/InstanceMappingPage";
@@ -20,7 +20,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
     }, [loadSettings]);
 
     if (!settings || !syncRule) {
-        return <Typography>{i18n.t("Loading settings...")}</Typography>;
+        return <NoticeBox type="loading" message={i18n.t("Loading settings...")} />;
     }
 
     const dataSets = settings.dataSets.map(dataSet => {
