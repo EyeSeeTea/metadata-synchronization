@@ -133,6 +133,7 @@ import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
 import { StorageDataStoreClient } from "../data/storage/StorageDataStoreClient";
 import { SetupWmrRequisitesByTypeUseCase } from "../domain/entities/wmr/usecases/SetupWmrRequisitesByTypeUseCase";
 import { ValidateOrgUnitUseCase } from "../domain/entities/wmr/usecases/ValidateOrgUnitUseCase";
+import { WmrAggregatedSyncUseCase } from "../domain/entities/wmr/usecases/WmrAggregatedSyncUseCase";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -176,13 +177,17 @@ export class CompositionRoot {
 
     @cache()
     public get wmr() {
-        return getExecute({
-            settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
-            getDataSetById: new GetDataSetByIdUseCase(this.repositoryFactory, this.localInstance),
-            checkRequisites: new CheckWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
-            setupRequisites: new SetupWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
-            validateOrgUnit: new ValidateOrgUnitUseCase(this.repositoryFactory),
-        });
+        return {
+            ...getExecute({
+                settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
+                getDataSetById: new GetDataSetByIdUseCase(this.repositoryFactory, this.localInstance),
+                checkRequisites: new CheckWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
+                setupRequisites: new SetupWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
+                validateOrgUnit: new ValidateOrgUnitUseCase(this.repositoryFactory),
+            }),
+            syncDataset: (builder: SynchronizationBuilder) =>
+                new WmrAggregatedSyncUseCase(builder, this.repositoryFactory, this.localInstance),
+        };
     }
 
     @cache()

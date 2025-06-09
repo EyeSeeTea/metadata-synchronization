@@ -13,6 +13,7 @@ export function WmrProvider({ children }: { children: React.ReactNode }) {
     const [requisitesReady, setRequisitesReady] = React.useState<boolean>(false);
     const syncRuleRef = React.useRef<WmrSyncRule>({
         localDataSetId: undefined,
+        targetOrgUnitId: undefined,
         rule: SynchronizationRule.createOnDemand("aggregated")
             .updateBuilder({ metadataIds: [] })
             .updateMetadataTypes(["dataElements"])

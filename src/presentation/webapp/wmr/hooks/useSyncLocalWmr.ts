@@ -30,12 +30,11 @@ export function useSyncLocalWmr() {
         const syncRuleUpdated = syncRule.rule
             .updateBuilder({ metadataIds: dataElementsToMigrate })
             // TODO: This is a shortcut to get the root org unit, which is the same as the country WMR dataset.
-            // update this to use a method to get the org unit path
-            .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.id));
+            .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.path));
 
         loading.show();
         const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
-        const sync = compositionRoot.sync[syncRuleUpdated.type](syncRuleUpdated.toBuilder());
+        const sync = compositionRoot.wmr.syncDataset(syncRuleUpdated.toBuilder());
 
         const synchronize = async () => {
             for await (const { message, syncReport, done } of sync.execute()) {
@@ -65,6 +64,7 @@ export function useSyncLocalWmr() {
     }, [
         compositionRoot.reports,
         compositionRoot.sync,
+        compositionRoot.wmr,
         countryDataSet,
         dataElementsToMigrate,
         loading,

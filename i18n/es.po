@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-05-30T15:24:54.790Z\n"
+"POT-Creation-Date: 2025-06-09T16:32:51.282Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2278,13 +2278,10 @@ msgstr ""
 msgid "Select a DataSet"
 msgstr ""
 
-msgid "Sending data to target instance..."
-msgstr ""
-
 msgid "Submit WMR Data"
 msgstr ""
 
-msgid "Create New Target Instance"
+msgid "Data successfully submitted to the target instance."
 msgstr ""
 
 msgid "Target Instance "
@@ -2346,6 +2343,12 @@ msgid "The ID of the Organisation Unit where the data will be submitted"
 msgstr ""
 
 msgid "Validate Organisation Unit"
+msgstr ""
+
+msgid "Create New Target Instance"
+msgstr ""
+
+msgid "Instance or target organisation unit ID is not provided."
 msgstr ""
 
 msgid "Widget cannot be used until an administrator opens the application"

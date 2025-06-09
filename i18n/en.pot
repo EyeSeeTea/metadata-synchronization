@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-05-30T15:24:54.790Z\n"
-"PO-Revision-Date: 2025-05-30T15:24:54.790Z\n"
+"POT-Creation-Date: 2025-06-09T17:21:20.117Z\n"
+"PO-Revision-Date: 2025-06-09T17:21:20.117Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2274,13 +2274,10 @@ msgstr ""
 msgid "Select a DataSet"
 msgstr ""
 
-msgid "Sending data to target instance..."
-msgstr ""
-
 msgid "Submit WMR Data"
 msgstr ""
 
-msgid "Create New Target Instance"
+msgid "Data successfully submitted to the target instance."
 msgstr ""
 
 msgid "Target Instance "
@@ -2342,6 +2339,12 @@ msgid "The ID of the Organisation Unit where the data will be submitted"
 msgstr ""
 
 msgid "Validate Organisation Unit"
+msgstr ""
+
+msgid "Create New Target Instance"
+msgstr ""
+
+msgid "Instance or target organisation unit ID is not provided."
 msgstr ""
 
 msgid "Widget cannot be used until an administrator opens the application"

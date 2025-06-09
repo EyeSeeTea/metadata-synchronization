@@ -4,7 +4,7 @@ import { WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSetting
 import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
 import { Maybe } from "../../../../types/utils";
 
-export type WmrSyncRule = { localDataSetId: Maybe<Id>; rule: SynchronizationRule };
+export type WmrSyncRule = { localDataSetId: Maybe<Id>; rule: SynchronizationRule; targetOrgUnitId: Maybe<Id> };
 
 export interface WmrContextState {
     loadSettings: () => void;
