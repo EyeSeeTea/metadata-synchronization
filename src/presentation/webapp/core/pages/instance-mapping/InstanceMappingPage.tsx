@@ -5,7 +5,7 @@ import { Id } from "../../../../../domain/common/entities/Schemas";
 import { Instance } from "../../../../../domain/instance/entities/Instance";
 import { DataSourceMapping } from "../../../../../domain/mapping/entities/DataSourceMapping";
 import { MetadataMapping, MetadataMappingDictionary } from "../../../../../domain/mapping/entities/MetadataMapping";
-import i18n from "../../../../../locales";
+import i18n from "../../../../../utils/i18n";
 import {
     AggregatedDataElementModel,
     EventProgramWithDataElementsModel,

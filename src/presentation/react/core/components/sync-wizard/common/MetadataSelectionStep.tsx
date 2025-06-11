@@ -3,7 +3,7 @@ import { RowConfig, TableAction, useSnackbar } from "@eyeseetea/d2-ui-components
 import _ from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Instance } from "../../../../../../domain/instance/entities/Instance";
-import i18n from "../../../../../../locales";
+import i18n from "../../../../../../utils/i18n";
 import { D2Model } from "../../../../../../models/dhis/default";
 import { metadataModels } from "../../../../../../models/dhis/factory";
 import {
@@ -24,11 +24,12 @@ import { useAppContext } from "../../../contexts/AppContext";
 import { getChildrenRows } from "../../mapping-table/utils";
 import MetadataTable from "../../metadata-table/MetadataTable";
 import { SyncWizardStepProps } from "../Steps";
+import { DataStoreMetadata } from "../../../../../../domain/data-store/DataStoreMetadata";
 
 const config = {
     metadata: {
         models: metadataModels,
-        childrenKeys: undefined,
+        childrenKeys: ["keys"],
     },
     aggregated: {
         models: [
@@ -89,7 +90,9 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
                 );
             }
 
-            compositionRoot.metadata.getByIds(newMetadataIds, remoteInstance, "id").then(metadata => {
+            const onlyMetadataIds = newMetadataIds.filter(id => !id.includes(DataStoreMetadata.NS_SEPARATOR));
+
+            compositionRoot.metadata.getByIds(onlyMetadataIds, remoteInstance, "id").then(metadata => {
                 const types = _(metadata).keys().concat(metadataModelsSyncAll).uniq().value();
 
                 onChange(

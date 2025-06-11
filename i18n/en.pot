@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-05-19T13:27:43.057Z\n"
-"PO-Revision-Date: 2025-05-19T13:27:43.057Z\n"
+"POT-Creation-Date: 2025-04-24T05:27:13.891Z\n"
+"PO-Revision-Date: 2025-04-24T05:27:13.891Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1059,19 +1059,12 @@ msgstr ""
 msgid "Create and update"
 msgstr ""
 
-msgid "Include owner and sharing settings"
+msgid ""
+"Remove default categories, categoryOptions, categoryCombos and "
+"categoryOptionCombos"
 msgstr ""
 
-msgid "Remove organisation units and references (UID)"
-msgstr ""
-
-msgid "Remove organisation units and keep organisation units references (UID)"
-msgstr ""
-
-msgid "Remove users and references (UID)"
-msgstr ""
-
-msgid "Remove users and keep user references (UID)"
+msgid "Remove lastUpdated, lastUpdatedBy, created and createdBys"
 msgstr ""
 
 msgid "Disable atomic verification"
@@ -1372,6 +1365,18 @@ msgstr ""
 msgid "Strategy"
 msgstr ""
 
+msgid "Include objects and references"
+msgstr ""
+
+msgid "Include only references"
+msgstr ""
+
+msgid "Remove objects and references"
+msgstr ""
+
+msgid "Users"
+msgstr ""
+
 msgid "No"
 msgstr ""
 
@@ -1468,6 +1473,27 @@ msgid "Sync all TEIs"
 msgstr ""
 
 msgid "Exclude relationships"
+msgstr ""
+
+msgid "Include owner and sharing settings"
+msgstr ""
+
+msgid "Include users"
+msgstr ""
+
+msgid "Include organisation units"
+msgstr ""
+
+msgid "Exclude objects and references ->"
+msgstr ""
+
+msgid "Include objects"
+msgstr ""
+
+msgid "Include only references ->"
+msgstr ""
+
+msgid "Include references and objects"
 msgstr ""
 
 msgid "Use sync rules periods"
@@ -1951,7 +1977,7 @@ msgstr ""
 msgid "Metadata constant"
 msgstr ""
 
-msgid "Updating storage location, please wait..."
+msgid "Settings saved succesfully!"
 msgstr ""
 
 msgid "An error has occurred saving settings"
@@ -2146,7 +2172,7 @@ msgstr ""
 msgid "Finished aggregated data synchronization successfully"
 msgstr ""
 
-msgid "An error has ocurred retrieving the instance {{name}}"
+msgid "An error has occurred retrieving the instance {{name}}"
 msgstr ""
 
 msgid "Checking data values in previous periods ...."
@@ -2304,6 +2330,9 @@ msgid "Fixed period"
 msgstr ""
 
 msgid "Since last execution"
+msgstr ""
+
+msgid "Since last successful execution"
 msgstr ""
 
 msgid "Today"
