@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-06-09T17:21:20.117Z\n"
-"PO-Revision-Date: 2025-06-09T17:21:20.117Z\n"
+"POT-Creation-Date: 2025-06-11T11:46:27.690Z\n"
+"PO-Revision-Date: 2025-06-11T11:46:27.690Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2311,6 +2311,9 @@ msgid "Please complete the prerequisites before proceeding."
 msgstr ""
 
 msgid "Please select a source data set before proceeding."
+msgstr ""
+
+msgid "Please Sync your server data to the WMR Country Sync form before proceeding."
 msgstr ""
 
 msgid "Map Server data"
