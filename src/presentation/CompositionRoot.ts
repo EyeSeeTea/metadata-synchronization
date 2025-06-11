@@ -21,6 +21,8 @@ import { SystemInfoD2ApiRepository } from "../data/system-info/SystemInfoD2ApiRe
 import { TEID2ApiRepository } from "../data/tracked-entity-instances/TEID2ApiRepository";
 import { TransformationD2ApiRepository } from "../data/transformations/TransformationD2ApiRepository";
 import { UserD2ApiRepository } from "../data/user/UserD2ApiRepository";
+import { WmrDataSetD2Repository } from "../data/wmr/WmrDataSetD2Repository";
+import { WmrSettingsD2Repository } from "../data/wmr/WmrSettingsD2Repository";
 import { AggregatedSyncUseCase } from "../domain/aggregated/usecases/AggregatedSyncUseCase";
 import { DeleteAggregatedUseCase } from "../domain/aggregated/usecases/DeleteAggregatedUseCase";
 import { ListAggregatedUseCase } from "../domain/aggregated/usecases/ListAggregatedUseCase";
@@ -29,6 +31,8 @@ import { Repositories, RepositoryFactory } from "../domain/common/factories/Repo
 import { StartApplicationUseCase } from "../domain/common/usecases/StartApplicationUseCase";
 import { GetCustomDataUseCase } from "../domain/custom-data/usecases/GetCustomDataUseCase";
 import { SaveCustomDataUseCase } from "../domain/custom-data/usecases/SaveCustomDataUseCase";
+import { GetDataSetByIdUseCase } from "../domain/entities/wmr/usecases/GetDataSetByIdUseCase";
+import { GetWmrSettingsUseCase } from "../domain/entities/wmr/usecases/GetWmrSettingsUseCase";
 import { EventsSyncUseCase } from "../domain/events/usecases/EventsSyncUseCase";
 import { ListEventsUseCase } from "../domain/events/usecases/ListEventsUseCase";
 import { UpdateEmergencyResponseSyncRuleUseCase } from "../domain/events/usecases/UpdateEmergencyResponseSyncRuleUseCase";
@@ -161,6 +165,16 @@ export class CompositionRoot {
         this.repositoryFactory.bind(Repositories.DataStoreMetadataRepository, DataStoreMetadataD2Repository);
         this.repositoryFactory.bind(Repositories.DhisReleasesRepository, DhisReleasesLocalRepository);
         this.repositoryFactory.bind(Repositories.TableColumnsRepository, TableColumnsDataStoreRepository);
+        this.repositoryFactory.bind(Repositories.WmrSettingsRepository, WmrSettingsD2Repository);
+        this.repositoryFactory.bind(Repositories.WmrDataSetRepository, WmrDataSetD2Repository);
+    }
+
+    @cache()
+    public get wmr() {
+        return getExecute({
+            settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
+            getDataSetById: new GetDataSetByIdUseCase(this.repositoryFactory, this.localInstance),
+        });
     }
 
     @cache()

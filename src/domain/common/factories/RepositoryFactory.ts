@@ -7,6 +7,8 @@ import { StorageClientRepositoryConstructor } from "../../storage-client-config/
 import { CustomDataRepositoryConstructor } from "../../custom-data/repository/CustomDataRepository";
 import { DataStoreMetadataRepositoryConstructor } from "../../data-store/DataStoreMetadataRepository";
 import { DhisReleasesRepositoryConstructor } from "../../dhis-releases/repository/DhisReleasesRepository";
+import { WmrDataSetRepositoryConstructor } from "../../entities/wmr/repositories/WmrDataSetRepository";
+import { WmrRepositoryConstructor } from "../../entities/wmr/repositories/WmrSettingsRepository";
 import { EventsRepository, EventsRepositoryConstructor } from "../../events/repositories/EventsRepository";
 import { FileRepositoryConstructor } from "../../file/repositories/FileRepository";
 import { DataSource } from "../../instance/entities/DataSource";
@@ -201,6 +203,16 @@ export class RepositoryFactory {
     public dhisReleasesRepository() {
         return this.get<DhisReleasesRepositoryConstructor>(Repositories.DhisReleasesRepository, []);
     }
+
+    @cache()
+    public wmrSettingsRepository(instance: Instance) {
+        return this.get<WmrRepositoryConstructor>(Repositories.WmrSettingsRepository, [instance]);
+    }
+
+    @cache()
+    public wmrDataSetRepository(instance: Instance) {
+        return this.get<WmrDataSetRepositoryConstructor>(Repositories.WmrDataSetRepository, [instance]);
+    }
 }
 
 type RepositoryKeys = typeof Repositories[keyof typeof Repositories];
@@ -230,4 +242,6 @@ export const Repositories = {
     DataStoreMetadataRepository: "dataStoreMetadataRepository",
     DhisReleasesRepository: "dhisReleasesRepository",
     TableColumnsRepository: "tableColumnsRepository",
+    WmrSettingsRepository: "wmrSettingsRepository",
+    WmrDataSetRepository: "wmrDataSetRepository",
 } as const;

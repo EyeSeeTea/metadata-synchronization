@@ -47,6 +47,12 @@ const variants = [
         title: "Emergency Responses Sync",
         file: "emergency-responses-sync",
     },
+    {
+        type: "app",
+        name: "wmr",
+        title: "World Malaria Report",
+        file: "world-malaria-report",
+    },
 ] as const;
 
 function getYargs(): Argv {
