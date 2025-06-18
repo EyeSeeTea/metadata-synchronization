@@ -93,12 +93,12 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
     }
 
     private fetchMetadataPackage(): FutureData<object> {
-        const WMR_METADATA_URL = "/wmr/metadata.json";
+        const WMR_METADATA_URL = "wmr/metadata.json";
         return getJsonToFuture(WMR_METADATA_URL);
     }
 
     private fetchAutogenFormsDataStoreValue(): FutureData<object> {
-        const WMR_AUTOGEN_DATASTORE_URL = "/wmr/dataStore.json";
+        const WMR_AUTOGEN_DATASTORE_URL = "wmr/dataStore.json";
         return getJsonToFuture(WMR_AUTOGEN_DATASTORE_URL);
     }
 
