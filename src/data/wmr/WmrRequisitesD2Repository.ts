@@ -10,7 +10,7 @@ import { getJsonToFuture } from "../common/utils/request-futures";
 import { Id } from "../../domain/common/entities/Schemas";
 
 const AUTOGENFORMS_NAMESPACE = "d2-autogen-forms";
-const AUTOGENFORMS_MAL_WMR_KEY = "MAL-WMR";
+const AUTOGENFORMS_MAL_WMR_KEY = "MAL_WMR_COUNTRY_SYNC";
 export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
     private api: D2Api;
     constructor(private instance: Instance) {
