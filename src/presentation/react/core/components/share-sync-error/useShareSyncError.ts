@@ -25,6 +25,8 @@ type ShareSyncState = {
     changeText: (message: string) => void;
     send: () => void;
     typeOptions: TypeOption[];
+    agreementAccepted: boolean;
+    onAggreementChange: (accepted: boolean) => void;
 };
 
 const typeOptions: TypeOption[] = [
@@ -51,6 +53,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
     const [sending, setSending] = useState(false);
     const [attachingFiles, setAttachingFiles] = useState(false);
     const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+    const [agreementAccepted, setAgreementAccepted] = useState(false);
 
     const { compositionRoot } = useAppContext();
 
@@ -187,6 +190,10 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
         }
     }, [type, sendEmail, sendMessage]);
 
+    const onAggreementChange = useCallback((accepted: boolean) => {
+        setAgreementAccepted(accepted);
+    }, []);
+
     return {
         type,
         toEmail,
@@ -203,6 +210,8 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
         changeText,
         send,
         typeOptions,
+        agreementAccepted,
+        onAggreementChange,
     };
 }
 

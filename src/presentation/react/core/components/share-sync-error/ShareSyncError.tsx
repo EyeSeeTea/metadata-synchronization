@@ -1,5 +1,5 @@
 import { ConfirmationDialog, useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
-import { DialogContent, TextField } from "@material-ui/core";
+import { Checkbox, DialogContent, FormControlLabel, Link, TextField } from "@material-ui/core";
 import { SynchronizationResult } from "../../../../../domain/reports/entities/SynchronizationResult";
 import i18n from "../../../../../locales";
 import React, { useEffect } from "react";
@@ -59,6 +59,10 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
         state.changeType(type as ShareSyncType);
     };
 
+    const handleAgreementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        state.onAggreementChange(event.target.checked);
+    };
+
     return (
         <ConfirmationDialog
             isOpen={true}
@@ -69,6 +73,7 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
             saveText={i18n.t("Send")}
             maxWidth={"lg"}
             fullWidth={true}
+            disableSave={!state.agreementAccepted}
         >
             <DialogContent>
                 <RadioButtonGroup value={state.type} items={state.typeOptions} onValueChange={handleChangeType} />
@@ -108,6 +113,28 @@ export const ShareSyncError = ({ errorResults, onClose }: SyncSummaryProps) => {
                         variant="outlined"
                         multiline
                         rows={12}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                color="primary"
+                                checked={state.agreementAccepted}
+                                onChange={handleAgreementChange}
+                                required
+                            />
+                        }
+                        label={
+                            <>
+                                {i18n.t("I have read and accept the ")}
+                                <Link href={"https://eyeseetea.com/privacy-policy/"} target="_blank">
+                                    {i18n.t("EyeSeeTea S.L. Privacy Policy")}
+                                </Link>
+                                {i18n.t(" paying special attention to the section about ")}
+                                <Link href={"https://eyeseetea.com/privacy-policy/#Feedback"} target="_blank">
+                                    {i18n.t("share sesitive data")}
+                                </Link>
+                            </>
+                        }
                     />
                 </StyledForm>
             </DialogContent>
