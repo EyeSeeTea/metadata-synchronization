@@ -8,7 +8,7 @@ import { AggregatedPackage } from "../../aggregated/entities/AggregatedPackage";
 import { AggregatedSyncUseCase } from "../../aggregated/usecases/AggregatedSyncUseCase";
 import { Either } from "../../common/entities/Either";
 import { UseCase } from "../../common/entities/UseCase";
-import { RepositoryFactory } from "../../common/factories/RepositoryFactory";
+import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { EventsPackage } from "../../events/entities/EventsPackage";
 import { Instance } from "../../instance/entities/Instance";
 import { SynchronizationRule } from "../../rules/entities/SynchronizationRule";
@@ -18,6 +18,9 @@ import { SynchronizationPayload } from "../entities/SynchronizationPayload";
 import { SynchronizationResultType } from "../entities/SynchronizationType";
 import { PayloadMapper } from "../mapper/PayloadMapper";
 import { GenericSyncUseCase } from "./GenericSyncUseCase";
+import { MetadataPayloadBuilder } from "../../metadata/builders/MetadataPayloadBuilder";
+import { DownloadRepository } from "../../storage/repositories/DownloadRepository";
+import { TransformationRepository } from "../../transformations/repositories/TransformationRepository";
 
 type DownloadErrors = string[];
 
@@ -33,10 +36,14 @@ type SynRuleParam = {
 
 type DownloadPayloadParams = SynRuleIdParam | SynRuleParam;
 
+//TODO: Avoid  code smell: Call use case from another use case
 export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
     constructor(
         private compositionRoot: CompositionRoot,
-        private repositoryFactory: RepositoryFactory,
+        private metadataPayloadBuilder: MetadataPayloadBuilder,
+        private repositoryFactory: DynamicRepositoryFactory,
+        private downloadRepository: DownloadRepository,
+        private transformationRepository: TransformationRepository,
         private localInstance: Instance
     ) {}
 
@@ -45,7 +52,8 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         if (!rule) return Either.success(true);
 
         const sync: GenericSyncUseCase = this.compositionRoot.sync[rule.type](rule.toBuilder());
-        const payload: SynchronizationPayload = await sync.buildPayload();
+
+        const payload: SynchronizationPayload = await this.buildPayload(sync, rule, this.metadataPayloadBuilder);
 
         const date = moment().format("YYYYMMDDHHmm");
 
@@ -63,24 +71,38 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         const files = _.compact(
             mappedData.map(item => {
                 if (typeof item === "string") return undefined;
-                const payload = this.repositoryFactory
-                    .transformationRepository()
-                    .mapPackageTo(item.apiVersion, item.content, metadataTransformations);
+                const payload = this.transformationRepository.mapPackageTo(
+                    item.apiVersion,
+                    item.content,
+                    metadataTransformations
+                );
 
                 return { name: item.name, content: payload };
             })
         );
 
         if (files.length === 1) {
-            this.repositoryFactory.downloadRepository().downloadFile(files[0].name, files[0].content);
+            this.downloadRepository.downloadFile(files[0].name, files[0].content);
         } else if (files.length > 1) {
-            await this.repositoryFactory.downloadRepository().downloadZippedFiles(`synchronization-${date}`, files);
+            await this.downloadRepository.downloadZippedFiles(`synchronization-${date}`, files);
         }
 
         if (errors.length === 0) {
             return Either.success(true);
         } else {
             return Either.error(errors);
+        }
+    }
+
+    private async buildPayload(
+        sync: GenericSyncUseCase,
+        rule: SynchronizationRule,
+        metadataPayloadBuilder: MetadataPayloadBuilder
+    ): Promise<SynchronizationPayload> {
+        if (sync.type === "metadata") {
+            return metadataPayloadBuilder.build(rule.builder);
+        } else {
+            return sync.buildPayload();
         }
     }
 

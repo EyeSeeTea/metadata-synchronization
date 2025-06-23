@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-06-20T05:31:37.220Z\n"
-"PO-Revision-Date: 2025-06-20T05:31:37.220Z\n"
+"POT-Creation-Date: 2025-06-23T08:15:08.886Z\n"
+"PO-Revision-Date: 2025-06-23T08:15:08.886Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1098,14 +1098,6 @@ msgstr ""
 msgid "Create and update"
 msgstr ""
 
-msgid ""
-"Remove default categories, categoryOptions, categoryCombos and "
-"categoryOptionCombos"
-msgstr ""
-
-msgid "Remove lastUpdated, lastUpdatedBy, created and createdBys"
-msgstr ""
-
 msgid "Disable atomic verification"
 msgstr ""
 
@@ -1518,6 +1510,14 @@ msgid "Include users"
 msgstr ""
 
 msgid "Include organisation units"
+msgstr ""
+
+msgid ""
+"Remove default categories, categoryOptions, categoryCombos and "
+"categoryOptionCombos"
+msgstr ""
+
+msgid "Remove lastUpdated, lastUpdatedBy, created and createdBys"
 msgstr ""
 
 msgid "Exclude objects and references ->"
