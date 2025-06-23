@@ -42,15 +42,17 @@ export class WmrSettingsD2Repository implements WmrSettingsRepository {
         return new WmrSettings({
             countryDataSetId: countryDataSet.dataSetId,
             countryDataElementsIds: countryDataSet.dataElementsIds,
-            dataSets: dataSetsResponse.objects.map(({ id, displayName, dataSetElements }) => ({
-                id,
-                name: displayName,
-                dataElements: dataSetElements.map(({ dataElement }) => ({
-                    id: dataElement.id,
-                    name: dataElement.displayName,
-                })),
-                orgUnits: [],
-            })),
+            dataSets: dataSetsResponse.objects
+                .map(({ id, displayName, dataSetElements }) => ({
+                    id,
+                    name: displayName,
+                    dataElements: dataSetElements.map(({ dataElement }) => ({
+                        id: dataElement.id,
+                        name: dataElement.displayName,
+                    })),
+                    orgUnits: [],
+                }))
+                .filter(dataSet => dataSet.id !== countryDataSet.dataSetId), // Exclude the country sync dataSet
         });
     }
 
