@@ -58,6 +58,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
                         showHeader={false}
                         filterRows={allowedLocalDataElementsIds}
                         filterMappingIds={settings.countryDataElementsIds}
+                        applyFilterMappingIdsToAutoMap
                     />
                 </Grid>
             )}
