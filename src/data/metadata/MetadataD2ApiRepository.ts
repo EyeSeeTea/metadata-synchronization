@@ -164,26 +164,39 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     public async lookupSimilar(query: IdentifiableRef): Promise<MetadataPackage<IdentifiableRef>> {
-        const response = await this.api
-            .get<MetadataPackage<IdentifiableRef>>("/metadata", {
-                fields: getFieldsAsString({
-                    id: true,
-                    code: true,
-                    name: true,
-                    path: true,
-                    level: true,
-                }),
-                filter: getFilterAsString({
-                    name: { token: query.name },
-                    id: { eq: query.id },
-                    code: { eq: query.code },
-                }),
-                rootJunction: "OR",
-                paging: false,
-            })
-            .getData();
+        const fields = getFieldsAsString({
+            id: true,
+            code: true,
+            name: true,
+            path: true,
+            level: true,
+        });
+        // using two separate requests because rootJunction is not working with name:token:str filter (2.41.3)
+        const [responseEqual, responseSimilar] = await Promise.all([
+            this.api
+                .get<MetadataPackage<IdentifiableRef>>("/metadata", {
+                    fields: fields,
+                    filter: getFilterAsString({
+                        id: { eq: query.id },
+                        code: { eq: query.code },
+                        // identifiable: { token: query.name },
+                    }),
+                    rootJunction: "OR",
+                    paging: false,
+                })
+                .getData(),
+            this.api
+                .get<MetadataPackage<IdentifiableRef>>("/metadata", {
+                    fields: fields,
+                    filter: getFilterAsString({
+                        name: { token: query.name },
+                    }),
+                    paging: false,
+                })
+                .getData(),
+        ]);
 
-        return _.omit(response, ["system"]);
+        return _.omit(_.merge(responseEqual, responseSimilar), ["system"]);
     }
 
     @cache()
@@ -340,8 +353,9 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         if (includeParents && isNotEmpty(parents)) {
             filter["parent.id"] = { in: cleanOrgUnitPaths(parents) };
         }
-        if (showOnlySelected) filter["id"] = { in: selectedIds.concat(filter["id"]?.in ?? []) };
-        if (!disableFilterRows && filterRows) {
+        if (showOnlySelected) {
+            filter["id"] = { in: selectedIds.concat(filter["id"]?.in ?? []) };
+        } else if (!disableFilterRows && filterRows) {
             filter["id"] = { in: filterRows.concat(filter["id"]?.in ?? []) };
         }
         if (search) filter[search.field] = { [search.operator]: search.value };

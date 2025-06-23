@@ -68,6 +68,10 @@ export interface MappingTableProps extends MetadataTableProps {
     isChildrenMapping?: boolean;
     mappingPath?: string[];
     filterMappingIds?: Id[];
+    /**
+     * If true, only Ids from filterMappingIds will be allowed to be auto-mapped.
+     */
+    applyFilterMappingIdsToAutoMap?: boolean;
 }
 
 export default function MappingTable({
@@ -83,6 +87,7 @@ export default function MappingTable({
     isChildrenMapping = false,
     mappingPath,
     filterMappingIds = [],
+    applyFilterMappingIdsToAutoMap = false,
     ...rest
 }: MappingTableProps) {
     const { compositionRoot } = useAppContext();
@@ -262,7 +267,8 @@ export default function MappingTable({
                     mapping,
                     types[0],
                     elements,
-                    global
+                    global,
+                    applyFilterMappingIdsToAutoMap ? filterMappingIds : undefined
                 );
 
                 await applyMapping(tasks);
@@ -305,6 +311,8 @@ export default function MappingTable({
             snackbar,
             mappingPath,
             mapping,
+            applyFilterMappingIdsToAutoMap,
+            filterMappingIds,
         ]
     );
 

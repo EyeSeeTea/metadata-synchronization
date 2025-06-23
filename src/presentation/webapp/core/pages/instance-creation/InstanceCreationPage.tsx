@@ -51,6 +51,10 @@ const InstanceCreationPage = () => {
         setInstance(instance);
     }, []);
 
+    const onSaved = useCallback(() => {
+        history.push("/instances");
+    }, [history]);
+
     const title = !isEdit ? i18n.t("New Instance") : i18n.t("Edit Instance");
 
     const cancel = !isEdit ? i18n.t("Cancel Instance Creation") : i18n.t("Cancel Instance Editing");
@@ -71,7 +75,13 @@ const InstanceCreationPage = () => {
             <PageHeader title={title} onBackClick={cancelSave} />
 
             {instance.type === "dhis" && (
-                <GeneralInfoForm instance={instance} onChange={onChange} cancelAction={cancelSave} />
+                <GeneralInfoForm
+                    instance={instance}
+                    onChange={onChange}
+                    cancelAction={cancelSave}
+                    onSaved={onSaved}
+                    showMetadataMapping
+                />
             )}
         </TestWrapper>
     );

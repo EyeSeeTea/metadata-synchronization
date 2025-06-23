@@ -79,6 +79,10 @@ export type InstanceMappingProps = {
     showHeader?: boolean;
     filterRows?: Id[];
     filterMappingIds?: Id[];
+    /**
+     * If true, only Ids from filterMappingIds will be allowed to be auto-mapped.
+     */
+    applyFilterMappingIdsToAutoMap?: boolean;
 };
 
 export function useDefaultParams(props: InstanceMappingProps): InstanceMappingParams {
@@ -159,6 +163,7 @@ export default function InstanceMappingPage(props: InstanceMappingProps) {
                     onApplyGlobalMapping={onApplyGlobalMapping}
                     filterRows={props.filterRows}
                     filterMappingIds={props.filterMappingIds}
+                    applyFilterMappingIdsToAutoMap={props.applyFilterMappingIdsToAutoMap}
                 />
             )}
         </React.Fragment>
