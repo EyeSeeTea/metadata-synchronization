@@ -353,8 +353,9 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         if (includeParents && isNotEmpty(parents)) {
             filter["parent.id"] = { in: cleanOrgUnitPaths(parents) };
         }
-        if (showOnlySelected) filter["id"] = { in: selectedIds.concat(filter["id"]?.in ?? []) };
-        if (!disableFilterRows && filterRows) {
+        if (showOnlySelected) {
+            filter["id"] = { in: selectedIds.concat(filter["id"]?.in ?? []) };
+        } else if (!disableFilterRows && filterRows) {
             filter["id"] = { in: filterRows.concat(filter["id"]?.in ?? []) };
         }
         if (search) filter[search.field] = { [search.operator]: search.value };

@@ -534,11 +534,11 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         if (remoteInstance && isJSONDataSource(remoteInstance)) return;
 
         compositionRoot.metadata
-            .listAll({ ...filters, filterRows, fields: { id: true } }, remoteInstance)
+            .listAll({ ...filters, filterRows, fields: { id: true }, selectedIds }, remoteInstance)
             .then(objects => {
                 updateIds(objects.map(({ id }) => id));
             });
-    }, [filters, filterRows, model, compositionRoot, remoteInstance]);
+    }, [filters, filterRows, model, compositionRoot, remoteInstance, selectedIds]);
 
     useEffect(() => {
         if (model.getCollectionName() !== "organisationUnits") return;
