@@ -6,6 +6,6 @@ export class AttachFileUseCase {
     constructor(private repository: AttachedFileRepository) {}
 
     execute(file: AttachedFileInput): FutureData<AttachedFile> {
-        return this.repository.save(file);
+        return this.repository.create(file);
     }
 }

@@ -84,10 +84,12 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                     compositionRoot.comunications.attachFile({
                         name: `${result.type}-payload.json`,
                         data: createJsonBobByObject(result.payload),
+                        sharing: { publicAccess: "--------", externalAccess: false },
                     }),
                     compositionRoot.comunications.attachFile({
                         name: `${result.type}-summary.json`,
                         data: createJsonBobByObject(result.response),
+                        sharing: { publicAccess: "--------", externalAccess: false },
                     }),
                 ];
             })
@@ -137,7 +139,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
             success: email => {
                 setSending(true);
 
-                compositionRoot.comunications.sendEmail(email).run(
+                compositionRoot.comunications.sendEmail(email, attachedFiles).run(
                     () => {
                         setSending(false);
                         setMessageToUser({ message: i18n.t("Email sent successfully"), type: "success" });
@@ -152,7 +154,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                 setMessageToUser({ message: errors.map(error => error.description).join("\n"), type: "error" });
             },
         });
-    }, [toEmail, subject, text, compositionRoot.comunications]);
+    }, [toEmail, subject, text, compositionRoot.comunications, attachedFiles]);
 
     const sendMessage = useCallback(async () => {
         const messageValidation = Message.create({
@@ -165,7 +167,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
             success: message => {
                 setSending(true);
 
-                compositionRoot.comunications.sendMessage(message).run(
+                compositionRoot.comunications.sendMessage(message, attachedFiles).run(
                     () => {
                         setSending(false);
                         setMessageToUser({ message: i18n.t("Message sent successfully"), type: "success" });
@@ -180,7 +182,7 @@ export function useShareSyncError(errorResults: SynchronizationResult[]): ShareS
                 setMessageToUser({ message: errors.join("\n"), type: "error" });
             },
         });
-    }, [toMessageRecipients, subject, text, compositionRoot.comunications]);
+    }, [toMessageRecipients, subject, text, compositionRoot.comunications, attachedFiles]);
 
     const send = useCallback(async () => {
         if (type === "Email") {

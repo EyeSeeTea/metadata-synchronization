@@ -477,11 +477,12 @@ export class CompositionRoot {
     @cache()
     public get comunications() {
         const messageRepository = new MessageD2ApiRepository(this.api);
+        const attachedFileRepository = new AttachedFileD2ApiRepository(this.api);
         return getExecute({
-            sendEmail: new SendEmailUseCase(new EmailD2ApiRepository(this.api)),
-            sendMessage: new SendMessageUseCase(messageRepository),
+            sendEmail: new SendEmailUseCase(new EmailD2ApiRepository(this.api), attachedFileRepository),
+            sendMessage: new SendMessageUseCase(messageRepository, attachedFileRepository),
             searchMessageRecipients: new SearchMessageRecipientsUseCase(messageRepository),
-            attachFile: new AttachFileUseCase(new AttachedFileD2ApiRepository(this.api)),
+            attachFile: new AttachFileUseCase(attachedFileRepository),
         });
     }
 
