@@ -137,6 +137,8 @@ import { MetadataPayloadBuilder } from "../domain/metadata/builders/MetadataPayl
 import { GitHubRepository } from "../domain/packages/repositories/GitHubRepository";
 import { DownloadRepository } from "../domain/storage/repositories/DownloadRepository";
 import { TransformationRepository } from "../domain/transformations/repositories/TransformationRepository";
+import { EventsPayloadBuilder } from "../domain/events/builders/EventsPayloadBuilder";
+import { AggregatedPayloadBuilder } from "../domain/aggregated/builders/AggregatedPayloadBuilder";
 import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
 
 /**
@@ -145,14 +147,16 @@ import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
  */
 
 export class CompositionRoot {
-    private repositoryFactory: DynamicRepositoryFactory;
     private metadataPayloadBuilder: MetadataPayloadBuilder;
+    private eventsPayloadBuilder: EventsPayloadBuilder;
+    public readonly aggregatedPayloadBuilder: AggregatedPayloadBuilder;
+    private repositoryFactory: DynamicRepositoryFactory;
     private gitHubRepository: GitHubRepository;
     private downloadRepository: DownloadRepository;
     private transformationRepository: TransformationRepository;
     private api: D2Api;
 
-    constructor(public readonly localInstance: Instance, private encryptionKey: string) {
+    constructor(public readonly localInstance: Instance, encryptionKey: string) {
         this.repositoryFactory = new DynamicRepositoryFactory();
         this.gitHubRepository = new GitHubOctokitRepository();
         this.downloadRepository = new DownloadWebRepository();
@@ -161,6 +165,8 @@ export class CompositionRoot {
         registerDynamicRepositoriesInFactory(this.repositoryFactory, encryptionKey);
 
         this.metadataPayloadBuilder = new MetadataPayloadBuilder(this.repositoryFactory, this.localInstance);
+        this.eventsPayloadBuilder = new EventsPayloadBuilder(this.repositoryFactory, this.localInstance);
+        this.aggregatedPayloadBuilder = new AggregatedPayloadBuilder(this.repositoryFactory, this.localInstance);
 
         this.api = getD2APiFromInstance(this.localInstance);
     }
@@ -193,9 +199,20 @@ export class CompositionRoot {
                 ),
             }),
             aggregated: (builder: SynchronizationBuilder) =>
-                new AggregatedSyncUseCase(builder, this.repositoryFactory, this.localInstance),
+                new AggregatedSyncUseCase(
+                    builder,
+                    this.repositoryFactory,
+                    this.localInstance,
+                    this.aggregatedPayloadBuilder
+                ),
             events: (builder: SynchronizationBuilder) =>
-                new EventsSyncUseCase(builder, this.repositoryFactory, this.localInstance),
+                new EventsSyncUseCase(
+                    builder,
+                    this.repositoryFactory,
+                    this.localInstance,
+                    this.eventsPayloadBuilder,
+                    this.aggregatedPayloadBuilder
+                ),
             metadata: (builder: SynchronizationBuilder) =>
                 new MetadataSyncUseCase(
                     builder,
@@ -415,6 +432,8 @@ export class CompositionRoot {
             downloadPayloads: new DownloadPayloadFromSyncRuleUseCase(
                 this,
                 this.metadataPayloadBuilder,
+                this.eventsPayloadBuilder,
+                this.aggregatedPayloadBuilder,
                 this.repositoryFactory,
                 this.downloadRepository,
                 this.transformationRepository,
