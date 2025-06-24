@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-06-02T07:06:35.778Z\n"
+"POT-Creation-Date: 2025-06-20T05:31:37.220Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1001,6 +1001,45 @@ msgstr ""
 msgid "Scheduler"
 msgstr ""
 
+msgid "Sending"
+msgstr ""
+
+msgid "Share error information"
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "To"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "I have read and accept the "
+msgstr ""
+
+msgid "EyeSeeTea S.L. Privacy Policy"
+msgstr ""
+
+msgid " paying special attention to the section about "
+msgstr ""
+
+msgid "share sesitive data"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Email sent successfully"
+msgstr ""
+
+msgid "Message sent successfully"
+msgstr ""
+
 msgid "The token is empty"
 msgstr ""
 
@@ -1111,9 +1150,6 @@ msgid "Org units"
 msgstr ""
 
 msgid "Property"
-msgstr ""
-
-msgid "Message"
 msgstr ""
 
 msgid "Program Indicators / Program Data Elements"

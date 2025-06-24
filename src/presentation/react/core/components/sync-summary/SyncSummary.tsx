@@ -5,6 +5,8 @@ import {
     AccordionSummary,
     DialogContent,
     makeStyles,
+    Menu,
+    MenuItem,
     Table,
     TableBody,
     TableCell,
@@ -15,7 +17,7 @@ import {
 } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { JsonView, Props, defaultStyles } from "react-json-view-lite";
 import { SynchronizationReport } from "../../../../../domain/reports/entities/SynchronizationReport";
 import { ErrorMessage, SynchronizationResult } from "../../../../../domain/reports/entities/SynchronizationResult";
@@ -30,6 +32,7 @@ import { NamedRef } from "../../../../../domain/common/entities/Ref";
 import { SummaryTable } from "./SummaryTable";
 
 import "react-json-view-lite/dist/index.css";
+import { ShareSyncError } from "../share-sync-error/ShareSyncError";
 
 const useStyles = makeStyles(theme => ({
     accordionHeading1: {
@@ -165,7 +168,14 @@ const SyncSummary = ({ report, onClose }: SyncSummaryProps) => {
     const loading = useLoading();
 
     const [results, setResults] = useState<SynchronizationResult[]>(report.getResults());
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+    const [shareErrorOpen, setShareErrorOpen] = useState(false);
+
     const payloads = _.compact(report.getResults().map(({ payload }) => payload));
+
+    const errorResults = useMemo(() => report.getResults().filter(result => result.status === "ERROR"), [report]);
 
     const downloadJSON = async () => {
         loading.show(true, i18n.t("Generating JSON"));
@@ -173,103 +183,140 @@ const SyncSummary = ({ report, onClose }: SyncSummaryProps) => {
         loading.reset();
     };
 
+    const handleOpenOptionsMenu = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    }, []);
+
+    const handleCloseOptionsMenu = useCallback(() => {
+        setAnchorEl(null);
+    }, []);
+
+    const handleCloseShareError = useCallback(() => {
+        setShareErrorOpen(false);
+    }, []);
+
+    const shareError = useCallback(() => {
+        setShareErrorOpen(true);
+        setAnchorEl(null);
+    }, []);
+
     useEffect(() => {
         if (report.getResults().length > 0) return;
         compositionRoot.reports.getSyncResults(report.id).then(setResults);
     }, [compositionRoot, report]);
 
     return (
-        <ConfirmationDialog
-            isOpen={true}
-            title={i18n.t("Synchronization Results")}
-            onCancel={onClose}
-            onInfoAction={payloads.length > 0 ? downloadJSON : undefined}
-            cancelText={i18n.t("Ok")}
-            maxWidth={"lg"}
-            fullWidth={true}
-            infoActionText={i18n.t("Download JSON Payload")}
-        >
-            <DialogContent>
-                {results.map(
-                    ({ origin, instance, status, typeStats = [], stats, message, errors, type, originPackage }, i) => (
-                        <Accordion
-                            defaultExpanded={results.length === 1}
-                            className={classes.accordion}
-                            key={`row-${i}`}
-                        >
+        <>
+            <ConfirmationDialog
+                isOpen={true}
+                title={i18n.t("Synchronization Results")}
+                onCancel={onClose}
+                onInfoAction={
+                    errorResults.length > 0 ? handleOpenOptionsMenu : payloads.length > 0 ? downloadJSON : undefined
+                }
+                cancelText={i18n.t("Ok")}
+                maxWidth={"lg"}
+                fullWidth={true}
+                infoActionText={errorResults.length > 0 ? i18n.t("Options") : i18n.t("Download JSON Payload")}
+            >
+                <DialogContent>
+                    {results.map(
+                        (
+                            { origin, instance, status, typeStats = [], stats, message, errors, type, originPackage },
+                            i
+                        ) => (
+                            <Accordion
+                                defaultExpanded={results.length === 1}
+                                className={classes.accordion}
+                                key={`row-${i}`}
+                            >
+                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                    <Typography className={classes.accordionHeading1}>
+                                        {`Type: ${getTypeName(type, report.type)}`}
+                                        <br />
+                                        {origin && `${i18n.t("Origin")}: ${getOriginName(origin)}`}
+                                        {origin && <br />}
+                                        {originPackage && `${i18n.t("Origin package")}: ${originPackage.name}`}
+                                        {originPackage && <br />}
+                                        {`${i18n.t("Destination instance")}: ${instance.name}`}
+                                    </Typography>
+                                    <Typography className={classes.accordionHeading2}>
+                                        {`${i18n.t("Status")}: `}
+                                        {formatStatusTag(status)}
+                                    </Typography>
+                                </AccordionSummary>
+
+                                <AccordionDetails className={classes.accordionDetails}>
+                                    <Typography variant="overline">{i18n.t("Summary")}</Typography>
+                                </AccordionDetails>
+
+                                {message && (
+                                    <AccordionDetails className={classes.accordionDetails}>
+                                        <Typography variant="body2">{message}</Typography>
+                                    </AccordionDetails>
+                                )}
+
+                                {stats && (
+                                    <AccordionDetails className={classes.accordionDetails}>
+                                        <SummaryTable stats={[...typeStats, { ...stats, type: i18n.t("Total") }]} />
+                                    </AccordionDetails>
+                                )}
+
+                                {errors && errors.length > 0 && (
+                                    <div>
+                                        <AccordionDetails className={classes.accordionDetails}>
+                                            <Typography variant="overline">{i18n.t("Messages")}</Typography>
+                                        </AccordionDetails>
+                                        <AccordionDetails className={classes.accordionDetails}>
+                                            {buildMessageTable(_.take(errors, 10))}
+                                        </AccordionDetails>
+                                    </div>
+                                )}
+                            </Accordion>
+                        )
+                    )}
+
+                    {report.dataStats && (
+                        <Accordion>
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                 <Typography className={classes.accordionHeading1}>
-                                    {`Type: ${getTypeName(type, report.type)}`}
-                                    <br />
-                                    {origin && `${i18n.t("Origin")}: ${getOriginName(origin)}`}
-                                    {origin && <br />}
-                                    {originPackage && `${i18n.t("Origin package")}: ${originPackage.name}`}
-                                    {originPackage && <br />}
-                                    {`${i18n.t("Destination instance")}: ${instance.name}`}
-                                </Typography>
-                                <Typography className={classes.accordionHeading2}>
-                                    {`${i18n.t("Status")}: `}
-                                    {formatStatusTag(status)}
+                                    {i18n.t("Data Statistics")}
                                 </Typography>
                             </AccordionSummary>
 
-                            <AccordionDetails className={classes.accordionDetails}>
-                                <Typography variant="overline">{i18n.t("Summary")}</Typography>
+                            <AccordionDetails>
+                                {buildDataStatsTable(report.type, report.dataStats, classes)}
                             </AccordionDetails>
-
-                            {message && (
-                                <AccordionDetails className={classes.accordionDetails}>
-                                    <Typography variant="body2">{message}</Typography>
-                                </AccordionDetails>
-                            )}
-
-                            {stats && (
-                                <AccordionDetails className={classes.accordionDetails}>
-                                    <SummaryTable stats={[...typeStats, { ...stats, type: i18n.t("Total") }]} />
-                                </AccordionDetails>
-                            )}
-
-                            {errors && errors.length > 0 && (
-                                <div>
-                                    <AccordionDetails className={classes.accordionDetails}>
-                                        <Typography variant="overline">{i18n.t("Messages")}</Typography>
-                                    </AccordionDetails>
-                                    <AccordionDetails className={classes.accordionDetails}>
-                                        {buildMessageTable(_.take(errors, 10))}
-                                    </AccordionDetails>
-                                </div>
-                            )}
                         </Accordion>
-                    )
-                )}
+                    )}
 
-                {report.dataStats && (
                     <Accordion>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography className={classes.accordionHeading1}>{i18n.t("Data Statistics")}</Typography>
+                            <Typography className={classes.accordionHeading1}>{i18n.t("JSON Response")}</Typography>
                         </AccordionSummary>
 
                         <AccordionDetails>
-                            {buildDataStatsTable(report.type, report.dataStats, classes)}
+                            <JsonView
+                                data={{ ...report, results }}
+                                shouldExpandNode={expandToLevel2}
+                                style={defaultStyles}
+                            />
                         </AccordionDetails>
                     </Accordion>
-                )}
-
-                <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography className={classes.accordionHeading1}>{i18n.t("JSON Response")}</Typography>
-                    </AccordionSummary>
-
-                    <AccordionDetails>
-                        <JsonView
-                            data={{ ...report, results }}
-                            shouldExpandNode={expandToLevel2}
-                            style={defaultStyles}
-                        />
-                    </AccordionDetails>
-                </Accordion>
-            </DialogContent>
-        </ConfirmationDialog>
+                </DialogContent>
+            </ConfirmationDialog>
+            <Menu
+                id="simple-menu"
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl)}
+                onClose={handleCloseOptionsMenu}
+            >
+                <MenuItem onClick={downloadJSON}>{i18n.t("Download JSON Payload")}</MenuItem>
+                <MenuItem onClick={shareError}>{i18n.t("Share error information")}</MenuItem>
+            </Menu>
+            {shareErrorOpen && <ShareSyncError onClose={handleCloseShareError} errorResults={errorResults} />}
+        </>
     );
 };
 

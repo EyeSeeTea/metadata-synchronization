@@ -22,10 +22,15 @@ export interface ErrorMessage {
     property?: string;
 }
 
+export type ResultInstance = {
+    version?: string;
+    url?: string;
+} & NamedRef;
+
 export interface SynchronizationResult {
     status: SynchronizationStatus;
-    origin?: NamedRef | Store; // TODO: Create union
-    instance: NamedRef;
+    origin?: ResultInstance | Store; // TODO: Create union
+    instance: ResultInstance;
     originPackage?: NamedRef;
     date: Date;
     type: SynchronizationResultType;

@@ -1000,6 +1000,45 @@ msgstr ""
 msgid "Scheduler"
 msgstr ""
 
+msgid "Sending"
+msgstr ""
+
+msgid "Share error information"
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "To"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "I have read and accept the "
+msgstr ""
+
+msgid "EyeSeeTea S.L. Privacy Policy"
+msgstr ""
+
+msgid " paying special attention to the section about "
+msgstr ""
+
+msgid "share sesitive data"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Email sent successfully"
+msgstr ""
+
+msgid "Message sent successfully"
+msgstr ""
+
 msgid "The token is empty"
 msgstr ""
 
@@ -1108,9 +1147,6 @@ msgid "Org units"
 msgstr ""
 
 msgid "Property"
-msgstr ""
-
-msgid "Message"
 msgstr ""
 
 msgid "Program Indicators / Program Data Elements"

@@ -62,3 +62,7 @@ export function validateModel<T>(item: T, validations: ModelValidation[]): Valid
         return acc;
     }, [] as ValidationError[]);
 }
+
+export function isBlank(value: any): boolean {
+    return !value || (value.length !== undefined && value.length === 0);
+}

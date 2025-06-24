@@ -124,6 +124,14 @@ import { TableColumnsDataStoreRepository } from "../data/table-columns/TableColu
 import { getD2APiFromInstance } from "../utils/d2-utils";
 import { RoleD2ApiRepository } from "../data/role/RoleD2ApiRepository";
 import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
+import { D2Api } from "@eyeseetea/d2-api/2.36";
+import { SendEmailUseCase } from "../domain/comunications/usecases/SendEmailUseCase";
+import { EmailD2ApiRepository } from "../data/comunications/EmailD2ApiRepository";
+import { AttachFileUseCase } from "../domain/comunications/usecases/AttachFileUseCase";
+import { AttachedFileD2ApiRepository } from "../data/comunications/AttachedFileD2ApiRepository";
+import { SendMessageUseCase } from "../domain/comunications/usecases/SendMessageUseCase";
+import { MessageD2ApiRepository } from "../data/comunications/MessageD2ApiRepository";
+import { SearchMessageRecipientsUseCase } from "../domain/comunications/usecases/SearchMessageRecipientsUseCase";
 import { StorageDataStoreClient } from "../data/storage/StorageDataStoreClient";
 import { MetadataPayloadBuilder } from "../domain/metadata/builders/MetadataPayloadBuilder";
 import { GitHubRepository } from "../domain/packages/repositories/GitHubRepository";
@@ -146,6 +154,7 @@ export class CompositionRoot {
     private gitHubRepository: GitHubRepository;
     private downloadRepository: DownloadRepository;
     private transformationRepository: TransformationRepository;
+    private api: D2Api;
 
     constructor(public readonly localInstance: Instance, encryptionKey: string) {
         this.repositoryFactory = new DynamicRepositoryFactory();
@@ -158,6 +167,8 @@ export class CompositionRoot {
         this.metadataPayloadBuilder = new MetadataPayloadBuilder(this.repositoryFactory, this.localInstance);
         this.eventsPayloadBuilder = new EventsPayloadBuilder(this.repositoryFactory, this.localInstance);
         this.aggregatedPayloadBuilder = new AggregatedPayloadBuilder(this.repositoryFactory, this.localInstance);
+
+        this.api = getD2APiFromInstance(this.localInstance);
     }
 
     @cache()
@@ -477,10 +488,20 @@ export class CompositionRoot {
 
     @cache()
     public get roles() {
-        const api = getD2APiFromInstance(this.localInstance);
-
         return getExecute({
-            validate: new ValidateRolesUseCase(new RoleD2ApiRepository(api)),
+            validate: new ValidateRolesUseCase(new RoleD2ApiRepository(this.api)),
+        });
+    }
+
+    @cache()
+    public get comunications() {
+        const messageRepository = new MessageD2ApiRepository(this.api);
+        const attachedFileRepository = new AttachedFileD2ApiRepository(this.api);
+        return getExecute({
+            sendEmail: new SendEmailUseCase(new EmailD2ApiRepository(this.api), attachedFileRepository),
+            sendMessage: new SendMessageUseCase(messageRepository, attachedFileRepository),
+            searchMessageRecipients: new SearchMessageRecipientsUseCase(messageRepository),
+            attachFile: new AttachFileUseCase(attachedFileRepository),
         });
     }
 
