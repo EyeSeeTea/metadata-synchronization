@@ -44,7 +44,6 @@ const App = () => {
             });
 
             const compositionRoot = new CompositionRoot(instance, encryptionKey);
-            await compositionRoot.app.initialize();
 
             const newCompositionRoot = getWebappCompositionRoot(instance);
 

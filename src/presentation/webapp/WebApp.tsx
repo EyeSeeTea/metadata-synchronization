@@ -53,7 +53,7 @@ const App = () => {
                 version,
             });
             const compositionRoot = new CompositionRoot(instance, encryptionKey);
-            await compositionRoot.app.initialize();
+
             const currentUser = await compositionRoot.user.current();
             if (!currentUser) throw new Error("User not logged in");
 

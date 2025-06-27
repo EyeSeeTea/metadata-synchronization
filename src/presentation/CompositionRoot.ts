@@ -26,7 +26,6 @@ import { DeleteAggregatedUseCase } from "../domain/aggregated/usecases/DeleteAgg
 import { ListAggregatedUseCase } from "../domain/aggregated/usecases/ListAggregatedUseCase";
 import { UseCase } from "../domain/common/entities/UseCase";
 import { Repositories, DynamicRepositoryFactory } from "../domain/common/factories/DynamicRepositoryFactory";
-import { StartApplicationUseCase } from "../domain/common/usecases/StartApplicationUseCase";
 import { GetCustomDataUseCase } from "../domain/custom-data/usecases/GetCustomDataUseCase";
 import { SaveCustomDataUseCase } from "../domain/custom-data/usecases/SaveCustomDataUseCase";
 import { EventsSyncUseCase } from "../domain/events/usecases/EventsSyncUseCase";
@@ -153,18 +152,11 @@ export class CompositionRoot {
         this.downloadRepository = new DownloadWebRepository();
         this.transformationRepository = new TransformationD2ApiRepository();
 
-        registerDynamicRepositoriesInFactory(this.repositoryFactory, encryptionKey);
+        registerDynamicRepositoriesInFactory(this.localInstance, this.repositoryFactory, encryptionKey);
 
         this.metadataPayloadBuilder = new MetadataPayloadBuilder(this.repositoryFactory, this.localInstance);
         this.eventsPayloadBuilder = new EventsPayloadBuilder(this.repositoryFactory, this.localInstance);
         this.aggregatedPayloadBuilder = new AggregatedPayloadBuilder(this.repositoryFactory, this.localInstance);
-    }
-
-    @cache()
-    public get app() {
-        return getExecute({
-            initialize: new StartApplicationUseCase(this.repositoryFactory, this.localInstance),
-        });
     }
 
     @cache()
@@ -506,7 +498,11 @@ function getExecute<UseCases extends Record<Key, UseCase>, Key extends keyof Use
     }, initialOutput);
 }
 
-export function registerDynamicRepositoriesInFactory(repositoryFactory: DynamicRepositoryFactory, encryptionKey = "") {
+export function registerDynamicRepositoriesInFactory(
+    localInstance: Instance,
+    repositoryFactory: DynamicRepositoryFactory,
+    encryptionKey = ""
+) {
     repositoryFactory.bindByInstance(
         Repositories.ConfigRepository,
         (instance: Instance) => new StorageClientD2Repository(instance)
@@ -536,7 +532,8 @@ export function registerDynamicRepositoriesInFactory(repositoryFactory: DynamicR
 
     repositoryFactory.bindByInstance(
         Repositories.MetadataRepository,
-        (instance: Instance) => new MetadataD2ApiRepository(instance, new TransformationD2ApiRepository())
+        (instance: Instance) =>
+            new MetadataD2ApiRepository(localInstance, instance, new TransformationD2ApiRepository())
     );
 
     repositoryFactory.bindByJsonDataSource(
