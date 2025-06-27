@@ -23,7 +23,7 @@ describe("SchedulerCLI", () => {
     let mockLogger: Logger;
 
     beforeEach(() => {
-        jest.useFakeTimers();
+        jest.useFakeTimers("modern");
         jest.setSystemTime(new Date("2025-06-12T08:12:50.777Z"));
 
         jest.clearAllMocks();
