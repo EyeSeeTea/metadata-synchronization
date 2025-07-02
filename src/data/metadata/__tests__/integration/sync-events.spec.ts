@@ -10,7 +10,12 @@ import { registerDynamicRepositoriesInFactory } from "../../../../presentation/C
 import { EventsPayloadBuilder } from "../../../../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../../../domain/aggregated/builders/AggregatedPayloadBuilder";
 
-const repositoryFactory = buildRepositoryFactory();
+const localInstance = Instance.build({
+    url: "http://origin.test",
+    name: "Testing",
+    version: "2.36",
+});
+const repositoryFactory = buildRepositoryFactory(localInstance);
 
 describe("Sync events", () => {
     let local: Server;
@@ -315,12 +320,6 @@ describe("Sync events", () => {
     });
 
     it("Local server to remote - same version", async () => {
-        const localInstance = Instance.build({
-            url: "http://origin.test",
-            name: "Testing",
-            version: "2.36",
-        });
-
         const builder: SynchronizationBuilder = {
             originInstance: "LOCAL",
             targetInstances: ["DESTINATION"],
@@ -357,12 +356,6 @@ describe("Sync events", () => {
     });
 
     it("Remote server to local - same version", async () => {
-        const localInstance = Instance.build({
-            url: "http://origin.test",
-            name: "Testing",
-            version: "2.36",
-        });
-
         const builder: SynchronizationBuilder = {
             originInstance: "DESTINATION",
             targetInstances: ["LOCAL"],
@@ -398,10 +391,10 @@ describe("Sync events", () => {
     });
 });
 
-function buildRepositoryFactory() {
+function buildRepositoryFactory(localInstance: Instance) {
     const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();
 
-    registerDynamicRepositoriesInFactory(repositoryFactory);
+    registerDynamicRepositoriesInFactory(localInstance, repositoryFactory);
 
     return repositoryFactory;
 }

@@ -9,7 +9,13 @@ import { SynchronizationBuilder } from "../../../../domain/synchronization/entit
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { startDhis } from "../../../../utils/dhisServer";
 
-const repositoryFactory = buildRepositoryFactory();
+const localInstance = Instance.build({
+    url: "http://origin.test",
+    name: "Testing",
+    version: "2.36",
+});
+
+const repositoryFactory = buildRepositoryFactory(localInstance);
 
 describe("Sync aggregated", () => {
     let local: Server;
@@ -270,12 +276,6 @@ describe("Sync aggregated", () => {
     });
 
     it("Local server to remote - same version", async () => {
-        const localInstance = Instance.build({
-            url: "http://origin.test",
-            name: "Testing",
-            version: "2.36",
-        });
-
         const builder: SynchronizationBuilder = {
             originInstance: "LOCAL",
             targetInstances: ["DESTINATION"],
@@ -303,12 +303,6 @@ describe("Sync aggregated", () => {
     });
 
     it("Remote server to local - same version", async () => {
-        const localInstance = Instance.build({
-            url: "http://origin.test",
-            name: "Testing",
-            version: "2.36",
-        });
-
         const builder: SynchronizationBuilder = {
             originInstance: "DESTINATION",
             targetInstances: ["LOCAL"],
@@ -336,10 +330,10 @@ describe("Sync aggregated", () => {
     });
 });
 
-function buildRepositoryFactory() {
+function buildRepositoryFactory(localInstance: Instance) {
     const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();
 
-    registerDynamicRepositoriesInFactory(repositoryFactory);
+    registerDynamicRepositoriesInFactory(localInstance, repositoryFactory);
 
     return repositoryFactory;
 }

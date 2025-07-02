@@ -43,15 +43,19 @@ import { isDhisInstance } from "../../domain/instance/entities/DataSource";
 
 export class MetadataD2ApiRepository implements MetadataRepository {
     private api: D2Api;
-    private instance: Instance;
+    private targetInstance: Instance;
 
-    constructor(instance: Instance, private transformationRepository: TransformationRepository) {
-        if (!isDhisInstance(instance)) {
+    constructor(
+        localInstance: Instance,
+        targetInstance: Instance,
+        private transformationRepository: TransformationRepository
+    ) {
+        if (!isDhisInstance(targetInstance)) {
             throw new Error("Invalid instance type for MetadataD2ApiRepository");
         }
 
-        this.api = getD2APiFromInstance(instance);
-        this.instance = instance;
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
+        this.targetInstance = targetInstance;
     }
 
     /**
@@ -63,9 +67,9 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         fields?: object | string,
         includeDefaults = false
     ): Promise<MetadataPackage<T>> {
-        const { apiVersion } = this.instance;
+        const { apiVersion } = this.targetInstance;
 
-        const d2ApiDataStore = new D2ApiDataStore(this.instance);
+        const d2ApiDataStore = new D2ApiDataStore(this.targetInstance);
         const dataStoreIds = DataStoreMetadata.getDataStoreIds(ids);
         const requestFields = typeof fields === "object" ? getFieldsAsString(fields) : fields;
         const d2Metadata = await this.getMetadata<D2Model>(ids, requestFields, includeDefaults);
@@ -108,7 +112,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     private async getDataStoresMetadata(ids: Id[]) {
-        const d2ApiDataStore = new D2ApiDataStore(this.instance);
+        const d2ApiDataStore = new D2ApiDataStore(this.targetInstance);
         const dataStoreIds = DataStoreMetadata.getDataStoreIds(ids);
         if (dataStoreIds.length === 0) return {};
 
@@ -121,10 +125,10 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         const { type, fields = { $owner: true }, page, pageSize, order, rootJunction, ...params } = listParams;
 
         const filter = this.buildListFilters(params);
-        const { apiVersion } = this.instance;
+        const { apiVersion } = this.targetInstance;
         const options = { type, fields, filter, order, page, pageSize, rootJunction };
         if (type === "dataStores") {
-            const d2ApiDataStore = new D2ApiDataStore(this.instance);
+            const d2ApiDataStore = new D2ApiDataStore(this.targetInstance);
             const response = await d2ApiDataStore.getDataStores({ namespaces: undefined });
             // Hardcoded pagination since DHIS2 does not support pagination for namespaces
             return { objects: response, pager: { page: 1, total: response.length, pageSize: 100 } };
@@ -151,7 +155,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         ...params
     }: ListMetadataParams): Promise<MetadataEntity[]> {
         const filter = this.buildListFilters(params);
-        const { apiVersion } = this.instance;
+        const { apiVersion } = this.targetInstance;
         const objects = await this.getListAll({ type, fields, filter, order });
 
         const metadataPackage = this.transformationRepository.mapPackageFrom(
@@ -353,7 +357,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         metadata: MetadataPackage,
         additionalParams: MetadataImportParams
     ): Promise<SynchronizationResult> {
-        const { apiVersion } = this.instance;
+        const { apiVersion } = this.targetInstance;
         const versionedPayloadPackage = this.transformationRepository.mapPackageTo(
             apiVersion,
             metadata,
@@ -368,7 +372,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             if (!response) {
                 return {
                     status: "ERROR",
-                    instance: this.instance.toPublicObject(),
+                    instance: this.targetInstance.toPublicObject(),
                     date: new Date(),
                     type: "metadata",
                 };
@@ -382,7 +386,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                 } catch (error: any) {
                     return {
                         status: "NETWORK ERROR",
-                        instance: this.instance.toPublicObject(),
+                        instance: this.targetInstance.toPublicObject(),
                         date: new Date(),
                         type: "metadata",
                     };
@@ -391,7 +395,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "metadata",
             };
@@ -411,7 +415,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             if (!response) {
                 return {
                     status: "ERROR",
-                    instance: this.instance.toPublicObject(),
+                    instance: this.targetInstance.toPublicObject(),
                     date: new Date(),
                     type: "deleted",
                 };
@@ -425,7 +429,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "deleted",
             };
@@ -515,7 +519,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             status: status === "OK" ? "SUCCESS" : status,
             stats: formatStats(stats),
             typeStats,
-            instance: this.instance.toPublicObject(),
+            instance: this.targetInstance.toPublicObject(),
             errors: messages,
             date: new Date(),
             type,
