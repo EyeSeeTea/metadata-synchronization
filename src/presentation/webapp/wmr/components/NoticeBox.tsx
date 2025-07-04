@@ -3,16 +3,18 @@ import {
     Check as CheckIcon,
     ErrorOutline as ErrorOutlineIcon,
     InfoOutlined as InfoOutlinedIcon,
+    WarningOutlined as WarningOutlinedIcon,
 } from "@material-ui/icons";
 import { Box, CircularProgress, Typography } from "@material-ui/core";
 
-type NoticeBoxType = "loading" | "success" | "error" | "info";
+type NoticeBoxType = "loading" | "success" | "error" | "info" | "warning";
 
 const colorByType: Record<NoticeBoxType, string> = {
     loading: muiTheme.palette.primary.main,
     info: muiTheme.palette.info.main,
     success: muiTheme.palette.success.main,
     error: muiTheme.palette.error.main,
+    warning: muiTheme.palette.warning.main,
 };
 
 function IconByType({ status }: { status: NoticeBoxType }) {
@@ -26,6 +28,8 @@ function IconByType({ status }: { status: NoticeBoxType }) {
             return <ErrorOutlineIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByType[status]} />;
         case "info":
             return <InfoOutlinedIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByType[status]} />;
+        case "warning":
+            return <WarningOutlinedIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByType[status]} />;
         default:
             return <InfoOutlinedIcon height={DEFAULT_SIZE} width={DEFAULT_SIZE} htmlColor={colorByType[status]} />;
     }

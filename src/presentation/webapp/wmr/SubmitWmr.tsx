@@ -10,10 +10,9 @@ import { OrgUnitInput } from "./components/OrgUnitInput";
 import { NoticeBox } from "./components/NoticeBox";
 import { useSyncRemoteWmr } from "./hooks/useSyncRemoteWmr";
 import { RemoteInstanceSelector } from "./components/RemoteInstanceSelector";
+import { SummaryTable } from "../../react/core/components/sync-summary/SummaryTable";
 
-type SubmitWmrProps = {};
-
-export function SubmitWmr(_props: SubmitWmrProps) {
+export function SubmitWmr() {
     const loading = useLoading();
     const [selectedTargetInstance, setSelectedTargetInstance] = React.useState<Instance | null>(null);
     const [targetOrgUnitId, setTargetOrgUnitId] = React.useState<Maybe<Id>>();
@@ -23,13 +22,23 @@ export function SubmitWmr(_props: SubmitWmrProps) {
     });
 
     const sendIsDisabled = !selectedTargetInstance?.url || !targetOrgUnitId || loading.isLoading;
-    if (wmrRemoteSyncResult?.type === "success") {
+    if (wmrRemoteSyncResult) {
         return (
             <Box>
                 <Typography variant="h4" gutterBottom>
                     {i18n.t("Submit WMR Data")}
                 </Typography>
-                <NoticeBox type="success" message={i18n.t("Data successfully submitted to the target instance.")} />
+                {wmrRemoteSyncResult?.type === "success" ? (
+                    <NoticeBox type="success" message={i18n.t("Data successfully submitted to the target instance.")} />
+                ) : wmrRemoteSyncResult?.type === "warning" ? (
+                    <NoticeBox type="warning" message={i18n.t("Data submitted with warnings.")} />
+                ) : (
+                    <NoticeBox
+                        type="error"
+                        message={wmrRemoteSyncResult.message || i18n.t("Data submission failed.")}
+                    />
+                )}
+                {wmrRemoteSyncResult.stats && <SummaryTable stats={[wmrRemoteSyncResult.stats]} />}
             </Box>
         );
     }

@@ -42,7 +42,7 @@ export function useSyncLocalWmr() {
                 if (syncReport) await compositionRoot.reports.save(syncReport);
                 if (done) {
                     loading.hide();
-                    return;
+                    return syncReport;
                 }
             }
         };

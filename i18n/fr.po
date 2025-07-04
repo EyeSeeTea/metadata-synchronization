@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-06-09T17:30:41.451Z\n"
+"POT-Creation-Date: 2025-07-04T13:53:08.828Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2282,6 +2282,12 @@ msgid "Submit WMR Data"
 msgstr ""
 
 msgid "Data successfully submitted to the target instance."
+msgstr ""
+
+msgid "Data submitted with warnings."
+msgstr ""
+
+msgid "Data submission failed."
 msgstr ""
 
 msgid "Target Instance "

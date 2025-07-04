@@ -2,19 +2,24 @@ import { useLoading } from "@eyeseetea/d2-ui-components";
 import React from "react";
 import { Id } from "../../../../domain/common/entities/Schemas";
 import { Instance } from "../../../../domain/instance/entities/Instance";
+import { SynchronizationStats } from "../../../../domain/reports/entities/SynchronizationResult";
 import { Maybe } from "../../../../types/utils";
 import i18n from "../../../../utils/i18n";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 
-type WmrRemoteSyncResult =
+type WmrRemoteSyncResult = { stats?: SynchronizationStats } & (
     | {
           type: "success";
       }
     | {
           type: "error";
           message: string;
-      };
+      }
+    | {
+          type: "warning";
+      }
+);
 
 type UseSyncRemoteWmrOptions = {
     instance: Maybe<Instance>;
@@ -57,7 +62,7 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
                 if (syncReport) await compositionRoot.reports.save(syncReport);
                 if (done) {
                     loading.hide();
-                    return;
+                    return syncReport;
                 }
             }
         };
@@ -65,9 +70,23 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
         await result.match({
             success: async () => {
                 // TODO: Error handling here?
-                await synchronize();
+                const report = await synchronize();
+                const result = report?.getResults()[0];
+                if (result?.status === "ERROR") {
+                    setWmrRemoteSyncResult({
+                        type: "error",
+                        message: result.message ?? "Synchronization result has errors",
+                        stats: result.stats,
+                    });
+                } else if (result?.status === "WARNING") {
+                    setWmrRemoteSyncResult({
+                        type: "warning",
+                        stats: result.stats,
+                    });
+                } else {
+                    setWmrRemoteSyncResult({ type: "success", stats: result?.stats });
+                }
                 syncRule.rule = syncRuleUpdated;
-                setWmrRemoteSyncResult({ type: "success" });
             },
             error: async code => {
                 setWmrRemoteSyncResult({
