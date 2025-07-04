@@ -55,6 +55,7 @@ export function useSyncLocalWmr() {
                 setWmrLocalSyncResult({ type: "success" });
             },
             error: async code => {
+                loading.hide();
                 setWmrLocalSyncResult({
                     type: "error",
                     message: `Failed to prepare synchronization rule: ${code}`,
