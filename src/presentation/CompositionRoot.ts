@@ -22,6 +22,7 @@ import { TEID2ApiRepository } from "../data/tracked-entity-instances/TEID2ApiRep
 import { TransformationD2ApiRepository } from "../data/transformations/TransformationD2ApiRepository";
 import { UserD2ApiRepository } from "../data/user/UserD2ApiRepository";
 import { WmrDataSetD2Repository } from "../data/wmr/WmrDataSetD2Repository";
+import { WmrRequisitesD2Repository } from "../data/wmr/WmrRequisitesD2Repository";
 import { WmrSettingsD2Repository } from "../data/wmr/WmrSettingsD2Repository";
 import { AggregatedSyncUseCase } from "../domain/aggregated/usecases/AggregatedSyncUseCase";
 import { DeleteAggregatedUseCase } from "../domain/aggregated/usecases/DeleteAggregatedUseCase";
@@ -33,6 +34,7 @@ import { GetCustomDataUseCase } from "../domain/custom-data/usecases/GetCustomDa
 import { SaveCustomDataUseCase } from "../domain/custom-data/usecases/SaveCustomDataUseCase";
 import { GetDataSetByIdUseCase } from "../domain/entities/wmr/usecases/GetDataSetByIdUseCase";
 import { GetWmrSettingsUseCase } from "../domain/entities/wmr/usecases/GetWmrSettingsUseCase";
+import { CheckWmrRequisitesByTypeUseCase } from "../domain/entities/wmr/usecases/CheckWmrRequisitesByTypeUseCase";
 import { EventsSyncUseCase } from "../domain/events/usecases/EventsSyncUseCase";
 import { ListEventsUseCase } from "../domain/events/usecases/ListEventsUseCase";
 import { UpdateEmergencyResponseSyncRuleUseCase } from "../domain/events/usecases/UpdateEmergencyResponseSyncRuleUseCase";
@@ -129,6 +131,9 @@ import { getD2APiFromInstance } from "../utils/d2-utils";
 import { RoleD2ApiRepository } from "../data/role/RoleD2ApiRepository";
 import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
 import { StorageDataStoreClient } from "../data/storage/StorageDataStoreClient";
+import { SetupWmrRequisitesByTypeUseCase } from "../domain/entities/wmr/usecases/SetupWmrRequisitesByTypeUseCase";
+import { ValidateOrgUnitUseCase } from "../domain/entities/wmr/usecases/ValidateOrgUnitUseCase";
+import { WmrAggregatedSyncUseCase } from "../domain/entities/wmr/usecases/WmrAggregatedSyncUseCase";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -167,14 +172,22 @@ export class CompositionRoot {
         this.repositoryFactory.bind(Repositories.TableColumnsRepository, TableColumnsDataStoreRepository);
         this.repositoryFactory.bind(Repositories.WmrSettingsRepository, WmrSettingsD2Repository);
         this.repositoryFactory.bind(Repositories.WmrDataSetRepository, WmrDataSetD2Repository);
+        this.repositoryFactory.bind(Repositories.WmrRequisitesRepository, WmrRequisitesD2Repository);
     }
 
     @cache()
     public get wmr() {
-        return getExecute({
-            settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
-            getDataSetById: new GetDataSetByIdUseCase(this.repositoryFactory, this.localInstance),
-        });
+        return {
+            ...getExecute({
+                settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
+                getDataSetById: new GetDataSetByIdUseCase(this.repositoryFactory, this.localInstance),
+                checkRequisites: new CheckWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
+                setupRequisites: new SetupWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
+                validateOrgUnit: new ValidateOrgUnitUseCase(this.repositoryFactory),
+            }),
+            syncDataset: (builder: SynchronizationBuilder) =>
+                new WmrAggregatedSyncUseCase(builder, this.repositoryFactory, this.localInstance),
+        };
     }
 
     @cache()

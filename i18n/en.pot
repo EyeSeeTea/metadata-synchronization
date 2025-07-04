@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-04-24T05:27:13.891Z\n"
-"PO-Revision-Date: 2025-04-24T05:27:13.891Z\n"
+"POT-Creation-Date: 2025-07-04T13:53:08.828Z\n"
+"PO-Revision-Date: 2025-07-04T13:53:08.828Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2231,13 +2231,39 @@ msgstr ""
 msgid "Patients (Tracked Entity Instances)"
 msgstr ""
 
-msgid "Have you installed the metadata package that creates the test data set?"
+msgid "Checking {{itemName}}..."
+msgstr ""
+
+msgid "Uploading {{itemName}}..."
+msgstr ""
+
+msgid "The {{itemName}} is already installed."
+msgstr ""
+
+msgid ""
+"An error occurred while installing the {{itemName}}. Alternatively, you can "
+"download the configuration and import it manually"
+msgstr ""
+
+msgid "The {{itemName}} is not installed yet. Use the button below to install it."
+msgstr ""
+
+msgid "Setup WMR prerequisites"
+msgstr ""
+
+msgid "Metadata package"
+msgstr ""
+
+msgid "This package contains the WMR dataset and its dependencies"
 msgstr ""
 
 msgid "Autogenform configuration"
 msgstr ""
 
-msgid "Tutorial: How to install metadata package"
+msgid "Contains the dataStore configurations required by the autogenforms tool"
+msgstr ""
+
+msgid "Loading settings..."
 msgstr ""
 
 msgid ""
@@ -2248,34 +2274,86 @@ msgstr ""
 msgid "Select a DataSet"
 msgstr ""
 
-msgid "Please select an Org. Unit"
+msgid "Submit WMR Data"
 msgstr ""
 
-msgid "Data sent to new DataSet. Click Next to see the data imported"
+msgid "Data successfully submitted to the target instance."
 msgstr ""
 
-msgid "Org. Unit: {{orgUnitsNames}} are not assigned to the Country DataSet"
+msgid "Data submitted with warnings."
 msgstr ""
 
-msgid "Send data to new DataSet"
+msgid "Data submission failed."
 msgstr ""
 
-msgid "Select a organisation unit in the previous step"
+msgid "Target Instance "
+msgstr ""
+
+msgid "Please select a target instance to submit the data"
+msgstr ""
+
+msgid "Target Organisation Unit Id"
+msgstr ""
+
+msgid "Please provide a target organisation unit ID and Validate it"
+msgstr ""
+
+msgid "Send DataValues to target instance"
+msgstr ""
+
+msgid "Sync WMR Country Dataset"
 msgstr ""
 
 msgid "Download DataValues"
 msgstr ""
 
-msgid "Metadata package"
+msgid "Failed to synchronize WMR data"
+msgstr ""
+
+msgid "WMR data synchronized successfully."
+msgstr ""
+
+msgid "Please complete the prerequisites before proceeding."
+msgstr ""
+
+msgid "Please select a source data set before proceeding."
+msgstr ""
+
+msgid "Please Sync your server data to the WMR Country Sync form before proceeding."
 msgstr ""
 
 msgid "Map Server data"
 msgstr ""
 
-msgid "Map Org units"
+msgid "Sync & Check Data"
 msgstr ""
 
-msgid "Check Data"
+msgid "Submit Data"
+msgstr ""
+
+msgid ""
+"The Organisation Unit ID is not valid or does not exist in the target "
+"instance."
+msgstr ""
+
+msgid ""
+"There was a problem communicating with the instance. Please review the "
+"Instance settings."
+msgstr ""
+
+msgid "Target Organisation Unit ID (*)"
+msgstr ""
+
+msgid "The ID of the Organisation Unit where the data will be submitted"
+msgstr ""
+
+msgid "Validate Organisation Unit"
+msgstr ""
+
+msgid "Create New Target Instance"
+msgstr ""
+
+msgid "Instance or target organisation unit ID is not provided."
 msgstr ""
 
 msgid "Widget cannot be used until an administrator opens the application"

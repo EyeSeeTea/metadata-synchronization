@@ -15,7 +15,7 @@ export class WmrDataSetD2Repository implements WmrDataSetRepository {
         const response = await this.api.models.dataSets
             .get({
                 filter: { id: { eq: id } },
-                fields: { ...dataSetFields, organisationUnits: { id: true, displayName: true } },
+                fields: { ...dataSetFields, organisationUnits: { id: true, displayName: true, path: true } },
             })
             .getData();
         const dataSet = response.objects[0];
@@ -27,7 +27,7 @@ export class WmrDataSetD2Repository implements WmrDataSetRepository {
                 id: dataElement.id,
                 name: dataElement.displayName,
             })),
-            orgUnits: dataSet.organisationUnits.map(ou => ({ id: ou.id, name: ou.displayName })),
+            orgUnits: dataSet.organisationUnits.map(ou => ({ id: ou.id, name: ou.displayName, path: ou.path })),
         };
     }
 }
