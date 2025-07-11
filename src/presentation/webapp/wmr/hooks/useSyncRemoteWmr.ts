@@ -7,6 +7,7 @@ import { Maybe } from "../../../../types/utils";
 import i18n from "../../../../utils/i18n";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
+import { useMappingDataElements } from "./useMappingDataElements";
 
 type WmrRemoteSyncResult = { stats?: SynchronizationStats } & (
     | {
@@ -32,6 +33,7 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
     const { syncRule } = useWmrContext();
     const loading = useLoading();
     const [wmrRemoteSyncResult, setWmrRemoteSyncResult] = React.useState<WmrRemoteSyncResult | null>(null);
+    const { dataElementsToMigrate } = useMappingDataElements("REMOTE");
 
     React.useEffect(() => {
         if (!syncRule) {
@@ -49,8 +51,9 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
             });
             return;
         }
-        const syncRuleUpdated = syncRule?.rule.updateTargetInstances([instance.id]);
-
+        const syncRuleUpdated = syncRule?.rule.updateTargetInstances([instance.id]).updateBuilder({
+            metadataIds: dataElementsToMigrate,
+        });
         loading.show();
 
         const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
@@ -103,6 +106,7 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
         compositionRoot.sync,
         compositionRoot.wmr,
         compositionRoot.reports,
+        dataElementsToMigrate,
     ]);
 
     return {

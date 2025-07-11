@@ -16,7 +16,7 @@ type WmrLocalSyncResult =
 export function useSyncLocalWmr() {
     const { compositionRoot } = useAppContext();
     const { settings, syncRule } = useWmrContext();
-    const { dataElementsToMigrate } = useMappingDataElements();
+    const { dataElementsToMigrate } = useMappingDataElements("LOCAL");
     const loading = useLoading();
     const { dataSet: countryDataSet } = useGetDataSetOrgUnits({ id: settings?.countryDataSetId || "" });
 

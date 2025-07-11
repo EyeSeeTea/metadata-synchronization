@@ -26,7 +26,7 @@ export function useGetDataSetOrgUnits(props: { id: Id }) {
     return { dataSet };
 }
 
-export function useMappingDataElements() {
+export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
     const { compositionRoot } = useAppContext();
     const [dataElementsToMigrate, setDataElementsToMigrate] = React.useState<Id[]>([]);
     const loading = useLoading();
@@ -45,7 +45,14 @@ export function useMappingDataElements() {
                 success: async instance => {
                     const dataSourceMapping = await compositionRoot.mapping.get({ type: "instance", id: instance.id });
                     const mapping = dataSourceMapping?.mappingDictionary ?? {};
-                    const dataElementsIds = _(mapping.aggregatedDataElements).keys().value();
+                    const dataElementsIds =
+                        dataElementsFrom === "LOCAL"
+                            ? _(mapping.aggregatedDataElements).keys().value()
+                            : _(mapping.aggregatedDataElements)
+                                  .values()
+                                  .map(mapping => mapping.mappedId)
+                                  .compact()
+                                  .value();
                     setDataElementsToMigrate(dataElementsIds);
                     loading.hide();
                 },
@@ -53,7 +60,7 @@ export function useMappingDataElements() {
         }
 
         getInstance();
-    }, [compositionRoot, loading, snackbar]);
+    }, [compositionRoot, dataElementsFrom, loading, snackbar]);
 
     return { dataElementsToMigrate };
 }
