@@ -50,8 +50,8 @@ const variants = [
     {
         type: "app",
         name: "wmr",
-        title: "World Malaria Report",
-        file: "world-malaria-report",
+        title: "WMR Data Submission",
+        file: "wmr-data-submission",
     },
 ] as const;
 
