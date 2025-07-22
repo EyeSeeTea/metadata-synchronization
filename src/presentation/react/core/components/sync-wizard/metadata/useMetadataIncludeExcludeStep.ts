@@ -327,7 +327,7 @@ function getModels(metadata: MetadataPackage<MetadataEntity>, metadataModelsSync
         .map(type => modelFactory(type));
 }
 
-function getObjectsAndReferencesValue(
+export function getObjectsAndReferencesValue(
     includeObjectsAndReferences: boolean,
     includeOnlyReferences: boolean
 ): IncludeObjectsAndReferences {

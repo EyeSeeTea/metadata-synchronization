@@ -241,6 +241,21 @@ export class SynchronizationRule {
     public get syncParams(): MetadataSynchronizationParams {
         const params = this.syncRule.builder?.syncParams ?? {};
         return {
+            ...SynchronizationRule.syncParamsDefaults,
+            ...params,
+        };
+    }
+
+    public get dataParams(): DataSynchronizationParams {
+        return this.syncRule.builder?.dataParams ?? {};
+    }
+
+    public get ondemand(): boolean {
+        return this.syncRule.ondemand ?? false;
+    }
+
+    public static get syncParamsDefaults(): MetadataSynchronizationParams {
+        return {
             enableMapping: false,
             useDefaultIncludeExclude: true,
             metadataModelsSyncAll: [],
@@ -252,16 +267,7 @@ export class SynchronizationRule {
             includeOnlyOrgUnitsReferences: false,
             removeDefaultCategoryObjects: false,
             removeUserNonEssentialObjects: false,
-            ...params,
         };
-    }
-
-    public get dataParams(): DataSynchronizationParams {
-        return this.syncRule.builder?.dataParams ?? {};
-    }
-
-    public get ondemand(): boolean {
-        return this.syncRule.ondemand ?? false;
     }
 
     public static create(type: SynchronizationType = "metadata"): SynchronizationRule {

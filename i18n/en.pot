@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-06-25T11:55:58.705Z\n"
-"PO-Revision-Date: 2025-06-25T11:55:58.705Z\n"
+"POT-Creation-Date: 2025-07-22T16:39:36.154Z\n"
+"PO-Revision-Date: 2025-07-22T16:39:36.154Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1467,10 +1467,16 @@ msgstr ""
 msgid "Exclude relationships"
 msgstr ""
 
+msgid "Configure user dependencies"
+msgstr ""
+
 msgid "Include owner and sharing settings"
 msgstr ""
 
 msgid "Include users"
+msgstr ""
+
+msgid "Configure organisation units dependencies"
 msgstr ""
 
 msgid "Include organisation units"
@@ -1484,13 +1490,10 @@ msgstr ""
 msgid "Remove lastUpdated, lastUpdatedBy, created and createdBys"
 msgstr ""
 
-msgid "Exclude objects and references ->"
+msgid "Exclude dependencies"
 msgstr ""
 
-msgid "Include objects"
-msgstr ""
-
-msgid "Include only references ->"
+msgid "Include dependencies"
 msgstr ""
 
 msgid "Include references and objects"
