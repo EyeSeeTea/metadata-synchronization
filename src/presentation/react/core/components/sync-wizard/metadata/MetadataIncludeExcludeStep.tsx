@@ -49,8 +49,6 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
         orgUnitsObjectsAndReferencesValue,
         removeDefaultCategoryObjects,
         changeRemoveDefaultCategoryObjects,
-        removeUserNonEssentialObjects,
-        changeRemoveNonEssentialUserObjects,
     } = useMetadataIncludeExcludeStep(syncRule, onChange);
 
     useEffect(() => {
@@ -139,15 +137,6 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
                 </div>
             )}
 
-            {syncRule.type === "metadata" && (
-                <div>
-                    <Toggle
-                        label={i18n.t("Remove lastUpdated, lastUpdatedBy, created and createdBys")}
-                        onValueChange={changeRemoveNonEssentialUserObjects}
-                        value={removeUserNonEssentialObjects || false}
-                    />
-                </div>
-            )}
             <Toggle
                 label={i18n.t("Use default dependencies")}
                 value={useDefaultIncludeExclude}

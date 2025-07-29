@@ -248,28 +248,12 @@ export function useMetadataIncludeExcludeStep(
         return syncParams.removeDefaultCategoryObjects;
     }, [syncParams.removeDefaultCategoryObjects]);
 
-    const removeUserNonEssentialObjects = useMemo(() => {
-        return syncParams.removeUserNonEssentialObjects;
-    }, [syncParams.removeUserNonEssentialObjects]);
-
     const changeRemoveDefaultCategoryObjects = useCallback(
         (removeDefaultCategoryObjects: boolean) => {
             onChange(
                 syncRule.updateSyncParams({
                     ...syncParams,
                     removeDefaultCategoryObjects,
-                })
-            );
-        },
-        [syncParams, onChange, syncRule]
-    );
-
-    const changeRemoveNonEssentialUserObjects = useCallback(
-        (removeUserNonEssentialObjects: boolean) => {
-            onChange(
-                syncRule.updateSyncParams({
-                    ...syncParams,
-                    removeUserNonEssentialObjects,
                 })
             );
         },
@@ -298,9 +282,7 @@ export function useMetadataIncludeExcludeStep(
         usersObjectsAndReferencesValue,
         orgUnitsObjectsAndReferencesValue,
         removeDefaultCategoryObjects,
-        removeUserNonEssentialObjects,
         changeRemoveDefaultCategoryObjects,
-        changeRemoveNonEssentialUserObjects,
     };
 }
 
