@@ -10,15 +10,16 @@ import { promiseMap } from "../../../utils/common";
 import { defaultName, modelFactory } from "../../../models/dhis/factory";
 import { cache } from "../../../utils/cache";
 import { ExportBuilder } from "../../../types/synchronization";
-import { D2Api, Id } from "../../../types/d2-api";
+import { D2Api } from "../../../types/d2-api";
 import { getD2APiFromInstance } from "../../../utils/d2-utils";
 import _ from "lodash";
 import { NestedRules } from "../entities/MetadataExcludeIncludeRules";
 import { buildNestedRules, cleanObject, cleanReferences, getAllReferences } from "../utils";
+import { BuilderRegistry } from "./BuilderRegistry";
 
 export class MetadataPayloadBuilder {
     private api: D2Api;
-    private idsAlreadyRequested = new Set<Id>();
+    private registry = new BuilderRegistry();
 
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {
         this.api = getD2APiFromInstance(localInstance);
@@ -138,7 +139,7 @@ export class MetadataPayloadBuilder {
             ...rest,
         };
 
-        this.idsAlreadyRequested.clear();
+        this.registry.clear();
 
         debug("Metadata package", finalMetadataPackage);
         return finalMetadataPackage;
@@ -182,7 +183,7 @@ export class MetadataPayloadBuilder {
                 removeUserNonEssentialObjects,
             } = builder;
 
-            const newIds = ids.filter(id => !this.idsAlreadyRequested.has(id));
+            const newIds = this.registry.filterNotRequested(builder, ids);
 
             if (newIds.length === 0) {
                 return {};
@@ -204,7 +205,7 @@ export class MetadataPayloadBuilder {
             const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
             const syncMetadata = await metadataRepository.getMetadataByIds(newIds);
             const elements = syncMetadata[collectionName] || [];
-            newIds.forEach(id => this.idsAlreadyRequested.add(id));
+            this.registry.addList(builder, newIds);
 
             for (const element of elements) {
                 //ProgramRules is not included in programs items in the response by the dhis2 API
