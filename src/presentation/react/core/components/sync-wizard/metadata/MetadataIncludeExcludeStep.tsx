@@ -41,9 +41,7 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
         includeRuleOptions,
         includeReferencesAndObjectsRules,
         includeObjectsAndReferencesOptions,
-        changeSharingSettingsObjectsAndReferences,
-        changeUsersObjectsAndReferences,
-        changeOrgUnitsObjectsAndReferences,
+        changeObjectsAndReferences,
         sharingSettingsObjectsAndReferencesValue,
         usersObjectsAndReferencesValue,
         orgUnitsObjectsAndReferencesValue,
@@ -66,9 +64,7 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
         sharingSettingsObjectsAndReferencesValue,
         usersObjectsAndReferencesValue,
         orgUnitsObjectsAndReferencesValue,
-        changeSharingSettingsObjectsAndReferences,
-        changeUsersObjectsAndReferences,
-        changeOrgUnitsObjectsAndReferences,
+        changeObjectsAndReferences,
     });
 
     console.debug("Rendering MetadataIncludeExcludeStep");
@@ -89,7 +85,7 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
                                 items={includeObjectsAndReferencesOptions}
                                 label={i18n.t("Include owner and sharing settings")}
                                 style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
-                                onValueChange={changeSharingSettingsObjectsAndReferences}
+                                onValueChange={value => changeObjectsAndReferences({ sharingSettings: value })}
                                 hideEmpty
                             />
                         </DropdownContainer>
@@ -99,7 +95,7 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
                                 items={includeObjectsAndReferencesOptions}
                                 label={i18n.t("Include users")}
                                 style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
-                                onValueChange={changeUsersObjectsAndReferences}
+                                onValueChange={value => changeObjectsAndReferences({ users: value })}
                                 hideEmpty
                             />
                         </DropdownContainer>
@@ -119,7 +115,7 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
                             items={includeObjectsAndReferencesOptions}
                             label={i18n.t("Include organisation units")}
                             style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
-                            onValueChange={changeOrgUnitsObjectsAndReferences}
+                            onValueChange={value => changeObjectsAndReferences({ orgUnits: value })}
                             hideEmpty
                         />
                     </DropdownContainer>

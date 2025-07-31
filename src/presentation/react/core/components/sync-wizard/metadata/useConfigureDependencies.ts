@@ -1,6 +1,10 @@
 import React from "react";
 import { SynchronizationRule } from "../../../../../../domain/rules/entities/SynchronizationRule";
-import { getObjectsAndReferencesValue, IncludeObjectsAndReferences } from "./useMetadataIncludeExcludeStep";
+import {
+    getObjectsAndReferencesValue,
+    IncludeObjectsAndReferenceOptions,
+    IncludeObjectsAndReferences,
+} from "./useMetadataIncludeExcludeStep";
 
 const includeObjectsAndReferencesDefaults = {
     sharingSettingsObjectsAndReferencesValue: getObjectsAndReferencesValue(
@@ -32,9 +36,7 @@ interface UseConfigureDependenciesParams {
     sharingSettingsObjectsAndReferencesValue: IncludeObjectsAndReferences;
     usersObjectsAndReferencesValue: IncludeObjectsAndReferences;
     orgUnitsObjectsAndReferencesValue: IncludeObjectsAndReferences;
-    changeSharingSettingsObjectsAndReferences: (value: IncludeObjectsAndReferences) => void;
-    changeUsersObjectsAndReferences: (value: IncludeObjectsAndReferences) => void;
-    changeOrgUnitsObjectsAndReferences: (value: IncludeObjectsAndReferences) => void;
+    changeObjectsAndReferences: (updates: IncludeObjectsAndReferenceOptions) => void;
 }
 
 export function useConfigureDependencies(params: UseConfigureDependenciesParams) {
@@ -42,9 +44,7 @@ export function useConfigureDependencies(params: UseConfigureDependenciesParams)
         sharingSettingsObjectsAndReferencesValue,
         usersObjectsAndReferencesValue,
         orgUnitsObjectsAndReferencesValue,
-        changeSharingSettingsObjectsAndReferences,
-        changeUsersObjectsAndReferences,
-        changeOrgUnitsObjectsAndReferences,
+        changeObjectsAndReferences,
     } = params;
 
     const [configureUserDependencies, setConfigureUserDependencies] = React.useState(
@@ -64,25 +64,25 @@ export function useConfigureDependencies(params: UseConfigureDependenciesParams)
         (value: boolean) => {
             setConfigureUserDependencies(value);
             if (!value) {
-                changeSharingSettingsObjectsAndReferences(
-                    includeObjectsAndReferencesDefaults.sharingSettingsObjectsAndReferencesValue
-                );
-                changeUsersObjectsAndReferences(includeObjectsAndReferencesDefaults.usersObjectsAndReferencesValue);
+                changeObjectsAndReferences({
+                    sharingSettings: includeObjectsAndReferencesDefaults.sharingSettingsObjectsAndReferencesValue,
+                    users: includeObjectsAndReferencesDefaults.usersObjectsAndReferencesValue,
+                });
             }
         },
-        [changeSharingSettingsObjectsAndReferences, changeUsersObjectsAndReferences]
+        [changeObjectsAndReferences]
     );
 
     const onChangeConfigureOrgUnitsDependencies = React.useCallback(
         (value: boolean) => {
             setConfigureOrgUnitsDependencies(value);
             if (!value) {
-                changeOrgUnitsObjectsAndReferences(
-                    includeObjectsAndReferencesDefaults.orgUnitsObjectsAndReferencesValue
-                );
+                changeObjectsAndReferences({
+                    orgUnits: includeObjectsAndReferencesDefaults.orgUnitsObjectsAndReferencesValue,
+                });
             }
         },
-        [changeOrgUnitsObjectsAndReferences]
+        [changeObjectsAndReferences]
     );
 
     return {
