@@ -7,7 +7,7 @@ import { promiseMap } from "../../../utils/common";
 import { getD2APiFromInstance } from "../../../utils/d2-utils";
 import { debug } from "../../../utils/debug";
 import { AggregatedSyncUseCase } from "../../aggregated/usecases/AggregatedSyncUseCase";
-import { RepositoryFactory } from "../../common/factories/RepositoryFactory";
+import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
 import { EventsSyncUseCase } from "../../events/usecases/EventsSyncUseCase";
 import { Instance } from "../../instance/entities/Instance";
@@ -38,13 +38,13 @@ export abstract class GenericSyncUseCase {
 
     constructor(
         protected readonly builder: SynchronizationBuilder,
-        protected readonly repositoryFactory: RepositoryFactory,
+        protected readonly repositoryFactory: DynamicRepositoryFactory,
         protected readonly localInstance: Instance
     ) {
         this.api = getD2APiFromInstance(localInstance);
     }
 
-    public abstract buildPayload(): Promise<SynchronizationPayload>;
+    protected abstract buildPayload(): Promise<SynchronizationPayload>;
     public abstract mapPayload(instance: Instance, payload: SynchronizationPayload): Promise<SynchronizationPayload>;
 
     // We start to use domain concepts:
@@ -68,11 +68,6 @@ export abstract class GenericSyncUseCase {
     }
 
     @cache()
-    protected getTransformationRepository() {
-        return this.repositoryFactory.transformationRepository();
-    }
-
-    @cache()
     protected async getMetadataRepository(remoteInstance?: Instance) {
         const defaultInstance = await this.getOriginInstance();
         return this.repositoryFactory.metadataRepository(remoteInstance ?? defaultInstance);
@@ -91,27 +86,9 @@ export abstract class GenericSyncUseCase {
     }
 
     @cache()
-    protected async getEventsRepository(remoteInstance?: Instance) {
-        const defaultInstance = await this.getOriginInstance();
-        return this.repositoryFactory.eventsRepository(remoteInstance ?? defaultInstance);
-    }
-
-    @cache()
     protected async getDataStoreMetadataRepository(remoteInstance?: Instance) {
         const defaultInstance = await this.getOriginInstance();
         return this.repositoryFactory.dataStoreMetadataRepository(remoteInstance ?? defaultInstance);
-    }
-
-    @cache()
-    protected async getTeisRepository(remoteInstance?: Instance) {
-        const defaultInstance = await this.getOriginInstance();
-        return this.repositoryFactory.teisRepository(remoteInstance ?? defaultInstance);
-    }
-
-    @cache()
-    protected async getMappingRepository(remoteInstance?: Instance) {
-        const defaultInstance = await this.getOriginInstance();
-        return this.repositoryFactory.mappingRepository(remoteInstance ?? defaultInstance);
     }
 
     @cache()
@@ -157,6 +134,12 @@ export abstract class GenericSyncUseCase {
         };
 
         return transformMapping(remoteDsMapping?.mappingDictionary ?? {});
+    }
+
+    @cache()
+    private async getMappingRepository(remoteInstance?: Instance) {
+        const defaultInstance = await this.getOriginInstance();
+        return this.repositoryFactory.mappingRepository(remoteInstance ?? defaultInstance);
     }
 
     private async buildSyncReport() {
