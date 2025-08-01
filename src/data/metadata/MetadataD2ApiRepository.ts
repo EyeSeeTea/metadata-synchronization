@@ -87,7 +87,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             );
 
             const dataStoresMetadata = await this.getDataStoresMetadata(ids);
-            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as T;
+            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as MetadataPackage<T>;
 
             return responseWithDataStores;
         } else {
@@ -101,7 +101,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                 metadataPackage.dataStores = await d2ApiDataStore.getDataStores({ namespaces: ids });
             }
             const dataStoresMetadata = await this.getDataStoresMetadata(ids);
-            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as T;
+            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as MetadataPackage<T>;
 
             return responseWithDataStores;
         }

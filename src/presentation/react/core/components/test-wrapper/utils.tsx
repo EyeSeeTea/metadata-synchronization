@@ -13,7 +13,7 @@ export function recursiveMap(children: React.ReactNode, fn: Function, parentId?:
         }
 
         const clone = child.props.children
-            ? React.cloneElement(child, {
+            ? React.cloneElement(child as React.ReactElement<any>, {
                   children: recursiveMap(child.props.children, fn, id),
               })
             : child;
