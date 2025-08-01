@@ -85,6 +85,7 @@
         "@babel/preset-typescript": "7.15.0",
         "@dhis2/d2-i18n-extract": "1.0.8",
         "@dhis2/d2-i18n-generate": "1.2.0",
+        "@eslint-community/eslint-utils": "^4.7.0",
         "@types/btoa": "1.2.3",
         "@types/cryptr": "4.0.1",
         "@types/file-saver": "2.0.3",

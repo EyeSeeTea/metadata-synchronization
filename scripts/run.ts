@@ -136,7 +136,7 @@ function build(args: BuildArgs): void {
         const fileName = `${variant.file}.zip`;
         const manifestType = variant.type === "widget" ? "DASHBOARD_WIDGET" : "APP";
 
-        run(`react-scripts build && cp -r i18n icon.png build`);
+        run(`react-scripts --openssl-legacy-provider build && cp -r i18n icon.png build`);
         run(`d2-manifest package.json build/manifest.webapp -t ${manifestType} -n '${variant.title}'`);
         if (variant.file === "metadata-synchronization") {
             updateManifestJsonFile(`build/manifest.json`, variant.title);
@@ -188,7 +188,7 @@ function startServer(args: StartServerArgs): void {
     });
 
     run("yarn localize && d2-manifest package.json manifest.webapp");
-    run("react-scripts start");
+    run("react-scripts --openssl-legacy-provider start");
 }
 
 main();
