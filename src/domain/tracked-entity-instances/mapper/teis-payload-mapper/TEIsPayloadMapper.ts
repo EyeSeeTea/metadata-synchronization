@@ -17,7 +17,7 @@ export class TEIsPayloadMapper implements PayloadMapper {
     map(payload: SynchronizationPayload): Promise<SynchronizationPayload> {
         const teiPackage = payload as TEIsPackage;
 
-        const teis = teiPackage.trackedEntityInstances.map(tei => {
+        const teis = teiPackage.trackedEntities.map(tei => {
             const {
                 relationshipTypes = {},
                 organisationUnits = {},
@@ -31,13 +31,13 @@ export class TEIsPayloadMapper implements PayloadMapper {
                 ...tei,
                 orgUnit: cleanOrgUnitPath(mappedOrgUnit),
                 programOwners: tei.programOwners.map(owner => {
-                    const mappedOrgUnit = organisationUnits[owner.ownerOrgUnit]?.mappedId ?? owner.ownerOrgUnit;
+                    const mappedOrgUnit = organisationUnits[owner.orgUnit]?.mappedId ?? owner.orgUnit;
 
                     const mappedProgram = trackerPrograms[owner.program]?.mappedId ?? owner.program;
 
                     return {
                         ...owner,
-                        ownerOrgUnit: cleanOrgUnitPath(mappedOrgUnit),
+                        orgUnit: cleanOrgUnitPath(mappedOrgUnit),
                         program: mappedProgram,
                     };
                 }),
@@ -80,9 +80,9 @@ export class TEIsPayloadMapper implements PayloadMapper {
 
         const TeisWithoutDisabled = this.removeDisabledItems(TeisWithoutDuplicates);
 
-        const trackedEntityInstances = this.removeMappedEventProgramReferences(TeisWithoutDisabled);
+        const trackedEntities = this.removeMappedEventProgramReferences(TeisWithoutDisabled);
 
-        return Promise.resolve({ trackedEntityInstances });
+        return Promise.resolve({ trackedEntities });
     }
 
     private removeDisabledItems(teis: TrackedEntityInstance[]): TrackedEntityInstance[] {
@@ -164,7 +164,7 @@ export class TEIsPayloadMapper implements PayloadMapper {
     }
 
     private isDisabledProgramOwner(item: ProgramOwner): boolean {
-        return item.ownerOrgUnit === "DISABLED" || item.program === "DISABLED";
+        return item.orgUnit === "DISABLED" || item.program === "DISABLED";
     }
 
     private isDisabledEnrollment(item: Enrollment): boolean {

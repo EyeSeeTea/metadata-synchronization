@@ -1,20 +1,14 @@
 import { Request, Server } from "miragejs";
 import { AnyRegistry } from "miragejs/-types";
 import Schema from "miragejs/orm/schema";
-import { Repositories, RepositoryFactory } from "../../../../domain/common/factories/RepositoryFactory";
+import { DynamicRepositoryFactory } from "../../../../domain/common/factories/DynamicRepositoryFactory";
 import { EventsSyncUseCase } from "../../../../domain/events/usecases/EventsSyncUseCase";
 import { Instance } from "../../../../domain/instance/entities/Instance";
 import { SynchronizationBuilder } from "../../../../domain/synchronization/entities/SynchronizationBuilder";
 import { startDhis } from "../../../../utils/dhisServer";
-import { AggregatedD2ApiRepository } from "../../../aggregated/AggregatedD2ApiRepository";
-import { ConfigAppRepository } from "../../../config/ConfigAppRepository";
-import { EventsD2ApiRepository } from "../../../events/EventsD2ApiRepository";
-import { TEID2ApiRepository } from "../../../tracked-entity-instances/TEID2ApiRepository";
-import { InstanceD2ApiRepository } from "../../../instance/InstanceD2ApiRepository";
-import { TransformationD2ApiRepository } from "../../../transformations/TransformationD2ApiRepository";
-import { MetadataD2ApiRepository } from "../../MetadataD2ApiRepository";
-import { MappingD2ApiRepository } from "../../../mapping/MappingD2ApiRepository";
-import { InstanceFileD2Repository } from "../../../instance/InstanceFileD2Repository";
+import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
+import { EventsPayloadBuilder } from "../../../../domain/events/builders/EventsPayloadBuilder";
+import { AggregatedPayloadBuilder } from "../../../../domain/aggregated/builders/AggregatedPayloadBuilder";
 
 const repositoryFactory = buildRepositoryFactory();
 
@@ -98,29 +92,32 @@ describe("Sync events", () => {
         local.get("/dataValueSets", async () => ({ dataValues: [] }));
         remote.get("/dataValueSets", async () => ({ dataValues: [] }));
 
-        local.get("/events", async () => ({
-            pager: { page: 1, pageCount: 1, pageSize: 1, total: 1 },
-            events: [
+        local.get("/tracker/events", async () => ({
+            page: 1,
+            pageCount: 1,
+            pageSize: 1,
+            total: 1,
+            instances: [
                 {
                     storedBy: "widp.admin",
-                    dueDate: "2020-04-11T00:00:02.846",
+                    scheduledAt: "2020-04-11T00:00:02.846",
                     program: "program1",
                     event: "test-event-1",
                     programStage: "EGA9fqLFtxM",
                     orgUnit: "Global",
                     status: "ACTIVE",
                     orgUnitName: "Global",
-                    eventDate: "2020-04-11T00:00:00.000",
+                    occurredAt: "2020-04-11T00:00:00.000",
                     attributeCategoryOptions: "Y7fcspgsU43",
-                    lastUpdated: "2020-06-09T07:06:35.514",
-                    created: "2020-06-09T07:06:35.513",
+                    updatedAt: "2020-06-09T07:06:35.514",
+                    createdAt: "2020-06-09T07:06:35.513",
                     deleted: false,
                     attributeOptionCombo: "Xr12mI7VPn3",
                     dataValues: [
                         {
-                            lastUpdated: "2020-06-09T07:06:35.515",
+                            updatedAt: "2020-06-09T07:06:35.515",
                             storedBy: "widp.admin",
-                            created: "2020-06-09T07:06:35.515",
+                            createdAt: "2020-06-09T07:06:35.515",
                             dataElement: "id1",
                             value: "true",
                             providedElsewhere: false,
@@ -131,29 +128,32 @@ describe("Sync events", () => {
             ],
         }));
 
-        remote.get("/events", async () => ({
-            pager: { page: 1, pageCount: 1, pageSize: 1, total: 1 },
-            events: [
+        remote.get("/tracker/events", async () => ({
+            page: 1,
+            pageCount: 1,
+            pageSize: 1,
+            total: 1,
+            instances: [
                 {
                     storedBy: "widp.admin",
-                    dueDate: "2020-04-11T00:00:02.846",
+                    scheduledAt: "2020-04-11T00:00:02.846",
                     program: "program1",
                     event: "test-event-2",
                     programStage: "EGA9fqLFtxM",
                     orgUnit: "Global",
                     status: "ACTIVE",
                     orgUnitName: "Global",
-                    eventDate: "2020-04-11T00:00:00.000",
+                    occurredAt: "2020-04-11T00:00:00.000",
                     attributeCategoryOptions: "Y7fcspgsU43",
-                    lastUpdated: "2020-06-09T07:06:35.514",
-                    created: "2020-06-09T07:06:35.513",
+                    updatedAt: "2020-06-09T07:06:35.514",
+                    createdAt: "2020-06-09T07:06:35.513",
                     deleted: false,
                     attributeOptionCombo: "Xr12mI7VPn3",
                     dataValues: [
                         {
-                            lastUpdated: "2020-06-09T07:06:35.515",
+                            updatedAt: "2020-06-09T07:06:35.515",
                             storedBy: "widp.admin",
-                            created: "2020-06-09T07:06:35.515",
+                            createdAt: "2020-06-09T07:06:35.515",
                             dataElement: "id1",
                             value: "true",
                             providedElsewhere: false,
@@ -262,28 +262,51 @@ describe("Sync events", () => {
         // }));
 
         const addEventsToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
-            schema.db.events.insert(JSON.parse(request.requestBody));
+            const body = JSON.parse(request.requestBody);
+            schema.db.events.insert(body);
 
             return {
-                responseType: "ImportSummary",
-                status: "WARNING",
-                description: "Import process completed successfully",
-                importCount: { imported: 0, updated: 0, ignored: 477, deleted: 0 },
-                conflicts: [
-                    {
-                        object: "id1",
-                        value: "Data element not found or not accessible",
+                status: "OK",
+                validationReport: {
+                    errorReports: [],
+                    warningReports: [],
+                },
+                stats: {
+                    created: 1,
+                    updated: 0,
+                    deleted: 0,
+                    ignored: 0,
+                    total: 1,
+                },
+                bundleReport: {
+                    typeReportMap: {
+                        EVENT: {
+                            trackerType: "EVENT",
+                            stats: {
+                                created: 1,
+                                updated: 0,
+                                deleted: 0,
+                                ignored: 0,
+                                total: 1,
+                            },
+                            objectReports: [
+                                {
+                                    trackerType: "EVENT",
+                                    uid: body.events[0].event,
+                                    errorReports: [],
+                                },
+                            ],
+                        },
                     },
-                ],
-                dataSetComplete: "false",
+                },
             };
         };
 
         local.db.createCollection("events", []);
-        local.post("/events", addEventsToDb);
+        local.post("/tracker", addEventsToDb);
 
         remote.db.createCollection("events", []);
-        remote.post("/events", addEventsToDb);
+        remote.post("/tracker", addEventsToDb);
     });
 
     afterEach(() => {
@@ -309,9 +332,19 @@ describe("Sync events", () => {
             },
         };
 
-        const sync = new EventsSyncUseCase(builder, repositoryFactory, localInstance);
+        const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
+        const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
 
-        const payload = await sync.buildPayload();
+        const sync = new EventsSyncUseCase(
+            builder,
+            repositoryFactory,
+            localInstance,
+            eventsPayloadBuilder,
+            aggregatedPayloadBuilder
+        );
+
+        const payload = await eventsPayloadBuilder.build(builder);
+
         expect(payload.events?.find(({ id }) => id === "test-event-1")).toBeDefined();
 
         for await (const _sync of sync.execute()) {
@@ -340,10 +373,19 @@ describe("Sync events", () => {
                 orgUnitPaths: ["/Global"],
             },
         };
+        const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
+        const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
 
-        const sync = new EventsSyncUseCase(builder, repositoryFactory, localInstance);
+        const sync = new EventsSyncUseCase(
+            builder,
+            repositoryFactory,
+            localInstance,
+            eventsPayloadBuilder,
+            aggregatedPayloadBuilder
+        );
 
-        const payload = await sync.buildPayload();
+        const payload = await eventsPayloadBuilder.build(builder);
+
         expect(payload.events?.find(({ id }) => id === "test-event-2")).toBeDefined();
 
         for await (const _sync of sync.execute()) {
@@ -357,16 +399,10 @@ describe("Sync events", () => {
 });
 
 function buildRepositoryFactory() {
-    const repositoryFactory: RepositoryFactory = new RepositoryFactory("");
-    repositoryFactory.bind(Repositories.InstanceRepository, InstanceD2ApiRepository);
-    repositoryFactory.bind(Repositories.ConfigRepository, ConfigAppRepository);
-    repositoryFactory.bind(Repositories.MetadataRepository, MetadataD2ApiRepository);
-    repositoryFactory.bind(Repositories.AggregatedRepository, AggregatedD2ApiRepository);
-    repositoryFactory.bind(Repositories.EventsRepository, EventsD2ApiRepository);
-    repositoryFactory.bind(Repositories.TEIsRepository, TEID2ApiRepository);
-    repositoryFactory.bind(Repositories.TransformationRepository, TransformationD2ApiRepository);
-    repositoryFactory.bind(Repositories.MappingRepository, MappingD2ApiRepository);
-    repositoryFactory.bind(Repositories.InstanceFileRepository, InstanceFileD2Repository);
+    const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();
+
+    registerDynamicRepositoriesInFactory(repositoryFactory);
+
     return repositoryFactory;
 }
 

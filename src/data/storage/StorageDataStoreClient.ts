@@ -5,21 +5,32 @@ import { D2Api, DataStore, DataStoreKeyMetadata } from "../../types/d2-api";
 import { Dictionary } from "../../types/utils";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
+import { DataStorageType } from "../../domain/storage-client-config/entities/StorageConfig";
+import { Future, FutureData } from "../../domain/common/entities/Future";
+import { apiToFuture } from "../common/utils/api-futures";
 
 export const dataStoreNamespace = "metadata-synchronization";
 
+type StorageOptions = {
+    storageType: DataStorageType;
+};
 export class StorageDataStoreClient extends StorageClient {
     public type = "dataStore" as const;
 
     private api: D2Api;
     private dataStore: DataStore;
 
-    constructor(instance: Instance, namespace: string = dataStoreNamespace) {
+    constructor(instance: Instance, namespace: string = dataStoreNamespace, options?: StorageOptions) {
         super();
         this.api = getD2APiFromInstance(instance);
-        this.dataStore = this.api.dataStore(namespace);
+        this.dataStore =
+            options?.storageType === "user" ? this.api.userDataStore(namespace) : this.api.dataStore(namespace);
     }
 
+    /**
+     * @deprecated - We are moving from Promises to Futures, this method will be removed in future refactors.
+     * use getObjectFuture instead
+     */
     public async getObject<T extends object>(key: string): Promise<T | undefined> {
         try {
             const value = await this.dataStore.get<T>(key).getData();
@@ -30,14 +41,31 @@ export class StorageDataStoreClient extends StorageClient {
         }
     }
 
+    public getObjectFuture<T extends object>(key: string): FutureData<T | undefined> {
+        return Future.fromPromise(this.dataStore.get<T>(key).getData())
+            .map(value => value)
+            .mapError(error => {
+                console.error(error);
+                return error;
+            });
+    }
+
     public async getOrCreateObject<T extends object>(key: string, defaultValue: T): Promise<T> {
         const value = await this.getObject<T>(key);
         if (!value) await this.saveObject(key, defaultValue);
         return value ?? defaultValue;
     }
 
+    /**
+     * @deprecated - We are moving from Promises to Futures, this method will be removed in future refactors.
+     * use saveObjectFuture instead
+     */
     public async saveObject<T extends object>(key: string, value: T): Promise<void> {
         await this.dataStore.save(key, value).getData();
+    }
+
+    public saveObjectFuture<T extends object>(key: string, value: T): FutureData<void> {
+        return apiToFuture(this.dataStore.save(key, value));
     }
 
     public async removeObject(key: string): Promise<void> {
