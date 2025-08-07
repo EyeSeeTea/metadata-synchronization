@@ -7,6 +7,7 @@ import { Toggle } from "../../toggle/Toggle";
 import { SyncWizardStepProps } from "../Steps";
 import { styled } from "styled-components";
 import { IncludeObjectsAndReferences, useMetadataIncludeExcludeStep } from "./useMetadataIncludeExcludeStep";
+import { useConfigureDependencies } from "./useConfigureDependencies";
 
 const useStyles = makeStyles({
     includeExcludeContainer: {
@@ -40,16 +41,12 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
         includeRuleOptions,
         includeReferencesAndObjectsRules,
         includeObjectsAndReferencesOptions,
-        changeSharingSettingsObjectsAndReferences,
-        changeUsersObjectsAndReferences,
-        changeOrgUnitsObjectsAndReferences,
+        changeObjectsAndReferences,
         sharingSettingsObjectsAndReferencesValue,
         usersObjectsAndReferencesValue,
         orgUnitsObjectsAndReferencesValue,
         removeDefaultCategoryObjects,
         changeRemoveDefaultCategoryObjects,
-        removeUserNonEssentialObjects,
-        changeRemoveNonEssentialUserObjects,
     } = useMetadataIncludeExcludeStep(syncRule, onChange);
 
     useEffect(() => {
@@ -58,66 +55,84 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
         }
     }, [error, snackbar]);
 
+    const {
+        configureUserDependencies,
+        onChangeConfigureUserDependencies,
+        configureOrgUnitsDependencies,
+        onChangeConfigureOrgUnitsDependencies,
+    } = useConfigureDependencies({
+        sharingSettingsObjectsAndReferencesValue,
+        usersObjectsAndReferencesValue,
+        orgUnitsObjectsAndReferencesValue,
+        changeObjectsAndReferences,
+    });
+
     console.debug("Rendering MetadataIncludeExcludeStep");
 
     return modelSelectItems.length > 0 ? (
         <React.Fragment>
             <div>
-                <DropdownContainer>
-                    <Dropdown<IncludeObjectsAndReferences>
-                        value={sharingSettingsObjectsAndReferencesValue}
-                        items={includeObjectsAndReferencesOptions}
-                        label={i18n.t("Include owner and sharing settings")}
-                        style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
-                        onValueChange={changeSharingSettingsObjectsAndReferences}
-                        hideEmpty
-                    />
-                </DropdownContainer>
-
-                <DropdownContainer>
-                    <Dropdown<IncludeObjectsAndReferences>
-                        value={usersObjectsAndReferencesValue}
-                        items={includeObjectsAndReferencesOptions}
-                        label={i18n.t("Include users")}
-                        style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
-                        onValueChange={changeUsersObjectsAndReferences}
-                        hideEmpty
-                    />
-                </DropdownContainer>
-
-                <DropdownContainer>
-                    <Dropdown<IncludeObjectsAndReferences>
-                        value={orgUnitsObjectsAndReferencesValue}
-                        items={includeObjectsAndReferencesOptions}
-                        label={i18n.t("Include organisation units")}
-                        style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
-                        onValueChange={changeOrgUnitsObjectsAndReferences}
-                        hideEmpty
-                    />
-                </DropdownContainer>
-
-                {syncRule.type === "metadata" && (
-                    <div>
-                        <Toggle
-                            label={i18n.t(
-                                "Remove default categories, categoryOptions, categoryCombos and categoryOptionCombos"
-                            )}
-                            onValueChange={changeRemoveDefaultCategoryObjects}
-                            value={removeDefaultCategoryObjects || false}
-                        />
-                    </div>
-                )}
-
-                {syncRule.type === "metadata" && (
-                    <div>
-                        <Toggle
-                            label={i18n.t("Remove lastUpdated, lastUpdatedBy, created and createdBys")}
-                            onValueChange={changeRemoveNonEssentialUserObjects}
-                            value={removeUserNonEssentialObjects || false}
-                        />
-                    </div>
+                <Toggle
+                    label={i18n.t("Configure user dependencies")}
+                    onValueChange={onChangeConfigureUserDependencies}
+                    value={configureUserDependencies}
+                />
+                {configureUserDependencies && (
+                    <React.Fragment>
+                        <DropdownContainer>
+                            <Dropdown<IncludeObjectsAndReferences>
+                                value={sharingSettingsObjectsAndReferencesValue}
+                                items={includeObjectsAndReferencesOptions}
+                                label={i18n.t("Include owner and sharing settings")}
+                                style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
+                                onValueChange={value => changeObjectsAndReferences({ sharingSettings: value })}
+                                hideEmpty
+                            />
+                        </DropdownContainer>
+                        <DropdownContainer>
+                            <Dropdown<IncludeObjectsAndReferences>
+                                value={usersObjectsAndReferencesValue}
+                                items={includeObjectsAndReferencesOptions}
+                                label={i18n.t("Include users")}
+                                style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
+                                onValueChange={value => changeObjectsAndReferences({ users: value })}
+                                hideEmpty
+                            />
+                        </DropdownContainer>
+                    </React.Fragment>
                 )}
             </div>
+            <div>
+                <Toggle
+                    label={i18n.t("Configure organisation units dependencies")}
+                    onValueChange={onChangeConfigureOrgUnitsDependencies}
+                    value={configureOrgUnitsDependencies}
+                />
+                {configureOrgUnitsDependencies && (
+                    <DropdownContainer>
+                        <Dropdown<IncludeObjectsAndReferences>
+                            value={orgUnitsObjectsAndReferencesValue}
+                            items={includeObjectsAndReferencesOptions}
+                            label={i18n.t("Include organisation units")}
+                            style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
+                            onValueChange={value => changeObjectsAndReferences({ orgUnits: value })}
+                            hideEmpty
+                        />
+                    </DropdownContainer>
+                )}
+            </div>
+            {syncRule.type === "metadata" && (
+                <div>
+                    <Toggle
+                        label={i18n.t(
+                            "Remove default categories, categoryOptions, categoryCombos and categoryOptionCombos"
+                        )}
+                        onValueChange={changeRemoveDefaultCategoryObjects}
+                        value={removeDefaultCategoryObjects || false}
+                    />
+                </div>
+            )}
+
             <Toggle
                 label={i18n.t("Use default dependencies")}
                 value={useDefaultIncludeExclude}
@@ -136,10 +151,10 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
                     {selectedType && (
                         <>
                             <div className={classes.multiselectorContainer}>
-                                <Row>
-                                    <Typography>{i18n.t("Exclude objects and references ->")}</Typography>
-                                    <Typography>{i18n.t("Include objects")}</Typography>
-                                </Row>
+                                <MultiSelectorTitle
+                                    left={i18n.t("Exclude dependencies")}
+                                    right={i18n.t("Include dependencies")}
+                                />
                                 <MultiSelector
                                     d2={d2}
                                     height={300}
@@ -149,10 +164,10 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
                                 />
                             </div>
                             <div className={classes.multiselectorContainer}>
-                                <Row>
-                                    <Typography>{i18n.t("Include only references ->")}</Typography>
-                                    <Typography>{i18n.t("Include references and objects")}</Typography>
-                                </Row>
+                                <MultiSelectorTitle
+                                    left={i18n.t("Include only references")}
+                                    right={i18n.t("Include references and objects")}
+                                />
                                 <MultiSelector
                                     d2={d2}
                                     height={300}
@@ -175,10 +190,21 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
 
 export default React.memo(MetadataIncludeExcludeStep);
 
-const Row = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+/**
+ * Display a title above each select box in the MultiSelector.
+ * @todo `@eyeseetea/d2-ui-components/Multiselector` should implement this
+ */
+const MultiSelectorTitle: React.FC<{ left: string; right: string }> = ({ left, right }) => (
+    <MultiSelectorTitleContainer>
+        <Typography>{left}</Typography>
+        <div />
+        <Typography>{right}</Typography>
+    </MultiSelectorTitleContainer>
+);
+
+const MultiSelectorTitleContainer = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 120px 1fr 2.5rem;
 `;
 
 const LoadingContainer = styled.div`

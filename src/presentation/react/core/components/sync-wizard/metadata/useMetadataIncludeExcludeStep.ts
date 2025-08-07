@@ -26,6 +26,12 @@ export const includeObjectsAndReferencesOptions: { id: IncludeObjectsAndReferenc
     name,
 }));
 
+export interface IncludeObjectsAndReferenceOptions {
+    sharingSettings?: IncludeObjectsAndReferences;
+    users?: IncludeObjectsAndReferences;
+    orgUnits?: IncludeObjectsAndReferences;
+}
+
 export function useMetadataIncludeExcludeStep(
     syncRule: SynchronizationRule,
     onChange: (syncRule: SynchronizationRule) => void
@@ -205,39 +211,28 @@ export function useMetadataIncludeExcludeStep(
         );
     }, [syncParams.includeOrgUnitsObjectsAndReferences, syncParams.includeOnlyOrgUnitsReferences]);
 
-    const changeSharingSettingsObjectsAndReferences = useCallback(
-        (value: IncludeObjectsAndReferences) => {
-            onChange(
-                syncRule.updateSyncParams({
-                    ...syncRule.syncParams,
-                    includeSharingSettingsObjectsAndReferences: value === "includeObjectsAndReferences",
-                    includeOnlySharingSettingsReferences: value === "includeOnlyReferences",
-                })
-            );
-        },
-        [onChange, syncRule]
-    );
+    const changeObjectsAndReferences = useCallback(
+        (updates: IncludeObjectsAndReferenceOptions) => {
+            const syncParamsUpdates = {
+                ...(updates.sharingSettings && {
+                    includeSharingSettingsObjectsAndReferences:
+                        updates.sharingSettings === "includeObjectsAndReferences",
+                    includeOnlySharingSettingsReferences: updates.sharingSettings === "includeOnlyReferences",
+                }),
+                ...(updates.users && {
+                    includeUsersObjectsAndReferences: updates.users === "includeObjectsAndReferences",
+                    includeOnlyUsersReferences: updates.users === "includeOnlyReferences",
+                }),
+                ...(updates.orgUnits && {
+                    includeOrgUnitsObjectsAndReferences: updates.orgUnits === "includeObjectsAndReferences",
+                    includeOnlyOrgUnitsReferences: updates.orgUnits === "includeOnlyReferences",
+                }),
+            };
 
-    const changeUsersObjectsAndReferences = useCallback(
-        (value: IncludeObjectsAndReferences) => {
             onChange(
                 syncRule.updateSyncParams({
                     ...syncRule.syncParams,
-                    includeUsersObjectsAndReferences: value === "includeObjectsAndReferences",
-                    includeOnlyUsersReferences: value === "includeOnlyReferences",
-                })
-            );
-        },
-        [onChange, syncRule]
-    );
-
-    const changeOrgUnitsObjectsAndReferences = useCallback(
-        (value: IncludeObjectsAndReferences) => {
-            onChange(
-                syncRule.updateSyncParams({
-                    ...syncRule.syncParams,
-                    includeOrgUnitsObjectsAndReferences: value === "includeObjectsAndReferences",
-                    includeOnlyOrgUnitsReferences: value === "includeOnlyReferences",
+                    ...syncParamsUpdates,
                 })
             );
         },
@@ -248,28 +243,12 @@ export function useMetadataIncludeExcludeStep(
         return syncParams.removeDefaultCategoryObjects;
     }, [syncParams.removeDefaultCategoryObjects]);
 
-    const removeUserNonEssentialObjects = useMemo(() => {
-        return syncParams.removeUserNonEssentialObjects;
-    }, [syncParams.removeUserNonEssentialObjects]);
-
     const changeRemoveDefaultCategoryObjects = useCallback(
         (removeDefaultCategoryObjects: boolean) => {
             onChange(
                 syncRule.updateSyncParams({
                     ...syncParams,
                     removeDefaultCategoryObjects,
-                })
-            );
-        },
-        [syncParams, onChange, syncRule]
-    );
-
-    const changeRemoveNonEssentialUserObjects = useCallback(
-        (removeUserNonEssentialObjects: boolean) => {
-            onChange(
-                syncRule.updateSyncParams({
-                    ...syncParams,
-                    removeUserNonEssentialObjects,
                 })
             );
         },
@@ -290,17 +269,13 @@ export function useMetadataIncludeExcludeStep(
         changeIncludeReferencesAndObjectsRules,
         includeRuleOptions,
         includeReferencesAndObjectsRules,
-        changeSharingSettingsObjectsAndReferences,
-        changeUsersObjectsAndReferences,
-        changeOrgUnitsObjectsAndReferences,
+        changeObjectsAndReferences,
         includeObjectsAndReferencesOptions,
         sharingSettingsObjectsAndReferencesValue,
         usersObjectsAndReferencesValue,
         orgUnitsObjectsAndReferencesValue,
         removeDefaultCategoryObjects,
-        removeUserNonEssentialObjects,
         changeRemoveDefaultCategoryObjects,
-        changeRemoveNonEssentialUserObjects,
     };
 }
 
@@ -327,7 +302,7 @@ function getModels(metadata: MetadataPackage<MetadataEntity>, metadataModelsSync
         .map(type => modelFactory(type));
 }
 
-function getObjectsAndReferencesValue(
+export function getObjectsAndReferencesValue(
     includeObjectsAndReferences: boolean,
     includeOnlyReferences: boolean
 ): IncludeObjectsAndReferences {
