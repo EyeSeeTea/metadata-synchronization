@@ -87,9 +87,15 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     async save(instance: Instance): Promise<void> {
         this.cache.clear();
 
-        const route = this.buildRoute(instance);
+        const routeToUpload = this.buildRoute(instance);
 
-        await this.api.post("/routes", {}, route).getData();
+        const existedRoute = await this.getById(instance.id);
+
+        if (existedRoute) {
+            await this.api.put(`/routes/${existedRoute.id}`, {}, routeToUpload).getData();
+        } else {
+            await this.api.post("/routes", {}, routeToUpload).getData();
+        }
 
         // const storageClient = await this.getStorageClient();
 
