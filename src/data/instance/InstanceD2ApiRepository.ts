@@ -138,8 +138,8 @@ export class InstanceD2ApiRepository implements InstanceRepository {
                 external: false,
                 owner: instance.user.id,
                 public: instance.publicAccess,
-                users: instance.userAccesses,
-                userGroups: instance.userGroupAccesses,
+                users: mapArrayToRecord(instance.userAccesses),
+                userGroups: mapArrayToRecord(instance.userGroupAccesses),
             },
             url: instance.url.endsWith("/") ? `${instance.url}**` : `${instance.url}/**`,
         };
@@ -155,8 +155,8 @@ export class InstanceD2ApiRepository implements InstanceRepository {
             password: route.auth?.password,
             description: route.description,
             publicAccess: route.sharing.public,
-            userAccesses: route.sharing.users,
-            userGroupAccesses: route.sharing.userGroups,
+            userAccesses: Object.values(route.sharing.users),
+            userGroupAccesses: Object.values(route.sharing.userGroups),
             user: route.user,
             created: new Date(route.created || ""),
             lastUpdated: new Date(route.lastUpdated || ""),
@@ -311,8 +311,8 @@ type D2Route = {
 export interface D2ObjectSharing {
     owner: string;
     external: boolean;
-    users: SharingSetting[];
-    userGroups: SharingSetting[];
+    users: Record<string, SharingSetting>;
+    userGroups: Record<string, SharingSetting>;
     public: string;
 }
 export interface D2Sharing {
@@ -337,4 +337,11 @@ function slugify(text: string): string {
         .replace(/[^a-z0-9\s-]/g, "")
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-");
+}
+
+function mapArrayToRecord(array: SharingSetting[]): Record<string, SharingSetting> {
+    return array.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+    }, {} as Record<string, SharingSetting>);
 }
