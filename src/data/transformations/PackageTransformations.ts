@@ -33,8 +33,11 @@ export const metadataTransformations: Transformation[] = [
                 eventReports: finalEventReports,
             };
         },
-        apply: ({ eventCharts, eventReports, ...rest }: any) => {
-            const eventVisualizations = [...(eventCharts || []), ...(eventReports || [])];
+        apply: ({ eventCharts, eventReports, visualizations, ...rest }: any) => {
+            const isLineList = (visualizationType: string) => visualizationType === "LINE";
+            const lineListVisualizations =
+                visualizations?.filter((visualization: any) => isLineList(visualization.type)) || [];
+            const eventVisualizations = [...(eventCharts || []), ...(eventReports || []), ...lineListVisualizations];
 
             return {
                 ...rest,
