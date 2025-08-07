@@ -18,4 +18,5 @@ export interface InstanceRepository {
     getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]>;
     sendMessage(message: InstanceMessage): Promise<void>;
     save(instance: Instance): Promise<void>;
+    delete(id: string): Promise<void>;
 }

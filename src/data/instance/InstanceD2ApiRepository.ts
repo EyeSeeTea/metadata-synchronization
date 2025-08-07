@@ -127,6 +127,11 @@ export class InstanceD2ApiRepository implements InstanceRepository {
 
         // await storageClient.saveObjectSharing(`${Namespace.INSTANCES}-${instanceData.id}`, objectSharing);
     }
+
+    async delete(id: string): Promise<void> {
+        await this.api.delete(`/routes/${id}`, {}).getData();
+    }
+
     private buildRoute(instance: Instance): D2Route {
         return {
             auth:
