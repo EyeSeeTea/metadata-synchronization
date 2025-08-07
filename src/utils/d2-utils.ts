@@ -24,7 +24,7 @@ export function getD2APiFromInstance(localInstance: Instance, targetInstance?: I
     const url =
         targetInstance === undefined || localInstance.id === targetInstance.id
             ? localInstance.url
-            : `${localInstance.url}/api/routes/JAHXl1Dy0n9/run/`;
+            : `${localInstance.url}/api/routes/${targetInstance.id}/run/`;
 
     return new D2Api({ baseUrl: url, auth: localInstance.auth, backend: "fetch" });
 }
