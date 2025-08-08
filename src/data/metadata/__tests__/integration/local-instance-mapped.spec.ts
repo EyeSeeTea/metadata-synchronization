@@ -9,7 +9,14 @@ import { SynchronizationBuilder } from "../../../../domain/synchronization/entit
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { startDhis } from "../../../../utils/dhisServer";
 
-const repositoryFactory = buildRepositoryFactory();
+const localInstance = Instance.build({
+    url: "http://origin.test",
+    name: "Testing",
+    version: "2.36",
+    type: "local",
+});
+
+const repositoryFactory = buildRepositoryFactory(localInstance);
 
 describe("Sync local instance mapped", () => {
     let local: Server;
@@ -91,15 +98,8 @@ describe("Sync local instance mapped", () => {
             ],
         }));
 
-        local.get("/dataStore/metadata-synchronization/instances", async () => [
-            {
-                type: "local",
-                id: "LOCAL",
-                name: "This instance",
-                description: "",
-                url: "http://origin.test",
-            },
-        ]);
+        // Local is created by repostitory in memmory
+        local.get("/routes", async () => ({ routes: [] }));
 
         local.get("/dataStore/metadata-synchronization/instances-LOCAL", async () => ({}));
         local.get("/dataStore/metadata-synchronization/mappings", async () => [
@@ -124,22 +124,6 @@ describe("Sync local instance mapped", () => {
                     },
                 },
             },
-        }));
-
-        local.get("/dataStore/metadata-synchronization/instances-LOCAL/metaData", async () => ({
-            created: "2021-03-30T01:59:59.191",
-            lastUpdated: "2021-04-20T09:34:00.780",
-            externalAccess: false,
-            publicAccess: "rw------",
-            user: { id: "H4atNsEuKxP" },
-            userGroupAccesses: [],
-            userAccesses: [],
-            lastUpdatedBy: { id: "s5EVHUwoFKu" },
-            namespace: "metadata-synchronization",
-            key: "instances-LOCAL",
-            value: "",
-            favorite: false,
-            id: "Db5532sXKXT",
         }));
 
         local.get("/sharing", async () => ({
@@ -184,12 +168,6 @@ describe("Sync local instance mapped", () => {
     });
 
     it("Local server to local - same version", async () => {
-        const localInstance = Instance.build({
-            url: "http://origin.test",
-            name: "Testing",
-            version: "2.36",
-        });
-
         const builder: SynchronizationBuilder = {
             originInstance: "LOCAL",
             targetInstances: ["LOCAL"],
@@ -216,10 +194,10 @@ describe("Sync local instance mapped", () => {
     });
 });
 
-function buildRepositoryFactory() {
+function buildRepositoryFactory(localInstance: Instance) {
     const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();
 
-    registerDynamicRepositoriesInFactory(repositoryFactory);
+    registerDynamicRepositoriesInFactory(localInstance, repositoryFactory);
 
     return repositoryFactory;
 }

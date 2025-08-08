@@ -95,7 +95,7 @@ export abstract class GenericSyncUseCase {
     public async getOriginInstance(): Promise<Instance> {
         const { originInstance: originInstanceId } = this.builder;
         const instance = await this.getInstanceById(originInstanceId);
-        if (!instance) throw new Error("Unable to read origin instance");
+        if (!instance) throw new Error("Unable to read origin instance: " + originInstanceId);
         return instance;
     }
 
@@ -162,14 +162,10 @@ export abstract class GenericSyncUseCase {
 
     private async getInstanceById(id: string): Promise<Instance | undefined> {
         const instance = await this.repositoryFactory.instanceRepository(this.localInstance).getById(id);
+
         if (!instance) return undefined;
 
-        try {
-            const version = await this.repositoryFactory.instanceRepository(instance).getVersion();
-            return instance.update({ version });
-        } catch (error: any) {
-            return instance;
-        }
+        return instance;
     }
 
     public async *execute() {

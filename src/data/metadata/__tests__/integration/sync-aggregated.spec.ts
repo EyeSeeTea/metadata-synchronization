@@ -13,6 +13,7 @@ const localInstance = Instance.build({
     url: "http://origin.test",
     name: "Testing",
     version: "2.36",
+    type: "local",
 });
 
 const repositoryFactory = buildRepositoryFactory(localInstance);
@@ -43,7 +44,7 @@ describe("Sync aggregated", () => {
             ],
         }));
 
-        remote.get("/categoryOptionCombos", async () => ({
+        local.get("/routes/DESTINATION/run/api/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
                 {
                     name: "default",
@@ -138,27 +139,36 @@ describe("Sync aggregated", () => {
             dataElements: [{ id: "id2", name: "Test data element 2" }],
         }));
 
-        local.get("/dataStore/metadata-synchronization/instances", async () => [
-            {
-                type: "local",
-                id: "LOCAL",
-                name: "This instance",
-                description: "",
-                url: "http://origin.test",
-            },
-            {
-                type: "dhis",
-                id: "DESTINATION",
-                name: "Destination test",
-                url: "http://destination.test",
-                username: "test",
-                password: "",
-                description: "",
-            },
-        ]);
+        local.get("/routes/DESTINATION/run/api/metadata", async () => ({
+            categoryOptions: [{ id: "default5" }],
+            categories: [{ id: "default6" }],
+            categoryCombos: [{ id: "default7" }],
+            categoryOptionCombos: [{ id: "default8" }],
+            dataElements: [{ id: "id2", name: "Test data element 2" }],
+        }));
 
-        local.get("/dataStore/metadata-synchronization/instances-LOCAL", async () => ({}));
-        local.get("/dataStore/metadata-synchronization/instances-DESTINATION", async () => ({}));
+        local.get("/routes", async () => ({
+            routes: [
+                {
+                    id: "DESTINATION",
+                    name: "Destination test",
+                    url: "http://destination.test",
+                    username: "test",
+                    auth: { type: "http-basic", username: "test", password: "" },
+                    description: "",
+                    sharing: {
+                        external: false,
+                        owner: "H4atNsEuKxP",
+                        public: "rw------",
+                        users: {},
+                        userGroups: {},
+                    },
+                },
+            ],
+        }));
+
+        local.get("/routes/DESTINATION/run/api/system/info", () => ({ version: "2.36" }));
+
         local.get("/dataStore/metadata-synchronization/mappings", async () => [
             {
                 id: "MAPPINGDESTINATION",
@@ -181,38 +191,6 @@ describe("Sync aggregated", () => {
                     },
                 },
             },
-        }));
-
-        local.get("/dataStore/metadata-synchronization/instances-LOCAL/metaData", async () => ({
-            created: "2021-03-30T01:59:59.191",
-            lastUpdated: "2021-04-20T09:34:00.780",
-            externalAccess: false,
-            publicAccess: "rw------",
-            user: { id: "H4atNsEuKxP" },
-            userGroupAccesses: [],
-            userAccesses: [],
-            lastUpdatedBy: { id: "s5EVHUwoFKu" },
-            namespace: "metadata-synchronization",
-            key: "instances-LOCAL",
-            value: "",
-            favorite: false,
-            id: "Db5532sXKXT",
-        }));
-
-        local.get("/dataStore/metadata-synchronization/instances-DESTINATION/metaData", async () => ({
-            created: "2021-03-30T01:59:59.191",
-            lastUpdated: "2021-04-20T09:34:00.780",
-            externalAccess: false,
-            publicAccess: "rw------",
-            user: { id: "H4atNsEuKxP" },
-            userGroupAccesses: [],
-            userAccesses: [],
-            lastUpdatedBy: { id: "s5EVHUwoFKu" },
-            namespace: "metadata-synchronization",
-            key: "instances-DESTINATION",
-            value: "",
-            favorite: false,
-            id: "Db5532sXKX1",
         }));
 
         local.get("/sharing", async () => ({

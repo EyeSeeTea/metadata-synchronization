@@ -13,13 +13,13 @@ const localInstance = Instance.build({
     url: "http://origin.test",
     name: "Testing",
     version: "2.36",
+    type: "local",
 });
 
 const repositoryFactory = buildRepositoryFactory(localInstance);
 
 describe("Sync metadata", () => {
     let local: Server;
-    let remote: Server;
 
     beforeAll(() => {
         jest.setTimeout(30000);
@@ -27,72 +27,36 @@ describe("Sync metadata", () => {
 
     beforeEach(() => {
         local = startDhis({ urlPrefix: "http://origin.test" });
-        remote = startDhis({
-            urlPrefix: "http://destination.test",
-            pretender: local.pretender,
-        });
 
         local.get("/metadata", async () => ({
             dataElements: [{ id: "id1", name: "Test data element 1" }],
         }));
 
-        remote.get("/metadata", async () => ({
+        local.get("/routes/DESTINATION/run/api/metadata", async () => ({
             dataElements: [{ id: "id2", name: "Test data element 2" }],
         }));
 
-        local.get("/dataStore/metadata-synchronization/instances", async () => [
-            {
-                type: "local",
-                id: "LOCAL",
-                name: "This instance",
-                description: "",
-                url: "http://origin.test",
-            },
-            {
-                type: "dhis",
-                id: "DESTINATION",
-                name: "Destination test",
-                url: "http://destination.test",
-                username: "test",
-                password: "",
-                description: "",
-            },
-        ]);
-
-        local.get("/dataStore/metadata-synchronization/instances-LOCAL", async () => ({}));
-        local.get("/dataStore/metadata-synchronization/instances-DESTINATION", async () => ({}));
-
-        local.get("/dataStore/metadata-synchronization/instances-LOCAL/metaData", async () => ({
-            created: "2021-03-30T01:59:59.191",
-            lastUpdated: "2021-04-20T09:34:00.780",
-            externalAccess: false,
-            publicAccess: "rw------",
-            user: { id: "H4atNsEuKxP" },
-            userGroupAccesses: [],
-            userAccesses: [],
-            lastUpdatedBy: { id: "s5EVHUwoFKu" },
-            namespace: "metadata-synchronization",
-            key: "instances-LOCAL",
-            value: "",
-            favorite: false,
-            id: "Db5532sXKXT",
+        local.get("/routes", async () => ({
+            routes: [
+                {
+                    id: "DESTINATION",
+                    name: "Destination test",
+                    url: "http://destination.test",
+                    username: "test",
+                    auth: { type: "http-basic", username: "test", password: "" },
+                    description: "",
+                    sharing: {
+                        external: false,
+                        owner: "H4atNsEuKxP",
+                        public: "rw------",
+                        users: {},
+                        userGroups: {},
+                    },
+                },
+            ],
         }));
 
-        local.get("/dataStore/metadata-synchronization/instances-DESTINATION/metaData", async () => ({
-            created: "2021-03-30T01:59:59.191",
-            lastUpdated: "2021-04-20T09:34:00.780",
-            externalAccess: false,
-            publicAccess: "rw------",
-            user: { id: "H4atNsEuKxP" },
-            userGroupAccesses: [],
-            userAccesses: [],
-            lastUpdatedBy: { id: "s5EVHUwoFKu" },
-            namespace: "metadata-synchronization",
-            key: "instances-DESTINATION",
-            value: "",
-            favorite: false,
-            id: "Db5532sXKX1",
-        }));
+        local.get("/routes/DESTINATION/run/api/system/info", async () => ({ version: "2.36" }));
 
         local.get("/sharing", async () => ({
             meta: {
@@ -124,8 +88,8 @@ describe("Sync metadata", () => {
             },
         }));
 
-        const addMetadataToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
-            schema.db.metadata.insert(JSON.parse(request.requestBody));
+        const addMetadataToDb = async (schema: Schema<AnyRegistry>, request: Request, collection: string) => {
+            schema.db[collection].insert(JSON.parse(request.requestBody));
 
             return {
                 status: "OK",
@@ -146,16 +110,17 @@ describe("Sync metadata", () => {
             };
         };
 
-        local.db.createCollection("metadata", []);
-        local.post("/metadata", addMetadataToDb);
+        local.db.createCollection("metadataLocal", []);
+        local.post("/metadata", (schema, request) => addMetadataToDb(schema, request, "metadataLocal"));
 
-        remote.db.createCollection("metadata", []);
-        remote.post("/metadata", addMetadataToDb);
+        local.db.createCollection("metadataDestination", []);
+        local.post("/routes/DESTINATION/run/api/metadata", (schema, request) =>
+            addMetadataToDb(schema, request, "metadataDestination")
+        );
     });
 
     afterEach(() => {
         local.shutdown();
-        remote.shutdown();
     });
 
     it("Local server to remote - same version", async () => {
@@ -177,9 +142,9 @@ describe("Sync metadata", () => {
             // no-op
         }
 
-        const response = remote.db.metadata.find(1);
+        const response = local.db.metadataDestination.find(1);
         expect(response.dataElements[0].id).toEqual("id1");
-        expect(local.db.metadata.find(1)).toBeNull();
+        expect(local.db.metadataLocal.find(1)).toBeNull();
     });
 
     it("Remote server to local - same version", async () => {
@@ -202,9 +167,9 @@ describe("Sync metadata", () => {
             // no-op
         }
 
-        const response = local.db.metadata.find(1);
+        const response = local.db.metadataLocal.find(1);
         expect(response.dataElements[0].id).toEqual("id2");
-        expect(remote.db.metadata.find(1)).toBeNull();
+        expect(local.db.metadataDestination.find(1)).toBeNull();
     });
 });
 
