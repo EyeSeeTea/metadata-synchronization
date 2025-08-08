@@ -42,8 +42,7 @@ const App = () => {
             const configFromJson = (await fetch("app-config.json", {
                 credentials: "same-origin",
             }).then(res => res.json())) as AppConfig;
-            const encryptionKey = configFromJson.encryptionKey;
-            if (!encryptionKey) throw new Error("You need to provide a valid encryption key");
+
             const api = new D2Api({ baseUrl, backend: "fetch" });
             const version = await api.getVersion();
             const instance = Instance.build({
@@ -52,7 +51,7 @@ const App = () => {
                 url: baseUrl,
                 version,
             });
-            const compositionRoot = new CompositionRoot(instance, encryptionKey);
+            const compositionRoot = new CompositionRoot(instance);
 
             const currentUser = await compositionRoot.user.current();
             if (!currentUser) throw new Error("User not logged in");
