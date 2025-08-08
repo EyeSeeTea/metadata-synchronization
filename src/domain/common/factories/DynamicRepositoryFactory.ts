@@ -45,6 +45,8 @@ export class DynamicRepositoryFactory {
         return this.getbyInstance(Repositories.StoreRepository, instance);
     }
 
+    // TODO: Review if this is necessary as dynamic
+    // if always is passed local instance is not necessary
     public instanceRepository(instance: Instance): InstanceRepository {
         return this.getbyInstance(Repositories.InstanceRepository, instance);
     }

@@ -131,6 +131,7 @@ import { TransformationRepository } from "../domain/transformations/repositories
 import { EventsPayloadBuilder } from "../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../domain/aggregated/builders/AggregatedPayloadBuilder";
 import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
+import { InstanceRepository } from "../domain/instance/repositories/InstanceRepository";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -145,14 +146,16 @@ export class CompositionRoot {
     private gitHubRepository: GitHubRepository;
     private downloadRepository: DownloadRepository;
     private transformationRepository: TransformationRepository;
+    private instanceRepository: InstanceRepository;
 
-    constructor(public readonly localInstance: Instance, encryptionKey: string) {
+    constructor(public readonly localInstance: Instance) {
         this.repositoryFactory = new DynamicRepositoryFactory();
         this.gitHubRepository = new GitHubOctokitRepository();
         this.downloadRepository = new DownloadWebRepository();
         this.transformationRepository = new TransformationD2ApiRepository();
+        this.instanceRepository = new InstanceD2ApiRepository(this.localInstance);
 
-        registerDynamicRepositoriesInFactory(this.localInstance, this.repositoryFactory, encryptionKey);
+        registerDynamicRepositoriesInFactory(this.localInstance, this.repositoryFactory);
 
         this.metadataPayloadBuilder = new MetadataPayloadBuilder(this.repositoryFactory, this.localInstance);
         this.eventsPayloadBuilder = new EventsPayloadBuilder(this.repositoryFactory, this.localInstance);
@@ -331,13 +334,14 @@ export class CompositionRoot {
     @cache()
     public get instances() {
         return getExecute({
+            list: new ListInstancesUseCase(this.instanceRepository),
+            getById: new GetInstanceByIdUseCase(this.instanceRepository),
+            save: new SaveInstanceUseCase(this.instanceRepository),
+            delete: new DeleteInstanceUseCase(this.instanceRepository),
+            validate: new ValidateInstanceUseCase(this.repositoryFactory),
+
             getApi: new GetInstanceApiUseCase(this.repositoryFactory, this.localInstance),
             getLocal: new GetLocalInstanceUseCase(this.localInstance),
-            list: new ListInstancesUseCase(this.repositoryFactory, this.localInstance),
-            getById: new GetInstanceByIdUseCase(this.repositoryFactory, this.localInstance),
-            save: new SaveInstanceUseCase(this.repositoryFactory, this.localInstance),
-            delete: new DeleteInstanceUseCase(this.repositoryFactory, this.localInstance),
-            validate: new ValidateInstanceUseCase(this.repositoryFactory),
             getVersion: new GetInstanceVersionUseCase(this.repositoryFactory, this.localInstance),
             getOrgUnitRoots: new GetRootOrgUnitUseCase(this.repositoryFactory, this.localInstance),
         });
@@ -500,8 +504,7 @@ function getExecute<UseCases extends Record<Key, UseCase>, Key extends keyof Use
 
 export function registerDynamicRepositoriesInFactory(
     localInstance: Instance,
-    repositoryFactory: DynamicRepositoryFactory,
-    encryptionKey = ""
+    repositoryFactory: DynamicRepositoryFactory
 ) {
     repositoryFactory.bindByInstance(
         Repositories.ConfigRepository,
@@ -515,9 +518,7 @@ export function registerDynamicRepositoriesInFactory(
     });
 
     repositoryFactory.bindByInstance(Repositories.InstanceRepository, (instance: Instance) => {
-        const storageClient = repositoryFactory.configRepository(instance);
-
-        return new InstanceD2ApiRepository(storageClient, instance, encryptionKey);
+        return new InstanceD2ApiRepository(instance);
     });
 
     repositoryFactory.bindByInstance(

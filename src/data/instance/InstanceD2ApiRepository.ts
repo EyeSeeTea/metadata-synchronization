@@ -9,21 +9,13 @@ import { cache } from "../../utils/cache";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { InmemoryCache } from "../common/InmemoryCache";
-import { StorageClientFactory } from "../config/StorageClientFactory";
 import { Id } from "../../domain/common/entities/Schemas";
 import { SharingSetting } from "../../domain/common/entities/SharingSetting";
-
-//type ObjectSharingError = "authority-error" | "unexpected-error";
-
 export class InstanceD2ApiRepository implements InstanceRepository {
     private api: D2Api;
     private cache = new InmemoryCache();
 
-    constructor(
-        private _storageClientFactory: StorageClientFactory,
-        private instance: Instance,
-        private _encryptionKey: string
-    ) {
+    constructor(private instance: Instance) {
         this.api = getD2APiFromInstance(instance);
     }
 
@@ -43,29 +35,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         const filteredDataByIds = filteredDataBySearch.filter(instanceData => !ids || ids.includes(instanceData.id));
 
         return filteredDataByIds;
-
-        // const instances = await promiseMap(filteredDataByIds, async data => {
-        //     const sharingResult = await this.getObjectSharingOrError(data.id);
-
-        //     const object = await this.getInstanceDataInColletion(data.id);
-
-        //     return sharingResult.match({
-        //         success: sharing => this.mapToInstance(object ?? data, sharing),
-        //         error: () =>
-        //             this.mapToInstance(object ?? data, {
-        //                 publicAccess: "--------",
-        //                 userAccesses: [],
-        //                 userGroupAccesses: [],
-        //                 user: {
-        //                     id: "",
-        //                     name: "",
-        //                 },
-        //                 externalAccess: false,
-        //             }),
-        //     });
-        // });
-
-        // return _.compact(instances);
     }
 
     async getById(id: string): Promise<Instance | undefined> {
@@ -96,36 +65,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         } else {
             await this.api.post("/routes", {}, routeToUpload).getData();
         }
-
-        // const storageClient = await this.getStorageClient();
-
-        // const instanceData = {
-        //     ..._.omit(
-        //         instance.toObject(),
-        //         "publicAccess",
-        //         "userAccesses",
-        //         "externalAccess",
-        //         "userGroupAccesses",
-        //         "user",
-        //         "created",
-        //         "lastUpdated",
-        //         "lastUpdatedBy"
-        //     ),
-        //     url: instance.type === "local" ? "" : instance.url,
-        //     password: this.encryptPassword(instance.password),
-        // };
-
-        // await storageClient.saveObjectInCollection(Namespace.INSTANCES, instanceData);
-
-        // const objectSharing = {
-        //     publicAccess: instance.publicAccess,
-        //     externalAccess: false,
-        //     user: instance.user,
-        //     userAccesses: instance.userAccesses,
-        //     userGroupAccesses: instance.userGroupAccesses,
-        // };
-
-        // await storageClient.saveObjectSharing(`${Namespace.INSTANCES}-${instanceData.id}`, objectSharing);
     }
 
     async delete(id: string): Promise<void> {
@@ -175,14 +114,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         });
     }
 
-    // private decryptPassword(password?: string): string {
-    //     return password ? new Cryptr(this.encryptionKey).decrypt(password) : "";
-    // }
-
-    // private encryptPassword(password?: string): string {
-    //     return password ? new Cryptr(this.encryptionKey).encrypt(password) : "";
-    // }
-
     private async getInstances(): Promise<Instance[]> {
         const instances = await this.cache.getOrPromise("instances", async () => {
             const response = await this.api
@@ -210,40 +141,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
 
         return instances;
     }
-
-    // private async getInstanceDataInColletion(id: string): Promise<InstanceData | undefined> {
-    //     const storageClient = await this.getStorageClient();
-
-    //     const instanceData = await this.cache.getOrPromise(`${Namespace.INSTANCES}-${id}`, () =>
-    //         storageClient.getObjectInCollection<InstanceData>(Namespace.INSTANCES, id)
-    //     );
-
-    //     return instanceData;
-    // }
-
-    // private async getObjectSharingOrError(id: string): Promise<Either<ObjectSharingError, ObjectSharing>> {
-    //     try {
-    //         const objectSharing = await this.getObjectSharing(id);
-
-    //         return objectSharing ? Either.success(objectSharing) : Either.error("unexpected-error");
-    //     } catch (error: any) {
-    //         if (error.response?.status === 403) {
-    //             return Either.error("authority-error");
-    //         } else {
-    //             return Either.error("unexpected-error");
-    //         }
-    //     }
-    // }
-
-    // private async getObjectSharing(id: string) {
-    //     const storageClient = await this.getStorageClient();
-
-    //     const key = `${Namespace.INSTANCES}-${id}`;
-
-    //     const sharing = await this.cache.getOrPromise(`sharing-${key}`, () => storageClient.getObjectSharing(key));
-
-    //     return sharing;
-    // }
 
     public getApi(): D2Api {
         return this.api;
@@ -281,21 +178,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         //@ts-ignore https://github.com/EyeSeeTea/d2-api/pull/52
         await this.api.messageConversations.post(message).getData();
     }
-
-    // private mapToInstance(data: InstanceData, sharing: ObjectSharing | undefined) {
-    //     return Instance.build({
-    //         ...data,
-    //         url: data.type === "local" ? this.instance.url : data.url,
-    //         version: data.type === "local" ? this.instance.version : data.version,
-    //         username: data.type === "local" ? this.instance.username : data.username,
-    //         password: data.type === "local" ? this.instance.password : this.decryptPassword(data.password),
-    //         ...sharing,
-    //     });
-    // }
-
-    // private getStorageClient(): Promise<StorageClient> {
-    //     return this.storageClientFactory.getStorageClientPromise();
-    // }
 }
 
 type D2Route = {
