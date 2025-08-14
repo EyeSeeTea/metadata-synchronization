@@ -52,7 +52,7 @@ export const TestWrapper: React.FC<TestWrapperProps> = ({ children, namespace, a
 
     return (
         <React.Fragment>
-            {process.env.REACT_APP_CYPRESS ? recursiveMap(children, withTestAttribute) : children}
+            {import.meta.env.VITE_CYPRESS ? recursiveMap(children, withTestAttribute) : children}
         </React.Fragment>
     );
 };

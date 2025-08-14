@@ -35,7 +35,7 @@ const App = () => {
     const migrations = useMigrations(appContext);
     const { deletingHistory } = useDeleteHistory(appContext);
 
-    const appTitle = process.env.REACT_APP_PRESENTATION_TITLE;
+    const appTitle = import.meta.env.VITE_PRESENTATION_TITLE;
 
     useEffect(() => {
         const run = async () => {

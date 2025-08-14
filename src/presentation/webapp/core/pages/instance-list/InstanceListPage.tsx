@@ -280,7 +280,7 @@ const InstanceListPage = () => {
             multiple: false,
             onClick: runAnalytics,
             icon: <Icon>data_usage</Icon>,
-            isActive: rows => process.env.NODE_ENV === "development" && verifyUserCanEdit(rows),
+            isActive: rows => import.meta.env.MODE === "development" && verifyUserCanEdit(rows),
         },
         {
             name: "mapping",

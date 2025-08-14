@@ -5,16 +5,28 @@ const getTextDecoder = () => {
     if (typeof TextDecoder !== "undefined") {
         return TextDecoder;
     }
-    // Node.js polyfill
-    return require("util").TextDecoder;
+    if (typeof require !== "undefined") {
+        try {
+            return require("util").TextDecoder;
+        } catch {
+            throw new Error("TextDecoder not available in this environment");
+        }
+    }
+    throw new Error("TextDecoder not available in this environment");
 };
 
 const getTextEncoder = () => {
     if (typeof TextEncoder !== "undefined") {
         return TextEncoder;
     }
-    // Node.js polyfill
-    return require("util").TextEncoder;
+    if (typeof require !== "undefined") {
+        try {
+            return require("util").TextEncoder;
+        } catch {
+            throw new Error("TextEncoder not available in this environment");
+        }
+    }
+    throw new Error("TextEncoder not available in this environment");
 };
 
 /**

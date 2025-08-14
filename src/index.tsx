@@ -17,7 +17,7 @@ declare global {
     }
 }
 
-const isDev = process.env.NODE_ENV === "development";
+const isDev = import.meta.env.MODE === "development";
 
 async function getBaseUrl() {
     if (isDev) {

@@ -142,7 +142,7 @@ const VariantRoutes: React.FC<{ variant: AppVariant }> = ({ variant }) => {
 };
 
 const getAppVariant = (): AppVariant => {
-    const variant = process.env.REACT_APP_PRESENTATION_VARIANT;
+    const variant = import.meta.env.VITE_PRESENTATION_VARIANT;
 
     return isAppVariant(variant) ? variant : "core-app";
 };

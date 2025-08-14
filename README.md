@@ -54,9 +54,9 @@ Notes:
 
 -   Requests to DHIS2 will be transparently proxied (see `src/setupProxy.js`) from `http://localhost:8081/dhis2/path` to `http://localhost:8080/path` to avoid CORS and cross-domain problems.
 
--   The optional environment variable `REACT_APP_DHIS2_AUTH=USERNAME:PASSWORD` forces some credentials to be used by the proxy. This variable is usually not set, so the app has the same user logged in at `REACT_APP_DHIS2_BASE_URL`.
+-   The optional environment variable `VITE_DHIS2_AUTH=USERNAME:PASSWORD` forces some credentials to be used by the proxy. This variable is usually not set, so the app has the same user logged in at `VITE_DHIS2_BASE_URL`.
 
--   The optional environment variable `REACT_APP_PROXY_LOG_LEVEL` can be helpful to debug the proxyfied requests (accepts: "warn" | "debug" | "info" | "error" | "silent")
+-   The optional environment variable `VITE_PROXY_LOG_LEVEL` can be helpful to debug the proxyfied requests (accepts: "warn" | "debug" | "info" | "error" | "silent")
 
 -   Create a file `.env.local` (copy it from `.env`) to customize environment variables so you can simply run `yarn start`.
 
@@ -73,7 +73,7 @@ This will open the development server for the given front-end at port 8082 and w
 ### Customize DHIS2 instance url
 
 ```
-REACT_APP_DHIS2_BASE_URL=http://localhost:8080
+VITE_DHIS2_BASE_URL=http://localhost:8080
 ```
 
 To use a different DHIS2 instance url set this environment variable before running a `start` command.
@@ -98,7 +98,7 @@ $ yarn cy:e2e:run # non-interactive
 $ yarn cy:e2e:open # interactive UI
 ```
 
-Application should be running at CYPRESS_ROOT_URL with as the environment variable REACT_APP_CYPRESS set to True.
+Application should be running at CYPRESS_ROOT_URL with as the environment variable VITE_CYPRESS set to True.
 
 For this to work in Travis CI, you will have to create an environment variables (Settings -> Environment Variables) CYPRESS_DHIS2_AUTH with the password used in your testing DHIS2 instance and CYPRESS_ENCRYPTION_KEY used to encrypt passwords of receiver instances.
 
