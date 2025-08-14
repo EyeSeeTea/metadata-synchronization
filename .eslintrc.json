@@ -1,8 +1,5 @@
 {
-    "extends": [
-        "react-app",
-        "plugin:cypress/recommended"
-    ],
+    "extends": ["react-app", "plugin:cypress/recommended"],
     "parser": "@typescript-eslint/parser",
     "ignorePatterns": ["src/**/snapshots/*.ts"],
     "rules": {
