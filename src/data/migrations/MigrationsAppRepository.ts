@@ -58,6 +58,7 @@ export class MigrationsAppRepository implements MigrationsRepository {
             save: <T extends object>(key: string, value: T) => storageClient.saveObject<T>(key, value),
             remove: (key: string) => storageClient.removeObject(key),
             listKeys: () => storageClient.listKeys(),
+            getObjectSharing: (key: string) => storageClient.getObjectSharing(key),
         };
     }
 }
