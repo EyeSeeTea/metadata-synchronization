@@ -19,6 +19,7 @@ export {
 export type {
     D2ApiDefinition,
     D2CategoryOptionSchema,
+    D2CategoryOptionComboSchema,
     D2ConstantSchema,
     D2DataSetSchema,
     D2IndicatorSchema,
@@ -33,6 +34,7 @@ export type {
     D2Model,
     Id,
     Ref,
+    GetOptions,
 } from "@eyeseetea/d2-api/2.36";
 
 export const D2ApiDefault = D2Api;
