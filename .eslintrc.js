@@ -1,17 +1,23 @@
-{
-    "extends": ["react-app", "plugin:cypress/recommended"],
-    "parser": "@typescript-eslint/parser",
-    "ignorePatterns": ["src/**/snapshots/*.ts"],
-    "rules": {
-        "no-console": ["warn", { "allow": ["debug", "warn", "error"] }],
+const reactAppConfig = require("eslint-config-react-app");
+
+const reactAppRestrictedGlobals = reactAppConfig.rules["no-restricted-globals"] || [];
+// Override no-restricted-globals to exclude 'name'. Review this rule if causes new issues
+const restrictedGlobals = reactAppRestrictedGlobals.filter(global => global !== "name");
+
+module.exports = {
+    extends: ["react-app", "plugin:cypress/recommended"],
+    parser: "@typescript-eslint/parser",
+    ignorePatterns: ["src/**/snapshots/*.ts", ".eslintrc.js"],
+    rules: {
+        "no-console": ["warn", { allow: ["debug", "warn", "error"] }],
         "@typescript-eslint/camelcase": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-unused-vars": [
             "warn",
             {
-                "argsIgnorePattern": "^_",
-                "varsIgnorePattern": "^_"
-            }
+                argsIgnorePattern: "^_",
+                varsIgnorePattern: "^_",
+            },
         ],
         "unused-imports/no-unused-imports": "warn",
         "react/prop-types": "off",
@@ -45,30 +51,31 @@
         "testing-library/no-await-sync-query": "off",
         "testing-library/prefer-screen-queries": "off",
         "testing-library/no-debugging-utils": "off",
-        "testing-library/no-dom-import": "off"
+        "testing-library/no-dom-import": "off",
+        "no-restricted-globals": restrictedGlobals,
     },
-    "plugins": ["cypress", "unused-imports"],
-    "env": { "cypress/globals": true },
-    "parserOptions": {
-        "project": "./tsconfig.json"
+    plugins: ["cypress", "unused-imports"],
+    env: { "cypress/globals": true },
+    parserOptions: {
+        project: "./tsconfig.json",
     },
-    "settings": {
-        "react": {
-            "pragma": "React",
-            "version": "17.0.2"
-        }
+    settings: {
+        react: {
+            pragma: "React",
+            version: "17.0.2",
+        },
     },
-    "overrides": [
+    overrides: [
         {
-            "files": ["cypress/**/*"],
-            "plugins": ["cypress"],
-            "env": { "cypress/globals": true },
-            "parser": "espree",
-            "parserOptions": {
-                "ecmaVersion": 2018,
-                "sourceType": "module"
+            files: ["cypress/**/*"],
+            plugins: ["cypress"],
+            env: { "cypress/globals": true },
+            parser: "espree",
+            parserOptions: {
+                ecmaVersion: 2018,
+                sourceType: "module",
             },
-            "rules": {
+            rules: {
                 "@typescript-eslint/no-misused-promises": "off",
                 "@typescript-eslint/no-unused-vars": "off",
                 "@typescript-eslint/no-unused-expressions": "off",
@@ -87,17 +94,17 @@
                 "@typescript-eslint/camelcase": "off",
                 "@typescript-eslint/explicit-function-return-type": "off",
                 "@typescript-eslint/no-this-alias": "off",
-                "@typescript-eslint/no-unnecessary-type-constraint": "off"
-            }
+                "@typescript-eslint/no-unnecessary-type-constraint": "off",
+            },
         },
         {
-            "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
-            "extends": ["plugin:testing-library/react"],
-            "rules": {
+            files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+            extends: ["plugin:testing-library/react"],
+            rules: {
                 "testing-library/prefer-screen-queries": "off",
                 "testing-library/no-debugging-utils": "off",
-                "testing-library/no-dom-import": "off"
-            }
-        }
-    ]
-}
+                "testing-library/no-dom-import": "off",
+            },
+        },
+    ],
+};
