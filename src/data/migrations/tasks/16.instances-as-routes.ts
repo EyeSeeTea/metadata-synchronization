@@ -7,6 +7,8 @@ import { AppStorage, Migration } from "../client/types";
 import Cryptr from "cryptr";
 import { InstanceD2ApiRepository } from "../../instance/InstanceD2ApiRepository";
 
+const instancesNamespace = "instances";
+
 export async function migrate(storage: AppStorage, _debug: Debug, { localInstance }: MigrationParams): Promise<void> {
     if (!localInstance) {
         throw new Error("localInstance is required");
@@ -20,13 +22,18 @@ export async function migrate(storage: AppStorage, _debug: Debug, { localInstanc
 
     await promiseMap(instances, async instance => {
         await instanceRepository.save(instance);
+
+        const key = `${instancesNamespace}-${instance.id}`;
+        await storage.remove(key);
     });
 
-    await storage.remove("instances");
+    await storage.remove(`${instancesNamespace}-LOCAL`);
+
+    await storage.remove(instancesNamespace);
 }
 
 const migration: Migration<MigrationParams> = {
-    name: "Change include objects and references for sharing settings, users and org units",
+    name: "Migrate instances from data store to routes",
     migrate,
 };
 
@@ -44,26 +51,31 @@ async function getEncryptionKey(): Promise<string> {
 }
 
 async function getInstancesWithSharing(storage: AppStorage, encryptionKey: string) {
-    const dataStoreInstances = await storage.get<InstanceData[]>("instances");
+    const dataStoreBaseInstances = await storage.get<InstanceData[]>(instancesNamespace);
 
-    if (!dataStoreInstances || (dataStoreInstances.length === 1 && dataStoreInstances[0].id === "LOCAL")) {
+    if (!dataStoreBaseInstances) {
         return [];
     }
 
+    const dataStoreInstances = dataStoreBaseInstances.filter(instance => instance.id !== "LOCAL");
+
     const instances = await promiseMap(dataStoreInstances, async instance => {
         const sharing = await getObjectSharingOrError(storage, instance.id);
+        const advancedProps = await storage.get<{ username?: string; password?: string }>(
+            `${instancesNamespace}-${instance.id}`
+        );
 
         const decryptPassword = (password?: string) => {
             return password ? new Cryptr(encryptionKey).decrypt(password) : "";
         };
 
-        const mapToInstance = (data: InstanceData, sharing: ObjectSharing | undefined) =>
+        const mapToInstance = (instanceData: InstanceData, sharing: ObjectSharing | undefined) =>
             Instance.build({
-                ...data,
-                url: data.url,
-                version: data.version,
-                username: data.username,
-                password: decryptPassword(data.password),
+                ...instanceData,
+                url: instanceData.url,
+                version: instanceData.version,
+                username: advancedProps?.username,
+                password: decryptPassword(advancedProps?.password),
                 ...(sharing ?? {
                     publicAccess: "--------",
                     userAccesses: [],
@@ -84,7 +96,7 @@ async function getInstancesWithSharing(storage: AppStorage, encryptionKey: strin
 
 async function getObjectSharingOrError(storage: AppStorage, id: string): Promise<ObjectSharing | undefined> {
     try {
-        const key = `instances-${id}`;
+        const key = `${instancesNamespace}-${id}`;
 
         const sharing = await storage.getObjectSharing(key);
 
