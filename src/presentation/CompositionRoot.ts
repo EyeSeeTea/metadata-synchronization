@@ -132,6 +132,7 @@ import { EventsPayloadBuilder } from "../domain/events/builders/EventsPayloadBui
 import { AggregatedPayloadBuilder } from "../domain/aggregated/builders/AggregatedPayloadBuilder";
 import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
 import { InstanceRepository } from "../domain/instance/repositories/InstanceRepository";
+import { InstanceD2Validator } from "../data/instance/InstanceD2Validator";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -338,7 +339,7 @@ export class CompositionRoot {
             getById: new GetInstanceByIdUseCase(this.instanceRepository),
             save: new SaveInstanceUseCase(this.instanceRepository),
             delete: new DeleteInstanceUseCase(this.instanceRepository),
-            validate: new ValidateInstanceUseCase(this.repositoryFactory),
+            validate: new ValidateInstanceUseCase(new InstanceD2Validator(this.localInstance)),
 
             getApi: new GetInstanceApiUseCase(this.repositoryFactory, this.localInstance),
             getLocal: new GetLocalInstanceUseCase(this.localInstance),
