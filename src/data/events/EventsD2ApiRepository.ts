@@ -76,10 +76,22 @@ export class EventsD2ApiRepository implements EventsRepository {
     ): Promise<ProgramEvent[]> {
         if (programStageIds.length === 0) return [];
 
-        const { period, orgUnitPaths = [], lastUpdated } = params;
+        const { period, orgUnitPaths = [], lastUpdated, eventsSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
 
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
+
+        const periodFilter =
+            eventsSyncPeriodField === "LAST_UPDATED"
+                ? {
+                      updatedAfter: startDate.format("YYYY-MM-DD"),
+                      updatedBefore: endDate.format("YYYY-MM-DD"),
+                  }
+                : {
+                      occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
+                      occurredBefore: period !== "ALL" ? endDate.format("YYYY-MM-DD") : undefined,
+                      updatedAfter: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
+                  };
 
         const fetchApi = async (orgUnit: string, page: number) => {
             return this.api.tracker.events
@@ -88,9 +100,7 @@ export class EventsD2ApiRepository implements EventsRepository {
                     totalPages: true,
                     page,
                     orgUnit,
-                    occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                    occurredBefore: period !== "ALL" ? endDate.format("YYYY-MM-DD") : undefined,
-                    updatedAfter: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
+                    ...periodFilter,
                     fields: { $all: true },
                 })
                 .getData();
@@ -127,10 +137,25 @@ export class EventsD2ApiRepository implements EventsRepository {
     ): Promise<ProgramEvent[]> {
         if (programStageIds.length === 0) return [];
 
-        const { period, orgUnitPaths = [], lastUpdated } = params;
+        const { period, orgUnitPaths = [], lastUpdated, eventsSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
 
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
+
+        const periodFilter =
+            eventsSyncPeriodField === "LAST_UPDATED"
+                ? {
+                      updatedAfter: startDate.format("YYYY-MM-DD"),
+                      updatedBefore: endDate.format("YYYY-MM-DD"),
+                  }
+                : {
+                      occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
+                      occurredBefore:
+                          period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
+                              ? endDate.format("YYYY-MM-DD")
+                              : undefined,
+                      updatedAfter: lastUpdated ? moment(lastUpdated).toISOString() : undefined,
+                  };
 
         const fetchApi = async (programStage: string, orgUnit: string, page: number) => {
             return this.api.tracker.events
@@ -140,12 +165,7 @@ export class EventsD2ApiRepository implements EventsRepository {
                     page,
                     programStage,
                     orgUnit,
-                    occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                    occurredBefore:
-                        period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
-                            ? endDate.format("YYYY-MM-DD")
-                            : undefined,
-                    updatedAfter: lastUpdated ? moment(lastUpdated).toISOString() : undefined,
+                    ...periodFilter,
                     fields: { $all: true },
                 })
                 .getData();

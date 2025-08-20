@@ -50,7 +50,7 @@ export class TEID2ApiRepository implements TEIRepository {
         page: number,
         pageSize: number
     ): Promise<TEIsResponse> {
-        const { period, orgUnitPaths = [] } = params;
+        const { period, orgUnitPaths = [], teisSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
 
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
@@ -64,19 +64,29 @@ export class TEID2ApiRepository implements TEIRepository {
                 page,
             };
 
+        const periodFilter =
+            teisSyncPeriodField === "LAST_UPDATED"
+                ? {
+                      updatedAfter: startDate.format("YYYY-MM-DD"),
+                      updatedBefore: endDate.format("YYYY-MM-DD"),
+                  }
+                : {
+                      enrollmentEnrolledAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
+                      enrollmentEnrolledBefore:
+                          period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
+                              ? endDate.format("YYYY-MM-DD")
+                              : undefined,
+                  };
+
         const result = await this.api.tracker.trackedEntities
             .get({
                 fields: teiFields,
                 program,
                 orgUnit: orgUnits.join(";"),
-                enrollmentEnrolledAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                enrollmentEnrolledBefore:
-                    period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
-                        ? endDate.format("YYYY-MM-DD")
-                        : undefined,
                 totalPages: true,
                 page,
                 pageSize,
+                ...periodFilter,
             })
             .getData();
 
