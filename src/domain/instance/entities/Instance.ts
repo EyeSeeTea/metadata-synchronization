@@ -62,6 +62,11 @@ export class Instance extends ShareableEntity<InstanceData> {
         return this.data.version;
     }
 
+    public get versionSmall(): string {
+        const [major, minor] = this.version?.split(".") ?? [];
+        return `${major}.${minor}`;
+    }
+
     public get apiVersion(): number {
         const apiVersion = _.get(this.version?.split("."), 1);
         // TODO: Review implications of having a default value here

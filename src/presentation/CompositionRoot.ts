@@ -35,7 +35,6 @@ import { Instance } from "../domain/instance/entities/Instance";
 import { DeleteInstanceUseCase } from "../domain/instance/usecases/DeleteInstanceUseCase";
 import { GetInstanceApiUseCase } from "../domain/instance/usecases/GetInstanceApiUseCase";
 import { GetInstanceByIdUseCase } from "../domain/instance/usecases/GetInstanceByIdUseCase";
-import { GetInstanceVersionUseCase } from "../domain/instance/usecases/GetInstanceVersionUseCase";
 import { GetLocalInstanceUseCase } from "../domain/instance/usecases/GetLocalInstanceUseCase";
 import { GetRootOrgUnitUseCase } from "../domain/instance/usecases/GetRootOrgUnitUseCase";
 import { ListInstancesUseCase } from "../domain/instance/usecases/ListInstancesUseCase";
@@ -343,7 +342,6 @@ export class CompositionRoot {
 
             getApi: new GetInstanceApiUseCase(this.repositoryFactory, this.localInstance),
             getLocal: new GetLocalInstanceUseCase(this.localInstance),
-            getVersion: new GetInstanceVersionUseCase(this.repositoryFactory, this.localInstance),
             getOrgUnitRoots: new GetRootOrgUnitUseCase(this.repositoryFactory, this.localInstance),
         });
     }

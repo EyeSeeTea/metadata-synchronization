@@ -19,9 +19,4 @@ export interface InstanceRepository {
     sendMessage(message: InstanceMessage): Promise<void>;
     save(instance: Instance): Promise<void>;
     delete(id: string): Promise<void>;
-
-    /**
-     * @deprecated Use `version` prop from the instance instead.
-     */
-    getVersion(): Promise<string>;
 }
