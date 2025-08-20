@@ -45,6 +45,7 @@ export interface DataSynchronizationParams extends DataImportParams {
 }
 
 export function isDataSynchronizationRequired(params: DataSynchronizationParams, lastUpdated?: string): boolean {
+    const { period } = params;
     // Moment object in UTC
     const { startDate: startDateMoment } = buildPeriodFromParams(params);
 
@@ -52,6 +53,7 @@ export function isDataSynchronizationRequired(params: DataSynchronizationParams,
     const lastUpdatedMoment = moment.utc(lastUpdated);
 
     const isUpdatedAfterStartDate = lastUpdated && lastUpdatedMoment.isSameOrAfter(startDateMoment);
+    const isLastSuccessfulSync = period === "SINCE_LAST_SUCCESSFUL_SYNC";
 
-    return !!isUpdatedAfterStartDate;
+    return !!isUpdatedAfterStartDate || !isLastSuccessfulSync;
 }
