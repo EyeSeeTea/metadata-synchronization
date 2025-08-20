@@ -611,7 +611,9 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     useEffect(() => {
         if (remoteInstance && isJSONDataSource(remoteInstance)) return;
 
-        compositionRoot.responsibles.list(remoteInstance).then(updateResponsibles);
+        if (!remoteInstance) {
+            compositionRoot.responsibles.list().then(updateResponsibles);
+        }
     }, [compositionRoot, remoteInstance]);
 
     const handleTableChange = (tableState: TableState<ReferenceObject>) => {

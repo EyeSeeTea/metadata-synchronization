@@ -340,7 +340,7 @@ export class CompositionRoot {
             delete: new DeleteInstanceUseCase(this.instanceRepository),
             validate: new ValidateInstanceUseCase(new InstanceD2Validator(this.localInstance)),
 
-            getApi: new GetInstanceApiUseCase(this.repositoryFactory, this.localInstance),
+            getApi: new GetInstanceApiUseCase(this.localInstance),
             getLocal: new GetLocalInstanceUseCase(this.localInstance),
             getOrgUnitRoots: new GetRootOrgUnitUseCase(this.repositoryFactory, this.localInstance),
         });

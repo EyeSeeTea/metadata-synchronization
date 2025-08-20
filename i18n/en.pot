@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-08-19T11:27:35.862Z\n"
-"PO-Revision-Date: 2025-08-19T11:27:35.862Z\n"
+"POT-Creation-Date: 2025-08-20T06:50:36.370Z\n"
+"PO-Revision-Date: 2025-08-20T06:50:36.370Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -157,6 +157,9 @@ msgid "Unauthorized - You do not have permission to view this page."
 msgstr ""
 
 msgid "Login"
+msgstr ""
+
+msgid "Error fetching instance version"
 msgstr ""
 
 msgid "An exported dhis2 file is necessary"
