@@ -192,11 +192,11 @@ export class TEID2ApiRepository implements TEIRepository {
         return {
             status: importResult.status === "OK" ? "SUCCESS" : importResult.status,
             stats: {
-                imported: stats.created,
-                updated: stats.updated,
-                ignored: stats.ignored,
-                deleted: stats.deleted,
-                total: stats.total,
+                imported: stats?.created ?? 0,
+                updated: stats?.updated ?? 0,
+                ignored: stats?.ignored ?? 0,
+                deleted: stats?.deleted ?? 0,
+                total: stats?.total ?? 0,
             },
             instance: this.instance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {

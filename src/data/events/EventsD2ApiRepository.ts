@@ -262,11 +262,11 @@ export class EventsD2ApiRepository implements EventsRepository {
         return {
             status: importResult.status === "OK" ? "SUCCESS" : importResult.status,
             stats: {
-                imported: importResult.stats.created,
-                updated: importResult.stats.updated,
-                ignored: importResult.stats.ignored,
-                deleted: importResult.stats.deleted,
-                total: importResult.stats.total,
+                imported: importResult.stats?.created ?? 0,
+                updated: importResult.stats?.updated ?? 0,
+                ignored: importResult.stats?.ignored ?? 0,
+                deleted: importResult.stats?.deleted ?? 0,
+                total: importResult.stats?.total ?? 0,
             },
             instance: this.instance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {
