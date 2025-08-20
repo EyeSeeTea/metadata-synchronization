@@ -49,7 +49,7 @@ export function isDataSynchronizationRequired(params: DataSynchronizationParams,
     // Moment object in UTC
     const { startDate: startDateMoment } = buildPeriodFromParams(params);
 
-    // lastUpdated is a string from DHIS2, e.g. "2025-08-19T15:48:46.184". To avoid timezone ambiguity, we parse it with moment.utc()
+    // lastUpdated is a string in UTC from DHIS2, e.g. "2025-08-19T15:48:46.184". To avoid timezone ambiguity, we parse it with moment.utc()
     const lastUpdatedMoment = moment.utc(lastUpdated);
 
     const isUpdatedAfterStartDate = lastUpdated && lastUpdatedMoment.isSameOrAfter(startDateMoment);
