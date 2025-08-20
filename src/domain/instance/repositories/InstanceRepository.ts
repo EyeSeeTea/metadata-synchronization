@@ -14,9 +14,14 @@ export interface InstanceRepository {
     getByName(name: string): Promise<Instance | undefined>;
     getApi(): D2Api;
     getBaseUrl(): string;
-    getVersion(): Promise<string>;
+
     getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]>;
     sendMessage(message: InstanceMessage): Promise<void>;
     save(instance: Instance): Promise<void>;
     delete(id: string): Promise<void>;
+
+    /**
+     * @deprecated Use `version` prop from the instance instead.
+     */
+    getVersion(): Promise<string>;
 }
