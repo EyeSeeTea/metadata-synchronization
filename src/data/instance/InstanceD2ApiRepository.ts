@@ -142,10 +142,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         return instances;
     }
 
-    public getApi(): D2Api {
-        return this.api;
-    }
-
     //TODO: this should not be here, callers should getInstanceById or current and get to the instance
     @cache()
     public getBaseUrl(): string {
