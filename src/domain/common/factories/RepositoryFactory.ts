@@ -33,6 +33,10 @@ import {
     TransformationRepositoryConstructor,
 } from "../../transformations/repositories/TransformationRepository";
 import { UserRepositoryConstructor } from "../../user/repositories/UserRepository";
+import {
+    EventVisualizationRepository,
+    EventVisualizationRepositoryConstructor,
+} from "../../metadata/repositories/EventVisualizationRepository";
 
 type ClassType = new (...args: any[]) => any;
 
@@ -201,6 +205,11 @@ export class RepositoryFactory {
     public dhisReleasesRepository() {
         return this.get<DhisReleasesRepositoryConstructor>(Repositories.DhisReleasesRepository, []);
     }
+
+    @cache()
+    public eventVisualizationRepository(instance: Instance): EventVisualizationRepository {
+        return this.get<EventVisualizationRepositoryConstructor>(Repositories.EventVisualizationRepository, [instance]);
+    }
 }
 
 type RepositoryKeys = typeof Repositories[keyof typeof Repositories];
@@ -230,4 +239,5 @@ export const Repositories = {
     DataStoreMetadataRepository: "dataStoreMetadataRepository",
     DhisReleasesRepository: "dhisReleasesRepository",
     TableColumnsRepository: "tableColumnsRepository",
+    EventVisualizationRepository: "eventVisualizationRepository",
 } as const;

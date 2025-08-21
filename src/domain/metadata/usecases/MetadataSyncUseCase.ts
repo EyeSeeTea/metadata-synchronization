@@ -12,7 +12,15 @@ import { MappingMapper } from "../../mapping/helpers/MappingMapper";
 import { Stats } from "../../reports/entities/Stats";
 import { SynchronizationResult } from "../../reports/entities/SynchronizationResult";
 import { GenericSyncUseCase } from "../../synchronization/usecases/GenericSyncUseCase";
-import { Document, MetadataEntities, MetadataEntity, MetadataPackage, Program } from "../entities/MetadataEntities";
+import {
+    Dashboard,
+    Document,
+    EventVisualization,
+    MetadataEntities,
+    MetadataEntity,
+    MetadataPackage,
+    Program,
+} from "../entities/MetadataEntities";
 import { NestedRules } from "../entities/MetadataExcludeIncludeRules";
 import { buildNestedRules, cleanObject, cleanReferences, getAllReferences } from "../utils";
 
@@ -116,7 +124,10 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
                     });
                 });
 
-                _.deepMerge(result, ...partialResults);
+                const eventVisualizations =
+                    type === "dashboards" ? await this.requestAndIncludeLineListings(fixedElement as Dashboard) : {};
+
+                _.deepMerge(result, ...partialResults, eventVisualizations);
             }
 
             // Clean up result from duplicated elements
@@ -376,6 +387,25 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
             program: program.id,
         });
         return { ...program, programRules };
+    }
+
+    private async requestAndIncludeLineListings(
+        dashboard: Dashboard
+    ): Promise<{ eventVisualizations: EventVisualization[] }> {
+        const defaultInstance = await this.getOriginInstance();
+        const eventVisualizationsRepository = this.repositoryFactory.eventVisualizationRepository(defaultInstance);
+
+        const eventVisualizationIds = _(dashboard.dashboardItems)
+            .map(dashboardItem => dashboardItem.eventVisualization?.id)
+            .compact()
+            .value();
+        const eventVisualizations = await eventVisualizationsRepository.getByIds(eventVisualizationIds);
+
+        return {
+            eventVisualizations: eventVisualizations.filter(
+                eventVisualization => eventVisualization.type !== "LINE_LISTING"
+            ),
+        };
     }
 
     private excludeDefaultMetadataObjects(

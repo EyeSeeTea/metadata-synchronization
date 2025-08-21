@@ -33,12 +33,17 @@ export const metadataTransformations: Transformation[] = [
                 eventReports: finalEventReports,
             };
         },
-        apply: ({ eventCharts, eventReports, ...rest }: any) => {
-            const eventVisualizations = [...(eventCharts || []), ...(eventReports || [])];
+        apply: ({ eventCharts, eventReports, eventVisualizations, ...rest }: any) => {
+            const eventVisualizationsTransformation = [
+                ...(eventCharts || []),
+                ...(eventReports || []),
+                ...(eventVisualizations || []),
+            ];
 
             return {
                 ...rest,
-                eventVisualizations: eventVisualizations.length > 0 ? eventVisualizations : undefined,
+                eventVisualizations:
+                    eventVisualizationsTransformation.length > 0 ? eventVisualizationsTransformation : undefined,
             };
         },
     },

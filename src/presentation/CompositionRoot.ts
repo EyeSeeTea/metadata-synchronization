@@ -125,6 +125,7 @@ import { getD2APiFromInstance } from "../utils/d2-utils";
 import { RoleD2ApiRepository } from "../data/role/RoleD2ApiRepository";
 import { ValidateRolesUseCase } from "../domain/role/ValidateRolesUseCase";
 import { StorageDataStoreClient } from "../data/storage/StorageDataStoreClient";
+import { EventVisualizationD2ApiRepository } from "../data/metadata/EventVisualizationD2ApiRepository";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -161,6 +162,7 @@ export class CompositionRoot {
         this.repositoryFactory.bind(Repositories.DataStoreMetadataRepository, DataStoreMetadataD2Repository);
         this.repositoryFactory.bind(Repositories.DhisReleasesRepository, DhisReleasesLocalRepository);
         this.repositoryFactory.bind(Repositories.TableColumnsRepository, TableColumnsDataStoreRepository);
+        this.repositoryFactory.bind(Repositories.EventVisualizationRepository, EventVisualizationD2ApiRepository);
     }
 
     @cache()
