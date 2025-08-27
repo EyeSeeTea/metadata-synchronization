@@ -216,6 +216,7 @@ export class CompositionRoot {
             listAll: new ListAllMetadataUseCase(this.repositoryFactory, this.localInstance),
             getByIds: new GetMetadataByIdsUseCase(this.repositoryFactory, this.localInstance),
             import: new ImportMetadataUseCase(this.repositoryFactory, this.localInstance),
+            getOrgUnitRoots: new GetRootOrgUnitUseCase(this.repositoryFactory, this.localInstance),
         });
     }
 
@@ -342,7 +343,6 @@ export class CompositionRoot {
 
             getApi: new GetInstanceApiUseCase(this.localInstance),
             getLocal: new GetLocalInstanceUseCase(this.localInstance),
-            getOrgUnitRoots: new GetRootOrgUnitUseCase(this.repositoryFactory, this.localInstance),
         });
     }
 

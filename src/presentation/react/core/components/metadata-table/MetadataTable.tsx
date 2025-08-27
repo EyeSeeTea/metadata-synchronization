@@ -547,7 +547,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             return;
         }
 
-        compositionRoot.instances
+        compositionRoot.metadata
             .getOrgUnitRoots(remoteInstance)
             .then(roots => changeParentOrgUnitFilter(roots.map(({ path }) => path)))
             .catch(handleError);
