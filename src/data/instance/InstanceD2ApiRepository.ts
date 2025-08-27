@@ -4,7 +4,6 @@ import { Instance } from "../../domain/instance/entities/Instance";
 import { InstanceMessage } from "../../domain/instance/entities/Message";
 import { InstanceRepository, InstancesFilter } from "../../domain/instance/repositories/InstanceRepository";
 import { D2Api, D2User } from "../../types/d2-api";
-import { cache } from "../../utils/cache";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { InmemoryCache } from "../common/InmemoryCache";
