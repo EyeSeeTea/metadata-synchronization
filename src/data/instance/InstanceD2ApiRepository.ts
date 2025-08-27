@@ -3,7 +3,6 @@ import _ from "lodash";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { InstanceMessage } from "../../domain/instance/entities/Message";
 import { InstanceRepository, InstancesFilter } from "../../domain/instance/repositories/InstanceRepository";
-import { OrganisationUnit } from "../../domain/metadata/entities/MetadataEntities";
 import { D2Api, D2User } from "../../types/d2-api";
 import { cache } from "../../utils/cache";
 import { promiseMap } from "../../utils/common";
@@ -146,20 +145,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     @cache()
     public getBaseUrl(): string {
         return this.api.baseUrl;
-    }
-
-    //TODO: this should nbe in a MetadataRepository
-    @cache()
-    public async getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]> {
-        const { objects } = await this.api.models.organisationUnits
-            .get({
-                paging: false,
-                filter: { level: { eq: "1" } },
-                fields: { id: true, name: true, displayName: true, path: true },
-            })
-            .getData();
-
-        return objects;
     }
 
     //TODO: this should not be here, may be a message repository?

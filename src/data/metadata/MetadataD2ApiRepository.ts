@@ -16,6 +16,7 @@ import {
     MetadataEntities,
     MetadataEntity,
     MetadataPackage,
+    OrganisationUnit,
 } from "../../domain/metadata/entities/MetadataEntities";
 import {
     ListMetadataParams,
@@ -209,6 +210,18 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                     categoryCombo: true,
                     categoryOptions: true,
                 },
+            })
+            .getData();
+
+        return objects;
+    }
+
+    public async getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]> {
+        const { objects } = await this.api.models.organisationUnits
+            .get({
+                paging: false,
+                filter: { level: { eq: "1" } },
+                fields: { id: true, name: true, displayName: true, path: true },
             })
             .getData();
 

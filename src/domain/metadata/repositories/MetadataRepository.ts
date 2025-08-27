@@ -3,7 +3,13 @@ import { IdentifiableRef, Ref } from "../../common/entities/Ref";
 import { Id } from "../../common/entities/Schemas";
 import { SynchronizationResult } from "../../reports/entities/SynchronizationResult";
 import { FilterRule } from "../entities/FilterRule";
-import { CategoryOptionCombo, MetadataEntities, MetadataEntity, MetadataPackage } from "../entities/MetadataEntities";
+import {
+    CategoryOptionCombo,
+    MetadataEntities,
+    MetadataEntity,
+    MetadataPackage,
+    OrganisationUnit,
+} from "../entities/MetadataEntities";
 import { MetadataImportParams } from "../entities/MetadataSynchronizationParams";
 
 export interface MetadataRepository {
@@ -13,6 +19,7 @@ export interface MetadataRepository {
     getCategoryOptionCombos(): Promise<
         Pick<CategoryOptionCombo, "id" | "name" | "categoryCombo" | "categoryOptions">[]
     >;
+    getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]>;
 
     listMetadata(params: ListMetadataParams): Promise<ListMetadataResponse>;
     listAllMetadata(params: ListMetadataParams): Promise<MetadataEntity[]>;
