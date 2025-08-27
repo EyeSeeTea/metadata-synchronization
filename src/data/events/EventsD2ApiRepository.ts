@@ -193,12 +193,14 @@ export class EventsD2ApiRepository implements EventsRepository {
             return _.flatten(filteredEvents);
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
             .map(object => {
                 const event = { ...object, id: object.event };
 
-                return isDataSynchronizationRequired(params, object.updatedAt)
+                return isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId)
                     ? cleanObjectDefault(event, defaults)
                     : undefined;
             })

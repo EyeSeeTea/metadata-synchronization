@@ -38,9 +38,11 @@ export class TEID2ApiRepository implements TEIRepository {
             return [...instances, ..._.flatten(paginatedTEIs)];
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
-            .filter(object => isDataSynchronizationRequired(params, object.updatedAt))
+            .filter(object => isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId))
             .value();
     }
 
