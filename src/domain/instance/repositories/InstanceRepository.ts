@@ -10,7 +10,6 @@ export interface InstanceRepository {
     getAll(filter: InstancesFilter): Promise<Instance[]>;
     getById(id: string): Promise<Instance | undefined>;
     getByName(name: string): Promise<Instance | undefined>;
-    getBaseUrl(): string;
 
     sendMessage(message: InstanceMessage): Promise<void>;
     save(instance: Instance): Promise<void>;
