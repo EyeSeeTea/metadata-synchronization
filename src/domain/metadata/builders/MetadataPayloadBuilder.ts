@@ -10,15 +10,17 @@ import { promiseMap } from "../../../utils/common";
 import { defaultName, modelFactory } from "../../../models/dhis/factory";
 import { cache } from "../../../utils/cache";
 import { ExportBuilder } from "../../../types/synchronization";
-import { D2Api, Id } from "../../../types/d2-api";
+import { D2Api } from "../../../types/d2-api";
 import { getD2APiFromInstance } from "../../../utils/d2-utils";
 import _ from "lodash";
 import { NestedRules } from "../entities/MetadataExcludeIncludeRules";
 import { buildNestedRules, cleanObject, cleanReferences, getAllReferences } from "../utils";
+import { BuilderRegistry } from "./BuilderRegistry";
 
 export class MetadataPayloadBuilder {
     private api: D2Api;
-    private idsAlreadyRequested = new Set<Id>();
+    private registry = new BuilderRegistry();
+    private debugEnabled = false;
 
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {
         this.api = getD2APiFromInstance(localInstance);
@@ -138,7 +140,7 @@ export class MetadataPayloadBuilder {
             ...rest,
         };
 
-        this.idsAlreadyRequested.clear();
+        this.registry.clear();
 
         debug("Metadata package", finalMetadataPackage);
         return finalMetadataPackage;
@@ -165,7 +167,7 @@ export class MetadataPayloadBuilder {
     }
 
     public async exportMetadata(originalBuilder: ExportBuilder, originInstanceId: string): Promise<MetadataPackage> {
-        const recursiveExport = async (builder: ExportBuilder): Promise<MetadataPackage> => {
+        const recursiveExport = async (builder: ExportBuilder, depth = 0): Promise<MetadataPackage> => {
             const {
                 type,
                 ids,
@@ -182,11 +184,13 @@ export class MetadataPayloadBuilder {
                 removeUserNonEssentialObjects,
             } = builder;
 
-            const newIds = ids.filter(id => !this.idsAlreadyRequested.has(id));
+            const newIds = this.registry.filterNotRequested(builder, ids);
 
             if (newIds.length === 0) {
                 return {};
             }
+
+            this.debug(depth, `type=${builder.type}, ids=[${newIds.join(", ")}]`);
 
             //TODO: when metadata entities schema exists on domain, move this factory to domain
             const collectionName = modelFactory(type).getCollectionName();
@@ -204,7 +208,7 @@ export class MetadataPayloadBuilder {
             const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
             const syncMetadata = await metadataRepository.getMetadataByIds(newIds);
             const elements = syncMetadata[collectionName] || [];
-            newIds.forEach(id => this.idsAlreadyRequested.add(id));
+            this.registry.addList(builder, newIds);
 
             for (const element of elements) {
                 //ProgramRules is not included in programs items in the response by the dhis2 API
@@ -253,21 +257,24 @@ export class MetadataPayloadBuilder {
                               ]
                             : metadataTypeIncludeReferencesAndObjectsRules;
 
-                    return recursiveExport({
-                        type: type as keyof MetadataEntities,
-                        ids: [...new Set(references[type])],
-                        excludeRules: nestedExcludeRules[type],
-                        includeReferencesAndObjectsRules: nextIncludeReferencesAndObjectsRules,
-                        includeSharingSettingsObjectsAndReferences,
-                        includeOnlySharingSettingsReferences,
-                        includeUsersObjectsAndReferences,
-                        includeOnlyUsersReferences,
-                        includeOrgUnitsObjectsAndReferences,
-                        includeOnlyOrgUnitsReferences,
-                        sharingSettingsIncludeReferencesAndObjectsRules,
-                        usersIncludeReferencesAndObjectsRules,
-                        removeUserNonEssentialObjects,
-                    });
+                    return recursiveExport(
+                        {
+                            type: type as keyof MetadataEntities,
+                            ids: [...new Set(references[type])],
+                            excludeRules: nestedExcludeRules[type],
+                            includeReferencesAndObjectsRules: nextIncludeReferencesAndObjectsRules,
+                            includeSharingSettingsObjectsAndReferences,
+                            includeOnlySharingSettingsReferences,
+                            includeUsersObjectsAndReferences,
+                            includeOnlyUsersReferences,
+                            includeOrgUnitsObjectsAndReferences,
+                            includeOnlyOrgUnitsReferences,
+                            sharingSettingsIncludeReferencesAndObjectsRules,
+                            usersIncludeReferencesAndObjectsRules,
+                            removeUserNonEssentialObjects,
+                        },
+                        depth + 1
+                    );
                 });
 
                 _.deepMerge(result, ...partialResults);
@@ -292,10 +299,19 @@ export class MetadataPayloadBuilder {
                   ]
                 : currentMetadataTypeIncludeReferencesAndObjectsRules;
 
-        return recursiveExport({
-            ...originalBuilder,
-            includeReferencesAndObjectsRules,
-        });
+        return recursiveExport(
+            {
+                ...originalBuilder,
+                includeReferencesAndObjectsRules,
+            },
+            0
+        );
+    }
+
+    private debug(depth: number, ...message: unknown[]) {
+        if (!this.debugEnabled) return;
+        const indent = "  ".repeat(depth);
+        debug(`${indent}[builder]`, ...message);
     }
 
     private excludeDefaultMetadataObjects(
