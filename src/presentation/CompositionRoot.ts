@@ -341,6 +341,8 @@ export class CompositionRoot {
             delete: new DeleteInstanceUseCase(this.instanceRepository),
             validate: new ValidateInstanceUseCase(new InstanceD2Validator(this.localInstance)),
 
+            // TODO: remove this. Api now uses routes but never should be invoked directly
+            //  Use getById("LOCAL"), instead of use getLocal
             getApi: new GetInstanceApiUseCase(this.localInstance),
             getLocal: new GetLocalInstanceUseCase(this.localInstance),
         });
