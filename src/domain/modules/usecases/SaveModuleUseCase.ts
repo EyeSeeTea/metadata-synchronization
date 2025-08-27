@@ -19,7 +19,7 @@ export class SaveModuleUseCase implements UseCase {
         if (validations.length === 0) {
             const user = await this.repositoryFactory.userRepository(this.localInstance).getCurrent();
             const newModule = module.update({
-                instance: this.repositoryFactory.instanceRepository(this.localInstance).getBaseUrl(),
+                instance: this.localInstance.url,
                 lastUpdated: new Date(),
                 lastUpdatedBy: user,
                 user: module.user.id ? module.user : { id: user.id, name: user.name },

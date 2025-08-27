@@ -141,12 +141,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         return instances;
     }
 
-    //TODO: this should not be here, callers should getInstanceById or current and get to the instance
-    @cache()
-    public getBaseUrl(): string {
-        return this.api.baseUrl;
-    }
-
     //TODO: this should not be here, may be a message repository?
     public async sendMessage(message: InstanceMessage): Promise<void> {
         //@ts-ignore https://github.com/EyeSeeTea/d2-api/pull/52

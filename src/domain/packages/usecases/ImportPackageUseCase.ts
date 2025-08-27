@@ -74,7 +74,7 @@ export class ImportPackageUseCase implements UseCase {
             const user = await this.userRepository.getCurrent();
             const userRef = { id: user.id, name: user.name };
 
-            const instance = this.instanceRepository.getBaseUrl();
+            const instance = this.localInstance.url;
 
             const newPackage = packageToCreate.update({
                 user: userRef,
