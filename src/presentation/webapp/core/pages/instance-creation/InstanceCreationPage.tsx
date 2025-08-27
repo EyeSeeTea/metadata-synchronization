@@ -1,5 +1,5 @@
 import { ConfirmationDialog } from "@eyeseetea/d2-ui-components";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import { Instance } from "../../../../../domain/instance/entities/Instance";
 import i18n from "../../../../../utils/i18n";
@@ -13,7 +13,7 @@ const InstanceCreationPage = () => {
     const history = useHistory();
     const { id, action } = useParams<{ id: string; action: "new" | "edit" }>();
     const location = useLocation<{ instance?: Instance }>();
-    const isEdit = action === "edit" && id;
+    const isEdit = useMemo(() => action === "edit" && id !== undefined, [action, id]);
 
     const [error, setError] = useState<boolean>(false);
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -71,7 +71,12 @@ const InstanceCreationPage = () => {
             <PageHeader title={title} onBackClick={cancelSave} />
 
             {instance.type === "dhis" && (
-                <GeneralInfoForm instance={instance} onChange={onChange} cancelAction={cancelSave} />
+                <GeneralInfoForm
+                    instance={instance}
+                    onChange={onChange}
+                    cancelAction={cancelSave}
+                    testConnectionVisible={isEdit}
+                />
             )}
         </TestWrapper>
     );

@@ -14,9 +14,10 @@ export interface GeneralInfoFormProps {
     instance: Instance;
     onChange: (instance: Instance) => void;
     cancelAction: () => void;
+    testConnectionVisible: boolean;
 }
 
-const GeneralInfoForm = ({ instance, onChange, cancelAction }: GeneralInfoFormProps) => {
+const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisible }: GeneralInfoFormProps) => {
     const { compositionRoot } = useAppContext();
     const classes = useStyles();
     const history = useHistory();
@@ -153,9 +154,11 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction }: GeneralInfoFormPr
                                 {i18n.t("Metadata mapping")}
                             </Button>
                         )}
-                        <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
-                            {i18n.t("Test Connection")}
-                        </Button>
+                        {testConnectionVisible && (
+                            <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
+                                {i18n.t("Test Connection")}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </CardContent>
