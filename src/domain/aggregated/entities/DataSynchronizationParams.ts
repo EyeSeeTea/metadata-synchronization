@@ -45,6 +45,8 @@ export interface DataSynchronizationParams extends DataImportParams {
     ignoreDuplicateExistingValues?: boolean;
 }
 
+const EPOCH_START = "1970-01-01";
+
 export function isDataSynchronizationRequired(
     params: DataSynchronizationParams,
     lastUpdated: Maybe<string>,
@@ -54,14 +56,13 @@ export function isDataSynchronizationRequired(
     const isLastSuccessfulSync = period === "SINCE_LAST_SUCCESSFUL_SYNC";
 
     if (isLastSuccessfulSync) {
-        const startDateMomentUTC = startDate ? moment.utc(startDate) : moment.utc("1970-01-01");
+        const startDateMomentUTC = startDate ? moment.utc(startDate) : moment.utc(EPOCH_START);
 
         // lastUpdated is a string expressed in the local time zone of the DHIS2 server.
         const lastUpdatedUTC = moment.tz(lastUpdated, serverTimeZoneId).utc();
 
-        const isUpdatedAfterStartDate = lastUpdated && lastUpdatedUTC.isSameOrAfter(startDateMomentUTC);
-
-        return !!isUpdatedAfterStartDate;
+        const isUpdatedAfterStartDate = lastUpdated ? lastUpdatedUTC.isSameOrAfter(startDateMomentUTC) : false;
+        return isUpdatedAfterStartDate;
     } else {
         return true;
     }
