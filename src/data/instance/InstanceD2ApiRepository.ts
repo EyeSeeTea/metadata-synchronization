@@ -222,12 +222,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
             url: data.type === "local" ? this.instance.url : data.url,
             version: data.type === "local" ? this.instance.version : data.version,
             username: data.type === "local" ? this.instance.username : data.username,
-            password:
-                data.type === "local"
-                    ? this.instance.password
-                    : data.password
-                    ? await this.decryptPassword(data.password)
-                    : "",
+            password: data.type === "local" ? this.instance.password : await this.decryptPassword(data.password ?? ""),
             ...sharing,
         });
     }

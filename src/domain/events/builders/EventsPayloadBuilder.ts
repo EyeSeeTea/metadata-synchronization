@@ -11,7 +11,7 @@ import { ProgramEvent } from "../entities/ProgramEvent";
 import { DataValue } from "../../aggregated/entities/DataValue";
 import { TrackedEntityInstance } from "../../tracked-entity-instances/entities/TrackedEntityInstance";
 import { eventsFields } from "../usecases/EventsSyncUseCase";
-import { Id } from "../../common/entities/Schemas";
+import { Ref } from "../../common/entities/Ref";
 
 type EventsPayload = {
     events: ProgramEvent[];
@@ -152,6 +152,6 @@ export class EventsPayloadBuilder {
 // the underlying issue is in the getMetadataByIds typings
 type EventsMetadataExtracted = {
     programs?: Pick<Program, "id" | "programType" | "programStages" | "programIndicators">[];
-    programIndicators?: { id: Id }[];
-    programStages?: { id: Id }[];
+    programIndicators?: Ref[];
+    programStages?: Ref[];
 };
