@@ -3,7 +3,39 @@ import { D2Api, D2ApiDefinition } from "@eyeseetea/d2-api/2.36";
 import { GetOptionValue } from "@eyeseetea/d2-api/api/common";
 import { D2ModelSchemaBase } from "@eyeseetea/d2-api/api/inference";
 
-export * from "@eyeseetea/d2-api/2.36";
+export { D2Api } from "@eyeseetea/d2-api/2.36";
+
+export {
+    D2ApiResponse,
+    Analytics,
+    CurrentUser,
+    DataStore,
+    DataValues,
+    Metadata,
+    Model,
+    models,
+} from "@eyeseetea/d2-api/2.36";
+
+export type {
+    D2ApiDefinition,
+    D2CategoryOptionSchema,
+    D2CategoryOptionComboSchema,
+    D2ConstantSchema,
+    D2DataSetSchema,
+    D2IndicatorSchema,
+    D2ProgramIndicatorSchema,
+    D2ProgramSchema,
+    MetadataResponse,
+    Pager,
+    Stats,
+    DataValueSetsPostResponse,
+    SelectedPick,
+    DataStoreKeyMetadata,
+    D2Model,
+    Id,
+    Ref,
+    GetOptions,
+} from "@eyeseetea/d2-api/2.36";
 
 export const D2ApiDefault = D2Api;
 export const getMockApi = getMockApiFromClass(D2Api);

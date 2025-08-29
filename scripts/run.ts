@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import yargs, { Argv } from "yargs";
 import { ArrayElementType } from "../src/types/utils";
-import fs from "fs";
+import * as fs from "node:fs";
 
 const defaultVariant = "core-app";
 const variants = [
@@ -48,6 +48,14 @@ const variants = [
         file: "emergency-responses-sync",
     },
 ] as const;
+
+function setVariantToEnv(variant: typeof variants[number]) {
+    Object.assign(process.env, {
+        VITE_PRESENTATION_TYPE: variant.type,
+        VITE_PRESENTATION_VARIANT: variant.name,
+        VITE_PRESENTATION_TITLE: variant.title,
+    });
+}
 
 function getYargs(): Argv {
     yargs
@@ -102,6 +110,7 @@ function getYargs(): Argv {
 }
 
 function main() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     getYargs().argv;
 }
 
@@ -123,11 +132,7 @@ function build(args: BuildArgs): void {
     }
 
     for (const variant of buildVariants) {
-        Object.assign(process.env, {
-            REACT_APP_PRESENTATION_TYPE: variant.type,
-            REACT_APP_PRESENTATION_VARIANT: variant.name,
-            REACT_APP_PRESENTATION_TITLE: variant.title,
-        });
+        setVariantToEnv(variant);
 
         if (args.verbose) {
             console.info(`Package name: ${variant.name}`);
@@ -136,7 +141,7 @@ function build(args: BuildArgs): void {
         const fileName = `${variant.file}.zip`;
         const manifestType = variant.type === "widget" ? "DASHBOARD_WIDGET" : "APP";
 
-        run(`react-scripts build && cp -r i18n icon.png build`);
+        run(`yarn build:variant`);
         run(`d2-manifest package.json build/manifest.webapp -t ${manifestType} -n '${variant.title}'`);
         if (variant.file === "metadata-synchronization") {
             updateManifestJsonFile(`build/manifest.json`, variant.title);
@@ -180,15 +185,10 @@ function startServer(args: StartServerArgs): void {
         console.info(`Start server on: ${args.port}`);
     }
 
-    Object.assign(process.env, {
-        REACT_APP_PRESENTATION_TYPE: variant.type,
-        REACT_APP_PRESENTATION_VARIANT: variant.name,
-        REACT_APP_PRESENTATION_TITLE: variant.title,
-        PORT: args.port,
-    });
+    setVariantToEnv(variant);
+    Object.assign(process.env, { PORT: args.port });
 
-    run("yarn localize && d2-manifest package.json manifest.webapp");
-    run("react-scripts start");
+    run("yarn start:variant");
 }
 
 main();

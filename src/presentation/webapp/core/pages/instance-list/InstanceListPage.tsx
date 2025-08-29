@@ -24,6 +24,7 @@ import { Instance, InstanceData } from "../../../../../domain/instance/entities/
 import { User } from "../../../../../domain/user/entities/User";
 import i18n from "../../../../../utils/i18n";
 import { executeAnalytics } from "../../../../../utils/analytics";
+import { config } from "../../../../../utils/Config";
 import PageHeader from "../../../../react/core/components/page-header/PageHeader";
 import { SharingDialog } from "../../../../react/core/components/sharing-dialog/SharingDialog";
 import { TestWrapper } from "../../../../react/core/components/test-wrapper/TestWrapper";
@@ -280,7 +281,7 @@ const InstanceListPage = () => {
             multiple: false,
             onClick: runAnalytics,
             icon: <Icon>data_usage</Icon>,
-            isActive: rows => process.env.NODE_ENV === "development" && verifyUserCanEdit(rows),
+            isActive: rows => config.isDevelopment && verifyUserCanEdit(rows),
         },
         {
             name: "mapping",

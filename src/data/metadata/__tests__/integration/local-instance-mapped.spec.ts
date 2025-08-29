@@ -14,10 +14,6 @@ const repositoryFactory = buildRepositoryFactory();
 describe("Sync local instance mapped", () => {
     let local: Server;
 
-    beforeAll(() => {
-        jest.setTimeout(30000);
-    });
-
     beforeEach(() => {
         local = startDhis({ urlPrefix: "http://origin.test" });
 
