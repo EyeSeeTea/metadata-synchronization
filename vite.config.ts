@@ -11,7 +11,9 @@ export default defineConfig(({ mode }) => {
     return {
         base: "", // Relative paths
         plugins: [
-            react(),
+            react({
+                jsxImportSource: env.NODE_ENV === "development" ? "@welldone-software/why-did-you-render" : "react",
+            }),
             nodePolyfills({
                 // Enable polyfills for specific globals and modules
                 globals: {
