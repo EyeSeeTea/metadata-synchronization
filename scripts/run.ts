@@ -49,6 +49,14 @@ const variants = [
     },
 ] as const;
 
+function setVariantToEnv(variant: typeof variants[number]) {
+    Object.assign(process.env, {
+        VITE_PRESENTATION_TYPE: variant.type,
+        VITE_PRESENTATION_VARIANT: variant.name,
+        VITE_PRESENTATION_TITLE: variant.title,
+    });
+}
+
 function getYargs(): Argv {
     yargs
         .usage("Usage: $0 <command> [options]")
@@ -124,11 +132,7 @@ function build(args: BuildArgs): void {
     }
 
     for (const variant of buildVariants) {
-        Object.assign(process.env, {
-            VITE_PRESENTATION_TYPE: variant.type,
-            VITE_PRESENTATION_VARIANT: variant.name,
-            VITE_PRESENTATION_TITLE: variant.title,
-        });
+        setVariantToEnv(variant);
 
         if (args.verbose) {
             console.info(`Package name: ${variant.name}`);
@@ -137,7 +141,7 @@ function build(args: BuildArgs): void {
         const fileName = `${variant.file}.zip`;
         const manifestType = variant.type === "widget" ? "DASHBOARD_WIDGET" : "APP";
 
-        run(`vite build && cp -r i18n icon.png build`);
+        run(`yarn build:variant`);
         run(`d2-manifest package.json build/manifest.webapp -t ${manifestType} -n '${variant.title}'`);
         if (variant.file === "metadata-synchronization") {
             updateManifestJsonFile(`build/manifest.json`, variant.title);
@@ -181,15 +185,10 @@ function startServer(args: StartServerArgs): void {
         console.info(`Start server on: ${args.port}`);
     }
 
-    Object.assign(process.env, {
-        VITE_PRESENTATION_TYPE: variant.type,
-        VITE_PRESENTATION_VARIANT: variant.name,
-        VITE_PRESENTATION_TITLE: variant.title,
-        PORT: args.port,
-    });
+    setVariantToEnv(variant);
+    Object.assign(process.env, { PORT: args.port });
 
-    run("yarn localize && d2-manifest package.json manifest.webapp");
-    run("vite");
+    run("yarn start:variant");
 }
 
 main();
