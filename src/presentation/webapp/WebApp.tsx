@@ -8,6 +8,7 @@ import { createGenerateClassName, StylesProvider } from "@material-ui/styles";
 import { useEffect, useState } from "react";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { D2Api } from "../../types/d2-api";
+import { config } from "../../utils/Config";
 import { CompositionRoot } from "../CompositionRoot";
 import { useMigrations } from "../react/core/components/migrations/hooks";
 import Migrations from "../react/core/components/migrations/Migrations";
@@ -35,7 +36,7 @@ const App = () => {
     const migrations = useMigrations(appContext);
     const { deletingHistory } = useDeleteHistory(appContext);
 
-    const appTitle = import.meta.env.VITE_PRESENTATION_TITLE;
+    const appTitle = config.presentationTitle;
 
     useEffect(() => {
         const run = async () => {

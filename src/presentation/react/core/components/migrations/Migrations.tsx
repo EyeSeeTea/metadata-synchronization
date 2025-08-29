@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Log } from "../../../../../domain/migrations/entities/Debug";
 import { MigrationVersions } from "../../../../../domain/migrations/entities/MigrationVersions";
 import i18n from "../../../../../utils/i18n";
+import { config } from "../../../../../utils/Config";
 import { useAppContext } from "../../contexts/AppContext";
 import { UseMigrationsResult } from "./hooks";
 
@@ -152,7 +153,7 @@ function getPendingMigrationsText(versions: MigrationVersions): string {
     );
 }
 
-const isDebug = import.meta.env.MODE === "development";
+const isDebug = config.isDevelopment;
 
 const MigrationsError: React.FC<{ versions: MigrationVersions; onFinish: () => void }> = ({ versions, onFinish }) => (
     <ConfirmationDialog

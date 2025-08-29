@@ -3,6 +3,7 @@ import _ from "lodash";
 import React, { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import i18n from "../../../../../utils/i18n";
+import { AppVariant, config } from "../../../../../utils/Config";
 import {
     isAppConfigurator,
     isAppExecutor,
@@ -12,7 +13,6 @@ import {
 import { Card, Landing } from "../../../../react/core/components/landing/Landing";
 import { TestWrapper } from "../../../../react/core/components/test-wrapper/TestWrapper";
 import { useAppContext } from "../../../../react/core/contexts/AppContext";
-import { AppVariant } from "../../../Root";
 
 const appVariantConfiguration: Record<AppVariant, string[]> = {
     "core-app": ["aggregated", "events", "metadata", "other", "metadata-distribution", "configuration"],
@@ -27,7 +27,7 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ type }) => {
-    const appVariant = import.meta.env.VITE_PRESENTATION_VARIANT as AppVariant;
+    const appVariant = config.appPresentationVariant || "core-app";
 
     const { api, compositionRoot } = useAppContext();
     const history = useHistory();
