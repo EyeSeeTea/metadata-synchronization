@@ -56,8 +56,6 @@ Notes:
 
 -   The optional environment variable `VITE_DHIS2_AUTH=USERNAME:PASSWORD` forces some credentials to be used by the proxy. This variable is usually not set, so the app has the same user logged in at `VITE_DHIS2_BASE_URL`.
 
--   The optional environment variable `VITE_PROXY_LOG_LEVEL` can be helpful to debug the proxyfied requests (accepts: "warn" | "debug" | "info" | "error" | "silent")
-
 -   Create a file `.env.local` (copy it from `.env`) to customize environment variables so you can simply run `yarn start`.
 
 -   [why-did-you-render](https://github.com/welldone-software/why-did-you-render) is installed and runs in development mode by default.
