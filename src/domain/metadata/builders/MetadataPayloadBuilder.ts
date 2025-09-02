@@ -127,7 +127,7 @@ export class MetadataPayloadBuilder {
 
         const visualizationsWithRows = visualizations
             ? await this.addRowsToVisualizations(originInstance, visualizations as Visualization[])
-            : [];
+            : undefined;
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
@@ -335,16 +335,16 @@ export class MetadataPayloadBuilder {
     private async addRowsToVisualizations(
         originInstance: Instance,
         visualizations: Visualization[]
-    ): Promise<Visualization[]> {
+    ): Promise<Visualization[] | undefined> {
         const visualizationsRepository = await this.repositoryFactory.visualizationsRepository(originInstance);
-        const visualizationIds = visualizations?.map(visualization => visualization.id) || [];
+        const visualizationIds = visualizations.map(visualization => visualization.id) || [];
 
-        const visualizationsWithOnlyRows = await visualizationsRepository.getByIds(visualizationIds, {
-            onlyRows: true,
-        });
+        if (visualizationIds.length === 0) return undefined;
+
+        const visualizationsWithRows = await visualizationsRepository.getByIds(visualizationIds);
 
         return visualizations.map(visualization => {
-            const rows = visualizationsWithOnlyRows.find(row => row.id === visualization.id)?.rows || [];
+            const rows = visualizationsWithRows.find(row => row.id === visualization.id)?.rows || [];
             return { ...visualization, rows };
         });
     }
