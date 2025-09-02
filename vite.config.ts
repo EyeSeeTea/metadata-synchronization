@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
         base: "", // Relative paths
         plugins: [
             react({
-                jsxImportSource: env.NODE_ENV === "development" ? "@welldone-software/why-did-you-render" : "react",
+                jsxImportSource: mode === "development" ? "@welldone-software/why-did-you-render" : "react",
             }),
             nodePolyfills({
                 // Enable polyfills for specific globals and modules
@@ -21,21 +21,6 @@ export default defineConfig(({ mode }) => {
                     global: true,
                     process: true,
                 },
-                // Include additional Node.js modules
-                include: [
-                    "crypto",
-                    "stream",
-                    "buffer",
-                    "util",
-                    "os",
-                    "events",
-                    "process",
-                    "path",
-                    "http",
-                    "https",
-                    "zlib",
-                    "vm",
-                ],
                 protocolImports: true,
             }),
         ],
