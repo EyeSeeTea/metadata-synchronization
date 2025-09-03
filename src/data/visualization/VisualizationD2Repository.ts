@@ -13,7 +13,7 @@ export class VisualizationD2Repository implements VisualizationRepository {
     }
 
     async getByIds(ids: Id[]): Promise<Visualization[]> {
-        if (!ids || ids.length === 0) return [];
+        if (ids.length === 0) return [];
 
         const d2Visualizations = await this.api.models.visualizations
             .get({
