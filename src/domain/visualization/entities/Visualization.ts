@@ -1,8 +1,8 @@
 import { Id } from "../../common/entities/Schemas";
 
-type VisualizationRowItem = {
-    id: string;
-    name: string;
+export type Visualization = {
+    id: Id;
+    rows: VisualizationRow[];
 };
 
 type VisualizationRow = {
@@ -11,7 +11,7 @@ type VisualizationRow = {
     items: VisualizationRowItem[];
 };
 
-export type Visualization = {
-    id: Id;
-    rows: VisualizationRow[];
+type VisualizationRowItem = {
+    id: string;
+    name: string;
 };
