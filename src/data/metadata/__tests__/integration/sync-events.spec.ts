@@ -9,6 +9,7 @@ import { startDhis } from "../../../../utils/dhisServer";
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { EventsPayloadBuilder } from "../../../../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../../../domain/aggregated/builders/AggregatedPayloadBuilder";
+import { TransformationD2ApiRepository } from "../../../transformations/TransformationD2ApiRepository";
 
 const repositoryFactory = buildRepositoryFactory();
 
@@ -22,10 +23,13 @@ describe("Sync events", () => {
 
     beforeEach(() => {
         local = startDhis({ urlPrefix: "http://origin.test" });
-        remote = startDhis({
-            urlPrefix: "http://destination.test",
-            pretender: local.pretender,
-        });
+        remote = startDhis(
+            {
+                urlPrefix: "http://destination.test",
+                pretender: local.pretender,
+            },
+            { version: "2.41" }
+        );
 
         local.get("/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
@@ -257,9 +261,75 @@ describe("Sync events", () => {
             },
         }));
 
-        // local.get("/trackedEntityInstances", async () => ({
-        //     trackedEntityInstances: [],
-        // }));
+        local.get("/tracker/trackedEntities", async () => ({
+            page: 1,
+            total: 1,
+            pageCount: 1,
+            pageSize: 250,
+            instances: [
+                {
+                    trackedEntity: "trackedEntity1",
+                    trackedEntityType: "aAaAg9MA9Pl",
+                    createdAt: "2025-09-03T09:47:21.794",
+                    createdAtClient: "2025-09-03T09:47:21.794",
+                    updatedAt: "2025-09-03T12:37:17.877",
+                    updatedAtClient: "2025-09-03T09:47:21.794",
+                    orgUnit: "Global",
+                    relationships: [],
+                    attributes: [
+                        {
+                            attribute: "attribute1",
+                            code: "ATTR_CODE",
+                            displayName: "AttributeCode",
+                            createdAt: "2025-09-03T09:47:21.802",
+                            updatedAt: "2025-09-03T09:47:21.803",
+                            storedBy: "user.test1",
+                            valueType: "INTEGER_ZERO_OR_POSITIVE",
+                            value: "0",
+                        },
+                    ],
+                    enrollments: [
+                        {
+                            enrollment: "enrollment1",
+                            createdAt: "2025-09-03T09:47:21.932",
+                            createdAtClient: "2025-09-03T09:47:21.938",
+                            updatedAt: "2025-09-03T09:47:21.938",
+                            updatedAtClient: "2025-09-03T09:47:21.938",
+                            trackedEntity: "trackedEntity1",
+                            program: "program1",
+                            status: "ACTIVE",
+                            orgUnit: "Global",
+                            orgUnitName: "20250612 - Test EFH",
+                            enrolledAt: "2025-09-03T00:00:00.000",
+                            occurredAt: "2025-09-03T00:00:00.000",
+                            followUp: false,
+                            deleted: false,
+                            storedBy: "user.test1",
+                            attributes: [
+                                {
+                                    attribute: "attribute1",
+                                    code: "ATTR_CODE",
+                                    displayName: "AttributeCode",
+                                    createdAt: "2025-09-03T09:47:21.802",
+                                    updatedAt: "2025-09-03T09:47:21.803",
+                                    storedBy: "user.test1",
+                                    valueType: "INTEGER_ZERO_OR_POSITIVE",
+                                    value: "0",
+                                },
+                            ],
+                            notes: [],
+                        },
+                    ],
+                    programOwners: [
+                        {
+                            orgUnit: "Global",
+                            trackedEntity: "trackedEntity1",
+                            program: "program1",
+                        },
+                    ],
+                },
+            ],
+        }));
 
         const addEventsToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
             const body = JSON.parse(request.requestBody);
@@ -334,13 +404,15 @@ describe("Sync events", () => {
 
         const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
         const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
+        const transformationRepository = new TransformationD2ApiRepository();
 
         const sync = new EventsSyncUseCase(
             builder,
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder
+            aggregatedPayloadBuilder,
+            transformationRepository
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
@@ -375,13 +447,15 @@ describe("Sync events", () => {
         };
         const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
         const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
+        const transformationRepository = new TransformationD2ApiRepository();
 
         const sync = new EventsSyncUseCase(
             builder,
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder
+            aggregatedPayloadBuilder,
+            transformationRepository
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
@@ -396,6 +470,49 @@ describe("Sync events", () => {
         expect(response.events[0].id).toEqual("test-event-2");
         expect(remote.db.events.find(1)).toBeNull();
     });
+
+    // it("local v40 to remote v41: should not include tei.enrollment.attributes", async () => {
+    //     const localInstance = Instance.build({
+    //         url: "http://origin.test",
+    //         name: "Testing",
+    //         version: "2.40",
+    //     });
+
+    //     const builder: SynchronizationBuilder = {
+    //         originInstance: "LOCAL",
+    //         targetInstances: ["DESTINATION"],
+    //         metadataIds: ["program1"],
+    //         excludedIds: [],
+    //         dataParams: {
+    //             allEvents: true,
+    //             orgUnitPaths: ["/Global"],
+    //         },
+    //     };
+    //     const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
+    //     const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
+    //     const transformationRepository = new TransformationD2ApiRepository();
+    //     const sync = new EventsSyncUseCase(
+    //         builder,
+    //         repositoryFactory,
+    //         localInstance,
+    //         eventsPayloadBuilder,
+    //         aggregatedPayloadBuilder,
+    //         transformationRepository
+    //     );
+
+    //     const payload = await eventsPayloadBuilder.build(builder);
+
+    //     expect(
+    //         payload.trackedEntityInstances?.find(({ trackedEntity }) => trackedEntity === "trackedEntity1")
+    //     ).toBeDefined();
+
+    //     for await (const _sync of sync.execute()) {
+    //         // no-op
+    //     }
+
+    //     const response = remote.db.events.find(1);
+    //     expect(response.trackedEntityInstances[0].trackedEntity).toEqual("trackedEntity1");
+    // });
 });
 
 function buildRepositoryFactory() {

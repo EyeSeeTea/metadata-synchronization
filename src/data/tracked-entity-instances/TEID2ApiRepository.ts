@@ -222,6 +222,10 @@ export class TEID2ApiRepository implements TEIRepository {
                 tei.enrollments?.map(enrollment => ({
                     ...enrollment,
                     orgUnit: enrollment.orgUnit || "",
+                    attributes: enrollment.attributes?.map(attribute => ({
+                        ...attribute,
+                        value: attribute.value?.toString() || "",
+                    })),
                 })) || [],
             relationships: tei.relationships || [],
             attributes:
@@ -238,7 +242,7 @@ export class TEID2ApiRepository implements TEIRepository {
         return {
             ...tei,
             enrollments: tei.enrollments.map(enrollment => {
-                return { ...enrollment, events: [], relationships: [], attributes: [], notes: [] };
+                return { ...enrollment, events: [], relationships: [], notes: [] };
             }),
         };
     }
@@ -269,6 +273,7 @@ const enrollmentsFields = {
     deleted: true,
     storedBy: true,
     notes: true,
+    attributes: true,
 } as const;
 
 const teiFields = {

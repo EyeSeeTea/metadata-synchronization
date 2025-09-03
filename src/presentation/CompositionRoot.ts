@@ -200,7 +200,8 @@ export class CompositionRoot {
                     this.repositoryFactory,
                     this.localInstance,
                     this.eventsPayloadBuilder,
-                    this.aggregatedPayloadBuilder
+                    this.aggregatedPayloadBuilder,
+                    this.transformationRepository
                 ),
             metadata: (builder: SynchronizationBuilder) =>
                 new MetadataSyncUseCase(
