@@ -20,7 +20,6 @@ const repositoryFactory = buildRepositoryFactory(localInstance);
 
 describe("Sync aggregated", () => {
     let local: Server;
-    let remote: Server;
 
     beforeAll(() => {
         jest.setTimeout(30000);
@@ -28,10 +27,6 @@ describe("Sync aggregated", () => {
 
     beforeEach(() => {
         local = startDhis({ urlPrefix: "http://origin.test" });
-        remote = startDhis({
-            urlPrefix: "http://destination.test",
-            pretender: local.pretender,
-        });
 
         local.get("/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
@@ -114,7 +109,7 @@ describe("Sync aggregated", () => {
             ],
         }));
 
-        remote.get("/dataValueSets", async () => ({
+        local.get("/routes/DESTINATION/run/api/dataValueSets", async () => ({
             dataValues: [
                 {
                     dataElement: "id2",
@@ -131,7 +126,7 @@ describe("Sync aggregated", () => {
             ],
         }));
 
-        remote.get("/metadata", async () => ({
+        local.get("/routes/DESTINATION/run/api/metadata", async () => ({
             categoryOptions: [{ id: "default5" }],
             categories: [{ id: "default6" }],
             categoryCombos: [{ id: "default7" }],
@@ -223,8 +218,8 @@ describe("Sync aggregated", () => {
             },
         }));
 
-        const addAggregatedToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
-            schema.db.dataValueSets.insert(JSON.parse(request.requestBody));
+        const addAggregatedToDb = async (schema: Schema<AnyRegistry>, request: Request, collection: string) => {
+            schema.db[collection].insert(JSON.parse(request.requestBody));
 
             return {
                 responseType: "ImportSummary",
@@ -241,16 +236,17 @@ describe("Sync aggregated", () => {
             };
         };
 
-        local.db.createCollection("dataValueSets", []);
-        local.post("/dataValueSets", addAggregatedToDb);
+        local.db.createCollection("dataValueSetsLocal", []);
+        local.post("/dataValueSets", (schema, request) => addAggregatedToDb(schema, request, "dataValueSetsLocal"));
 
-        remote.db.createCollection("dataValueSets", []);
-        remote.post("/dataValueSets", addAggregatedToDb);
+        local.db.createCollection("dataValueSetsaDestination", []);
+        local.post("/routes/DESTINATION/run/api/dataValueSets", (schema, request) =>
+            addAggregatedToDb(schema, request, "dataValueSetsaDestination")
+        );
     });
 
     afterEach(() => {
         local.shutdown();
-        remote.shutdown();
     });
 
     it("Local server to remote - same version", async () => {
@@ -274,10 +270,10 @@ describe("Sync aggregated", () => {
             // no-op
         }
 
-        const response = remote.db.dataValueSets.find(1);
+        const response = local.db.dataValueSetsaDestination.find(1);
         expect(response.dataValues[0].value).toEqual("test-value-1");
         expect(response.dataValues[0].dataElement).toEqual("id2");
-        expect(local.db.dataValueSets.find(1)).toBeNull();
+        expect(local.db.dataValueSetsLocal.find(1)).toBeNull();
     });
 
     it("Remote server to local - same version", async () => {
@@ -301,10 +297,10 @@ describe("Sync aggregated", () => {
             // no-op
         }
 
-        const response = local.db.dataValueSets.find(1);
+        const response = local.db.dataValueSetsLocal.find(1);
         expect(response.dataValues[0].value).toEqual("test-value-2");
         expect(response.dataValues[0].dataElement).toEqual("id1");
-        expect(remote.db.dataValueSets.find(1)).toBeNull();
+        expect(local.db.dataValueSetsaDestination.find(1)).toBeNull();
     });
 });
 

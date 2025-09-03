@@ -20,7 +20,6 @@ const repositoryFactory = buildRepositoryFactory(localInstance);
 
 describe("Sync events", () => {
     let local: Server;
-    let remote: Server;
 
     beforeAll(() => {
         jest.setTimeout(30000);
@@ -28,10 +27,6 @@ describe("Sync events", () => {
 
     beforeEach(() => {
         local = startDhis({ urlPrefix: "http://origin.test" });
-        remote = startDhis({
-            urlPrefix: "http://destination.test",
-            pretender: local.pretender,
-        });
 
         local.get("/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
@@ -96,7 +91,7 @@ describe("Sync events", () => {
         });
 
         local.get("/dataValueSets", async () => ({ dataValues: [] }));
-        remote.get("/dataValueSets", async () => ({ dataValues: [] }));
+        local.get("/routes/DESTINATION/run/api/dataValueSets", async () => ({ dataValues: [] }));
 
         local.get("/tracker/events", async () => ({
             page: 1,
@@ -134,7 +129,7 @@ describe("Sync events", () => {
             ],
         }));
 
-        remote.get("/tracker/events", async () => ({
+        local.get("/routes/DESTINATION/run/api/tracker/events", async () => ({
             page: 1,
             pageCount: 1,
             pageSize: 1,
@@ -236,9 +231,9 @@ describe("Sync events", () => {
         //     trackedEntityInstances: [],
         // }));
 
-        const addEventsToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
+        const addEventsToDb = async (schema: Schema<AnyRegistry>, request: Request, collection: string) => {
             const body = JSON.parse(request.requestBody);
-            schema.db.events.insert(body);
+            schema.db[collection].insert(body);
 
             return {
                 status: "OK",
@@ -277,16 +272,17 @@ describe("Sync events", () => {
             };
         };
 
-        local.db.createCollection("events", []);
-        local.post("/tracker", addEventsToDb);
+        local.db.createCollection("eventsLocal", []);
+        local.post("/tracker", (schema, request) => addEventsToDb(schema, request, "eventsLocal"));
 
-        remote.db.createCollection("events", []);
-        remote.post("/tracker", addEventsToDb);
+        local.db.createCollection("eventsDestination", []);
+        local.post("/routes/DESTINATION/run/api/tracker", (schema, request) =>
+            addEventsToDb(schema, request, "eventsDestination")
+        );
     });
 
     afterEach(() => {
         local.shutdown();
-        remote.shutdown();
     });
 
     it("Local server to remote - same version", async () => {
@@ -320,9 +316,9 @@ describe("Sync events", () => {
             // no-op
         }
 
-        const response = remote.db.events.find(1);
+        const response = local.db.eventsDestination.find(1);
         expect(response.events[0].id).toEqual("test-event-1");
-        expect(local.db.events.find(1)).toBeNull();
+        expect(local.db.eventsLocal.find(1)).toBeNull();
     });
 
     it("Remote server to local - same version", async () => {
@@ -355,9 +351,9 @@ describe("Sync events", () => {
             // no-op
         }
 
-        const response = local.db.events.find(1);
+        const response = local.db.eventsLocal.find(1);
         expect(response.events[0].id).toEqual("test-event-2");
-        expect(remote.db.events.find(1)).toBeNull();
+        expect(local.db.eventsDestination.find(1)).toBeNull();
     });
 });
 
