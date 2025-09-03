@@ -13,6 +13,8 @@ export class VisualizationD2Repository implements VisualizationRepository {
     }
 
     async getByIds(ids: Id[]): Promise<Visualization[]> {
+        if (!ids || ids.length === 0) return [];
+
         const d2Visualizations = await this.api.models.visualizations
             .get({
                 fields: visualizationFields,
@@ -26,6 +28,7 @@ export class VisualizationD2Repository implements VisualizationRepository {
     private mapD2VisualizationToVisualization(d2Visualization: D2Visualization): Visualization {
         return {
             id: d2Visualization.id,
+            // NOTE: This type assertion is needed because rows in unknown[] in d2-api
             rows: (d2Visualization.rows as D2VisualizationRow[]).map(row => ({
                 id: row.id,
                 dimension: row.dimension,

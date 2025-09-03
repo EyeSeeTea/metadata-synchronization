@@ -335,7 +335,7 @@ export class MetadataPayloadBuilder {
         visualizations: Visualization[]
     ): Promise<Visualization[]> {
         const visualizationsRepository = await this.repositoryFactory.visualizationsRepository(originInstance);
-        const visualizationIds = visualizations.map(visualization => visualization.id) || [];
+        const visualizationIds = visualizations.map(visualization => visualization.id);
 
         const visualizationsWithRows = await visualizationsRepository.getByIds(visualizationIds);
 
