@@ -17,7 +17,6 @@ import { SettingsRepository } from "../../settings/SettingsRepository";
 import { StoreRepository } from "../../stores/repositories/StoreRepository";
 import { TableColumnsRepository } from "../../table-columns/repositories/TableColumnsRepository";
 import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRepository";
-import { UserRepository } from "../../user/repositories/UserRepository";
 import { JSONDataSource } from "../../instance/entities/JSONDataSource";
 
 export type RepositoryByInstanceCreator<T> = (instance: Instance) => T;
@@ -53,10 +52,6 @@ export class DynamicRepositoryFactory {
 
     public instanceFileRepository(instance: Instance): InstanceFileRepository {
         return this.getbyInstance(Repositories.InstanceFileRepository, instance);
-    }
-
-    public userRepository(instance: Instance): UserRepository {
-        return this.getbyInstance(Repositories.UserRepository, instance);
     }
 
     public metadataRepository(instance: DataSource): MetadataRepository {
@@ -162,7 +157,6 @@ export const Repositories = {
     FileRulesRepository: "fileRulesRepository",
     MigrationsRepository: "migrationsRepository",
     TEIsRepository: "teisRepository",
-    UserRepository: "userRepository",
     MappingRepository: "mappingRepository",
     SettingsRepository: "settingsRepository",
     DataStoreMetadataRepository: "dataStoreMetadataRepository",

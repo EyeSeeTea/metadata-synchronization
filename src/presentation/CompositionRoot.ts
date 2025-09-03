@@ -132,6 +132,7 @@ import { AggregatedPayloadBuilder } from "../domain/aggregated/builders/Aggregat
 import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
 import { InstanceRepository } from "../domain/instance/repositories/InstanceRepository";
 import { InstanceD2Validator } from "../data/instance/InstanceD2Validator";
+import { UserRepository } from "../domain/user/repositories/UserRepository";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -147,6 +148,7 @@ export class CompositionRoot {
     private downloadRepository: DownloadRepository;
     private transformationRepository: TransformationRepository;
     private instanceRepository: InstanceRepository;
+    private userRepository: UserRepository;
 
     constructor(public readonly localInstance: Instance) {
         this.repositoryFactory = new DynamicRepositoryFactory();
@@ -154,6 +156,7 @@ export class CompositionRoot {
         this.downloadRepository = new DownloadWebRepository();
         this.transformationRepository = new TransformationD2ApiRepository();
         this.instanceRepository = new InstanceD2ApiRepository(this.localInstance);
+        this.userRepository = new UserD2ApiRepository(this.localInstance);
 
         registerDynamicRepositoriesInFactory(this.localInstance, this.repositoryFactory);
 
@@ -175,9 +178,10 @@ export class CompositionRoot {
         // TODO: Sync builder should be part of an execute method
         return {
             ...getExecute({
-                prepare: new PrepareSyncUseCase(this.repositoryFactory, this.localInstance),
+                prepare: new PrepareSyncUseCase(this.repositoryFactory, this.userRepository, this.localInstance),
                 createPullRequest: new CreatePullRequestUseCase(
                     this.repositoryFactory,
+                    this.userRepository,
                     this.localInstance,
                     this.metadataPayloadBuilder
                 ),
@@ -252,13 +256,12 @@ export class CompositionRoot {
     @cache()
     public get modules() {
         return getExecute({
-            list: new ListModulesUseCase(this.repositoryFactory, this.localInstance),
-            save: new SaveModuleUseCase(this.repositoryFactory, this.localInstance),
+            list: new ListModulesUseCase(this.repositoryFactory, this.userRepository, this.localInstance),
+            save: new SaveModuleUseCase(this.repositoryFactory, this.userRepository, this.localInstance),
             get: new GetModuleUseCase(this.repositoryFactory, this.localInstance),
             delete: new DeleteModuleUseCase(this.repositoryFactory, this.localInstance),
             download: new DownloadModuleSnapshotUseCase(
-                this.repositoryFactory,
-                this.localInstance,
+                this.userRepository,
                 this.downloadRepository,
                 this.metadataPayloadBuilder
             ),
@@ -268,7 +271,7 @@ export class CompositionRoot {
     @cache()
     public get packages() {
         return getExecute({
-            list: new ListPackagesUseCase(this.repositoryFactory, this.localInstance),
+            list: new ListPackagesUseCase(this.repositoryFactory, this.userRepository, this.localInstance),
             listStore: new ListStorePackagesUseCase(
                 this.repositoryFactory,
                 new GitHubOctokitRepository(),
@@ -278,6 +281,7 @@ export class CompositionRoot {
                 this.metadataPayloadBuilder,
                 this.repositoryFactory,
                 this.transformationRepository,
+                this.userRepository,
                 this.localInstance
             ),
             get: new GetPackageUseCase(this.repositoryFactory, this.localInstance),
@@ -296,10 +300,11 @@ export class CompositionRoot {
                 this.gitHubRepository,
                 this.localInstance
             ),
-            import: new ImportPackageUseCase(this.repositoryFactory, this.localInstance),
+            import: new ImportPackageUseCase(this.repositoryFactory, this.userRepository, this.localInstance),
             extend: new ExtendsPackagesFromPackageUseCase(
                 this.repositoryFactory,
                 this.transformationRepository,
+                this.userRepository,
                 this.localInstance
             ),
             validate: new ValidatePackageContentsUseCase(this.repositoryFactory, this.localInstance),
@@ -324,9 +329,17 @@ export class CompositionRoot {
     @cache()
     public get notifications() {
         return getExecute({
-            list: new ListNotificationsUseCase(this.repositoryFactory, this.localInstance),
-            updatePullRequestStatus: new UpdatePullRequestStatusUseCase(this.repositoryFactory, this.localInstance),
-            markReadNotifications: new MarkReadNotificationsUseCase(this.repositoryFactory, this.localInstance),
+            list: new ListNotificationsUseCase(this.repositoryFactory, this.userRepository, this.localInstance),
+            updatePullRequestStatus: new UpdatePullRequestStatusUseCase(
+                this.repositoryFactory,
+                this.userRepository,
+                this.localInstance
+            ),
+            markReadNotifications: new MarkReadNotificationsUseCase(
+                this.repositoryFactory,
+                this.userRepository,
+                this.localInstance
+            ),
             importPullRequest: new ImportPullRequestUseCase(this.repositoryFactory, this.localInstance),
             cancelPullRequest: new CancelPullRequestUseCase(this.repositoryFactory, this.localInstance),
         });
@@ -447,7 +460,7 @@ export class CompositionRoot {
     @cache()
     public get user() {
         return getExecute({
-            current: new GetCurrentUserUseCase(this.repositoryFactory, this.localInstance),
+            current: new GetCurrentUserUseCase(this.userRepository),
         });
     }
 
@@ -507,6 +520,8 @@ export function registerDynamicRepositoriesInFactory(
     localInstance: Instance,
     repositoryFactory: DynamicRepositoryFactory
 ) {
+    const userRepository = new UserD2ApiRepository(localInstance);
+
     repositoryFactory.bindByInstance(
         Repositories.ConfigRepository,
         (instance: Instance) => new StorageClientD2Repository(localInstance, instance)
@@ -525,11 +540,6 @@ export function registerDynamicRepositoriesInFactory(
     repositoryFactory.bindByInstance(
         Repositories.InstanceFileRepository,
         (instance: Instance) => new InstanceFileD2Repository(instance)
-    );
-
-    repositoryFactory.bindByInstance(
-        Repositories.UserRepository,
-        (instance: Instance) => new UserD2ApiRepository(instance)
     );
 
     repositoryFactory.bindByInstance(
@@ -572,16 +582,14 @@ export function registerDynamicRepositoriesInFactory(
 
     repositoryFactory.bindByInstance(Repositories.RulesRepository, (instance: Instance) => {
         const storageClient = repositoryFactory.configRepository(instance);
-        const user = repositoryFactory.userRepository(instance);
 
-        return new RulesD2ApiRepository(storageClient, user);
+        return new RulesD2ApiRepository(storageClient, userRepository);
     });
 
-    repositoryFactory.bindByInstance(Repositories.FileRulesRepository, (instance: Instance) => {
+    repositoryFactory.bindByInstance(Repositories.FileRulesRepository, (_instance: Instance) => {
         const file = new FileDataRepository();
-        const user = repositoryFactory.userRepository(instance);
 
-        return new FileRulesDefaultRepository(user, file);
+        return new FileRulesDefaultRepository(userRepository, file);
     });
 
     repositoryFactory.bindByInstance(Repositories.CustomDataRepository, (instance: Instance) => {
