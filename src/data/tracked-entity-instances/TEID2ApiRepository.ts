@@ -20,8 +20,8 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance) {
-        this.api = getD2APiFromInstance(instance);
+    constructor(localInstance: Instance, private targetInstance: Instance) {
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     async getAllTEIs(params: DataSynchronizationParams, programs: string[]): Promise<TrackedEntityInstance[]> {
@@ -129,7 +129,7 @@ export class TEID2ApiRepository implements TEIRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "events",
             };
@@ -188,7 +188,7 @@ export class TEID2ApiRepository implements TEIRepository {
                 deleted: stats.deleted,
                 total: stats.total,
             },
-            instance: this.instance.toPublicObject(),
+            instance: this.targetInstance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {
                 return {
                     id: error.uid,

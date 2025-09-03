@@ -509,7 +509,7 @@ export function registerDynamicRepositoriesInFactory(
 ) {
     repositoryFactory.bindByInstance(
         Repositories.ConfigRepository,
-        (instance: Instance) => new StorageClientD2Repository(instance)
+        (instance: Instance) => new StorageClientD2Repository(localInstance, instance)
     );
 
     repositoryFactory.bindByInstance(Repositories.StoreRepository, (instance: Instance) => {
@@ -545,12 +545,12 @@ export function registerDynamicRepositoriesInFactory(
 
     repositoryFactory.bindByInstance(
         Repositories.AggregatedRepository,
-        (instance: Instance) => new AggregatedD2ApiRepository(instance)
+        (instance: Instance) => new AggregatedD2ApiRepository(localInstance, instance)
     );
 
     repositoryFactory.bindByInstance(
         Repositories.EventsRepository,
-        (instance: Instance) => new EventsD2ApiRepository(instance)
+        (instance: Instance) => new EventsD2ApiRepository(localInstance, instance)
     );
 
     repositoryFactory.bindByInstance(Repositories.TableColumnsRepository, (instance: Instance) => {
@@ -561,7 +561,7 @@ export function registerDynamicRepositoriesInFactory(
 
     repositoryFactory.bindByInstance(
         Repositories.TEIsRepository,
-        (instance: Instance) => new TEID2ApiRepository(instance)
+        (instance: Instance) => new TEID2ApiRepository(localInstance, instance)
     );
 
     repositoryFactory.bindByInstance(Repositories.ReportsRepository, (instance: Instance) => {
@@ -608,8 +608,7 @@ export function registerDynamicRepositoriesInFactory(
         return new SettingsD2ApiRepository(storageClient);
     });
 
-    repositoryFactory.bindByInstance(
-        Repositories.DataStoreMetadataRepository,
-        (instance: Instance) => new DataStoreMetadataD2Repository(instance)
-    );
+    repositoryFactory.bindByInstance(Repositories.DataStoreMetadataRepository, (instance: Instance) => {
+        return new DataStoreMetadataD2Repository(localInstance, instance);
+    });
 }
