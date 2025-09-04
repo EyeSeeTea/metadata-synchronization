@@ -16,6 +16,7 @@ import { TEIRepository, TEIsResponse } from "../../domain/tracked-entity-instanc
 import { D2Api } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
+import { getPageCount, getRemainingPages } from "../../utils/pagination";
 
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
@@ -26,11 +27,11 @@ export class TEID2ApiRepository implements TEIRepository {
 
     async getAllTEIs(params: DataSynchronizationParams, programs: string[]): Promise<TrackedEntityInstance[]> {
         const result = await promiseMap(programs, async program => {
-            const { instances, total = 0, pageSize } = await this.getTEIs(params, program, 1, 250);
+            const { instances, ...pager } = await this.getTEIs(params, program, 1, 250);
 
-            const pageCount = Math.ceil(total / pageSize);
+            const remainingPages = getRemainingPages(pager);
 
-            const paginatedTEIs = await promiseMap(_.range(2, pageCount + 1), async page => {
+            const paginatedTEIs = await promiseMap(remainingPages, async page => {
                 const { instances } = await this.getTEIs(params, program, page, 250);
                 return instances;
             });
@@ -97,7 +98,7 @@ export class TEID2ApiRepository implements TEIRepository {
             page,
             pageSize,
             total: result.total || 0,
-            pageCount: result.total ? Math.ceil(result.total / pageSize) : 1,
+            pageCount: getPageCount(result),
         };
     }
 
