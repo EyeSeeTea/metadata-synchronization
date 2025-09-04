@@ -74,6 +74,7 @@ describe("Sync events", () => {
                                 },
                             ],
                             programIndicators: [],
+                            programType: "WITH_REGISTRATION",
                         },
                     ],
                 };
@@ -331,10 +332,35 @@ describe("Sync events", () => {
             ],
         }));
 
-        const addEventsToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
+        const addEventsPayloadToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
             const body = JSON.parse(request.requestBody);
             schema.db.events.insert(body);
-
+            const { events, trackedEntities } = body;
+            const report = (type: "EVENT" | "TRACKED_ENTITY", entities?: object[]) =>
+                entities
+                    ? {
+                          [type]: {
+                              trackerType: type,
+                              stats: {
+                                  created: entities.length,
+                                  updated: 0,
+                                  deleted: 0,
+                                  ignored: 0,
+                                  total: entities.length,
+                              },
+                              objectReports: entities.map(e => ({
+                                  trackerType: type,
+                                  uid:
+                                      type === "EVENT"
+                                          ? (e as any).event
+                                          : type === "TRACKED_ENTITY"
+                                          ? (e as any).trackedEntity
+                                          : "unknown",
+                                  errorReports: [],
+                              })),
+                          },
+                      }
+                    : null;
             return {
                 status: "OK",
                 validationReport: {
@@ -350,33 +376,18 @@ describe("Sync events", () => {
                 },
                 bundleReport: {
                     typeReportMap: {
-                        EVENT: {
-                            trackerType: "EVENT",
-                            stats: {
-                                created: 1,
-                                updated: 0,
-                                deleted: 0,
-                                ignored: 0,
-                                total: 1,
-                            },
-                            objectReports: [
-                                {
-                                    trackerType: "EVENT",
-                                    uid: body.events[0].event,
-                                    errorReports: [],
-                                },
-                            ],
-                        },
+                        ...report("EVENT", events),
+                        ...report("TRACKED_ENTITY", trackedEntities),
                     },
                 },
             };
         };
 
         local.db.createCollection("events", []);
-        local.post("/tracker", addEventsToDb);
+        local.post("/tracker", addEventsPayloadToDb);
 
         remote.db.createCollection("events", []);
-        remote.post("/tracker", addEventsToDb);
+        remote.post("/tracker", addEventsPayloadToDb);
     });
 
     afterEach(() => {
@@ -471,48 +482,45 @@ describe("Sync events", () => {
         expect(remote.db.events.find(1)).toBeNull();
     });
 
-    // it("local v40 to remote v41: should not include tei.enrollment.attributes", async () => {
-    //     const localInstance = Instance.build({
-    //         url: "http://origin.test",
-    //         name: "Testing",
-    //         version: "2.40",
-    //     });
+    it("local v40 to remote v41: should not include tei.enrollment.attributes", async () => {
+        const localInstance = Instance.build({
+            url: "http://origin.test",
+            name: "Testing",
+            version: "2.40",
+        });
 
-    //     const builder: SynchronizationBuilder = {
-    //         originInstance: "LOCAL",
-    //         targetInstances: ["DESTINATION"],
-    //         metadataIds: ["program1"],
-    //         excludedIds: [],
-    //         dataParams: {
-    //             allEvents: true,
-    //             orgUnitPaths: ["/Global"],
-    //         },
-    //     };
-    //     const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
-    //     const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
-    //     const transformationRepository = new TransformationD2ApiRepository();
-    //     const sync = new EventsSyncUseCase(
-    //         builder,
-    //         repositoryFactory,
-    //         localInstance,
-    //         eventsPayloadBuilder,
-    //         aggregatedPayloadBuilder,
-    //         transformationRepository
-    //     );
+        const builder: SynchronizationBuilder = {
+            originInstance: "LOCAL",
+            targetInstances: ["DESTINATION"],
+            metadataIds: ["program1"],
+            excludedIds: [],
+            dataParams: {
+                allEvents: true,
+                allTEIs: true,
+                orgUnitPaths: ["/Global"],
+            },
+        };
+        const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
+        const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
+        const transformationRepository = new TransformationD2ApiRepository();
+        const sync = new EventsSyncUseCase(
+            builder,
+            repositoryFactory,
+            localInstance,
+            eventsPayloadBuilder,
+            aggregatedPayloadBuilder,
+            transformationRepository
+        );
 
-    //     const payload = await eventsPayloadBuilder.build(builder);
+        for await (const _sync of sync.execute()) {
+            // no-op
+        }
 
-    //     expect(
-    //         payload.trackedEntityInstances?.find(({ trackedEntity }) => trackedEntity === "trackedEntity1")
-    //     ).toBeDefined();
-
-    //     for await (const _sync of sync.execute()) {
-    //         // no-op
-    //     }
-
-    //     const response = remote.db.events.find(1);
-    //     expect(response.trackedEntityInstances[0].trackedEntity).toEqual("trackedEntity1");
-    // });
+        const response = remote.db.events.find(1);
+        expect(response).toHaveProperty("trackedEntities");
+        expect(response.trackedEntities[0].trackedEntity).toEqual("trackedEntity1");
+        expect(response.trackedEntities[0].enrollments[0].attributes).toHaveLength(0);
+    });
 });
 
 function buildRepositoryFactory() {
