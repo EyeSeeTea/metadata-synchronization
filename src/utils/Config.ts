@@ -1,15 +1,7 @@
 import { Maybe } from "../types/utils";
 
-export class Config {
-    private static instance: Config;
-    private constructor() {}
-
-    public static getInstance(): Config {
-        if (!Config.instance) {
-            Config.instance = new Config();
-        }
-        return Config.instance;
-    }
+class Config {
+    constructor() {}
 
     get mode(): string {
         return import.meta.env.MODE;
@@ -61,4 +53,4 @@ export type AppVariant = typeof APP_VARIANTS[number];
 
 export type PresentationType = "webapp" | "widget";
 
-export const config = Config.getInstance();
+export const config = new Config();
