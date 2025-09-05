@@ -27,7 +27,7 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ type }) => {
-    const appVariant = config.appPresentationVariant || "core-app";
+    const appVariant = config.appPresentationVariant;
 
     const { api, compositionRoot } = useAppContext();
     const history = useHistory();

@@ -30,7 +30,7 @@ import { About } from "../react/core/components/about/About";
 
 const Root: React.FC = () => {
     const { api, compositionRoot } = useAppContext();
-    const appVariant = config.appPresentationVariant ?? "core-app";
+    const appVariant = config.appPresentationVariant;
 
     return (
         <HashRouter>

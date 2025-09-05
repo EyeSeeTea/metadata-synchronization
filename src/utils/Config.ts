@@ -1,8 +1,6 @@
 import { Maybe } from "../types/utils";
 
 class Config {
-    constructor() {}
-
     get mode(): string {
         return import.meta.env.MODE;
     }
@@ -19,17 +17,16 @@ class Config {
         return import.meta.env.VITE_PRESENTATION_VARIANT;
     }
 
-    /**
-     * returns the presentationVariant only if it's a valid AppVariant
-     */
-    get appPresentationVariant(): Maybe<AppVariant> {
+    get appPresentationVariant(): AppVariant {
+        const DEFAULT = "core-app";
         const variant = this.presentationVariant;
-        return this.isValidAppVariant(variant) ? variant : undefined;
+        return this.isValidAppVariant(variant) ? variant : DEFAULT;
     }
 
-    get presentationType(): Maybe<PresentationType> {
+    get presentationType(): PresentationType {
+        const DEFAULT = "webapp";
         const type = import.meta.env.VITE_PRESENTATION_TYPE;
-        return type === "webapp" || type === "widget" ? type : undefined;
+        return this.isValidPresentationType(type) ? type : DEFAULT;
     }
 
     get isCypressEnabled(): boolean {
@@ -38,6 +35,10 @@ class Config {
 
     private isValidAppVariant(variant: Maybe<string>): variant is AppVariant {
         return !!variant && (APP_VARIANTS as Readonly<string[]>).includes(variant);
+    }
+
+    private isValidPresentationType(type: Maybe<string>): type is PresentationType {
+        return !!type && (PRESENTATION_TYPES as Readonly<string[]>).includes(type);
     }
 }
 
@@ -51,6 +52,8 @@ const APP_VARIANTS = [
 
 export type AppVariant = typeof APP_VARIANTS[number];
 
-export type PresentationType = "webapp" | "widget";
+const PRESENTATION_TYPES = ["webapp", "widget"] as const;
+
+type PresentationType = typeof PRESENTATION_TYPES[number];
 
 export const config = new Config();
