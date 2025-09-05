@@ -48,15 +48,15 @@ export const teiTransformations: Transformation[] = [
     {
         name: "tei enrollment attributes must go at tei level only for >= 2.41",
         apiVersion: 41,
-        apply: ({ trackedEntityInstances, ...rest }: any) => {
+        apply: ({ trackedEntities, ...rest }: any) => {
             // attributes already exist at tei level, and are expected only there in v41+
-            const updatedTeis = trackedEntityInstances.map((tei: any) => {
+            const updatedTeis = trackedEntities.map((tei: any) => {
                 return {
                     ...tei,
                     enrollments: tei.enrollments?.map((enrollment: any) => ({ ...enrollment, attributes: [] })),
                 };
             });
-            return { ...rest, trackedEntityInstances: updatedTeis };
+            return { ...rest, trackedEntities: updatedTeis };
         },
     },
 ];

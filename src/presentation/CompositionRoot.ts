@@ -200,8 +200,7 @@ export class CompositionRoot {
                     this.repositoryFactory,
                     this.localInstance,
                     this.eventsPayloadBuilder,
-                    this.aggregatedPayloadBuilder,
-                    this.transformationRepository
+                    this.aggregatedPayloadBuilder
                 ),
             metadata: (builder: SynchronizationBuilder) =>
                 new MetadataSyncUseCase(
@@ -563,7 +562,7 @@ export function registerDynamicRepositoriesInFactory(repositoryFactory: DynamicR
 
     repositoryFactory.bindByInstance(
         Repositories.TEIsRepository,
-        (instance: Instance) => new TEID2ApiRepository(instance)
+        (instance: Instance) => new TEID2ApiRepository(instance, new TransformationD2ApiRepository())
     );
 
     repositoryFactory.bindByInstance(Repositories.ReportsRepository, (instance: Instance) => {

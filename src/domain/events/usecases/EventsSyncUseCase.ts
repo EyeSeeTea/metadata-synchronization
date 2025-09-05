@@ -20,12 +20,10 @@ import {
     createTEIsPayloadMapper,
     createTEIsToEventPayloadMapper,
 } from "../../tracked-entity-instances/mapper/TEIsPayloadMapperFactory";
-import { EventsPayload, EventsPayloadBuilder } from "../builders/EventsPayloadBuilder";
+import { EventsPayloadBuilder } from "../builders/EventsPayloadBuilder";
 import { EventsPackage } from "../entities/EventsPackage";
 import { ProgramEvent } from "../entities/ProgramEvent";
 import { createEventsPayloadMapper } from "../mapper/EventsPayloadMapperFactory";
-import { TransformationRepository } from "../../transformations/repositories/TransformationRepository";
-import { teiTransformations } from "../../../data/transformations/PackageTransformations";
 
 export const eventsFields =
     "id,name,programType,programStages[id,displayFormName,programStageDataElements[dataElement[id,displayFormName,name]]],programIndicators[id,name],program";
@@ -40,8 +38,7 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
         readonly repositoryFactory: DynamicRepositoryFactory,
         readonly localInstance: Instance,
         private eventsPayloadBuilder: EventsPayloadBuilder,
-        private aggregatedPayloadBuilder: AggregatedPayloadBuilder,
-        private transformationRepository: TransformationRepository
+        private aggregatedPayloadBuilder: AggregatedPayloadBuilder
     ) {
         super(builder, repositoryFactory, localInstance);
     }
@@ -54,14 +51,8 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
     });
 
     public async postPayload(instance: Instance): Promise<SynchronizationResult[]> {
-        const basePayload = await this.buildPayload();
-        const versionedPayload = this.transformationRepository.mapPackageTo<EventsPayload, EventsPayload>(
-            instance.apiVersion,
-            basePayload,
-            teiTransformations,
-            this.localInstance.apiVersion
-        );
-        const { events, dataValues, trackedEntityInstances } = versionedPayload;
+        const payload = await this.buildPayload();
+        const { events, dataValues, trackedEntityInstances } = payload;
         const { dataParams = {} } = this.builder;
 
         const wasAnyTeiSelectedToSync =

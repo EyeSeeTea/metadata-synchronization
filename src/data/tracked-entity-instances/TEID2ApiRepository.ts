@@ -13,15 +13,17 @@ import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
 import { TEIsPackage } from "../../domain/tracked-entity-instances/entities/TEIsPackage";
 import { TrackedEntityInstance } from "../../domain/tracked-entity-instances/entities/TrackedEntityInstance";
 import { TEIRepository, TEIsResponse } from "../../domain/tracked-entity-instances/repositories/TEIRepository";
+import { TransformationRepository } from "../../domain/transformations/repositories/TransformationRepository";
 import { D2Api } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { getPageCount, getRemainingPages } from "../../utils/pagination";
+import { teiTransformations } from "../transformations/PackageTransformations";
 
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance) {
+    constructor(private instance: Instance, private transformationRepository: TransformationRepository) {
         this.api = getD2APiFromInstance(instance);
     }
 
@@ -126,11 +128,17 @@ export class TEID2ApiRepository implements TEIRepository {
         try {
             const teiPostParams = this.getTeiPostParams(additionalParams);
 
-            const trackerPostRequest: TrackerPostRequest = {
+            const baseRequest: TrackerPostRequest = {
                 trackedEntities: data.trackedEntities.map(tei => this.buildD2TrackerTrackedEntity(tei)),
             };
 
-            const response = await this.api.tracker.post(teiPostParams, trackerPostRequest).getData();
+            const versionedRequest = this.transformationRepository.mapPackageTo<TrackerPostRequest, TrackerPostRequest>(
+                this.instance.apiVersion,
+                baseRequest,
+                teiTransformations
+            );
+
+            const response = await this.api.tracker.post(teiPostParams, versionedRequest).getData();
 
             return this.cleanTEIsImportResponse(response);
         } catch (error: any) {
