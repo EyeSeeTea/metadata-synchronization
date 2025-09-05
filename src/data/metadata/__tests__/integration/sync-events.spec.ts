@@ -422,8 +422,7 @@ describe("Sync events", () => {
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder,
-            transformationRepository
+            aggregatedPayloadBuilder
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
@@ -465,8 +464,7 @@ describe("Sync events", () => {
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder,
-            transformationRepository
+            aggregatedPayloadBuilder
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
@@ -508,8 +506,7 @@ describe("Sync events", () => {
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder,
-            transformationRepository
+            aggregatedPayloadBuilder
         );
 
         for await (const _sync of sync.execute()) {
