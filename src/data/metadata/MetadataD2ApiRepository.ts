@@ -41,6 +41,7 @@ import { D2MetadataUtils } from "./D2MetadataUtils";
 import { D2ApiDataStore } from "../common/D2ApiDataStore";
 import { DataStoreMetadata } from "../../domain/data-store/DataStoreMetadata";
 import { isDhisInstance } from "../../domain/instance/entities/DataSource";
+import { config } from "../../utils/Config";
 
 export class MetadataD2ApiRepository implements MetadataRepository {
     private api: D2Api;
@@ -88,7 +89,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             );
 
             const dataStoresMetadata = await this.getDataStoresMetadata(ids);
-            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as T;
+            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as MetadataPackage<T>;
 
             return responseWithDataStores;
         } else {
@@ -102,7 +103,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                 metadataPackage.dataStores = await d2ApiDataStore.getDataStores({ namespaces: ids });
             }
             const dataStoresMetadata = await this.getDataStoresMetadata(ids);
-            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as T;
+            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as MetadataPackage<T>;
 
             return responseWithDataStores;
         }
@@ -615,7 +616,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     private getAdditionalCategoryOptionCombosOptionsByVariant(): CategoryOptionCombosAdditionalOptions {
-        const appVariant = process.env.REACT_APP_PRESENTATION_VARIANT;
+        const appVariant = config.appPresentationVariant;
 
         switch (appVariant) {
             case "msf-aggregate-data-app": {

@@ -2,7 +2,6 @@ import { DynamicRepositoryFactory } from "../../common/factories/DynamicReposito
 import { Instance } from "../../instance/entities/Instance";
 import { SynchronizationBuilder } from "../../synchronization/entities/SynchronizationBuilder";
 
-import { D2Program } from "../../../types/d2-api";
 import { cache } from "../../../utils/cache";
 import { Program } from "../../metadata/entities/MetadataEntities";
 import { generateUid } from "../../common/entities/uid";
@@ -12,6 +11,7 @@ import { ProgramEvent } from "../entities/ProgramEvent";
 import { DataValue } from "../../aggregated/entities/DataValue";
 import { TrackedEntityInstance } from "../../tracked-entity-instances/entities/TrackedEntityInstance";
 import { eventsFields } from "../usecases/EventsSyncUseCase";
+import { Ref } from "../../common/entities/Ref";
 
 type EventsPayload = {
     events: ProgramEvent[];
@@ -64,7 +64,7 @@ export class EventsPayloadBuilder {
 
         const directIndicators = programIndicators.map(({ id }) => id);
         const indicatorsByProgram = _.flatten(
-            programs?.map(({ programIndicators }: Partial<D2Program>) => programIndicators?.map(({ id }) => id) ?? [])
+            programs?.map(({ programIndicators }) => programIndicators?.map(({ id }) => id) ?? [])
         );
 
         // Due to a limitation in the analytics endpoint, it's not possible request with dx dimension by program stage and data element
@@ -73,7 +73,7 @@ export class EventsPayloadBuilder {
         // Jira-issue: https://jira.dhis2.org/browse/DHIS2-12382
 
         const dataElementsByProgram = _(programs)
-            .flatMap(({ id, programStages }: Partial<D2Program>) =>
+            .flatMap(({ id, programStages }) =>
                 _.flatMap(
                     programStages,
                     ({ programStageDataElements }) =>
@@ -119,7 +119,7 @@ export class EventsPayloadBuilder {
         const onlyMetadataIds = metadataIds.filter(id => !DataStoreMetadata.isDataStoreId(id));
         const cleanIds = onlyMetadataIds.map(id => _.last(id.split("-")) ?? id);
         const metadataRepository = await this.getMetadataRepository(instance);
-        return metadataRepository.getMetadataByIds<T>(cleanIds, eventsFields);
+        return metadataRepository.getMetadataByIds<T>(cleanIds, eventsFields) as Promise<EventsMetadataExtracted>;
     }
 
     @cache()
@@ -147,3 +147,11 @@ export class EventsPayloadBuilder {
         }
     }
 }
+
+// TODO: remove this workaround for typing extractMetadata result
+// the underlying issue is in the getMetadataByIds typings
+type EventsMetadataExtracted = {
+    programs?: Pick<Program, "id" | "programType" | "programStages" | "programIndicators">[];
+    programIndicators?: Ref[];
+    programStages?: Ref[];
+};

@@ -1,4 +1,3 @@
-import Cryptr from "cryptr";
 import _ from "lodash";
 import { Either } from "../../domain/common/entities/Either";
 import { Instance, InstanceData } from "../../domain/instance/entities/Instance";
@@ -13,6 +12,7 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { InmemoryCache } from "../common/InmemoryCache";
 import { Namespace } from "../storage/Namespaces";
 import { StorageClientFactory } from "../config/StorageClientFactory";
+import { decrypt, encrypt } from "../../utils/crypto";
 
 type ObjectSharingError = "authority-error" | "unexpected-error";
 
@@ -107,7 +107,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
                 "lastUpdatedBy"
             ),
             url: instance.type === "local" ? "" : instance.url,
-            password: this.encryptPassword(instance.password),
+            password: await this.encryptPassword(instance.password),
         };
 
         await storageClient.saveObjectInCollection(Namespace.INSTANCES, instanceData);
@@ -123,12 +123,14 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         await storageClient.saveObjectSharing(`${Namespace.INSTANCES}-${instanceData.id}`, objectSharing);
     }
 
-    private decryptPassword(password?: string): string {
-        return password ? new Cryptr(this.encryptionKey).decrypt(password) : "";
+    private async decryptPassword(password: string): Promise<string> {
+        if (!password) return "";
+        return decrypt(password, this.encryptionKey);
     }
 
-    private encryptPassword(password?: string): string {
-        return password ? new Cryptr(this.encryptionKey).encrypt(password) : "";
+    private async encryptPassword(password?: string): Promise<string> {
+        if (!password) return "";
+        return encrypt(password, this.encryptionKey);
     }
 
     private async getInstances(useCache = true) {
@@ -214,13 +216,13 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         await this.api.messageConversations.post(message).getData();
     }
 
-    private mapToInstance(data: InstanceData, sharing: ObjectSharing | undefined) {
+    private async mapToInstance(data: InstanceData, sharing: ObjectSharing | undefined) {
         return Instance.build({
             ...data,
             url: data.type === "local" ? this.instance.url : data.url,
             version: data.type === "local" ? this.instance.version : data.version,
             username: data.type === "local" ? this.instance.username : data.username,
-            password: data.type === "local" ? this.instance.password : this.decryptPassword(data.password),
+            password: data.type === "local" ? this.instance.password : await this.decryptPassword(data.password ?? ""),
             ...sharing,
         });
     }
