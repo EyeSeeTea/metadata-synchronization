@@ -133,3 +133,11 @@ $ yarn update-po
 # ... add/edit translations in po files ...
 $ yarn localize
 ```
+
+## depcheck
+
+Check for unused or missing dependencies:
+
+```
+$ yarn run depcheck
+```
