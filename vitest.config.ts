@@ -11,25 +11,6 @@ export default defineConfig(({ mode }) => {
         plugins: [
             react(),
             nodePolyfills({
-                include: [
-                    "buffer",
-                    "crypto",
-                    "stream",
-                    "util",
-                    "os",
-                    "events",
-                    "process",
-                    "path",
-                    "url",
-                    "querystring",
-                    "punycode",
-                    "http",
-                    "https",
-                    "zlib",
-                    "fs",
-                    "net",
-                    "tls",
-                ],
                 globals: {
                     Buffer: true,
                     global: true,
