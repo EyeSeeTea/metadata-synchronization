@@ -58,7 +58,7 @@ Notes:
 
 -   Create a file `.env.local` (copy it from `.env`) to customize environment variables so you can simply run `yarn start`.
 
--   [why-did-you-render](https://github.com/welldone-software/why-did-you-render) is installed and runs in development mode by default.
+-   [why-did-you-render](https://github.com/welldone-software/why-did-you-render) is installed and runs in development mode by default. Edit `src/presentation/utils/wdyr.ts` to customize or disable it.
 
 ### Customization of the development server:
 
