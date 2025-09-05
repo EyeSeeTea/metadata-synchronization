@@ -51,7 +51,8 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
     });
 
     public async postPayload(instance: Instance): Promise<SynchronizationResult[]> {
-        const { events, dataValues, trackedEntityInstances } = await this.buildPayload();
+        const payload = await this.buildPayload();
+        const { events, dataValues, trackedEntityInstances } = payload;
         const { dataParams = {} } = this.builder;
 
         const wasAnyTeiSelectedToSync =
