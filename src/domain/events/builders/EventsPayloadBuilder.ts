@@ -13,7 +13,7 @@ import { DataValue } from "../../aggregated/entities/DataValue";
 import { TrackedEntityInstance } from "../../tracked-entity-instances/entities/TrackedEntityInstance";
 import { eventsFields } from "../usecases/EventsSyncUseCase";
 
-type EventsPayload = {
+export type EventsPayload = {
     events: ProgramEvent[];
     dataValues: DataValue[];
     trackedEntityInstances: TrackedEntityInstance[];
