@@ -539,7 +539,7 @@ export function registerDynamicRepositoriesInFactory(
 
     repositoryFactory.bindByInstance(
         Repositories.InstanceFileRepository,
-        (instance: Instance) => new InstanceFileD2Repository(instance)
+        (instance: Instance) => new InstanceFileD2Repository(localInstance, instance)
     );
 
     repositoryFactory.bindByInstance(
