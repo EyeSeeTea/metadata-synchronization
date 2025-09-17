@@ -9,6 +9,7 @@ import { Instance } from "../../../../../domain/instance/entities/Instance";
 import i18n from "../../../../../utils/i18n";
 import { useAppContext } from "../../../../react/core/contexts/AppContext";
 import SaveButton from "./SaveButton";
+import { Dropdown } from "../../../../react/core/components/dropdown/Dropdown";
 
 export interface GeneralInfoFormProps {
     instance: Instance;
@@ -16,6 +17,11 @@ export interface GeneralInfoFormProps {
     cancelAction: () => void;
     testConnectionVisible: boolean;
 }
+
+const authTypeItems = [
+    { id: "http-basic", name: i18n.t("Basic") },
+    { id: "api-token", name: i18n.t("API Token") },
+];
 
 const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisible }: GeneralInfoFormProps) => {
     const { compositionRoot } = useAppContext();
@@ -116,25 +122,52 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisib
                     error={!!errors["url"]}
                     helperText={errors["url"]?.description}
                 />
-                <TextField
-                    className={classes.row}
-                    fullWidth={true}
-                    label={i18n.t("Username (*)")}
-                    value={instance.username ?? ""}
-                    onChange={onChangeField("username")}
-                    error={!!errors["username"]}
-                    helperText={errors["username"]?.description}
-                />
-                <TextField
-                    className={classes.row}
-                    type="password"
-                    fullWidth={true}
-                    label={i18n.t("Password (*)")}
-                    value={didPasswordChange ? instance.password : ""}
-                    onChange={onChangeField("password")}
-                    error={!!errors["password"]}
-                    helperText={errors["password"]?.description}
-                />
+
+                <div className={classes.dropdown}>
+                    <Dropdown
+                        items={authTypeItems}
+                        label={i18n.t("Authentication Scheme (*)")}
+                        value={instance.authType ?? "http-basic"}
+                        onValueChange={(value: string) => updateModel("authType", value)}
+                        hideEmpty={true}
+                    />
+                </div>
+
+                {instance.authType === "api-token" && (
+                    <TextField
+                        className={classes.row}
+                        fullWidth={true}
+                        label={i18n.t("Token (*)")}
+                        value={instance.token ?? ""}
+                        onChange={onChangeField("token")}
+                        error={!!errors["token"]}
+                        helperText={errors["token"]?.description}
+                    />
+                )}
+
+                {instance.authType === "http-basic" && (
+                    <>
+                        <TextField
+                            className={classes.row}
+                            fullWidth={true}
+                            label={i18n.t("Username (*)")}
+                            value={instance.username ?? ""}
+                            onChange={onChangeField("username")}
+                            error={!!errors["username"]}
+                            helperText={errors["username"]?.description}
+                        />
+                        <TextField
+                            className={classes.row}
+                            type="password"
+                            fullWidth={true}
+                            label={i18n.t("Password (*)")}
+                            value={didPasswordChange ? instance.password : ""}
+                            onChange={onChangeField("password")}
+                            error={!!errors["password"]}
+                            helperText={errors["password"]?.description}
+                        />
+                    </>
+                )}
 
                 <div className={classes.buttonContainer}>
                     <div>
@@ -186,6 +219,11 @@ const useStyles = makeStyles(() => ({
     },
     row: {
         marginBottom: 25,
+    },
+    dropdown: {
+        marginTop: 15,
+        marginLeft: -10,
+        marginBottom: 20,
     },
 }));
 

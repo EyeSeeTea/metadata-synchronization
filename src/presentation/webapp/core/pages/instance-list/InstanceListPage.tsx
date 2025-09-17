@@ -216,6 +216,12 @@ const InstanceListPage = () => {
         { name: "name" as const, text: i18n.t("Server name"), sortable: true },
         { name: "url" as const, text: i18n.t("URL endpoint"), sortable: false },
         {
+            name: "authType" as const,
+            text: i18n.t("Authentication Scheme"),
+            sortable: true,
+            getValue: row => (row.authType === "api-token" ? "Token" : "Basic"),
+        },
+        {
             name: "username" as const,
             text: i18n.t("Username"),
             sortable: true,
@@ -226,6 +232,11 @@ const InstanceListPage = () => {
     const details: ObjectsTableDetailField<Instance>[] = [
         { name: "name" as const, text: i18n.t("Server name") },
         { name: "url" as const, text: i18n.t("URL endpoint") },
+        {
+            name: "authType" as const,
+            text: i18n.t("Authentication Scheme"),
+            getValue: row => (row.authType === "api-token" ? "Token" : "Basic"),
+        },
         {
             name: "username" as const,
             text: i18n.t("Username"),

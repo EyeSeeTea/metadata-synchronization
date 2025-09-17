@@ -73,9 +73,9 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     private buildRoute(instance: Instance): D2Route {
         return {
             auth:
-                instance.username && instance.password
-                    ? { type: "http-basic", username: instance.username, password: instance.password }
-                    : undefined,
+                instance.authType === "api-token"
+                    ? { type: "api-token", token: instance.token }
+                    : { type: "http-basic", username: instance.username, password: instance.password },
             code: slugify(instance.name),
             description: instance.description,
             disabled: false,
@@ -100,6 +100,8 @@ export class InstanceD2ApiRepository implements InstanceRepository {
             id: route.id,
             name: route.name,
             url: route.url.replace("**", ""),
+            authType: route.auth?.type,
+            token: route.auth?.token,
             username: route.auth?.username,
             password: route.auth?.password,
             description: route.description,
@@ -184,9 +186,10 @@ export interface D2Sharing {
 }
 
 type RouteAuth = {
-    type: "http-basic";
-    username: string;
-    password: string;
+    type: "http-basic" | "api-token";
+    username?: string;
+    password?: string;
+    token?: string;
 };
 
 function slugify(text: string): string {

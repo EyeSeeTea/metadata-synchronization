@@ -10,13 +10,16 @@ import { ModelValidation, validateModel, ValidationError } from "../../common/en
 export type PublicInstance = Omit<InstanceData, "password">;
 export type InstanceType = "local" | "dhis";
 
+type AuthType = "api-token" | "http-basic";
 export interface InstanceData extends SharedRef {
     type: InstanceType;
     id: string;
     name: string;
     url: string;
+    authType?: AuthType;
     username?: string;
     password?: string;
+    token?: string;
     description?: string;
     version?: string;
 }
@@ -48,6 +51,14 @@ export class Instance extends ShareableEntity<InstanceData> {
 
     public get password(): string | undefined {
         return this.data.password;
+    }
+
+    public get authType(): AuthType | undefined {
+        return this.data.authType;
+    }
+
+    public get token(): string | undefined {
+        return this.data.token;
     }
 
     public get auth(): { username: string; password: string } | undefined {
@@ -167,13 +178,25 @@ export class Instance extends ShareableEntity<InstanceData> {
         });
     }
 
-    private moduleValidations = (): ModelValidation[] => [
-        { property: "name", validation: "hasText" },
-        { property: "url", validation: "isUrl" },
-        { property: "url", validation: "hasText" },
-        { property: "username", validation: "hasText" },
-        { property: "password", validation: "hasText" },
-    ];
+    private moduleValidations = (): ModelValidation[] => {
+        const baseValidations: ModelValidation[] = [
+            { property: "name", validation: "hasText" },
+            { property: "url", validation: "isUrl" },
+            { property: "url", validation: "hasText" },
+        ];
+
+        const authValidationsByType = {
+            "api-token": [{ property: "token", validation: "hasText" }],
+            "http-basic": [
+                { property: "username", validation: "hasText" },
+                { property: "password", validation: "hasText" },
+            ],
+        } as const;
+
+        const authValidations = authValidationsByType[this.authType ?? "http-basic"];
+
+        return [...baseValidations, ...authValidations];
+    };
 
     private localInstanceValidations = (): ModelValidation[] => [{ property: "name", validation: "hasText" }];
 }
