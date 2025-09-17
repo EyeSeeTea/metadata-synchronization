@@ -18,6 +18,7 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 import mime from "mime-types";
 import { D2TrackerEvent, TrackerEventsResponse } from "@eyeseetea/d2-api/api/trackerEvents";
 import { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eyeseetea/d2-api/api/tracker";
+import { getRemainingPages } from "../../utils/pagination";
 
 export class EventsD2ApiRepository implements EventsRepository {
     private api: D2Api;
@@ -76,10 +77,22 @@ export class EventsD2ApiRepository implements EventsRepository {
     ): Promise<ProgramEvent[]> {
         if (programStageIds.length === 0) return [];
 
-        const { period, orgUnitPaths = [], lastUpdated } = params;
+        const { period, orgUnitPaths = [], lastUpdated, eventsSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
 
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
+
+        const periodFilter =
+            eventsSyncPeriodField === "LAST_UPDATED"
+                ? {
+                      updatedAfter: startDate.format("YYYY-MM-DD"),
+                      updatedBefore: endDate.format("YYYY-MM-DD"),
+                  }
+                : {
+                      occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
+                      occurredBefore: period !== "ALL" ? endDate.format("YYYY-MM-DD") : undefined,
+                      updatedAfter: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
+                  };
 
         const fetchApi = async (orgUnit: string, page: number) => {
             return this.api.tracker.events
@@ -88,9 +101,7 @@ export class EventsD2ApiRepository implements EventsRepository {
                     totalPages: true,
                     page,
                     orgUnit,
-                    occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                    occurredBefore: period !== "ALL" ? endDate.format("YYYY-MM-DD") : undefined,
-                    updatedAfter: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
+                    ...periodFilter,
                     fields: { $all: true },
                 })
                 .getData();
@@ -99,9 +110,9 @@ export class EventsD2ApiRepository implements EventsRepository {
         const result = await promiseMap(orgUnits, async (orgUnit): Promise<D2TrackerEvent[]> => {
             const firstResponse = await fetchApi(orgUnit, 1);
 
-            const pageCount = Math.ceil((firstResponse.total || 0) / firstResponse.pageSize);
+            const remainingPages = getRemainingPages(firstResponse);
 
-            const paginatedEvents = await promiseMap(_.range(2, pageCount + 1), async page => {
+            const paginatedEvents = await promiseMap(remainingPages, async page => {
                 const response = await fetchApi(orgUnit, page);
 
                 return this.extractEvents(response);
@@ -127,10 +138,25 @@ export class EventsD2ApiRepository implements EventsRepository {
     ): Promise<ProgramEvent[]> {
         if (programStageIds.length === 0) return [];
 
-        const { period, orgUnitPaths = [], lastUpdated } = params;
+        const { period, orgUnitPaths = [], lastUpdated, eventsSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
 
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
+
+        const periodFilter =
+            eventsSyncPeriodField === "LAST_UPDATED"
+                ? {
+                      updatedAfter: startDate.format("YYYY-MM-DD"),
+                      updatedBefore: endDate.format("YYYY-MM-DD"),
+                  }
+                : {
+                      occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
+                      occurredBefore:
+                          period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
+                              ? endDate.format("YYYY-MM-DD")
+                              : undefined,
+                      updatedAfter: lastUpdated ? moment(lastUpdated).toISOString() : undefined,
+                  };
 
         const fetchApi = async (programStage: string, orgUnit: string, page: number) => {
             return this.api.tracker.events
@@ -140,12 +166,7 @@ export class EventsD2ApiRepository implements EventsRepository {
                     page,
                     programStage,
                     orgUnit,
-                    occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                    occurredBefore:
-                        period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
-                            ? endDate.format("YYYY-MM-DD")
-                            : undefined,
-                    updatedAfter: lastUpdated ? moment(lastUpdated).toISOString() : undefined,
+                    ...periodFilter,
                     fields: { $all: true },
                 })
                 .getData();
@@ -155,9 +176,9 @@ export class EventsD2ApiRepository implements EventsRepository {
             const filteredEvents = await promiseMap(orgUnits, async orgUnit => {
                 const firstResponse = await fetchApi(programStage, orgUnit, 1);
 
-                const pageCount = Math.ceil(firstResponse.total || 0 / firstResponse.pageSize);
+                const remainingPages = getRemainingPages(firstResponse);
 
-                const paginatedEvents = await promiseMap(_.range(2, pageCount + 1), async page => {
+                const paginatedEvents = await promiseMap(remainingPages, async page => {
                     const response = await fetchApi(programStage, orgUnit, page);
 
                     const events = this.extractEvents(response);
@@ -223,23 +244,7 @@ export class EventsD2ApiRepository implements EventsRepository {
 
     public async save(data: EventsPackage, params: DataImportParams = {}): Promise<SynchronizationResult> {
         try {
-            if (data.events.length === 0) {
-                return {
-                    status: "SUCCESS",
-                    stats: {
-                        imported: 0,
-                        updated: 0,
-                        deleted: 0,
-                        ignored: 0,
-                        total: 0,
-                    },
-                    instance: this.instance.toPublicObject(),
-                    date: new Date(),
-                    type: "events",
-                };
-            } else {
-                return this.push(params, data.events);
-            }
+            return this.push(params, data.events);
         } catch (error: any) {
             if (error?.response?.data) {
                 return this.cleanEventsImportResponse(error.response.data);
@@ -258,11 +263,11 @@ export class EventsD2ApiRepository implements EventsRepository {
         return {
             status: importResult.status === "OK" ? "SUCCESS" : importResult.status,
             stats: {
-                imported: importResult.stats.created,
-                updated: importResult.stats.updated,
-                ignored: importResult.stats.ignored,
-                deleted: importResult.stats.deleted,
-                total: importResult.stats.total,
+                imported: importResult.stats?.created ?? 0,
+                updated: importResult.stats?.updated ?? 0,
+                ignored: importResult.stats?.ignored ?? 0,
+                deleted: importResult.stats?.deleted ?? 0,
+                total: importResult.stats?.total ?? 0,
             },
             instance: this.instance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {

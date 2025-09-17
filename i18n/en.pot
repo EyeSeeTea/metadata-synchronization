@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-06-02T07:06:35.778Z\n"
-"PO-Revision-Date: 2025-06-02T07:06:35.778Z\n"
+"POT-Creation-Date: 2025-08-20T07:48:28.722Z\n"
+"PO-Revision-Date: 2025-08-20T07:48:28.722Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1059,14 +1059,6 @@ msgstr ""
 msgid "Create and update"
 msgstr ""
 
-msgid ""
-"Remove default categories, categoryOptions, categoryCombos and "
-"categoryOptionCombos"
-msgstr ""
-
-msgid "Remove lastUpdated, lastUpdatedBy, created and createdBys"
-msgstr ""
-
 msgid "Disable atomic verification"
 msgstr ""
 
@@ -1466,6 +1458,18 @@ msgstr ""
 msgid "You do not have assigned any organisation unit"
 msgstr ""
 
+msgid "Enrollment date"
+msgstr ""
+
+msgid "Occurred event date"
+msgstr ""
+
+msgid "Tracked entities sync period field"
+msgstr ""
+
+msgid "Events sync period field"
+msgstr ""
+
 msgid "Enrollment Date"
 msgstr ""
 
@@ -1482,6 +1486,14 @@ msgid "Include users"
 msgstr ""
 
 msgid "Include organisation units"
+msgstr ""
+
+msgid ""
+"Remove default categories, categoryOptions, categoryCombos and "
+"categoryOptionCombos"
+msgstr ""
+
+msgid "Remove lastUpdated, lastUpdatedBy, created and createdBys"
 msgstr ""
 
 msgid "Exclude objects and references ->"
@@ -2278,7 +2290,7 @@ msgstr ""
 msgid "Running analytics for instance {{name}}"
 msgstr ""
 
-msgid "Updating analytics done`for instance {{name}}"
+msgid "Updating analytics done for instance {{name}}"
 msgstr ""
 
 msgid "Short name"
