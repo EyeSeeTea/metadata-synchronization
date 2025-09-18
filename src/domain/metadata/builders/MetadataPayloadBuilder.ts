@@ -356,12 +356,13 @@ export class MetadataPayloadBuilder {
         const eventVisualizationIds = _(dashboard.dashboardItems)
             .map(dashboardItem => dashboardItem.eventVisualization?.id)
             .compact()
+            .uniq()
             .value();
         const eventVisualizations = await eventVisualizationsRepository.getByIds(eventVisualizationIds);
 
         return {
             eventVisualizations: eventVisualizations.filter(
-                eventVisualization => eventVisualization.type !== "LINE_LISTING"
+                eventVisualization => eventVisualization.type === "LINE_LIST"
             ),
         };
     }
