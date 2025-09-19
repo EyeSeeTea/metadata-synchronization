@@ -351,18 +351,22 @@ export class MetadataPayloadBuilder {
         originInstanceId: string
     ): Promise<{ eventVisualizations: EventVisualization[] }> {
         const defaultInstance = await this.getOriginInstance(originInstanceId);
-        const eventVisualizationsRepository = this.repositoryFactory.eventVisualizationRepository(defaultInstance);
+        const metadataRepository = this.repositoryFactory.metadataRepository(defaultInstance);
 
         const eventVisualizationIds = _(dashboard.dashboardItems)
             .map(dashboardItem => dashboardItem.eventVisualization?.id)
             .compact()
             .value();
-        const eventVisualizations = await eventVisualizationsRepository.getByIds(eventVisualizationIds);
+        const eventVisualizations = await metadataRepository.getMetadataByIds<EventVisualization>(
+            eventVisualizationIds,
+            ":all"
+        );
+        const lineListVisualizations = Object.values(eventVisualizations)
+            .flat()
+            .filter(eventVisualization => eventVisualization.type === "LINE_LIST");
 
         return {
-            eventVisualizations: eventVisualizations.filter(
-                eventVisualization => eventVisualization.type === "LINE_LIST"
-            ),
+            eventVisualizations: lineListVisualizations,
         };
     }
 }

@@ -33,7 +33,6 @@ import {
     givenABuilderWithUserGroupsAndDashboards,
     givenUserGroupsAndDashboardMetadataResponses,
 } from "./data/user-groups-metadata.type";
-import { EventVisualizationRepository } from "../../repositories/EventVisualizationRepository";
 
 // TODO: Notice these tests are fragile and can break easily if MetadataPayloadBuilder or the metadata structure changes.
 // It is necesary a refactor of MetadataPayloadBuilder and the tests to make them more robust.
@@ -464,12 +463,6 @@ describe("MetadataPayloadBuilder", () => {
             const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
             when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
             when(mockedRepositoryFactory.metadataRepository(anything())).thenReturn(instance(mockedMetadataRepository));
-
-            const mockedEventVisualizationRepository = mock<EventVisualizationRepository>();
-            when(mockedEventVisualizationRepository.getByIds(anything())).thenResolve([]);
-            when(mockedRepositoryFactory.eventVisualizationRepository(anything())).thenReturn(
-                instance(mockedEventVisualizationRepository)
-            );
 
             const metadataPayloadBuilder = new MetadataPayloadBuilder(instance(mockedRepositoryFactory), dummyInstance);
 

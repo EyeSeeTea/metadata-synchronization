@@ -132,7 +132,6 @@ import { TransformationRepository } from "../domain/transformations/repositories
 import { EventsPayloadBuilder } from "../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../domain/aggregated/builders/AggregatedPayloadBuilder";
 import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
-import { EventVisualizationD2ApiRepository } from "../data/metadata/EventVisualizationD2ApiRepository";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -560,11 +559,6 @@ export function registerDynamicRepositoriesInFactory(repositoryFactory: DynamicR
 
         return new TableColumnsDataStoreRepository(storageClient);
     });
-
-    repositoryFactory.bindByInstance(
-        Repositories.EventVisualizationRepository,
-        (instance: Instance) => new EventVisualizationD2ApiRepository(instance)
-    );
 
     repositoryFactory.bindByInstance(
         Repositories.TEIsRepository,

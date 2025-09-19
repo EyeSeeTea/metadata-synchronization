@@ -19,7 +19,6 @@ import { TableColumnsRepository } from "../../table-columns/repositories/TableCo
 import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRepository";
 import { UserRepository } from "../../user/repositories/UserRepository";
 import { JSONDataSource } from "../../instance/entities/JSONDataSource";
-import { EventVisualizationRepository } from "../../metadata/repositories/EventVisualizationRepository";
 
 export type RepositoryByInstanceCreator<T> = (instance: Instance) => T;
 export type RepositoryByJsonSourceCreator<T> = (instance: JSONDataSource) => T;
@@ -76,10 +75,6 @@ export class DynamicRepositoryFactory {
 
     public tableColumnsRepository(instance: Instance): TableColumnsRepository {
         return this.getbyInstance(Repositories.TableColumnsRepository, instance);
-    }
-
-    public eventVisualizationRepository(instance: Instance): EventVisualizationRepository {
-        return this.getbyInstance(Repositories.EventVisualizationRepository, instance);
     }
 
     public dataStoreMetadataRepository(instance: Instance): DataStoreMetadataRepository {
@@ -171,5 +166,4 @@ export const Repositories = {
     DataStoreMetadataRepository: "dataStoreMetadataRepository",
     DhisReleasesRepository: "dhisReleasesRepository",
     TableColumnsRepository: "tableColumnsRepository",
-    EventVisualizationRepository: "eventVisualizationRepository",
 } as const;
