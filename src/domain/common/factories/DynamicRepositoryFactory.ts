@@ -19,6 +19,7 @@ import { TableColumnsRepository } from "../../table-columns/repositories/TableCo
 import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRepository";
 import { UserRepository } from "../../user/repositories/UserRepository";
 import { JSONDataSource } from "../../instance/entities/JSONDataSource";
+import { VisualizationRepository } from "../../visualization/repositories/VisualizationRepository";
 
 export type RepositoryByInstanceCreator<T> = (instance: Instance) => T;
 export type RepositoryByJsonSourceCreator<T> = (instance: JSONDataSource) => T;
@@ -113,6 +114,10 @@ export class DynamicRepositoryFactory {
         return this.getbyInstance(Repositories.SettingsRepository, instance);
     }
 
+    public visualizationsRepository(instance: Instance): VisualizationRepository {
+        return this.getbyInstance(Repositories.VisualizationRepository, instance);
+    }
+
     private getbyInstance<T>(key: RepositoryKeys, instance: Instance, tag = "default"): T {
         const creator = this.repositoryCreators.get(`${key}-${tag}`);
 
@@ -166,4 +171,5 @@ export const Repositories = {
     DataStoreMetadataRepository: "dataStoreMetadataRepository",
     DhisReleasesRepository: "dhisReleasesRepository",
     TableColumnsRepository: "tableColumnsRepository",
+    VisualizationRepository: "visualizationRepository",
 } as const;

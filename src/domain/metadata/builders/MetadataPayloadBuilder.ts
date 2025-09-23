@@ -1,7 +1,13 @@
 import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../../instance/entities/Instance";
 import { SynchronizationBuilder } from "../../synchronization/entities/SynchronizationBuilder";
-import { MetadataEntities, MetadataEntity, MetadataPackage, Program } from "../entities/MetadataEntities";
+import {
+    MetadataEntities,
+    MetadataEntity,
+    MetadataPackage,
+    Program,
+    Visualization,
+} from "../entities/MetadataEntities";
 
 import { debug } from "../../../utils/debug";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
@@ -117,8 +123,13 @@ export class MetadataPayloadBuilder {
             categoryCombos,
             categoryOptions,
             categoryOptionCombos,
+            visualizations,
             ...rest
         } = metadataWithoutDuplicates;
+
+        const visualizationsWithRows = visualizations
+            ? await this.addRowsToVisualizations(originInstance, visualizations as Visualization[])
+            : [];
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
@@ -133,6 +144,7 @@ export class MetadataPayloadBuilder {
             ...(categoryOptionCombos && {
                 categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
             }),
+            ...(visualizationsWithRows.length > 0 && { visualizations: visualizationsWithRows }),
             organisationUnits: includeOrgUnitsObjectsAndReferences ? organisationUnits : undefined,
             users: includeUsersObjectsAndReferences ? users : undefined,
             userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
@@ -332,5 +344,20 @@ export class MetadataPayloadBuilder {
             program: program.id,
         });
         return { ...program, programRules };
+    }
+
+    private async addRowsToVisualizations(
+        originInstance: Instance,
+        visualizations: Visualization[]
+    ): Promise<Visualization[]> {
+        const visualizationsRepository = await this.repositoryFactory.visualizationsRepository(originInstance);
+        const visualizationIds = visualizations.map(visualization => visualization.id);
+
+        const visualizationsWithRows = await visualizationsRepository.getByIds(visualizationIds);
+
+        return visualizations.map(visualization => {
+            const rows = visualizationsWithRows.find(row => row.id === visualization.id)?.rows || [];
+            return { ...visualization, rows };
+        });
     }
 }
