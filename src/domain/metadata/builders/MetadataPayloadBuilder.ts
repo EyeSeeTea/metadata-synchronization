@@ -2,6 +2,8 @@ import { DynamicRepositoryFactory } from "../../common/factories/DynamicReposito
 import { Instance } from "../../instance/entities/Instance";
 import { SynchronizationBuilder } from "../../synchronization/entities/SynchronizationBuilder";
 import {
+    Dashboard,
+    EventVisualization,
     MetadataEntities,
     MetadataEntity,
     MetadataPackage,
@@ -289,7 +291,14 @@ export class MetadataPayloadBuilder {
                     );
                 });
 
-                _.deepMerge(result, ...partialResults);
+                // Line list event visualizations are not included by default when exporting dashboards
+                // so we need to request them separately and include them in the metadata package
+                const eventVisualizations =
+                    type === "dashboards"
+                        ? await this.requestAndIncludeLineListings(fixedElement as Dashboard, originInstanceId)
+                        : {};
+
+                _.deepMerge(result, ...partialResults, eventVisualizations);
             }
 
             // Clean up result from duplicated elements
@@ -346,6 +355,30 @@ export class MetadataPayloadBuilder {
         return { ...program, programRules };
     }
 
+    private async requestAndIncludeLineListings(
+        dashboard: Dashboard,
+        originInstanceId: string
+    ): Promise<{ eventVisualizations: EventVisualization[] }> {
+        const defaultInstance = await this.getOriginInstance(originInstanceId);
+        const metadataRepository = this.repositoryFactory.metadataRepository(defaultInstance);
+
+        const eventVisualizationIds = _(dashboard.dashboardItems)
+            .map(dashboardItem => dashboardItem.eventVisualization?.id)
+            .compact()
+            .value();
+        const eventVisualizations = await metadataRepository.getMetadataByIds<EventVisualization>(
+            eventVisualizationIds,
+            ":all"
+        );
+        const lineListVisualizations = Object.values(eventVisualizations)
+            .flat()
+            .filter(eventVisualization => eventVisualization.type === "LINE_LIST");
+
+        return {
+            eventVisualizations: lineListVisualizations,
+        };
+    }
+    
     private async addRowsToVisualizations(
         originInstance: Instance,
         visualizations: Visualization[]
