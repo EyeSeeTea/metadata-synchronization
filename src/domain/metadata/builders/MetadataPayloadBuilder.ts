@@ -284,6 +284,8 @@ export class MetadataPayloadBuilder {
                     );
                 });
 
+                // Line list event visualizations are not included by default when exporting dashboards
+                // so we need to request them separately and include them in the metadata package
                 const eventVisualizations =
                     type === "dashboards"
                         ? await this.requestAndIncludeLineListings(fixedElement as Dashboard, originInstanceId)
