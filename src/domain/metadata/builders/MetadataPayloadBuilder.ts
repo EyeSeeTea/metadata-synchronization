@@ -8,6 +8,7 @@ import {
     MetadataEntity,
     MetadataPackage,
     Program,
+    Visualization,
 } from "../entities/MetadataEntities";
 
 import { debug } from "../../../utils/debug";
@@ -124,8 +125,13 @@ export class MetadataPayloadBuilder {
             categoryCombos,
             categoryOptions,
             categoryOptionCombos,
+            visualizations,
             ...rest
         } = metadataWithoutDuplicates;
+
+        const visualizationsWithRows = visualizations
+            ? await this.addRowsToVisualizations(originInstance, visualizations as Visualization[])
+            : [];
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
@@ -140,6 +146,7 @@ export class MetadataPayloadBuilder {
             ...(categoryOptionCombos && {
                 categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
             }),
+            ...(visualizationsWithRows.length > 0 && { visualizations: visualizationsWithRows }),
             organisationUnits: includeOrgUnitsObjectsAndReferences ? organisationUnits : undefined,
             users: includeUsersObjectsAndReferences ? users : undefined,
             userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
@@ -370,5 +377,20 @@ export class MetadataPayloadBuilder {
         return {
             eventVisualizations: lineListVisualizations,
         };
+    }
+
+    private async addRowsToVisualizations(
+        originInstance: Instance,
+        visualizations: Visualization[]
+    ): Promise<Visualization[]> {
+        const visualizationsRepository = await this.repositoryFactory.visualizationsRepository(originInstance);
+        const visualizationIds = visualizations.map(visualization => visualization.id);
+
+        const visualizationsWithRows = await visualizationsRepository.getByIds(visualizationIds);
+
+        return visualizations.map(visualization => {
+            const rows = visualizationsWithRows.find(row => row.id === visualization.id)?.rows || [];
+            return { ...visualization, rows };
+        });
     }
 }
