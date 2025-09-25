@@ -174,6 +174,7 @@ export class Instance extends ShareableEntity<InstanceData> {
             },
             userAccesses: [],
             userGroupAccesses: [],
+            authType: "http-basic",
             ...data,
         });
     }
