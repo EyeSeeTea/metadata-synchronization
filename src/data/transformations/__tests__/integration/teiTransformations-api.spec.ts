@@ -390,10 +390,6 @@ async function runSyncEventsTest({ from, to }: { from: string; to: string }) {
 }
 
 describe("TEI Transformations Integration tests", () => {
-    beforeAll(() => {
-        jest.setTimeout(30000);
-    });
-
     it("local v40 to remote v40: should include tei.enrollment.attributes", async () => {
         const response = await runSyncEventsTest({ from: "2.40", to: "2.40" });
 

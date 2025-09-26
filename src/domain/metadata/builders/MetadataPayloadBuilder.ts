@@ -378,7 +378,7 @@ export class MetadataPayloadBuilder {
             eventVisualizations: lineListVisualizations,
         };
     }
-    
+
     private async addRowsToVisualizations(
         originInstance: Instance,
         visualizations: Visualization[]
