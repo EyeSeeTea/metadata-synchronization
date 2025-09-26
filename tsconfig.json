@@ -28,6 +28,7 @@
         "noUncheckedIndexedAccess": false,
         "experimentalDecorators": true,
         "noFallthroughCasesInSwitch": true,
+        "types": ["node", "vite/client", "vitest/globals"],
         "lib": ["dom", "dom.iterable", "esnext"]
     },
     "include": ["src"]

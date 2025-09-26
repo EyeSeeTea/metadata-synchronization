@@ -1,7 +1,15 @@
 import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../../instance/entities/Instance";
 import { SynchronizationBuilder } from "../../synchronization/entities/SynchronizationBuilder";
-import { MetadataEntities, MetadataEntity, MetadataPackage, Program } from "../entities/MetadataEntities";
+import {
+    Dashboard,
+    EventVisualization,
+    MetadataEntities,
+    MetadataEntity,
+    MetadataPackage,
+    Program,
+    Visualization,
+} from "../entities/MetadataEntities";
 
 import { debug } from "../../../utils/debug";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
@@ -10,15 +18,17 @@ import { promiseMap } from "../../../utils/common";
 import { defaultName, modelFactory } from "../../../models/dhis/factory";
 import { cache } from "../../../utils/cache";
 import { ExportBuilder } from "../../../types/synchronization";
-import { D2Api, Id } from "../../../types/d2-api";
+import { D2Api } from "../../../types/d2-api";
 import { getD2APiFromInstance } from "../../../utils/d2-utils";
 import _ from "lodash";
 import { NestedRules } from "../entities/MetadataExcludeIncludeRules";
 import { buildNestedRules, cleanObject, cleanReferences, getAllReferences } from "../utils";
+import { BuilderRegistry } from "./BuilderRegistry";
 
 export class MetadataPayloadBuilder {
     private api: D2Api;
-    private idsAlreadyRequested = new Set<Id>();
+    private registry = new BuilderRegistry();
+    private debugEnabled = false;
 
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {
         this.api = getD2APiFromInstance(localInstance);
@@ -115,8 +125,13 @@ export class MetadataPayloadBuilder {
             categoryCombos,
             categoryOptions,
             categoryOptionCombos,
+            visualizations,
             ...rest
         } = metadataWithoutDuplicates;
+
+        const visualizationsWithRows = visualizations
+            ? await this.addRowsToVisualizations(originInstance, visualizations as Visualization[])
+            : [];
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
@@ -131,6 +146,7 @@ export class MetadataPayloadBuilder {
             ...(categoryOptionCombos && {
                 categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
             }),
+            ...(visualizationsWithRows.length > 0 && { visualizations: visualizationsWithRows }),
             organisationUnits: includeOrgUnitsObjectsAndReferences ? organisationUnits : undefined,
             users: includeUsersObjectsAndReferences ? users : undefined,
             userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
@@ -138,7 +154,7 @@ export class MetadataPayloadBuilder {
             ...rest,
         };
 
-        this.idsAlreadyRequested.clear();
+        this.registry.clear();
 
         debug("Metadata package", finalMetadataPackage);
         return finalMetadataPackage;
@@ -165,7 +181,7 @@ export class MetadataPayloadBuilder {
     }
 
     public async exportMetadata(originalBuilder: ExportBuilder, originInstanceId: string): Promise<MetadataPackage> {
-        const recursiveExport = async (builder: ExportBuilder): Promise<MetadataPackage> => {
+        const recursiveExport = async (builder: ExportBuilder, depth = 0): Promise<MetadataPackage> => {
             const {
                 type,
                 ids,
@@ -182,11 +198,13 @@ export class MetadataPayloadBuilder {
                 removeUserNonEssentialObjects,
             } = builder;
 
-            const newIds = ids.filter(id => !this.idsAlreadyRequested.has(id));
+            const newIds = this.registry.filterNotRequested(builder, ids);
 
             if (newIds.length === 0) {
                 return {};
             }
+
+            this.debug(depth, `type=${builder.type}, ids=[${newIds.join(", ")}]`);
 
             //TODO: when metadata entities schema exists on domain, move this factory to domain
             const collectionName = modelFactory(type).getCollectionName();
@@ -204,7 +222,7 @@ export class MetadataPayloadBuilder {
             const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
             const syncMetadata = await metadataRepository.getMetadataByIds(newIds);
             const elements = syncMetadata[collectionName] || [];
-            newIds.forEach(id => this.idsAlreadyRequested.add(id));
+            this.registry.addList(builder, newIds);
 
             for (const element of elements) {
                 //ProgramRules is not included in programs items in the response by the dhis2 API
@@ -253,24 +271,34 @@ export class MetadataPayloadBuilder {
                               ]
                             : metadataTypeIncludeReferencesAndObjectsRules;
 
-                    return recursiveExport({
-                        type: type as keyof MetadataEntities,
-                        ids: [...new Set(references[type])],
-                        excludeRules: nestedExcludeRules[type],
-                        includeReferencesAndObjectsRules: nextIncludeReferencesAndObjectsRules,
-                        includeSharingSettingsObjectsAndReferences,
-                        includeOnlySharingSettingsReferences,
-                        includeUsersObjectsAndReferences,
-                        includeOnlyUsersReferences,
-                        includeOrgUnitsObjectsAndReferences,
-                        includeOnlyOrgUnitsReferences,
-                        sharingSettingsIncludeReferencesAndObjectsRules,
-                        usersIncludeReferencesAndObjectsRules,
-                        removeUserNonEssentialObjects,
-                    });
+                    return recursiveExport(
+                        {
+                            type: type as keyof MetadataEntities,
+                            ids: [...new Set(references[type])],
+                            excludeRules: nestedExcludeRules[type],
+                            includeReferencesAndObjectsRules: nextIncludeReferencesAndObjectsRules,
+                            includeSharingSettingsObjectsAndReferences,
+                            includeOnlySharingSettingsReferences,
+                            includeUsersObjectsAndReferences,
+                            includeOnlyUsersReferences,
+                            includeOrgUnitsObjectsAndReferences,
+                            includeOnlyOrgUnitsReferences,
+                            sharingSettingsIncludeReferencesAndObjectsRules,
+                            usersIncludeReferencesAndObjectsRules,
+                            removeUserNonEssentialObjects,
+                        },
+                        depth + 1
+                    );
                 });
 
-                _.deepMerge(result, ...partialResults);
+                // Line list event visualizations are not included by default when exporting dashboards
+                // so we need to request them separately and include them in the metadata package
+                const eventVisualizations =
+                    type === "dashboards"
+                        ? await this.requestAndIncludeLineListings(fixedElement as Dashboard, originInstanceId)
+                        : {};
+
+                _.deepMerge(result, ...partialResults, eventVisualizations);
             }
 
             // Clean up result from duplicated elements
@@ -292,10 +320,19 @@ export class MetadataPayloadBuilder {
                   ]
                 : currentMetadataTypeIncludeReferencesAndObjectsRules;
 
-        return recursiveExport({
-            ...originalBuilder,
-            includeReferencesAndObjectsRules,
-        });
+        return recursiveExport(
+            {
+                ...originalBuilder,
+                includeReferencesAndObjectsRules,
+            },
+            0
+        );
+    }
+
+    private debug(depth: number, ...message: unknown[]) {
+        if (!this.debugEnabled) return;
+        const indent = "  ".repeat(depth);
+        debug(`${indent}[builder]`, ...message);
     }
 
     private excludeDefaultMetadataObjects(
@@ -316,5 +353,44 @@ export class MetadataPayloadBuilder {
             program: program.id,
         });
         return { ...program, programRules };
+    }
+
+    private async requestAndIncludeLineListings(
+        dashboard: Dashboard,
+        originInstanceId: string
+    ): Promise<{ eventVisualizations: EventVisualization[] }> {
+        const defaultInstance = await this.getOriginInstance(originInstanceId);
+        const metadataRepository = this.repositoryFactory.metadataRepository(defaultInstance);
+
+        const eventVisualizationIds = _(dashboard.dashboardItems)
+            .map(dashboardItem => dashboardItem.eventVisualization?.id)
+            .compact()
+            .value();
+        const eventVisualizations = await metadataRepository.getMetadataByIds<EventVisualization>(
+            eventVisualizationIds,
+            ":all"
+        );
+        const lineListVisualizations = Object.values(eventVisualizations)
+            .flat()
+            .filter(eventVisualization => eventVisualization.type === "LINE_LIST");
+
+        return {
+            eventVisualizations: lineListVisualizations,
+        };
+    }
+    
+    private async addRowsToVisualizations(
+        originInstance: Instance,
+        visualizations: Visualization[]
+    ): Promise<Visualization[]> {
+        const visualizationsRepository = await this.repositoryFactory.visualizationsRepository(originInstance);
+        const visualizationIds = visualizations.map(visualization => visualization.id);
+
+        const visualizationsWithRows = await visualizationsRepository.getByIds(visualizationIds);
+
+        return visualizations.map(visualization => {
+            const rows = visualizationsWithRows.find(row => row.id === visualization.id)?.rows || [];
+            return { ...visualization, rows };
+        });
     }
 }

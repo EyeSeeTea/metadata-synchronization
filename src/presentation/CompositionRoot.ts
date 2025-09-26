@@ -132,6 +132,7 @@ import { TransformationRepository } from "../domain/transformations/repositories
 import { EventsPayloadBuilder } from "../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../domain/aggregated/builders/AggregatedPayloadBuilder";
 import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
+import { VisualizationD2Repository } from "../data/visualization/VisualizationD2Repository";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -562,7 +563,7 @@ export function registerDynamicRepositoriesInFactory(repositoryFactory: DynamicR
 
     repositoryFactory.bindByInstance(
         Repositories.TEIsRepository,
-        (instance: Instance) => new TEID2ApiRepository(instance)
+        (instance: Instance) => new TEID2ApiRepository(instance, new TransformationD2ApiRepository())
     );
 
     repositoryFactory.bindByInstance(Repositories.ReportsRepository, (instance: Instance) => {
@@ -612,5 +613,10 @@ export function registerDynamicRepositoriesInFactory(repositoryFactory: DynamicR
     repositoryFactory.bindByInstance(
         Repositories.DataStoreMetadataRepository,
         (instance: Instance) => new DataStoreMetadataD2Repository(instance)
+    );
+
+    repositoryFactory.bindByInstance(
+        Repositories.VisualizationRepository,
+        (instance: Instance) => new VisualizationD2Repository(instance)
     );
 }

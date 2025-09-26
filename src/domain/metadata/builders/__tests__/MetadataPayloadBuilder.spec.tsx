@@ -1,4 +1,4 @@
-import { anything, instance, mock, when } from "ts-mockito";
+import { anything, deepEqual, instance, mock, when } from "ts-mockito";
 import { DynamicRepositoryFactory } from "../../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../../../instance/entities/Instance";
 import { MetadataRepository } from "../../repositories/MetadataRepository";
@@ -29,6 +29,10 @@ import {
     getDataSetTypeExpectedPayload,
 } from "./data/data-set-metadata-type";
 import { MetadataPayloadBuilder } from "../MetadataPayloadBuilder";
+import {
+    givenABuilderWithUserGroupsAndDashboards,
+    givenUserGroupsAndDashboardMetadataResponses,
+} from "./data/user-groups-metadata.type";
 
 // TODO: Notice these tests are fragile and can break easily if MetadataPayloadBuilder or the metadata structure changes.
 // It is necesary a refactor of MetadataPayloadBuilder and the tests to make them more robust.
@@ -386,5 +390,83 @@ describe("MetadataPayloadBuilder", () => {
         name: "This instance",
         type: "local",
         url: "http://localhost:8080",
+    });
+
+    describe.only("executing build method for a dashboard and a usergroup - dashboard referencing the usergroup", () => {
+        it("should return expected payload when option include objects and references of sharing settings, users and organisation units is selected", async () => {
+            // The builder includes metadataTypes = userGroups and dashboards, metadataIds = one dashboard and one usergroup.
+            // The dashboard references the usergroup
+            // The user group must include all its users as per the builder includeRules.
+
+            const includeObjectsAndReferencesOptions = {
+                includeObjectsAndReferences: true,
+                includeOnlyReferences: false,
+            };
+            const builder = givenABuilderWithUserGroupsAndDashboards(includeObjectsAndReferencesOptions);
+
+            const metadataPayloadBuilder = givenMetadataPayloadBuilderOfUserGroupsAndDashboards(
+                includeObjectsAndReferencesOptions
+            );
+
+            const payload: SynchronizationPayload = await metadataPayloadBuilder.build(builder);
+
+            expect(payload.users).toHaveLength(2);
+            expect(payload.userGroups).toHaveLength(1);
+            expect(payload.dashboards).toHaveLength(1);
+            expect(payload.userRoles).toHaveLength(1);
+        });
+
+        function givenMetadataPayloadBuilderOfUserGroupsAndDashboards(options: {
+            includeObjectsAndReferences: boolean;
+            includeOnlyReferences: boolean;
+        }): MetadataPayloadBuilder {
+            const { includeObjectsAndReferences } = options;
+            if (!includeObjectsAndReferences) {
+                throw new Error("Not implemented");
+            }
+            const mockedInstanceRepository = mock<InstanceRepository>();
+            when(mockedInstanceRepository.getById(anything())).thenResolve(dummyInstance);
+            when(mockedInstanceRepository.getVersion()).thenResolve("");
+
+            const mockedMetadataRepository = mock<MetadataRepository>();
+
+            when(mockedMetadataRepository.getByFilterRules(anything())).thenResolve([]);
+
+            const responses = givenUserGroupsAndDashboardMetadataResponses();
+
+            when(mockedMetadataRepository.getMetadataByIds(anything(), anything())).thenResolve({
+                dashboards: responses.dashboards.dashboards.map(d => ({ id: d.id })),
+                userGroups: responses.userGroups.userGroups.map(ug => ({ id: ug.id })),
+            });
+
+            when(
+                mockedMetadataRepository.getMetadataByIds(deepEqual([responses.userGroups.userGroups[0].id]))
+            ).thenResolve(responses.userGroups);
+            when(
+                mockedMetadataRepository.getMetadataByIds(deepEqual([responses.dashboards.dashboards[0].id]))
+            ).thenResolve(responses.dashboards);
+            when(
+                mockedMetadataRepository.getMetadataByIds(deepEqual(responses.users.users.map(u => u.id)))
+            ).thenResolve(responses.users);
+            when(mockedMetadataRepository.getMetadataByIds(deepEqual([responses.users.users[0].id]))).thenResolve({
+                users: responses.users.users.filter(u => u.id === responses.users.users[0].id),
+            });
+            when(mockedMetadataRepository.getMetadataByIds(deepEqual([responses.users.users[1].id]))).thenResolve({
+                users: responses.users.users.filter(u => u.id === responses.users.users[1].id),
+            });
+            when(
+                mockedMetadataRepository.getMetadataByIds(deepEqual(responses.userRoles.userRoles.map(u => u.id)))
+            ).thenResolve(responses.userRoles);
+
+            when(mockedMetadataRepository.listAllMetadata(anything())).thenResolve([]);
+
+            const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
+            when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
+            when(mockedRepositoryFactory.metadataRepository(anything())).thenReturn(instance(mockedMetadataRepository));
+
+            const metadataPayloadBuilder = new MetadataPayloadBuilder(instance(mockedRepositoryFactory), dummyInstance);
+
+            return metadataPayloadBuilder;
+        }
     });
 });
