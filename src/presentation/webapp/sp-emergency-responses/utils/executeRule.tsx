@@ -88,7 +88,7 @@ function getSynchronizationResultStats(result: SynchronizationResult): Synchroni
     const typeStats = result.typeStats || [];
     const { payload } = result;
     const isEvents = payload && "events" in payload;
-    const isTeis = payload && "trackedEntityInstances" in payload;
+    const isTeis = payload && "trackedEntities" in payload;
 
     const type = isEvents
         ? i18n.t("Consultations and Surgery (Events)")
