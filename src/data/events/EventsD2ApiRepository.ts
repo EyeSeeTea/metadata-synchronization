@@ -90,7 +90,10 @@ export class EventsD2ApiRepository implements EventsRepository {
                   }
                 : {
                       occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                      occurredBefore: period !== "ALL" ? endDate.format("YYYY-MM-DD") : undefined,
+                      occurredBefore:
+                          period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
+                              ? endDate.format("YYYY-MM-DD")
+                              : undefined,
                       updatedAfter: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
                   };
 
@@ -123,11 +126,19 @@ export class EventsD2ApiRepository implements EventsRepository {
             return [...events, ..._.flatten(paginatedEvents)];
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
             .filter(({ programStage }) => (programStage ? programStageIds.includes(programStage) : false))
-            .map(object => ({ ...object, id: object.event }))
-            .map(object => cleanObjectDefault(object, defaults))
+            .map(object => {
+                const event = { ...object, id: object.event };
+
+                return isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId)
+                    ? cleanObjectDefault(event, defaults)
+                    : undefined;
+            })
+            .compact()
             .value();
     }
 
@@ -194,12 +205,14 @@ export class EventsD2ApiRepository implements EventsRepository {
             return _.flatten(filteredEvents);
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
             .map(object => {
                 const event = { ...object, id: object.event };
 
-                return isDataSynchronizationRequired(params, object.updatedAt)
+                return isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId)
                     ? cleanObjectDefault(event, defaults)
                     : undefined;
             })
