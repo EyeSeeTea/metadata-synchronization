@@ -47,8 +47,9 @@ const App = () => {
             await compositionRoot.app.initialize();
 
             const newCompositionRoot = getWebappCompositionRoot(instance);
+            const currentUser = await compositionRoot.user.current();
 
-            setAppContext({ d2: d2, api, compositionRoot, newCompositionRoot });
+            setAppContext({ d2: d2, api, compositionRoot, newCompositionRoot, currentUser });
         };
 
         run();
