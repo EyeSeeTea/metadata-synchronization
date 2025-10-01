@@ -1,5 +1,5 @@
 import { MultiSelector } from "@eyeseetea/d2-ui-components";
-import { makeStyles, Typography } from "@material-ui/core";
+import { CircularProgress, makeStyles, Typography } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import { Instance } from "../../../../../../domain/instance/entities/Instance";
 import { User } from "../../../../../../domain/user/entities/User";
@@ -25,12 +25,12 @@ export const buildInstanceOptions = (instances: Instance[], currentUser: User) =
 };
 
 const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChange }) => {
-    const { d2, compositionRoot } = useAppContext();
+    const { d2, compositionRoot, currentUser } = useAppContext();
     const classes = useStyles();
 
     const [selectedOptions, setSelectedOptions] = useState<string[]>(syncRule.targetInstances);
     const [targetInstances, setTargetInstances] = useState<Instance[]>([]);
-    const [instanceOptions, setInstanceOptions] = useState<{ value: string; text: string }[]>([]);
+    const [loading, setLoading] = useState(false);
 
     const includeCurrentUrlAndTypeIsEvents = (selectedinstanceIds: string[]) => {
         return (
@@ -57,22 +57,34 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
     };
 
     useEffect(() => {
-        compositionRoot.instances.list().then(instances => {
-            setTargetInstances(instances);
-            compositionRoot.user.current().then(user => setInstanceOptions(buildInstanceOptions(instances, user)));
-        });
+        setLoading(true);
+        compositionRoot.instances
+            .list()
+            .then(instances => {
+                setTargetInstances(instances);
+            })
+            .finally(() => setLoading(false));
     }, [compositionRoot]);
+
+    const instanceOptions = React.useMemo(
+        () => buildInstanceOptions(targetInstances, currentUser),
+        [targetInstances, currentUser]
+    );
 
     return (
         <React.Fragment>
             {syncRule.originInstance === "LOCAL" ? (
-                <MultiSelector
-                    d2={d2}
-                    height={300}
-                    onChange={changeInstances}
-                    options={instanceOptions}
-                    selected={selectedOptions}
-                />
+                <div className={classes.multiSelectorContainer}>
+                    <MultiSelector
+                        d2={d2}
+                        height={300}
+                        onChange={changeInstances}
+                        options={instanceOptions}
+                        selected={selectedOptions}
+                        classes={{ wrapper: loading ? classes.multiSelectorWrapperLoading : "", searchField: "" }}
+                    />
+                    {loading && <LoadingInstances />}
+                </div>
             ) : (
                 <Typography className={classes.advancedOptionsTitle} variant="subtitle1" gutterBottom>
                     {i18n.t("Destination")}: {i18n.t("This instance")}
@@ -88,9 +100,37 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
     );
 };
 
+function LoadingInstances() {
+    const classes = useStyles();
+    return (
+        <div className={classes.loadingIndicatorContainer}>
+            <div className={classes.loadingMessage}>
+                <CircularProgress size={16} />
+                <Typography>{i18n.t("Loading instances...")}</Typography>
+            </div>
+        </div>
+    );
+}
+
 const useStyles = makeStyles({
     advancedOptionsTitle: {
         fontWeight: 500,
+    },
+    multiSelectorContainer: {
+        position: "relative",
+    },
+    multiSelectorWrapperLoading: {
+        visibility: "hidden",
+    },
+    loadingIndicatorContainer: {
+        position: "absolute",
+        inset: 0,
+        padding: 16,
+    },
+    loadingMessage: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
     },
 });
 

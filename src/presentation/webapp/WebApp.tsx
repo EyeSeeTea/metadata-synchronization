@@ -59,7 +59,7 @@ const App = () => {
             if (!currentUser) throw new Error("User not logged in");
 
             const newCompositionRoot = getWebappCompositionRoot(instance);
-            setAppContext({ d2: d2, api, compositionRoot, newCompositionRoot });
+            setAppContext({ d2: d2, api, compositionRoot, newCompositionRoot, currentUser });
 
             Object.assign(window, { api });
             setUsername(currentUser.username);

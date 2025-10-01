@@ -1,4 +1,4 @@
-import { FormControl, InputLabel, MenuItem, MuiThemeProvider, Select } from "@material-ui/core";
+import { CircularProgress, FormControl, InputLabel, MenuItem, MuiThemeProvider, Select } from "@material-ui/core";
 import { createTheme } from "@material-ui/core/styles";
 import _ from "lodash";
 import React from "react";
@@ -23,6 +23,7 @@ interface DropdownProps<T extends string = string> {
     view?: DropdownViewOption;
     disabled?: boolean;
     style?: React.CSSProperties;
+    loading?: boolean;
 }
 
 const getTheme = (view: DropdownViewOption) => {
@@ -83,6 +84,7 @@ export function Dropdown<T extends string = string>({
     emptyLabel,
     view = "filter",
     disabled = false,
+    loading = false,
 }: DropdownProps<T>) {
     const inlineStyles = { minWidth: 120, paddingLeft: 25, paddingRight: 25 };
     const styles = view === "inline" ? inlineStyles : {};
@@ -107,7 +109,8 @@ export function Dropdown<T extends string = string>({
                         },
                     }}
                     style={styles}
-                    disabled={disabled}
+                    disabled={disabled || loading}
+                    IconComponent={loading ? () => <LoadingIcon /> : undefined}
                 >
                     {!hideEmpty && <MenuItem value={""}>{emptyLabel ?? i18n.t("<No value>")}</MenuItem>}
                     {items.map(element => (
@@ -120,5 +123,21 @@ export function Dropdown<T extends string = string>({
         </MuiThemeProvider>
     );
 }
+
+const LoadingIcon = () => (
+    <div
+        style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "absolute",
+            right: 0,
+            width: 24,
+            height: 24,
+        }}
+    >
+        <CircularProgress size={16} />
+    </div>
+);
 
 export default Dropdown;
