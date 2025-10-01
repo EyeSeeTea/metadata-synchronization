@@ -1,4 +1,4 @@
-import { makeStyles } from "@material-ui/core";
+import { makeStyles, Theme } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import ArrowRightIcon from "@material-ui/icons/ArrowRightAlt";
 import React, { useCallback } from "react";
@@ -66,24 +66,26 @@ const InstancesSelectors: React.FC<InstancesSelectorsProps> = ({
 const showAllInstances = { local: true, remote: true };
 const showOnlyLocalInstances = { local: true, remote: false };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme: Theme) => ({
     icon: {
         padding: "0px 25px",
         marginBottom: 5,
         verticalAlign: "middle",
     },
     instances: {
+        display: "flex",
+        alignItems: "center",
         float: "right",
-        padding: "0px 10px",
-        border: "1px solid",
+        padding: `5px 10px 0px 10px`,
+        backgroundColor: theme.palette.background.default,
+        boxShadow: theme.shadows[1],
     },
     label: {
         display: "inline-block",
-        fontWeight: 400,
-        fontSize: "1rem",
-        marginTop: "4px",
-        verticalAlign: "top",
+        fontWeight: 500,
+        fontSize: "0.95rem",
+        marginBottom: 7,
     },
-});
+}));
 
 export default React.memo(InstancesSelectors);
