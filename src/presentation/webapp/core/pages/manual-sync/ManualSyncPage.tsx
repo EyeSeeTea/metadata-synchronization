@@ -258,22 +258,19 @@ const ManualSyncPage: React.FC = () => {
         },
     ];
 
-    const updateSourceInstance = useCallback(
-        (_type: InstanceSelectionOption, instance?: Instance | Store) => {
-            const originInstance = instance?.id ?? "LOCAL";
-            const targetInstances = originInstance === "LOCAL" ? [] : ["LOCAL"];
+    const updateSourceInstance = useCallback((_type: InstanceSelectionOption, instance?: Instance | Store) => {
+        const originInstance = instance?.id ?? "LOCAL";
+        const targetInstances = originInstance === "LOCAL" ? [] : ["LOCAL"];
 
-            setSourceInstance(instance ? (instance as Instance) : undefined);
-            updateSyncRule(
-                syncRule
-                    .updateBuilder({ originInstance })
-                    .updateTargetInstances(targetInstances)
-                    .updateMetadataIds([])
-                    .updateExcludedIds([])
-            );
-        },
-        [syncRule]
-    );
+        setSourceInstance(instance ? (instance as Instance) : undefined);
+        updateSyncRule(syncRule =>
+            syncRule
+                .updateBuilder({ originInstance })
+                .updateTargetInstances(targetInstances)
+                .updateMetadataIds([])
+                .updateExcludedIds([])
+        );
+    }, []);
 
     return (
         <TestWrapper>
