@@ -51,7 +51,8 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
     });
 
     public async postPayload(instance: Instance): Promise<SynchronizationResult[]> {
-        const { events, dataValues, trackedEntityInstances } = await this.buildPayload();
+        const payload = await this.buildPayload();
+        const { events, dataValues, trackedEntityInstances } = payload;
         const { dataParams = {} } = this.builder;
 
         const wasAnyTeiSelectedToSync =
@@ -64,15 +65,15 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
                 ? getSuccessDefaultSyncReportByType("trackedEntityInstances", instance)
                 : undefined;
 
-        const wasAnyEventSelectedToSync =
-            !!dataParams.allEvents || (!dataParams.allEvents && dataParams.events && dataParams.events.length > 0);
+        // TODO: Commented out because it generates status PENDING in the sync report if we return undefined.
+        //       We should fix this in the future in GenericSyncUseCase
+        // const wasAnyEventSelectedToSync =
+        //     !!dataParams.allEvents || (!dataParams.allEvents && dataParams.events && dataParams.events.length > 0);
 
         const eventsResponse =
             events?.length > 0 || trackedEntityInstances?.length > 0
                 ? await this.postEventsPayload(instance, events, trackedEntityInstances)
-                : wasAnyEventSelectedToSync
-                ? getSuccessDefaultSyncReportByType("events", instance)
-                : undefined;
+                : getSuccessDefaultSyncReportByType("events", instance);
 
         const indicatorsResponse = await this.postIndicatorPayload(instance, dataValues);
 

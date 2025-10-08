@@ -4,8 +4,8 @@ import { Debug } from "../../../domain/migrations/entities/Debug";
 import { ObjectSharing } from "../../../domain/storage/repositories/StorageClient";
 import { promiseMap } from "../../../utils/common";
 import { AppStorage, Migration } from "../client/types";
-import Cryptr from "cryptr";
 import { InstanceD2ApiRepository } from "../../instance/InstanceD2ApiRepository";
+import { decrypt } from "../../../utils/crypto";
 
 const instancesNamespace = "instances";
 
@@ -66,16 +66,16 @@ async function getInstancesWithSharing(storage: AppStorage, encryptionKey: strin
         );
 
         const decryptPassword = (password?: string) => {
-            return password ? new Cryptr(encryptionKey).decrypt(password) : "";
+            return password ? decrypt(password, encryptionKey) : "";
         };
 
-        const mapToInstance = (instanceData: InstanceData, sharing: ObjectSharing | undefined) =>
+        const mapToInstance = async (instanceData: InstanceData, sharing: ObjectSharing | undefined) =>
             Instance.build({
                 ...instanceData,
                 url: instanceData.url,
                 version: instanceData.version,
                 username: advancedProps?.username,
-                password: decryptPassword(advancedProps?.password),
+                password: await decryptPassword(advancedProps?.password),
                 ...(sharing ?? {
                     publicAccess: "--------",
                     userAccesses: [],

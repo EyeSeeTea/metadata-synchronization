@@ -1468,6 +1468,18 @@ msgstr ""
 msgid "You do not have assigned any organisation unit"
 msgstr ""
 
+msgid "Enrollment date"
+msgstr ""
+
+msgid "Occurred event date"
+msgstr ""
+
+msgid "Tracked entities sync period field"
+msgstr ""
+
+msgid "Events sync period field"
+msgstr ""
+
 msgid "Enrollment Date"
 msgstr ""
 
@@ -2302,7 +2314,7 @@ msgstr ""
 msgid "Running analytics for instance {{name}}"
 msgstr ""
 
-msgid "Updating analytics done`for instance {{name}}"
+msgid "Updating analytics done for instance {{name}}"
 msgstr ""
 
 msgid "Short name"

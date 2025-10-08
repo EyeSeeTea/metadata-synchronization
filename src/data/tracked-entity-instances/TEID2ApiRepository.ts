@@ -13,24 +13,31 @@ import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
 import { TEIsPackage } from "../../domain/tracked-entity-instances/entities/TEIsPackage";
 import { TrackedEntityInstance } from "../../domain/tracked-entity-instances/entities/TrackedEntityInstance";
 import { TEIRepository, TEIsResponse } from "../../domain/tracked-entity-instances/repositories/TEIRepository";
+import { TransformationRepository } from "../../domain/transformations/repositories/TransformationRepository";
 import { D2Api } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
+import { getPageCount, getRemainingPages } from "../../utils/pagination";
+import { teiTransformations } from "../transformations/PackageTransformations";
 
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
 
-    constructor(localInstance: Instance, private targetInstance: Instance) {
+    constructor(
+        localInstance: Instance,
+        private targetInstance: Instance,
+        private transformationRepository: TransformationRepository
+    ) {
         this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     async getAllTEIs(params: DataSynchronizationParams, programs: string[]): Promise<TrackedEntityInstance[]> {
         const result = await promiseMap(programs, async program => {
-            const { instances, total = 0, pageSize } = await this.getTEIs(params, program, 1, 250);
+            const { instances, ...pager } = await this.getTEIs(params, program, 1, 250);
 
-            const pageCount = Math.ceil(total / pageSize);
+            const remainingPages = getRemainingPages(pager);
 
-            const paginatedTEIs = await promiseMap(_.range(2, pageCount + 1), async page => {
+            const paginatedTEIs = await promiseMap(remainingPages, async page => {
                 const { instances } = await this.getTEIs(params, program, page, 250);
                 return instances;
             });
@@ -38,9 +45,11 @@ export class TEID2ApiRepository implements TEIRepository {
             return [...instances, ..._.flatten(paginatedTEIs)];
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
-            .filter(object => isDataSynchronizationRequired(params, object.updatedAt))
+            .filter(object => isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId))
             .value();
     }
 
@@ -50,7 +59,7 @@ export class TEID2ApiRepository implements TEIRepository {
         page: number,
         pageSize: number
     ): Promise<TEIsResponse> {
-        const { period, orgUnitPaths = [] } = params;
+        const { period, orgUnitPaths = [], teisSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
 
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
@@ -64,19 +73,29 @@ export class TEID2ApiRepository implements TEIRepository {
                 page,
             };
 
+        const periodFilter =
+            teisSyncPeriodField === "LAST_UPDATED"
+                ? {
+                      updatedAfter: startDate.format("YYYY-MM-DD"),
+                      updatedBefore: endDate.format("YYYY-MM-DD"),
+                  }
+                : {
+                      enrollmentEnrolledAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
+                      enrollmentEnrolledBefore:
+                          period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
+                              ? endDate.format("YYYY-MM-DD")
+                              : undefined,
+                  };
+
         const result = await this.api.tracker.trackedEntities
             .get({
                 fields: teiFields,
                 program,
                 orgUnit: orgUnits.join(";"),
-                enrollmentEnrolledAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                enrollmentEnrolledBefore:
-                    period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
-                        ? endDate.format("YYYY-MM-DD")
-                        : undefined,
                 totalPages: true,
                 page,
                 pageSize,
+                ...periodFilter,
             })
             .getData();
 
@@ -87,7 +106,7 @@ export class TEID2ApiRepository implements TEIRepository {
             page,
             pageSize,
             total: result.total || 0,
-            pageCount: result.total ? Math.ceil(result.total / pageSize) : 1,
+            pageCount: getPageCount(result),
         };
     }
 
@@ -115,11 +134,17 @@ export class TEID2ApiRepository implements TEIRepository {
         try {
             const teiPostParams = this.getTeiPostParams(additionalParams);
 
-            const trackerPostRequest: TrackerPostRequest = {
+            const baseRequest: TrackerPostRequest = {
                 trackedEntities: data.trackedEntities.map(tei => this.buildD2TrackerTrackedEntity(tei)),
             };
 
-            const response = await this.api.tracker.post(teiPostParams, trackerPostRequest).getData();
+            const versionedRequest = this.transformationRepository.mapPackageTo<TrackerPostRequest, TrackerPostRequest>(
+                this.targetInstance.apiVersion,
+                baseRequest,
+                teiTransformations
+            );
+
+            const response = await this.api.tracker.post(teiPostParams, versionedRequest).getData();
 
             return this.cleanTEIsImportResponse(response);
         } catch (error: any) {
@@ -182,11 +207,11 @@ export class TEID2ApiRepository implements TEIRepository {
         return {
             status: importResult.status === "OK" ? "SUCCESS" : importResult.status,
             stats: {
-                imported: stats.created,
-                updated: stats.updated,
-                ignored: stats.ignored,
-                deleted: stats.deleted,
-                total: stats.total,
+                imported: stats?.created ?? 0,
+                updated: stats?.updated ?? 0,
+                ignored: stats?.ignored ?? 0,
+                deleted: stats?.deleted ?? 0,
+                total: stats?.total ?? 0,
             },
             instance: this.targetInstance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {
@@ -212,6 +237,10 @@ export class TEID2ApiRepository implements TEIRepository {
                 tei.enrollments?.map(enrollment => ({
                     ...enrollment,
                     orgUnit: enrollment.orgUnit || "",
+                    attributes: enrollment.attributes?.map(attribute => ({
+                        ...attribute,
+                        value: attribute.value?.toString() || "",
+                    })),
                 })) || [],
             relationships: tei.relationships || [],
             attributes:
@@ -228,7 +257,7 @@ export class TEID2ApiRepository implements TEIRepository {
         return {
             ...tei,
             enrollments: tei.enrollments.map(enrollment => {
-                return { ...enrollment, events: [], relationships: [], attributes: [], notes: [] };
+                return { ...enrollment, events: [], relationships: [], notes: [] };
             }),
         };
     }
@@ -259,6 +288,7 @@ const enrollmentsFields = {
     deleted: true,
     storedBy: true,
     notes: true,
+    attributes: true,
 } as const;
 
 const teiFields = {

@@ -133,6 +133,7 @@ import { JSONDataSource } from "../domain/instance/entities/JSONDataSource";
 import { InstanceRepository } from "../domain/instance/repositories/InstanceRepository";
 import { InstanceD2Validator } from "../data/instance/InstanceD2Validator";
 import { UserRepository } from "../domain/user/repositories/UserRepository";
+import { VisualizationD2Repository } from "../data/visualization/VisualizationD2Repository";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -571,7 +572,7 @@ export function registerDynamicRepositoriesInFactory(
 
     repositoryFactory.bindByInstance(
         Repositories.TEIsRepository,
-        (instance: Instance) => new TEID2ApiRepository(localInstance, instance)
+        (instance: Instance) => new TEID2ApiRepository(localInstance, instance, new TransformationD2ApiRepository())
     );
 
     repositoryFactory.bindByInstance(Repositories.ReportsRepository, (instance: Instance) => {
@@ -616,7 +617,13 @@ export function registerDynamicRepositoriesInFactory(
         return new SettingsD2ApiRepository(storageClient);
     });
 
-    repositoryFactory.bindByInstance(Repositories.DataStoreMetadataRepository, (instance: Instance) => {
-        return new DataStoreMetadataD2Repository(localInstance, instance);
-    });
+    repositoryFactory.bindByInstance(
+        Repositories.DataStoreMetadataRepository,
+        (instance: Instance) => new DataStoreMetadataD2Repository(localInstance, instance)
+    );
+
+    repositoryFactory.bindByInstance(
+        Repositories.VisualizationRepository,
+        (instance: Instance) => new VisualizationD2Repository(localInstance, instance)
+    );
 }
