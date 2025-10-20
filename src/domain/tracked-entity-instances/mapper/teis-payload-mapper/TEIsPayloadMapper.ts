@@ -4,7 +4,7 @@ import { MetadataMappingDictionary } from "../../../mapping/entities/MetadataMap
 import { SynchronizationPayload } from "../../../synchronization/entities/SynchronizationPayload";
 import { PayloadMapper } from "../../../synchronization/mapper/PayloadMapper";
 import { cleanOrgUnitPath } from "../../../synchronization/utils";
-import { Enrollment } from "../../entities/Enrollment";
+import { Enrollment, EnrollmentAttribute } from "../../entities/Enrollment";
 import { Relationship } from "../../entities/Relationship";
 import { TEIsPackage } from "../../entities/TEIsPackage";
 import { TrakedEntityAttribute } from "../../entities/TrackedEntityAttribute";
@@ -26,6 +26,20 @@ export class TEIsPayloadMapper implements PayloadMapper {
             } = this.mapping;
 
             const mappedOrgUnit = organisationUnits[tei.orgUnit]?.mappedId ?? tei.orgUnit;
+            const mappedAttributes = tei.attributes.map(att => {
+                const mappedAttributeId = trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
+
+                const mappedValue = mapOptionValue(att.value, [
+                    trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
+                    this.mapping,
+                ]);
+
+                return {
+                    ...att,
+                    attribute: mappedAttributeId,
+                    value: mappedValue,
+                };
+            });
 
             return {
                 ...tei,
@@ -47,6 +61,7 @@ export class TEIsPayloadMapper implements PayloadMapper {
 
                     return {
                         ...enrollment,
+                        attributes: mappedAttributes,
                         orgUnit: cleanOrgUnitPath(mappedOrgUnit),
                         program: mappedProgram,
                     };
@@ -59,20 +74,7 @@ export class TEIsPayloadMapper implements PayloadMapper {
                         relationshipType: mappedRelTypeId,
                     };
                 }),
-                attributes: tei.attributes.map(att => {
-                    const mappedAttributeId = trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
-
-                    const mappedValue = mapOptionValue(att.value, [
-                        trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
-                        this.mapping,
-                    ]);
-
-                    return {
-                        ...att,
-                        attribute: mappedAttributeId,
-                        value: mappedValue,
-                    };
-                }),
+                attributes: mappedAttributes,
             };
         });
 
@@ -91,7 +93,18 @@ export class TEIsPayloadMapper implements PayloadMapper {
                 return {
                     ...tei,
                     programOwners: tei.programOwners.filter(item => !this.isDisabledProgramOwner(item)),
-                    enrollments: tei.enrollments.filter(item => !this.isDisabledEnrollment(item)),
+                    enrollments: tei.enrollments
+                        .filter(item => !this.isDisabledEnrollment(item))
+                        .map(enrollment => {
+                            const enrollmentAttributes = enrollment.attributes.filter(
+                                itemAttribute => !this.isDisabledTrackedEntityAttribute(itemAttribute)
+                            );
+
+                            return {
+                                ...enrollment,
+                                attributes: enrollmentAttributes,
+                            };
+                        }),
                     relationships: tei.relationships.filter(item => !this.isDisabledRelationship(item)),
                     attributes: tei.attributes.filter(item => !this.isDisabledTrackedEntityAttribute(item)),
                 };
@@ -130,7 +143,18 @@ export class TEIsPayloadMapper implements PayloadMapper {
                     programOwners: tei.programOwners.filter(
                         item => !destinationEventProgramsIds.includes(item.program)
                     ),
-                    enrollments: tei.enrollments.filter(item => !destinationEventProgramsIds.includes(item.program)),
+                    enrollments: tei.enrollments
+                        .filter(item => !destinationEventProgramsIds.includes(item.program))
+                        .map(enrollment => {
+                            const enrollmentAttributes = enrollment.attributes.filter(attr =>
+                                destinationTrackerProgramAttributes.includes(attr.attribute)
+                            );
+
+                            return {
+                                ...enrollment,
+                                attributes: enrollmentAttributes,
+                            };
+                        }),
                     attributes: tei.attributes.filter(item =>
                         destinationTrackerProgramAttributes.includes(item.attribute)
                     ),
@@ -175,7 +199,7 @@ export class TEIsPayloadMapper implements PayloadMapper {
         return item.relationshipType === "DISABLED";
     }
 
-    private isDisabledTrackedEntityAttribute(item: TrakedEntityAttribute): boolean {
+    private isDisabledTrackedEntityAttribute(item: TrakedEntityAttribute | EnrollmentAttribute): boolean {
         return item.attribute === "DISABLED" || item.value === "DISABLED";
     }
 }
