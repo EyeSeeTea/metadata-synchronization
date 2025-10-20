@@ -321,6 +321,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         programType,
         domainType,
         childrenPropInList,
+        categoryComboDataDimensionType
     }: Partial<ListMetadataParams>) {
         const filter: Dictionary<FilterValue> = {};
 
@@ -348,6 +349,10 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             filter["id"] = { in: filterRows.concat(filter["id"]?.in ?? []) };
         }
         if (search) filter[search.field] = { [search.operator]: search.value };
+
+        if (categoryComboDataDimensionType && !filter["id"]) {
+            filter["categoryCombo.dataDimensionType"] = { eq: categoryComboDataDimensionType };
+        }
 
         return filter;
     }
