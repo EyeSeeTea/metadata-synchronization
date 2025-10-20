@@ -2,7 +2,7 @@ import { Maybe } from "../types/utils";
 
 class Config {
     get mode(): string {
-        return import.meta.env.MODE;
+        return import.meta.env.MODE ?? import.meta.env.NODE_ENV ?? "production";
     }
 
     get isDevelopment(): boolean {
