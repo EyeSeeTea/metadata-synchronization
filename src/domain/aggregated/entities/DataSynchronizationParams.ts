@@ -1,6 +1,10 @@
-import { buildPeriodFromParams } from "../utils";
+import moment from "moment-timezone";
+
 import { DataSyncAggregation } from "./DataSyncAggregation";
 import { DataSyncPeriod } from "./DataSyncPeriod";
+import { EventsSyncPeriodField } from "./EventsSyncPeriodField";
+import { TeisSyncPeriodField } from "./TeisSyncPeriodField";
+import { Maybe } from "../../../types/utils";
 
 export interface DataImportParams {
     idScheme?: "UID" | "CODE";
@@ -20,6 +24,8 @@ export interface DataSynchronizationParams extends DataImportParams {
     allAttributeCategoryOptions?: boolean;
     orgUnitPaths?: string[];
     period?: DataSyncPeriod;
+    teisSyncPeriodField?: TeisSyncPeriodField;
+    eventsSyncPeriodField?: EventsSyncPeriodField;
     startDate?: Date;
     endDate?: Date;
     lastUpdated?: Date;
@@ -39,12 +45,25 @@ export interface DataSynchronizationParams extends DataImportParams {
     ignoreDuplicateExistingValues?: boolean;
 }
 
-export function isDataSynchronizationRequired(params: DataSynchronizationParams, lastUpdated?: string): boolean {
-    const { period } = params;
-    const { startDate } = buildPeriodFromParams(params);
+const EPOCH_START = "1970-01-01";
 
-    const isUpdatedAfterStartDate = lastUpdated && new Date(lastUpdated).toISOString() >= startDate.toISOString();
+export function isDataSynchronizationRequired(
+    params: DataSynchronizationParams,
+    lastUpdated: Maybe<string>,
+    serverTimeZoneId: string
+): boolean {
+    const { period, startDate } = params;
     const isLastSuccessfulSync = period === "SINCE_LAST_SUCCESSFUL_SYNC";
 
-    return isUpdatedAfterStartDate || !isLastSuccessfulSync;
+    if (isLastSuccessfulSync) {
+        const startDateMomentUTC = startDate ? moment.utc(startDate) : moment.utc(EPOCH_START);
+
+        // lastUpdated is a string expressed in the local time zone of the DHIS2 server.
+        const lastUpdatedUTC = moment.tz(lastUpdated, serverTimeZoneId).utc();
+
+        const isUpdatedAfterStartDate = lastUpdated ? lastUpdatedUTC.isSameOrAfter(startDateMomentUTC) : false;
+        return isUpdatedAfterStartDate;
+    } else {
+        return true;
+    }
 }

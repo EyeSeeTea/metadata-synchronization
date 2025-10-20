@@ -2,6 +2,7 @@ import React from "react";
 import { HashRouter, Redirect, Switch } from "react-router-dom";
 import { SynchronizationType } from "../../domain/synchronization/entities/SynchronizationType";
 import * as permissions from "../../utils/permissions";
+import { AppVariant, config } from "../../utils/Config";
 import RouteWithSession from "../react/core/components/auth/RouteWithSession";
 import RouteWithSessionAndAuth from "../react/core/components/auth/RouteWithSessionAndAuth";
 import { useAppContext } from "../react/core/contexts/AppContext";
@@ -30,7 +31,7 @@ import { WmrPage } from "./wmr/WmrPage";
 
 const Root: React.FC = () => {
     const { api, compositionRoot } = useAppContext();
-    const appVariant = getAppVariant();
+    const appVariant = config.appPresentationVariant;
 
     return (
         <HashRouter>
@@ -149,33 +150,5 @@ const VariantRoutes: React.FC<{ variant: AppVariant }> = ({ variant }) => {
             );
     }
 };
-
-const getAppVariant = (): AppVariant => {
-    const variant = process.env.REACT_APP_PRESENTATION_VARIANT;
-
-    return isAppVariant(variant) ? variant : "core-app";
-};
-
-const isAppVariant = (variant?: string): variant is AppVariant => {
-    return (
-        !!variant &&
-        [
-            "core-app",
-            "data-metadata-app",
-            "module-package-app",
-            "msf-aggregate-data-app",
-            "sp-emergency-responses",
-            "wmr",
-        ].includes(variant)
-    );
-};
-
-export type AppVariant =
-    | "core-app"
-    | "data-metadata-app"
-    | "module-package-app"
-    | "msf-aggregate-data-app"
-    | "sp-emergency-responses"
-    | "wmr";
 
 export default Root;
