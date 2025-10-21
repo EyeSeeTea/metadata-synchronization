@@ -39,7 +39,7 @@ function getCompositionRoot(repositories: Repositories) {
         userSettings: {
             get: new GetUserSettingsUseCase(repositories.userSettingsRepository),
             save: new SaveUserSettingsUseCase(repositories.userSettingsRepository),
-        }
+        },
     };
 }
 
