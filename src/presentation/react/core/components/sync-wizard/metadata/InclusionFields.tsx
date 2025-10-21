@@ -1,8 +1,8 @@
 import React from "react";
 import Dropdown from "../../dropdown/Dropdown";
 import styled from "styled-components";
-import { IncludeObjectsAndReferences } from "./useMetadataIncludeExcludeStep";
 import i18n from "../../../../../../utils/i18n";
+import { InclusionMode } from "../../../../../../domain/user-settings/UserSettings";
 
 const DropdownContainer = styled.div`
     margin-bottom: 16px;
@@ -10,21 +10,21 @@ const DropdownContainer = styled.div`
 
 export type InclusionFieldsProps = {
     sharingSettings: {
-        value: IncludeObjectsAndReferences;
-        options: { id: IncludeObjectsAndReferences; name: string }[];
-        onValueChange: (value: IncludeObjectsAndReferences) => void;
+        value: InclusionMode;
+        options: { id: InclusionMode; name: string }[];
+        onValueChange: (value: InclusionMode) => void;
         label?: string;
     };
     users: {
-        value: IncludeObjectsAndReferences;
-        options: { id: IncludeObjectsAndReferences; name: string }[];
-        onValueChange: (value: IncludeObjectsAndReferences) => void;
+        value: InclusionMode;
+        options: { id: InclusionMode; name: string }[];
+        onValueChange: (value: InclusionMode) => void;
         label?: string;
     };
     orgUnits: {
-        value: IncludeObjectsAndReferences;
-        options: { id: IncludeObjectsAndReferences; name: string }[];
-        onValueChange: (value: IncludeObjectsAndReferences) => void;
+        value: InclusionMode;
+        options: { id: InclusionMode; name: string }[];
+        onValueChange: (value: InclusionMode) => void;
         label?: string;
     };
 };
@@ -32,7 +32,7 @@ export type InclusionFieldsProps = {
 export const InclusionFields: React.FC<InclusionFieldsProps> = ({ sharingSettings, users, orgUnits }) => (
     <>
         <DropdownContainer>
-            <Dropdown<IncludeObjectsAndReferences>
+            <Dropdown<InclusionMode>
                 value={sharingSettings.value}
                 items={sharingSettings.options}
                 label={sharingSettings.label ?? i18n.t("Include owner and sharing settings")}
@@ -42,7 +42,7 @@ export const InclusionFields: React.FC<InclusionFieldsProps> = ({ sharingSetting
             />
         </DropdownContainer>
         <DropdownContainer>
-            <Dropdown<IncludeObjectsAndReferences>
+            <Dropdown<InclusionMode>
                 value={users.value}
                 items={users.options}
                 label={users.label ?? i18n.t("Include users")}
@@ -52,7 +52,7 @@ export const InclusionFields: React.FC<InclusionFieldsProps> = ({ sharingSetting
             />
         </DropdownContainer>
         <DropdownContainer>
-            <Dropdown<IncludeObjectsAndReferences>
+            <Dropdown<InclusionMode>
                 value={orgUnits.value}
                 items={orgUnits.options}
                 label={orgUnits.label ?? i18n.t("Include organisation units")}
