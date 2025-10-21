@@ -4,10 +4,6 @@ import styled from "styled-components";
 import i18n from "../../../../../../utils/i18n";
 import { InclusionMode } from "../../../../../../domain/user-settings/UserSettings";
 
-const DropdownContainer = styled.div`
-    margin-bottom: 16px;
-`;
-
 export type InclusionFieldsProps = {
     sharingSettings: {
         value: InclusionMode;
@@ -36,7 +32,6 @@ export const InclusionFields: React.FC<InclusionFieldsProps> = ({ sharingSetting
                 value={sharingSettings.value}
                 items={sharingSettings.options}
                 label={sharingSettings.label ?? i18n.t("Include owner and sharing settings")}
-                style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
                 onValueChange={sharingSettings.onValueChange}
                 hideEmpty
             />
@@ -46,7 +41,6 @@ export const InclusionFields: React.FC<InclusionFieldsProps> = ({ sharingSetting
                 value={users.value}
                 items={users.options}
                 label={users.label ?? i18n.t("Include users")}
-                style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
                 onValueChange={users.onValueChange}
                 hideEmpty
             />
@@ -56,10 +50,20 @@ export const InclusionFields: React.FC<InclusionFieldsProps> = ({ sharingSetting
                 value={orgUnits.value}
                 items={orgUnits.options}
                 label={orgUnits.label ?? i18n.t("Include organisation units")}
-                style={{ width: "100%", marginTop: 20, marginBottom: 20, marginLeft: -10 }}
                 onValueChange={orgUnits.onValueChange}
                 hideEmpty
             />
         </DropdownContainer>
     </>
 );
+
+const DropdownContainer = styled.div`
+    margin-block-end: 16px;
+
+    & > div {
+        width: 100%;
+        margin-block-start: 20px;
+        margin-block-end: 20px;
+        margin-inline-start: -10px;
+    }
+`;
