@@ -392,7 +392,7 @@ describe("MetadataPayloadBuilder", () => {
         url: "http://localhost:8080",
     });
 
-    describe.only("executing build method for a dashboard and a usergroup - dashboard referencing the usergroup", () => {
+    describe("executing build method for a dashboard and a usergroup - dashboard referencing the usergroup", () => {
         it("should return expected payload when option include objects and references of sharing settings, users and organisation units is selected", async () => {
             // The builder includes metadataTypes = userGroups and dashboards, metadataIds = one dashboard and one usergroup.
             // The dashboard references the usergroup
