@@ -2,7 +2,7 @@ import { Maybe } from "../types/utils";
 
 class Config {
     get mode(): string {
-        return import.meta.env.MODE ?? import.meta.env.NODE_ENV ?? "production";
+        return process.env.MODE ?? process.env.NODE_ENV ?? "production";
     }
 
     get isDevelopment(): boolean {
@@ -10,11 +10,11 @@ class Config {
     }
 
     get presentationTitle(): Maybe<string> {
-        return import.meta.env.VITE_PRESENTATION_TITLE;
+        return process.env.VITE_PRESENTATION_TITLE;
     }
 
     get presentationVariant(): Maybe<string> {
-        return import.meta.env.VITE_PRESENTATION_VARIANT;
+        return process.env.VITE_PRESENTATION_VARIANT;
     }
 
     get appPresentationVariant(): AppVariant {
@@ -25,12 +25,12 @@ class Config {
 
     get presentationType(): PresentationType {
         const DEFAULT = "webapp";
-        const type = import.meta.env.VITE_PRESENTATION_TYPE;
+        const type = process.env.VITE_PRESENTATION_TYPE;
         return this.isValidPresentationType(type) ? type : DEFAULT;
     }
 
     get isCypressEnabled(): boolean {
-        return Boolean(import.meta.env.VITE_CYPRESS);
+        return Boolean(process.env.VITE_CYPRESS);
     }
 
     private isValidAppVariant(variant: Maybe<string>): variant is AppVariant {

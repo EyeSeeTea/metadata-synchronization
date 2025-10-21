@@ -41,6 +41,7 @@ import { D2MetadataUtils } from "./D2MetadataUtils";
 import { D2ApiDataStore } from "../common/D2ApiDataStore";
 import { DataStoreMetadata } from "../../domain/data-store/DataStoreMetadata";
 import { isDhisInstance } from "../../domain/instance/entities/DataSource";
+import { config } from "../../utils/Config";
 
 export class MetadataD2ApiRepository implements MetadataRepository {
     private api: D2Api;
@@ -615,7 +616,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     private getAdditionalCategoryOptionCombosOptionsByVariant(): CategoryOptionCombosAdditionalOptions {
-        const appVariant = this.getAppVariant();
+        const appVariant = config.appPresentationVariant;
 
         switch (appVariant) {
             case "msf-aggregate-data-app": {
@@ -634,12 +635,6 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             default:
                 return {};
         }
-    }
-
-    private getAppVariant(): string {
-        // Use process.env which works in both Node.js and Vite
-        // i.e. for the scheduler we use ncc to bundle the code in CJS format
-        return process.env.VITE_PRESENTATION_VARIANT || "core-app";
     }
 }
 

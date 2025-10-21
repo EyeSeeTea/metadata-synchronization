@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
         define: {
             // Preserve process.env access for compatibility
             "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV || mode),
-            // preserve access to VITE_ variables in case some code still uses process.env
+            // preserve process.env.VITE_ variables for backwards compatibility with CJS
             "process.env.VITE_PRESENTATION_VARIANT": JSON.stringify(env.VITE_PRESENTATION_VARIANT),
             "process.env.VITE_PRESENTATION_TITLE": JSON.stringify(env.VITE_PRESENTATION_TITLE),
             "process.env.VITE_PRESENTATION_TYPE": JSON.stringify(env.VITE_PRESENTATION_TYPE),
