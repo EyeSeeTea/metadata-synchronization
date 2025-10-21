@@ -8,6 +8,7 @@ import { SyncWizardStepProps } from "../Steps";
 import { styled } from "styled-components";
 import { useMetadataIncludeExcludeStep } from "./useMetadataIncludeExcludeStep";
 import { InclusionFields } from "./InclusionFields";
+import { useUserSettings } from "../../../../../webapp/core/pages/settings/useUserSettings";
 
 const useStyles = makeStyles({
     includeExcludeContainer: {
@@ -25,6 +26,9 @@ const useStyles = makeStyles({
 const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChange }) => {
     const classes = useStyles();
     const snackbar = useSnackbar();
+
+    const { userSettings } = useUserSettings();
+    const defaultUserInclusion = syncRule.isOnDemand() && userSettings ? userSettings.inclusionConfig : undefined;
 
     const {
         error,
@@ -66,17 +70,17 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
             <div>
                 <InclusionFields
                     sharingSettings={{
-                        value: sharingSettingsObjectsAndReferencesValue,
+                        value: defaultUserInclusion?.sharing ?? sharingSettingsObjectsAndReferencesValue,
                         options: includeObjectsAndReferencesOptions,
                         onValueChange: changeSharingSettingsObjectsAndReferences,
                     }}
                     users={{
-                        value: usersObjectsAndReferencesValue,
+                        value: defaultUserInclusion?.users ?? usersObjectsAndReferencesValue,
                         options: includeObjectsAndReferencesOptions,
                         onValueChange: changeUsersObjectsAndReferences,
                     }}
                     orgUnits={{
-                        value: orgUnitsObjectsAndReferencesValue,
+                        value: defaultUserInclusion?.organisationUnit ?? orgUnitsObjectsAndReferencesValue,
                         options: includeObjectsAndReferencesOptions,
                         onValueChange: changeOrgUnitsObjectsAndReferences,
                     }}

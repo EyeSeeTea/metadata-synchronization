@@ -3,10 +3,7 @@ import React, { useCallback, useEffect } from "react";
 import { useAppContext } from "../../../../react/core/contexts/AppContext";
 import { UserSettings } from "../../../../../domain/user-settings/UserSettings";
 import { useSnackbar } from "@eyeseetea/d2-ui-components";
-import {
-    includeObjectsAndReferencesMap,
-    includeObjectsAndReferencesOptions,
-} from "../../../../react/core/components/sync-wizard/metadata/useMetadataIncludeExcludeStep";
+import { includeObjectsAndReferencesOptions } from "../../../../react/core/components/sync-wizard/metadata/useMetadataIncludeExcludeStep";
 
 export function useUserSettings() {
     const { newCompositionRoot } = useAppContext();
