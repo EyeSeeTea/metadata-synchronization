@@ -5,7 +5,7 @@ export const DEFAULT_USER_SETTINGS: UserSettingsProps = {
     inclusionConfig: {
         sharing: DEFAULT_INCLUSION_MODE,
         users: DEFAULT_INCLUSION_MODE,
-        organisationUnit: DEFAULT_INCLUSION_MODE,
+        organisationUnits: DEFAULT_INCLUSION_MODE,
     },
 };
 
@@ -17,9 +17,10 @@ export type UserSettingsProps = {
     inclusionConfig: {
         sharing: InclusionMode;
         users: InclusionMode;
-        organisationUnit: InclusionMode;
+        organisationUnits: InclusionMode;
     };
 };
+export type UserSettingsInclusionsConfig = UserSettingsProps["inclusionConfig"];
 
 export class UserSettings extends Struct<UserSettingsProps>() {
     updateInclusionConfig<K extends keyof UserSettings["inclusionConfig"]>(

@@ -106,9 +106,9 @@ export const SettingsPage: React.FC = () => {
                             label: i18n.t("Default users inclusion method"),
                         }}
                         orgUnits={{
-                            value: userSettings.inclusionConfig.organisationUnit,
+                            value: userSettings.inclusionConfig.organisationUnits,
                             options: inclusionOptions,
-                            onValueChange: value => updateUserSettingsInclusionConfig("organisationUnit", value),
+                            onValueChange: value => updateUserSettingsInclusionConfig("organisationUnits", value),
                             label: i18n.t("Default organisation units inclusion method"),
                         }}
                     />

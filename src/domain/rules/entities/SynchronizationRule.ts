@@ -22,6 +22,7 @@ import {
 import { SynchronizationType } from "../../synchronization/entities/SynchronizationType";
 import { TeisSyncPeriodField } from "../../aggregated/entities/TeisSyncPeriodField";
 import { EventsSyncPeriodField } from "../../aggregated/entities/EventsSyncPeriodField";
+import { UserSettingsInclusionsConfig } from "../../user-settings/UserSettings";
 
 export class SynchronizationRule {
     private readonly syncRule: SynchronizationRuleData;
@@ -305,8 +306,26 @@ export class SynchronizationRule {
         });
     }
 
-    public static createOnDemand(type: SynchronizationType = "metadata"): SynchronizationRule {
-        return SynchronizationRule.create(type).updateName("__MANUAL__").updateOndemand(true);
+    public static createOnDemand(
+        type: SynchronizationType = "metadata",
+        defaultInclusions?: UserSettingsInclusionsConfig
+    ): SynchronizationRule {
+        const onDemandRule = SynchronizationRule.create(type).updateName("__MANUAL__").updateOndemand(true);
+
+        if (defaultInclusions) {
+            const { sharing, users, organisationUnits } = defaultInclusions;
+            return onDemandRule.updateSyncParams({
+                ...onDemandRule.syncParams,
+                includeSharingSettingsObjectsAndReferences: sharing === "includeObjectsAndReferences",
+                includeOnlySharingSettingsReferences: sharing === "includeOnlyReferences",
+                includeUsersObjectsAndReferences: users === "includeObjectsAndReferences",
+                includeOnlyUsersReferences: users === "includeOnlyReferences",
+                includeOrgUnitsObjectsAndReferences: organisationUnits === "includeObjectsAndReferences",
+                includeOnlyOrgUnitsReferences: organisationUnits === "includeOnlyReferences",
+            });
+        } else {
+            return onDemandRule;
+        }
     }
 
     public static build(syncRule: SynchronizationRuleData | undefined): SynchronizationRule {

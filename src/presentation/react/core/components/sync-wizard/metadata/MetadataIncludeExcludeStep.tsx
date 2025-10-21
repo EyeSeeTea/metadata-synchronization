@@ -27,9 +27,6 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
     const classes = useStyles();
     const snackbar = useSnackbar();
 
-    const { userSettings } = useUserSettings();
-    const defaultUserInclusion = syncRule.isOnDemand() && userSettings ? userSettings.inclusionConfig : undefined;
-
     const {
         error,
         changeUseDefaultIncludeExclude,
@@ -70,17 +67,17 @@ const MetadataIncludeExcludeStep: React.FC<SyncWizardStepProps> = ({ syncRule, o
             <div>
                 <InclusionFields
                     sharingSettings={{
-                        value: defaultUserInclusion?.sharing ?? sharingSettingsObjectsAndReferencesValue,
+                        value: sharingSettingsObjectsAndReferencesValue,
                         options: includeObjectsAndReferencesOptions,
                         onValueChange: changeSharingSettingsObjectsAndReferences,
                     }}
                     users={{
-                        value: defaultUserInclusion?.users ?? usersObjectsAndReferencesValue,
+                        value: usersObjectsAndReferencesValue,
                         options: includeObjectsAndReferencesOptions,
                         onValueChange: changeUsersObjectsAndReferences,
                     }}
                     orgUnits={{
-                        value: defaultUserInclusion?.organisationUnit ?? orgUnitsObjectsAndReferencesValue,
+                        value: orgUnitsObjectsAndReferencesValue,
                         options: includeObjectsAndReferencesOptions,
                         onValueChange: changeOrgUnitsObjectsAndReferences,
                     }}
