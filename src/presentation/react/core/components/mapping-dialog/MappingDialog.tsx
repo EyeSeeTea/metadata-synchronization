@@ -126,39 +126,48 @@ const MappingDialog: React.FC<MappingDialogProps> = ({ config, instance, mapping
         }
     }, [compositionRoot, instance, mappingPath, elements, mapping, mappingType]);
 
-    const onUpdateSelection = useCallback((selectedIds: string[]) => {
-        const newSelection = _.last(selectedIds);
-        onUpdateMapping(elements, newSelection);
-        updateSelected(newSelection);
-    }, [elements, onUpdateMapping]);
+    const onUpdateSelection = useCallback(
+        (selectedIds: string[]) => {
+            const newSelection = _.last(selectedIds);
+            onUpdateMapping(elements, newSelection);
+            updateSelected(newSelection);
+        },
+        [elements, onUpdateMapping]
+    );
 
-    const OrgUnitMapper = useMemo(() => (
-        <div className={classes.orgUnitSelect}>
-            <OrgUnitsSelector
-                api={api}
-                onChange={onUpdateSelection}
-                selected={selected ? [selected] : []}
-                withElevation={false}
-                hideMemberCount={true}
-                controls={{}}
-                fullWidth={true}
-                initiallyExpanded={selected ? [selected] : undefined}
+    const OrgUnitMapper = useMemo(
+        () => (
+            <div className={classes.orgUnitSelect}>
+                <OrgUnitsSelector
+                    api={api}
+                    onChange={onUpdateSelection}
+                    selected={selected ? [selected] : []}
+                    withElevation={false}
+                    hideMemberCount={true}
+                    controls={{}}
+                    fullWidth={true}
+                    initiallyExpanded={selected ? [selected] : undefined}
+                />
+            </div>
+        ),
+        [api, onUpdateSelection, selected, classes.orgUnitSelect]
+    );
+
+    const MetadataMapper = useMemo(
+        () => (
+            <MetadataTable
+                models={[model]}
+                remoteInstance={instance}
+                notifyNewSelection={onUpdateSelection}
+                selectedIds={selected ? [selected] : undefined}
+                hideSelectAll={true}
+                filterRows={filterRows}
+                initialShowOnlySelected={!!selected}
+                viewFilters={_.compact(["group", "onlySelected", filterRows ? "disableFilterRows" : undefined])}
             />
-        </div>
-    ), [api, onUpdateSelection, selected, classes.orgUnitSelect]);
-
-    const MetadataMapper = useMemo(() => (
-        <MetadataTable
-            models={[model]}
-            remoteInstance={instance}
-            notifyNewSelection={onUpdateSelection}
-            selectedIds={selected ? [selected] : undefined}
-            hideSelectAll={true}
-            filterRows={filterRows}
-            initialShowOnlySelected={!!selected}
-            viewFilters={_.compact(["group", "onlySelected", filterRows ? "disableFilterRows" : undefined])}
-        />
-    ), [model, instance, onUpdateSelection, selected, filterRows]);
+        ),
+        [model, instance, onUpdateSelection, selected, filterRows]
+    );
 
     const MapperComponent = useMemo(() => {
         return model.getCollectionName() === "organisationUnits" ? OrgUnitMapper : MetadataMapper;

@@ -168,7 +168,14 @@ export abstract class GenericMappingUseCase {
 
         const defaultValues = await this.repositoryFactory.metadataRepository(instance).getDefaultIds();
 
-        return _.union(categoryOptions, categoryOptionCombos, attributeOptionCombos, options, programStages, programStageDataElements)
+        return _.union(
+            categoryOptions,
+            categoryOptionCombos,
+            attributeOptionCombos,
+            options,
+            programStages,
+            programStageDataElements
+        )
             .map(({ id }) => id)
             .concat(...defaultValues)
             .map(cleanNestedMappedId);

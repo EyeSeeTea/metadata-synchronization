@@ -321,7 +321,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         programType,
         domainType,
         childrenPropInList,
-        categoryComboDataDimensionType
+        categoryComboDataDimensionType,
     }: Partial<ListMetadataParams>) {
         const filter: Dictionary<FilterValue> = {};
 
