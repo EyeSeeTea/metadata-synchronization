@@ -11,7 +11,7 @@ export const DEFAULT_USER_SETTINGS: UserSettingsProps = {
 
 const inclusionModes = ["includeObjectsAndReferences", "includeOnlyReferences", "removeObjectsAndReferences"] as const;
 
-type InclusionMode = typeof inclusionModes[number];
+export type InclusionMode = typeof inclusionModes[number];
 
 export type UserSettingsProps = {
     inclusionConfig: {
@@ -27,5 +27,9 @@ export class UserSettings extends Struct<UserSettingsProps>() {
         value: UserSettings["inclusionConfig"][K]
     ): UserSettings {
         return this._update({ inclusionConfig: { ...this.inclusionConfig, [key]: value } });
+    }
+
+    static default(): UserSettings {
+        return UserSettings.create(DEFAULT_USER_SETTINGS);
     }
 }

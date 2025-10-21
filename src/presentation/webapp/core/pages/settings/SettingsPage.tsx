@@ -89,32 +89,30 @@ export const SettingsPage: React.FC = () => {
                     onChange={onChangeRetentionDays}
                 />
 
-                {userSettings && (
-                    <FormGroup className={classes.content}>
-                        <h4 className={classes.subsection}>{i18n.t("Metadata Sync User Settings")}</h4>
+                <FormGroup className={classes.content}>
+                    <h4 className={classes.subsection}>{i18n.t("Metadata Sync User Settings")}</h4>
 
-                        <InclusionFields
-                            sharingSettings={{
-                                value: userSettings.inclusionConfig.sharing,
-                                options: inclusionOptions,
-                                onValueChange: value => updateUserSettingsInclusionConfig("sharing", value),
-                                label: i18n.t("Default owner and sharing settings inclusion method"),
-                            }}
-                            users={{
-                                value: userSettings.inclusionConfig.users,
-                                options: inclusionOptions,
-                                onValueChange: value => updateUserSettingsInclusionConfig("users", value),
-                                label: i18n.t("Default users inclusion method"),
-                            }}
-                            orgUnits={{
-                                value: userSettings.inclusionConfig.organisationUnit,
-                                options: inclusionOptions,
-                                onValueChange: value => updateUserSettingsInclusionConfig("organisationUnit", value),
-                                label: i18n.t("Default organisation units inclusion method"),
-                            }}
-                        />
-                    </FormGroup>
-                )}
+                    <InclusionFields
+                        sharingSettings={{
+                            value: userSettings.inclusionConfig.sharing,
+                            options: inclusionOptions,
+                            onValueChange: value => updateUserSettingsInclusionConfig("sharing", value),
+                            label: i18n.t("Default owner and sharing settings inclusion method"),
+                        }}
+                        users={{
+                            value: userSettings.inclusionConfig.users,
+                            options: inclusionOptions,
+                            onValueChange: value => updateUserSettingsInclusionConfig("users", value),
+                            label: i18n.t("Default users inclusion method"),
+                        }}
+                        orgUnits={{
+                            value: userSettings.inclusionConfig.organisationUnit,
+                            options: inclusionOptions,
+                            onValueChange: value => updateUserSettingsInclusionConfig("organisationUnit", value),
+                            label: i18n.t("Default organisation units inclusion method"),
+                        }}
+                    />
+                </FormGroup>
 
                 <ButtonsContainer>
                     <Button key={"cancel"} autoFocus onClick={onCancel}>

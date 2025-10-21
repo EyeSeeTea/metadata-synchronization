@@ -9,7 +9,7 @@ export function useUserSettings() {
     const { newCompositionRoot } = useAppContext();
     const snackbar = useSnackbar();
 
-    const [userSettings, setUserSettings] = React.useState<UserSettings>();
+    const [userSettings, setUserSettings] = React.useState<UserSettings>(UserSettings.default());
 
     const updateUserSettingsInclusionConfig = useCallback(
         <K extends keyof UserSettings["inclusionConfig"]>(key: K, value: UserSettings["inclusionConfig"][K]) => {
