@@ -8,7 +8,6 @@ import { SyncWizardStepProps } from "../Steps";
 import { styled } from "styled-components";
 import { useMetadataIncludeExcludeStep } from "./useMetadataIncludeExcludeStep";
 import { InclusionFields } from "./InclusionFields";
-import { useUserSettings } from "../../../../../webapp/core/pages/settings/useUserSettings";
 
 const useStyles = makeStyles({
     includeExcludeContainer: {
