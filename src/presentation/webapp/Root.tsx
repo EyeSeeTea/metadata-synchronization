@@ -27,6 +27,7 @@ import { MSFHistoryPage } from "./msf-aggregate-data/pages/MSFHistoryPage";
 import { MSFHomePage } from "./msf-aggregate-data/pages/MSFHomePage";
 import { AboutPage } from "./core/pages/about/AboutPage";
 import { About } from "../react/core/components/about/About";
+import { WmrPage } from "./wmr/WmrPage";
 
 const Root: React.FC = () => {
     const { api, compositionRoot } = useAppContext();
@@ -129,6 +130,14 @@ const VariantRoutes: React.FC<{ variant: AppVariant }> = ({ variant }) => {
                     />
 
                     <Redirect to="/efh" />
+                </Switch>
+            );
+        case "wmr":
+            return (
+                <Switch>
+                    <RouteWithSession path="/wmr" exact render={() => <WmrPage />} />
+
+                    <Redirect to="/wmr" />
                 </Switch>
             );
         default:

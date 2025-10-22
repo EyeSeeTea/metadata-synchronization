@@ -47,6 +47,12 @@ const variants = [
         title: "Emergency Responses Sync",
         file: "emergency-responses-sync",
     },
+    {
+        type: "app",
+        name: "wmr",
+        title: "WMR Data Submission",
+        file: "wmr-data-submission",
+    },
 ] as const;
 
 function setVariantToEnv(variant: typeof variants[number]) {
