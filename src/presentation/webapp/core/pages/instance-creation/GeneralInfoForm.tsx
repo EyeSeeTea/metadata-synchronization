@@ -14,9 +14,11 @@ export interface GeneralInfoFormProps {
     instance: Instance;
     onChange: (instance: Instance) => void;
     cancelAction: () => void;
+    onSaved?: (instance: Instance) => void;
+    showMetadataMapping?: boolean;
 }
 
-const GeneralInfoForm = ({ instance, onChange, cancelAction }: GeneralInfoFormProps) => {
+const GeneralInfoForm = ({ instance, onChange, cancelAction, onSaved, showMetadataMapping }: GeneralInfoFormProps) => {
     const { compositionRoot } = useAppContext();
     const classes = useStyles();
     const history = useHistory();
@@ -78,12 +80,12 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction }: GeneralInfoFormPr
         const validationErrors = await compositionRoot.instances.save(instance);
         setIsSaving(false);
 
-        if (validationErrors.length === 0) {
-            history.push("/instances");
+        if (validationErrors.length === 0 && onSaved) {
+            onSaved(instance);
         } else {
             snackbar.error(validationErrors.map(({ description }) => description).join("\n"));
         }
-    }, [compositionRoot, errors, history, instance, snackbar]);
+    }, [compositionRoot, errors, instance, snackbar, onSaved]);
 
     return (
         <Card>
@@ -143,7 +145,7 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction }: GeneralInfoFormPr
                         </Button>
                     </div>
                     <div className={classes.actionButtonsContainer}>
-                        {instance.id && (
+                        {instance.id && showMetadataMapping && (
                             <Button
                                 variant="contained"
                                 onClick={goToMetadataMapping}

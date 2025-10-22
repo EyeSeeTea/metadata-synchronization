@@ -48,6 +48,7 @@ const APP_VARIANTS = [
     "module-package-app",
     "msf-aggregate-data-app",
     "sp-emergency-responses",
+    "wmr",
 ] as const;
 
 export type AppVariant = typeof APP_VARIANTS[number];

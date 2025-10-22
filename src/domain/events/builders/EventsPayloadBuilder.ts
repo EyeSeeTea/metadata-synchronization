@@ -87,7 +87,7 @@ export class EventsPayloadBuilder {
             ? await aggregatedRepository.getAnalytics({
                   dataParams,
                   dimensionIds: [...directIndicators, ...indicatorsByProgram, ...dataElementsByProgram],
-                  includeCategories: false,
+                  includeCategories: true,
               })
             : {};
 
