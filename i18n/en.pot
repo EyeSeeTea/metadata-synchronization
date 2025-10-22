@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-10-20T15:07:45.736Z\n"
-"PO-Revision-Date: 2025-10-20T15:07:45.736Z\n"
+"POT-Creation-Date: 2025-10-21T06:49:24.192Z\n"
+"PO-Revision-Date: 2025-10-21T06:49:24.192Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -479,6 +479,9 @@ msgid "Category Options"
 msgstr ""
 
 msgid "Category Option Combos"
+msgstr ""
+
+msgid "Attribute Option Combos"
 msgstr ""
 
 msgid "Options"

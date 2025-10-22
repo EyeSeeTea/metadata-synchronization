@@ -3,7 +3,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import { makeStyles } from "@material-ui/styles";
 import { ConfirmationDialog, OrgUnitsSelector } from "@eyeseetea/d2-ui-components";
 import _ from "lodash";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { DataSource, isDhisInstance } from "../../../../../domain/instance/entities/DataSource";
 import { MetadataMappingDictionary } from "../../../../../domain/mapping/entities/MetadataMapping";
 import i18n from "../../../../../utils/i18n";
@@ -53,20 +53,27 @@ const MappingDialog: React.FC<MappingDialogProps> = ({
         throw new Error("Attempting to open mapping dialog without a valid mapping type");
     }
 
-    const mappedId =
-        elements.length === 1
+    const mappedId = useMemo(() => {
+        return elements.length === 1
             ? _.last(
                   _(mapping)
                       .get([mappingType, elements[0] ?? "", "mappedId"])
                       ?.split("-")
               )
             : undefined;
-    const defaultSelection = mappedId !== "DISABLED" ? mappedId : undefined;
+    }, [elements, mapping, mappingType]);
+
+    const defaultSelection = useMemo(() => {
+        return mappedId !== "DISABLED" ? mappedId : undefined;
+    }, [mappedId]);
+
     const [selected, updateSelected] = useState<string | undefined>(defaultSelection);
 
-    const model = modelFactory(mappingType);
-    const modelName = model.getModelName();
-    const api = isDhisInstance(instance) ? compositionRoot.instances.getApi(instance) : defaultApi;
+    const model = useMemo(() => modelFactory(mappingType), [mappingType]);
+    const modelName = useMemo(() => model.getModelName(), [model]);
+    const api = useMemo(() => {
+        return isDhisInstance(instance) ? compositionRoot.instances.getApi(instance) : defaultApi;
+    }, [instance, compositionRoot, defaultApi]);
 
     useEffect(() => {
         let mounted = true;
@@ -126,50 +133,64 @@ const MappingDialog: React.FC<MappingDialogProps> = ({
                 setFilterRows(buildFilterForProgram(validIds, mappedProgramId));
             });
         }
-    }, [compositionRoot, instance, api, mappingPath, elements, mapping, mappingType]);
+    }, [compositionRoot, instance, mappingPath, elements, mapping, mappingType]);
 
-    const onUpdateSelection = (selectedIds: string[]) => {
-        const newSelection = _.last(selectedIds);
-        onUpdateMapping(elements, newSelection);
-        updateSelected(newSelection);
-    };
+    const onUpdateSelection = useCallback(
+        (selectedIds: string[]) => {
+            const newSelection = _.last(selectedIds);
+            onUpdateMapping(elements, newSelection);
+            updateSelected(newSelection);
+        },
+        [elements, onUpdateMapping]
+    );
 
-    const OrgUnitMapper = (
-        <div className={classes.orgUnitSelect}>
-            <OrgUnitsSelector
-                api={api}
-                onChange={onUpdateSelection}
-                selected={selected ? [selected] : []}
-                withElevation={false}
-                hideMemberCount={true}
-                controls={{}}
-                fullWidth={true}
-                initiallyExpanded={selected ? [selected] : undefined}
+    const OrgUnitMapper = useMemo(
+        () => (
+            <div className={classes.orgUnitSelect}>
+                <OrgUnitsSelector
+                    api={api}
+                    onChange={onUpdateSelection}
+                    selected={selected ? [selected] : []}
+                    withElevation={false}
+                    hideMemberCount={true}
+                    controls={{}}
+                    fullWidth={true}
+                    initiallyExpanded={selected ? [selected] : undefined}
+                />
+            </div>
+        ),
+        [api, onUpdateSelection, selected, classes.orgUnitSelect]
+    );
+
+    const MetadataMapper = useMemo(() => {
+        const metadataTableFilterRows = _(filterRows)
+            .concat(filterIds || [])
+            .compact()
+            .value();
+        return (
+            <MetadataTable
+                models={[model]}
+                remoteInstance={instance}
+                notifyNewSelection={onUpdateSelection}
+                selectedIds={selected ? [selected] : undefined}
+                hideSelectAll={true}
+                filterRows={metadataTableFilterRows}
+                initialShowOnlySelected={!!selected}
+                viewFilters={_.compact([
+                    "group",
+                    "onlySelected",
+                    metadataTableFilterRows ? "disableFilterRows" : undefined,
+                ])}
             />
-        </div>
-    );
+        );
+    }, [model, instance, onUpdateSelection, selected, filterRows, filterIds]);
 
-    const metadataTableFilterRows = _(filterRows)
-        .concat(filterIds || [])
-        .compact()
-        .value();
+    const MapperComponent = useMemo(() => {
+        return model.getCollectionName() === "organisationUnits" ? OrgUnitMapper : MetadataMapper;
+    }, [model, OrgUnitMapper, MetadataMapper]);
 
-    const MetadataMapper = (
-        <MetadataTable
-            models={[model]}
-            remoteInstance={instance}
-            notifyNewSelection={onUpdateSelection}
-            selectedIds={selected ? [selected] : undefined}
-            hideSelectAll={true}
-            filterRows={metadataTableFilterRows}
-            initialShowOnlySelected={!!selected}
-            viewFilters={_.compact(["group", "onlySelected", filterRows ? "disableFilterRows" : undefined])}
-        />
-    );
-
-    const MapperComponent = model.getCollectionName() === "organisationUnits" ? OrgUnitMapper : MetadataMapper;
-    const title =
-        elements.length > 1 || !firstElement
+    const title = useMemo(() => {
+        return elements.length > 1 || !firstElement
             ? i18n.t("Select {{type}} from destination instance {{instance}} to map {{total}} elements", {
                   type: modelName,
                   instance: instance.name,
@@ -181,6 +202,7 @@ const MappingDialog: React.FC<MappingDialogProps> = ({
                   name: firstElement.name,
                   id: firstElement.id,
               });
+    }, [elements.length, firstElement, modelName, instance.name]);
 
     return (
         <ConfirmationDialog
