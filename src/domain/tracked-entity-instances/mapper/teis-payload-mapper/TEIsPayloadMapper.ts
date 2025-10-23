@@ -26,20 +26,6 @@ export class TEIsPayloadMapper implements PayloadMapper {
             } = this.mapping;
 
             const mappedOrgUnit = organisationUnits[tei.orgUnit]?.mappedId ?? tei.orgUnit;
-            const mappedAttributes = tei.attributes.map(att => {
-                const mappedAttributeId = trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
-
-                const mappedValue = mapOptionValue(att.value, [
-                    trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
-                    this.mapping,
-                ]);
-
-                return {
-                    ...att,
-                    attribute: mappedAttributeId,
-                    value: mappedValue,
-                };
-            });
 
             return {
                 ...tei,
@@ -61,7 +47,21 @@ export class TEIsPayloadMapper implements PayloadMapper {
 
                     return {
                         ...enrollment,
-                        attributes: mappedAttributes,
+                        attributes: enrollment.attributes.map(att => {
+                            const mappedAttributeId =
+                                trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
+
+                            const mappedValue = mapOptionValue(att.value, [
+                                trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
+                                this.mapping,
+                            ]);
+
+                            return {
+                                ...att,
+                                attribute: mappedAttributeId,
+                                value: mappedValue,
+                            };
+                        }),
                         orgUnit: cleanOrgUnitPath(mappedOrgUnit),
                         program: mappedProgram,
                     };
@@ -74,7 +74,20 @@ export class TEIsPayloadMapper implements PayloadMapper {
                         relationshipType: mappedRelTypeId,
                     };
                 }),
-                attributes: mappedAttributes,
+                attributes: tei.attributes.map(att => {
+                    const mappedAttributeId = trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
+
+                    const mappedValue = mapOptionValue(att.value, [
+                        trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
+                        this.mapping,
+                    ]);
+
+                    return {
+                        ...att,
+                        attribute: mappedAttributeId,
+                        value: mappedValue,
+                    };
+                }),
             };
         });
 
