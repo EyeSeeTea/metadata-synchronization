@@ -49,6 +49,7 @@ export class SynchronizationRule {
             "userGroupAccesses",
             "type",
             "ondemand",
+            "useAggregatedDataExchange",
         ]);
 
         if (!this.syncRule.id) this.syncRule.id = generateUid();
@@ -266,6 +267,10 @@ export class SynchronizationRule {
         return this.syncRule.ondemand ?? false;
     }
 
+    public get useAggregatedDataExchange(): boolean {
+        return this.syncRule.useAggregatedDataExchange ?? false;
+    }
+
     public get teisSyncPeriodField(): TeisSyncPeriodField {
         return this.syncRule.builder?.dataParams?.teisSyncPeriodField ?? "ENROLLMENT_DATE";
     }
@@ -302,6 +307,7 @@ export class SynchronizationRule {
             },
             userAccesses: [],
             userGroupAccesses: [],
+            useAggregatedDataExchange: false,
         });
     }
 
@@ -857,7 +863,7 @@ export class SynchronizationRule {
             ]),
             metadataIncludeExclude: [],
             targetInstances: _.compact([
-                this.originInstance === "LOCAL" && isEmpty(this.targetInstances)
+                this.originInstance === "LOCAL" && isEmpty(this.targetInstances) && !this.useAggregatedDataExchange
                     ? {
                           key: "cannot_be_empty",
                           namespace: { element: "instance" },
@@ -902,5 +908,6 @@ export interface SynchronizationRuleData extends SharedRef {
     lastSuccessfulSync?: Date;
     frequency?: string;
     type: SynchronizationType;
+    useAggregatedDataExchange?: boolean;
     ondemand?: boolean;
 }

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-10-08T05:22:55.651Z\n"
-"PO-Revision-Date: 2025-10-08T05:22:55.651Z\n"
+"POT-Creation-Date: 2025-10-23T04:50:37.766Z\n"
+"PO-Revision-Date: 2025-10-23T04:50:37.766Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1247,6 +1247,15 @@ msgid ""
 "aggregation is enabled."
 msgstr ""
 
+msgid "Default"
+msgstr ""
+
+msgid "Aggregated data exchange "
+msgstr ""
+
+msgid "Type of synchronization"
+msgstr ""
+
 msgid "Source instance"
 msgstr ""
 
@@ -1316,6 +1325,9 @@ msgid "Download JSON"
 msgstr ""
 
 msgid "Invalid origin instance"
+msgstr ""
+
+msgid "Aggregated data exchange"
 msgstr ""
 
 msgid "Target instances [{{total}}]"
@@ -2038,9 +2050,6 @@ msgid "Repository"
 msgstr ""
 
 msgid "Token"
-msgstr ""
-
-msgid "Default"
 msgstr ""
 
 msgid "Set as default"
