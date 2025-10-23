@@ -62,13 +62,15 @@ export class AggregatedPayloadMapper implements PayloadMapper {
                 categoryOptionCombo,
                 [innerMapping, globalMapping],
                 originCategoryOptionCombos,
-                destinationCategoryOptionCombos
+                destinationCategoryOptionCombos,
+                false
             ) ?? categoryOptionCombo;
         const mappedAttribute = mapCategoryOptionCombo(
             attributeOptionCombo,
             [innerMapping, globalMapping],
             originCategoryOptionCombos,
-            destinationCategoryOptionCombos
+            destinationCategoryOptionCombos,
+            true
         );
 
         return {

@@ -47,3 +47,6 @@ cypress/fixtures/
 
 # Configuration
 /**/app-config.json
+
+# Variant-specific assets (copied to public/ during build/dev)
+/public/wmr

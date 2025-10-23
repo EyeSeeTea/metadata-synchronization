@@ -27,6 +27,11 @@ export default defineConfig(({ mode }) => {
         define: {
             // Preserve process.env access for compatibility
             "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV || mode),
+            // preserve process.env.VITE_ variables for backwards compatibility with CJS
+            "process.env.VITE_PRESENTATION_VARIANT": JSON.stringify(env.VITE_PRESENTATION_VARIANT),
+            "process.env.VITE_PRESENTATION_TITLE": JSON.stringify(env.VITE_PRESENTATION_TITLE),
+            "process.env.VITE_PRESENTATION_TYPE": JSON.stringify(env.VITE_PRESENTATION_TYPE),
+            "process.env.VITE_CYPRESS": JSON.stringify(env.VITE_CYPRESS),
             // Polyfill Node.js globals
             __dirname: JSON.stringify("/"),
             __filename: JSON.stringify("/index.js"),
