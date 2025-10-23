@@ -135,13 +135,48 @@ function setupMockEndpoints(local: Server, remote: Server) {
         instances: [],
     }));
 
-    remote.get("/metadata", async () => ({
-        categoryOptions: [{ id: "default5" }],
-        categories: [{ id: "default6" }],
-        categoryCombos: [{ id: "default7" }],
-        categoryOptionCombos: [{ id: "default8" }],
-        dataElements: [{ id: "id2", name: "Test data element 2" }],
-    }));
+    remote.get("/metadata", async (_schema, request) => {
+        if (request.queryParams.filter === "id:in:[program1]") {
+            return {
+                programs: [
+                    {
+                        name: "Test program",
+                        id: "program1",
+                        programStages: [
+                            {
+                                programStageDataElements: [
+                                    {
+                                        dataElement: {
+                                            name: "Test data element",
+                                            id: "id1",
+                                            displayFormName: "Test data element",
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                        programIndicators: [],
+                        programType: "WITH_REGISTRATION",
+                        programTrackedEntityAttributes: [
+                            {
+                                trackedEntityAttribute: {
+                                    id: "attribute1",
+                                },
+                            },
+                        ],
+                    },
+                ],
+            };
+        } else {
+            return {
+                categoryOptions: [{ id: "default5" }],
+                categories: [{ id: "default6" }],
+                categoryCombos: [{ id: "default7" }],
+                categoryOptionCombos: [{ id: "default8" }],
+                dataElements: [{ id: "id2", name: "Test data element 2" }],
+            };
+        }
+    });
 
     local.get("/dataStore/metadata-synchronization/instances", async () => [
         {
