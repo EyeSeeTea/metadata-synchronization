@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-10-23T04:44:00.795Z\n"
+"POT-Creation-Date: 2025-10-23T09:13:14.460Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1164,6 +1164,9 @@ msgstr ""
 msgid "Instance Selection"
 msgstr ""
 
+msgid "Aggregated Data Exchange Target"
+msgstr ""
+
 msgid "Scheduling"
 msgstr ""
 
@@ -1784,9 +1787,6 @@ msgstr ""
 msgid "Password (*)"
 msgstr ""
 
-msgid "Metadata mapping"
-msgstr ""
-
 msgid "New Instance"
 msgstr ""
 
@@ -1800,6 +1800,9 @@ msgid "Cancel Instance Editing"
 msgstr ""
 
 msgid "All your changes will be lost. Are you sure?"
+msgstr ""
+
+msgid "Metadata mapping"
 msgstr ""
 
 msgid "Saving..."
@@ -2360,6 +2363,9 @@ msgid "To enable a rule you need to enter a valid {{expression}}"
 msgstr ""
 
 msgid "Start and end dates are not a valid period"
+msgstr ""
+
+msgid "The Aggregated Data Exchange Target is not valid"
 msgstr ""
 
 msgid "All time"
