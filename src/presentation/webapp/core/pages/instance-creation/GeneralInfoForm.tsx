@@ -1,21 +1,19 @@
+import { useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Button, Card, CardContent, TextField } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import { useSnackbar } from "@eyeseetea/d2-ui-components";
 import _, { Dictionary } from "lodash";
 import React, { useCallback, useState } from "react";
-import { useHistory } from "react-router-dom";
 import { ValidationError } from "../../../../../domain/common/entities/Validations";
 import { Instance } from "../../../../../domain/instance/entities/Instance";
 import i18n from "../../../../../utils/i18n";
-import { useAppContext } from "../../../../react/core/contexts/AppContext";
-import SaveButton from "./SaveButton";
 import { Dropdown } from "../../../../react/core/components/dropdown/Dropdown";
+import { useAppContext } from "../../../../react/core/contexts/AppContext";
 
 export interface GeneralInfoFormProps {
     instance: Instance;
     onChange: (instance: Instance) => void;
-    cancelAction: () => void;
     testConnectionVisible: boolean;
+    mode: "basic" | "normal";
 }
 
 const authTypeItems = [
@@ -23,25 +21,23 @@ const authTypeItems = [
     { id: "api-token", name: i18n.t("API Token") },
 ];
 
-const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisible }: GeneralInfoFormProps) => {
-    const { compositionRoot } = useAppContext();
+const GeneralInfoForm = ({ instance, onChange, testConnectionVisible, mode }: GeneralInfoFormProps) => {
     const classes = useStyles();
-    const history = useHistory();
-    const snackbar = useSnackbar();
-
-    const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [didPasswordChange, setPasswordChange] = useState<boolean>(false);
     const [errors, setErrors] = useState<Dictionary<ValidationError>>({});
+    const snackbar = useSnackbar();
+    const { compositionRoot } = useAppContext();
+
+    const [didPasswordChange, setPasswordChange] = useState<boolean>(false);
 
     const updateModel = useCallback(
         (field: keyof Instance, value: string) => {
             const newInstance = instance.update({ [field]: value });
-            const errors = _.keyBy(newInstance.validate([field]), "property");
+            const errors = _.keyBy(newInstance.validate([field], mode === "basic"), "property");
 
             setErrors(errors);
             onChange(newInstance);
         },
-        [instance, onChange]
+        [instance, mode, onChange]
     );
 
     const onChangeField = useCallback(
@@ -71,48 +67,31 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisib
         });
     }, [compositionRoot, errors, instance, snackbar]);
 
-    const goToMetadataMapping = useCallback(() => {
-        history.push(`/instances/mapping/${instance.id}`);
-    }, [history, instance]);
-
-    const saveAction = useCallback(async () => {
-        if (_.keys(errors).length > 0) {
-            snackbar.error(i18n.t("Please fix the issues before testing the connection"));
-            return;
-        }
-
-        setIsSaving(true);
-        const validationErrors = await compositionRoot.instances.save(instance);
-        setIsSaving(false);
-
-        if (validationErrors.length === 0) {
-            history.push("/instances");
-        } else {
-            snackbar.error(validationErrors.map(({ description }) => description).join("\n"));
-        }
-    }, [compositionRoot, errors, history, instance, snackbar]);
-
     return (
         <Card>
             <CardContent className={classes.formContainer}>
-                <TextField
-                    className={classes.row}
-                    fullWidth={true}
-                    label={i18n.t("Server name (*)")}
-                    value={instance.name ?? ""}
-                    onChange={onChangeField("name")}
-                    error={!!errors["name"]}
-                    helperText={errors["name"]?.description}
-                />
-                <TextField
-                    className={classes.row}
-                    fullWidth={true}
-                    label={i18n.t("Description")}
-                    value={instance.description ?? ""}
-                    onChange={onChangeField("description")}
-                    error={!!errors["description"]}
-                    helperText={errors["description"]?.description}
-                />
+                {mode === "normal" && (
+                    <TextField
+                        className={classes.row}
+                        fullWidth={true}
+                        label={i18n.t("Server name (*)")}
+                        value={instance.name ?? ""}
+                        onChange={onChangeField("name")}
+                        error={!!errors["name"]}
+                        helperText={errors["name"]?.description}
+                    />
+                )}
+                {mode === "normal" && (
+                    <TextField
+                        className={classes.row}
+                        fullWidth={true}
+                        label={i18n.t("Description")}
+                        value={instance.description ?? ""}
+                        onChange={onChangeField("description")}
+                        error={!!errors["description"]}
+                        helperText={errors["description"]?.description}
+                    />
+                )}
                 <TextField
                     className={classes.row}
                     fullWidth={true}
@@ -168,31 +147,12 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisib
                         />
                     </>
                 )}
-
-                <div className={classes.buttonContainer}>
-                    <div>
-                        <SaveButton onClick={saveAction} isSaving={isSaving} data-test={"save-button"} />
-                        <Button variant="contained" onClick={cancelAction} data-test={"cancel-button"}>
-                            {i18n.t("Cancel")}
+                <div className={classes.actionButtonsContainer}>
+                    {testConnectionVisible && (
+                        <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
+                            {i18n.t("Test Connection")}
                         </Button>
-                    </div>
-                    <div className={classes.actionButtonsContainer}>
-                        {instance.id && (
-                            <Button
-                                variant="contained"
-                                onClick={goToMetadataMapping}
-                                data-test={"metadata-mapping-button"}
-                                className={classes.metadataMappingButton}
-                            >
-                                {i18n.t("Metadata mapping")}
-                            </Button>
-                        )}
-                        {testConnectionVisible && (
-                            <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
-                                {i18n.t("Test Connection")}
-                            </Button>
-                        )}
-                    </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
@@ -206,24 +166,16 @@ const useStyles = makeStyles(() => ({
         paddingLeft: 70,
         paddingBottom: 30,
     },
-    buttonContainer: {
-        display: "flex",
-        justifyContent: "space-between",
-        paddingTop: 30,
-    },
-    actionButtonsContainer: {
-        marginTop: 10,
-    },
-    metadataMappingButton: {
-        margin: 16,
-    },
     row: {
         marginBottom: 25,
     },
     dropdown: {
         marginTop: 15,
-        marginLeft: -10,
+        marginLeft: 0,
         marginBottom: 20,
+    },
+    actionButtonsContainer: {
+        marginTop: 10,
     },
 }));
 
