@@ -7,7 +7,7 @@ import { useAppContext } from "../../../../react/core/contexts/AppContext";
 import PageHeader from "../../../../react/core/components/page-header/PageHeader";
 import { TestWrapper } from "../../../../react/core/components/test-wrapper/TestWrapper";
 import GeneralInfoForm from "./GeneralInfoForm";
-import { Button, makeStyles } from "@material-ui/core";
+import { Button, Card, CardContent, makeStyles } from "@material-ui/core";
 import _ from "lodash";
 import SaveButton from "./SaveButton";
 import { ValidationError } from "../../../../../domain/common/entities/Validations";
@@ -102,34 +102,36 @@ const InstanceCreationPage = () => {
             <PageHeader title={title} onBackClick={cancelSave} />
 
             {instance.type === "dhis" && (
-                <>
-                    <GeneralInfoForm
-                        instance={instance}
-                        onChange={onChange}
-                        testConnectionVisible={isEdit}
-                        mode={"normal"}
-                    />
-                    <div className={classes.buttonContainer}>
-                        <div>
-                            <SaveButton onClick={saveAction} isSaving={isSaving} data-test={"save-button"} />
-                            <Button variant="contained" onClick={cancelSave} data-test={"cancel-button"}>
-                                {i18n.t("Cancel")}
-                            </Button>
-                        </div>
-                        <div className={classes.actionButtonsContainer}>
-                            {instance.id && (
-                                <Button
-                                    variant="contained"
-                                    onClick={goToMetadataMapping}
-                                    data-test={"metadata-mapping-button"}
-                                    className={classes.metadataMappingButton}
-                                >
-                                    {i18n.t("Metadata mapping")}
+                <Card>
+                    <CardContent className={classes.formContainer}>
+                        <GeneralInfoForm
+                            instance={instance}
+                            onChange={onChange}
+                            testConnectionVisible={isEdit}
+                            mode={"normal"}
+                        />
+                        <div className={classes.buttonContainer}>
+                            <div>
+                                <SaveButton onClick={saveAction} isSaving={isSaving} data-test={"save-button"} />
+                                <Button variant="contained" onClick={cancelSave} data-test={"cancel-button"}>
+                                    {i18n.t("Cancel")}
                                 </Button>
-                            )}
+                            </div>
+                            <div className={classes.actionButtonsContainer}>
+                                {instance.id && (
+                                    <Button
+                                        variant="contained"
+                                        onClick={goToMetadataMapping}
+                                        data-test={"metadata-mapping-button"}
+                                        className={classes.metadataMappingButton}
+                                    >
+                                        {i18n.t("Metadata mapping")}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </>
+                    </CardContent>
+                </Card>
             )}
         </TestWrapper>
     );
@@ -138,6 +140,12 @@ const InstanceCreationPage = () => {
 export default InstanceCreationPage;
 
 const useStyles = makeStyles(() => ({
+    formContainer: {
+        marginTop: 30,
+        paddingRight: 70,
+        paddingLeft: 70,
+        paddingBottom: 30,
+    },
     buttonContainer: {
         display: "flex",
         justifyContent: "space-between",
