@@ -43,6 +43,7 @@ const commonSteps: {
         component: InstanceSelectionStep,
         validationKeys: ["targetInstances"],
         showOnSyncDialog: true,
+        hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
     },
     scheduler: {
         key: "scheduler",
@@ -187,6 +188,7 @@ export const eventsSteps: SyncWizardStep[] = [
         component: TEIsSelectionStep,
         validationKeys: [""],
         showOnSyncDialog: true,
+        hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
     },
     {
         key: "events",
@@ -194,6 +196,7 @@ export const eventsSteps: SyncWizardStep[] = [
         component: EventsSelectionStep,
         validationKeys: ["dataSyncEventsOrTeis"],
         showOnSyncDialog: true,
+        hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
     },
     {
         ...commonSteps.aggregation,
