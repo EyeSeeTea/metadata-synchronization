@@ -26,6 +26,22 @@ export class TEIsPayloadMapper implements PayloadMapper {
             } = this.mapping;
 
             const mappedOrgUnit = organisationUnits[tei.orgUnit]?.mappedId ?? tei.orgUnit;
+            const mapAttributes = <T extends TrakedEntityAttribute | EnrollmentAttribute>(attributes: T[]): T[] => {
+                return attributes.map(att => {
+                    const mappedAttributeId = trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
+
+                    const mappedValue = mapOptionValue(att.value, [
+                        trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
+                        this.mapping,
+                    ]);
+
+                    return {
+                        ...att,
+                        attribute: mappedAttributeId,
+                        value: mappedValue,
+                    };
+                });
+            };
 
             return {
                 ...tei,
@@ -47,21 +63,7 @@ export class TEIsPayloadMapper implements PayloadMapper {
 
                     return {
                         ...enrollment,
-                        attributes: enrollment.attributes.map(att => {
-                            const mappedAttributeId =
-                                trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
-
-                            const mappedValue = mapOptionValue(att.value, [
-                                trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
-                                this.mapping,
-                            ]);
-
-                            return {
-                                ...att,
-                                attribute: mappedAttributeId,
-                                value: mappedValue,
-                            };
-                        }),
+                        attributes: mapAttributes(enrollment.attributes),
                         orgUnit: cleanOrgUnitPath(mappedOrgUnit),
                         program: mappedProgram,
                     };
@@ -74,20 +76,7 @@ export class TEIsPayloadMapper implements PayloadMapper {
                         relationshipType: mappedRelTypeId,
                     };
                 }),
-                attributes: tei.attributes.map(att => {
-                    const mappedAttributeId = trackedEntityAttributesToTEI[att.attribute]?.mappedId ?? att.attribute;
-
-                    const mappedValue = mapOptionValue(att.value, [
-                        trackedEntityAttributesToTEI[att.attribute]?.mapping ?? {},
-                        this.mapping,
-                    ]);
-
-                    return {
-                        ...att,
-                        attribute: mappedAttributeId,
-                        value: mappedValue,
-                    };
-                }),
+                attributes: mapAttributes(tei.attributes),
             };
         });
 
