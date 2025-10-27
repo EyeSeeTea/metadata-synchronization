@@ -126,8 +126,8 @@ export class Instance extends ShareableEntity<InstanceData> {
         return _(this.data).omit(["password"]).cloneDeep();
     }
 
-    public validate(filter?: string[]): ValidationError[] {
-        const validations = this.type === "local" ? this.localInstanceValidations() : this.moduleValidations();
+    public validate(filter?: string[], basic: boolean = true): ValidationError[] {
+        const validations = this.type === "local" ? this.localInstanceValidations() : this.moduleValidations(basic);
 
         return validateModel<Instance>(this, validations).filter(({ property }) => filter?.includes(property) ?? true);
     }
@@ -179,12 +179,12 @@ export class Instance extends ShareableEntity<InstanceData> {
         });
     }
 
-    private moduleValidations = (): ModelValidation[] => {
+    private moduleValidations = (basic: boolean): ModelValidation[] => {
         const baseValidations: ModelValidation[] = [
-            { property: "name", validation: "hasText" },
+            basic ? undefined : { property: "name", validation: "hasText" },
             { property: "url", validation: "isUrl" },
             { property: "url", validation: "hasText" },
-        ];
+        ].filter((v): v is ModelValidation => v !== undefined);
 
         const authValidationsByType = {
             "api-token": [{ property: "token", validation: "hasText" }],

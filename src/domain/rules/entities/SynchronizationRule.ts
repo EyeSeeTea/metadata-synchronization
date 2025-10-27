@@ -22,6 +22,7 @@ import {
 import { SynchronizationType } from "../../synchronization/entities/SynchronizationType";
 import { TeisSyncPeriodField } from "../../aggregated/entities/TeisSyncPeriodField";
 import { EventsSyncPeriodField } from "../../aggregated/entities/EventsSyncPeriodField";
+import { Instance } from "../../instance/entities/Instance";
 
 export class SynchronizationRule {
     private readonly syncRule: SynchronizationRuleData;
@@ -50,6 +51,8 @@ export class SynchronizationRule {
             "type",
             "ondemand",
             "useAggregatedDataExchange",
+            "aggregatedDataExchangeTarget",
+            "aggregatedDataExchangeId",
         ]);
 
         if (!this.syncRule.id) this.syncRule.id = generateUid();
@@ -271,6 +274,14 @@ export class SynchronizationRule {
         return this.syncRule.useAggregatedDataExchange ?? false;
     }
 
+    public get aggregatedDataExchangeTarget(): Instance | undefined {
+        return this.syncRule.aggregatedDataExchangeTarget;
+    }
+
+    public get aggregatedDataExchangeId(): string | undefined {
+        return this.syncRule.aggregatedDataExchangeId;
+    }
+
     public get teisSyncPeriodField(): TeisSyncPeriodField {
         return this.syncRule.builder?.dataParams?.teisSyncPeriodField ?? "ENROLLMENT_DATE";
     }
@@ -387,6 +398,20 @@ export class SynchronizationRule {
 
     public updateOndemand(ondemand: boolean): SynchronizationRule {
         return this.update({ ondemand });
+    }
+
+    public updateUseAggregatedDataExchange(useAggregatedDataExchange: boolean): SynchronizationRule {
+        return this.update({
+            useAggregatedDataExchange,
+            aggregatedDataExchangeTarget: useAggregatedDataExchange
+                ? Instance.build({ name: "", description: "", url: "" })
+                : undefined,
+            aggregatedDataExchangeId: useAggregatedDataExchange ? generateUid() : undefined,
+        });
+    }
+
+    public updateAggregatedDataExchangeTarget(instance: Instance): SynchronizationRule {
+        return this.update({ aggregatedDataExchangeTarget: instance });
     }
 
     public markToUseDefaultIncludeExclude(): SynchronizationRule {
@@ -886,6 +911,14 @@ export class SynchronizationRule {
                       }
                     : null,
             ]),
+            aggregatedDataExchangeTarget: _.compact([
+                this.useAggregatedDataExchange && (this.aggregatedDataExchangeTarget?.validate() || []).length > 0
+                    ? {
+                          key: "invalid_aggregated_data_exchange_target",
+                          namespace: {},
+                      }
+                    : null,
+            ]),
         });
     }
 
@@ -908,6 +941,8 @@ export interface SynchronizationRuleData extends SharedRef {
     lastSuccessfulSync?: Date;
     frequency?: string;
     type: SynchronizationType;
-    useAggregatedDataExchange?: boolean;
     ondemand?: boolean;
+    useAggregatedDataExchange?: boolean;
+    aggregatedDataExchangeTarget?: Instance;
+    aggregatedDataExchangeId?: string;
 }

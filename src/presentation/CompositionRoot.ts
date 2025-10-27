@@ -584,7 +584,7 @@ export function registerDynamicRepositoriesInFactory(
     repositoryFactory.bindByInstance(Repositories.RulesRepository, (instance: Instance) => {
         const storageClient = repositoryFactory.configRepository(instance);
 
-        return new RulesD2ApiRepository(storageClient, userRepository);
+        return new RulesD2ApiRepository(localInstance, storageClient, userRepository);
     });
 
     repositoryFactory.bindByInstance(Repositories.FileRulesRepository, (_instance: Instance) => {

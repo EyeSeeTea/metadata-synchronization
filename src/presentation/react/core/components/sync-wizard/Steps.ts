@@ -1,6 +1,7 @@
 import { WizardStep } from "@eyeseetea/d2-ui-components";
 import { SynchronizationRule } from "../../../../../domain/rules/entities/SynchronizationRule";
 import i18n from "../../../../../utils/i18n";
+import AggregatedDataExchangeTargetStep from "./common/AggregatedDataExchangeTargetStep";
 import GeneralInfoStep from "./common/GeneralInfoStep";
 import InstanceSelectionStep from "./common/InstanceSelectionStep";
 import MetadataFilterRulesStep from "./common/MetadataFilterRulesStep";
@@ -44,6 +45,14 @@ const commonSteps: {
         validationKeys: ["targetInstances"],
         showOnSyncDialog: true,
         hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
+    },
+    aggregatedDataExchangeTarget: {
+        key: "aggregated-data-exchange-target",
+        label: i18n.t("Aggregated Data Exchange Target"),
+        component: AggregatedDataExchangeTargetStep,
+        validationKeys: ["aggregatedDataExchangeTarget"],
+        showOnSyncDialog: true,
+        hidden: (syncRule: SynchronizationRule) => !syncRule.useAggregatedDataExchange,
     },
     scheduler: {
         key: "scheduler",
@@ -206,6 +215,7 @@ export const eventsSteps: SyncWizardStep[] = [
         ),
     },
     commonSteps.instanceSelection,
+    commonSteps.aggregatedDataExchangeTarget,
     commonSteps.scheduler,
     commonSteps.summary,
 ];

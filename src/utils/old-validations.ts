@@ -22,6 +22,7 @@ const translations: { [key: string]: (namespace: Record<string, string>) => stri
     cannot_enable_without_valid: (namespace: Record<string, string>) =>
         i18n.t("To enable a rule you need to enter a valid {{expression}}", { expression: namespace.expression }),
     invalid_period: () => i18n.t("Start and end dates are not a valid period"),
+    invalid_aggregated_data_exchange_target: () => i18n.t("The Aggregated Data Exchange Target is not valid"),
 };
 
 // TODO: This should be migrated to use the new ValidationError[]

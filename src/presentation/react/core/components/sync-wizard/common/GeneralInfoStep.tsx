@@ -51,7 +51,7 @@ export const GeneralInfoStep = ({ syncRule, onChange }: SyncWizardStepProps) => 
         (event: React.ChangeEvent<{ value: unknown }>) => {
             const useAggregatedDataExchange = event.target.value === "dataExchange";
 
-            const newRule = syncRule.update({ useAggregatedDataExchange: useAggregatedDataExchange });
+            const newRule = syncRule.updateUseAggregatedDataExchange(useAggregatedDataExchange);
 
             onChange(newRule);
         },

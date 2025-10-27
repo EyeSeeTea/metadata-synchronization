@@ -216,6 +216,11 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
 
             <LiEntry label={i18n.t("Description")} value={syncRule.description} />
 
+            <LiEntry
+                label={i18n.t("Type of synchronization")}
+                value={syncRule.useAggregatedDataExchange ? i18n.t("Aggregated data exchange") : i18n.t("Default")}
+            />
+
             {originInstance && <LiEntry label={i18n.t("Source instance")} value={originInstance.text} />}
 
             <LiEntry

@@ -21,7 +21,6 @@ export const SynchronizationRuleModel: Codec<SynchronizationRuleData> = Schema.e
         id: Schema.string,
         name: Schema.string,
         code: Schema.optional(Schema.string),
-        created: Schema.optionalSafe(Schema.date, () => new Date()),
         description: Schema.optional(Schema.string),
         builder: SynchronizationBuilderModel,
         targetInstances: Schema.optionalSafe(Schema.array(Schema.string), []),
@@ -31,5 +30,7 @@ export const SynchronizationRuleModel: Codec<SynchronizationRuleData> = Schema.e
         lastSuccessfulSync: Schema.optional(Schema.date),
         frequency: Schema.optional(Schema.string),
         type: SynchronizationTypeModel,
+        useAggregatedDataExchange: Schema.optional(Schema.boolean),
+        aggregatedDataExchangeId: Schema.optional(Schema.string),
     })
 );
