@@ -12,6 +12,7 @@ export const Namespace = {
     SETTINGS: "settings",
     SCHEDULER_EXECUTIONS: "scheduler-executions",
     EVENTS_USER_COLUMNS: "events-user-columns",
+    INSTANCES: "instances",
 };
 
 export const NamespaceProperties: Record<string, string[]> = {
@@ -25,4 +26,5 @@ export const NamespaceProperties: Record<string, string[]> = {
     [Namespace.CONFIG]: [],
     [Namespace.STORES]: [],
     [Namespace.RESPONSIBLES]: [],
+    [Namespace.INSTANCES]: [],
 };

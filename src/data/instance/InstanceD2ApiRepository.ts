@@ -9,11 +9,14 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { InmemoryCache } from "../common/InmemoryCache";
 import { Id } from "../../domain/common/entities/Schemas";
 import { SharingSetting } from "../../domain/common/entities/SharingSetting";
+import { StorageClientFactory } from "../config/StorageClientFactory";
+import { Namespace } from "../storage/Namespaces";
+import { StorageClient } from "../../domain/storage/repositories/StorageClient";
 export class InstanceD2ApiRepository implements InstanceRepository {
     private api: D2Api;
     private cache = new InmemoryCache();
 
-    constructor(private instance: Instance) {
+    constructor(private instance: Instance, private storageClientFactory: StorageClientFactory) {
         this.api = getD2APiFromInstance(instance);
     }
 
@@ -52,6 +55,30 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     }
 
     async save(instance: Instance): Promise<void> {
+        await this.saveInstanceInDataStore(instance);
+        await this.saveRoute(instance);
+    }
+
+    async delete(id: string): Promise<void> {
+        await this.deleteInstanceFromDataStore(id);
+        await this.deleteRoute(id);
+    }
+
+    private getStorageClient(): Promise<StorageClient> {
+        return this.storageClientFactory.getStorageClientPromise();
+    }
+
+    private async saveInstanceInDataStore(instance: Instance) {
+        const storageClient = await this.getStorageClient();
+
+        const instanceData = {
+            ..._.pick(instance.toObject(), "id"),
+        };
+
+        await storageClient.saveObjectInCollection(Namespace.INSTANCES, instanceData);
+    }
+
+    private async saveRoute(instance: Instance) {
         const routeToUpload = this.buildRoute(instance);
 
         const existedRoute = await this.getById(instance.id);
@@ -65,7 +92,13 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         }
     }
 
-    async delete(id: string): Promise<void> {
+    private async deleteInstanceFromDataStore(id: string) {
+        const storageClient = await this.getStorageClient();
+
+        await storageClient.removeObjectInCollection(Namespace.INSTANCES, id);
+    }
+
+    private async deleteRoute(id: string) {
         this.cache.clear();
         await this.api.delete(`/routes/${id}`, {}).getData();
     }
@@ -150,7 +183,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     }
 }
 
-type D2Route = {
+export type D2Route = {
     auth?: RouteAuth;
     authorities?: string[];
     code: Id;
@@ -192,7 +225,7 @@ type RouteAuth = {
     token?: string;
 };
 
-function slugify(text: string): string {
+export function slugify(text: string): string {
     return text
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -203,7 +236,7 @@ function slugify(text: string): string {
         .replace(/-+/g, "-");
 }
 
-function mapArrayToRecord(array: SharingSetting[]): Record<string, SharingSetting> {
+export function mapArrayToRecord(array: SharingSetting[]): Record<string, SharingSetting> {
     return array.reduce((acc, item) => {
         acc[item.id] = item;
         return acc;
