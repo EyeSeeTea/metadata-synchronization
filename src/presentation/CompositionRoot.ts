@@ -156,7 +156,10 @@ export class CompositionRoot {
         this.gitHubRepository = new GitHubOctokitRepository();
         this.downloadRepository = new DownloadWebRepository();
         this.transformationRepository = new TransformationD2ApiRepository();
-        this.instanceRepository = new InstanceD2ApiRepository(this.localInstance);
+        this.instanceRepository = new InstanceD2ApiRepository(
+            this.localInstance,
+            new StorageClientD2Repository(this.localInstance)
+        );
         this.userRepository = new UserD2ApiRepository(this.localInstance);
 
         registerDynamicRepositoriesInFactory(this.localInstance, this.repositoryFactory);
@@ -535,7 +538,9 @@ export function registerDynamicRepositoriesInFactory(
     });
 
     repositoryFactory.bindByInstance(Repositories.InstanceRepository, (instance: Instance) => {
-        return new InstanceD2ApiRepository(instance);
+        const storageClient = repositoryFactory.configRepository(instance);
+
+        return new InstanceD2ApiRepository(instance, storageClient);
     });
 
     repositoryFactory.bindByInstance(

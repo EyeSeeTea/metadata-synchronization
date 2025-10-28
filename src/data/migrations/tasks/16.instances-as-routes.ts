@@ -4,10 +4,12 @@ import { Debug } from "../../../domain/migrations/entities/Debug";
 import { ObjectSharing } from "../../../domain/storage/repositories/StorageClient";
 import { promiseMap } from "../../../utils/common";
 import { AppStorage, Migration } from "../client/types";
-import { InstanceD2ApiRepository } from "../../instance/InstanceD2ApiRepository";
+import { D2Route, mapArrayToRecord, slugify } from "../../instance/InstanceD2ApiRepository";
 import { decrypt } from "../../../utils/crypto";
+import { Namespace } from "../../storage/Namespaces";
+import { getD2APiFromInstance } from "../../../utils/d2-utils";
 
-const instancesNamespace = "instances";
+type DataStoreInstance = { id: string };
 
 export async function migrate(storage: AppStorage, _debug: Debug, { localInstance }: MigrationParams): Promise<void> {
     if (!localInstance) {
@@ -18,18 +20,23 @@ export async function migrate(storage: AppStorage, _debug: Debug, { localInstanc
 
     const instances = await getInstancesWithSharing(storage, encryptionKey);
 
-    const instanceRepository = new InstanceD2ApiRepository(localInstance);
+    const d2api = getD2APiFromInstance(localInstance);
 
     await promiseMap(instances, async instance => {
-        await instanceRepository.save(instance);
+        const route = buildRoute(instance);
 
-        const key = `${instancesNamespace}-${instance.id}`;
+        await d2api.post("/routes", {}, route).getData();
+
+        const key = `${Namespace.INSTANCES}-${instance.id}`;
+
         await storage.remove(key);
     });
 
-    await storage.remove(`${instancesNamespace}-LOCAL`);
+    await storage.remove(`${Namespace.INSTANCES}-LOCAL`);
 
-    await storage.remove(instancesNamespace);
+    const dataStoreInstances = instances.map(instance => ({ id: instance.id }));
+
+    await storage.save<DataStoreInstance[]>(Namespace.INSTANCES, dataStoreInstances);
 }
 
 const migration: Migration<MigrationParams> = {
@@ -51,7 +58,7 @@ async function getEncryptionKey(): Promise<string> {
 }
 
 async function getInstancesWithSharing(storage: AppStorage, encryptionKey: string) {
-    const dataStoreBaseInstances = await storage.get<InstanceData[]>(instancesNamespace);
+    const dataStoreBaseInstances = await storage.get<InstanceData[]>(Namespace.INSTANCES);
 
     if (!dataStoreBaseInstances) {
         return [];
@@ -62,7 +69,7 @@ async function getInstancesWithSharing(storage: AppStorage, encryptionKey: strin
     const instances = await promiseMap(dataStoreInstances, async instance => {
         const sharing = await getObjectSharingOrError(storage, instance.id);
         const advancedProps = await storage.get<{ username?: string; password?: string }>(
-            `${instancesNamespace}-${instance.id}`
+            `${Namespace.INSTANCES}-${instance.id}`
         );
 
         const decryptPassword = (password?: string) => {
@@ -96,7 +103,7 @@ async function getInstancesWithSharing(storage: AppStorage, encryptionKey: strin
 
 async function getObjectSharingOrError(storage: AppStorage, id: string): Promise<ObjectSharing | undefined> {
     try {
-        const key = `${instancesNamespace}-${id}`;
+        const key = `${Namespace.INSTANCES}-${id}`;
 
         const sharing = await storage.getObjectSharing(key);
 
@@ -104,4 +111,28 @@ async function getObjectSharingOrError(storage: AppStorage, id: string): Promise
     } catch (error: any) {
         return undefined;
     }
+}
+
+function buildRoute(instance: Instance): D2Route {
+    return {
+        auth:
+            instance.authType === "api-token"
+                ? { type: "api-token", token: instance.token }
+                : { type: "http-basic", username: instance.username, password: instance.password },
+        code: slugify(instance.name),
+        description: instance.description,
+        disabled: false,
+        displayName: instance.name,
+        headers: { "Content-Type": "application/json" },
+        id: instance.id,
+        name: instance.name,
+        sharing: {
+            external: false,
+            owner: instance.user.id,
+            public: instance.publicAccess,
+            users: mapArrayToRecord(instance.userAccesses),
+            userGroups: mapArrayToRecord(instance.userGroupAccesses),
+        },
+        url: instance.url.endsWith("/") ? `${instance.url}**` : `${instance.url}/**`,
+    };
 }
