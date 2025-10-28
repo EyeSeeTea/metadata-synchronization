@@ -205,7 +205,6 @@ export const eventsSteps: SyncWizardStep[] = [
         ),
     },
     commonSteps.instanceSelection,
-    commonSteps.aggregatedDataExchangeTarget,
     commonSteps.scheduler,
     commonSteps.summary,
 ];

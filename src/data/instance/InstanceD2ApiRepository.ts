@@ -20,7 +20,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         this.api = getD2APiFromInstance(instance);
     }
 
-    async getAll({ search, ids }: InstancesFilter): Promise<Instance[]> {
+    async getAll({ search, ids, types }: InstancesFilter): Promise<Instance[]> {
         const objects = await this.getInstances();
 
         const filteredDataBySearch = search
@@ -35,7 +35,11 @@ export class InstanceD2ApiRepository implements InstanceRepository {
 
         const filteredDataByIds = filteredDataBySearch.filter(instanceData => !ids || ids.includes(instanceData.id));
 
-        return filteredDataByIds;
+        const filteredDataByType = filteredDataByIds.filter(
+            instanceData => !types || types.includes(instanceData.type)
+        );
+
+        return filteredDataByType;
     }
 
     async getById(id: string): Promise<Instance | undefined> {

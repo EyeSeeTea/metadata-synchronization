@@ -72,11 +72,13 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
     };
 
     useEffect(() => {
-        compositionRoot.instances.list().then(instances => {
-            setTargetInstances(instances);
-            compositionRoot.user.current().then(user => setInstanceOptions(buildInstanceOptions(instances, user)));
-        });
-    }, [compositionRoot]);
+        compositionRoot.instances
+            .list({ types: syncRule.useAggregatedDataExchange ? ["aggregated-data-exchange"] : ["dhis", "local"] })
+            .then(instances => {
+                setTargetInstances(instances);
+                compositionRoot.user.current().then(user => setInstanceOptions(buildInstanceOptions(instances, user)));
+            });
+    }, [compositionRoot, syncRule.useAggregatedDataExchange]);
 
     return (
         <React.Fragment>

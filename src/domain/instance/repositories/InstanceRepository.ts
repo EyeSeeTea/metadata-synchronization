@@ -1,9 +1,10 @@
-import { Instance } from "../entities/Instance";
+import { Instance, InstanceType } from "../entities/Instance";
 import { InstanceMessage } from "../entities/Message";
 
 export interface InstancesFilter {
     search?: string;
     ids?: string[];
+    types?: InstanceType[];
 }
 
 export interface InstanceRepository {
