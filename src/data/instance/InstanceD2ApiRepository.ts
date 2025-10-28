@@ -1,6 +1,6 @@
 //import Cryptr from "cryptr";
 import _ from "lodash";
-import { Instance } from "../../domain/instance/entities/Instance";
+import { Instance, InstanceType } from "../../domain/instance/entities/Instance";
 import { InstanceMessage } from "../../domain/instance/entities/Message";
 import { InstanceRepository, InstancesFilter } from "../../domain/instance/repositories/InstanceRepository";
 import { D2Api, D2User } from "../../types/d2-api";
@@ -71,9 +71,14 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     private async saveInstanceInDataStore(instance: Instance) {
         const storageClient = await this.getStorageClient();
 
-        const instanceData = {
-            ..._.pick(instance.toObject(), "id"),
-        };
+        const instanceData: InstanceDataStoreData =
+            instance.type === "dhis"
+                ? {
+                      ..._.pick(instance.toObject(), "id"),
+                  }
+                : {
+                      ..._.pick(instance.toObject(), "id", "name", "type", "url", "description"),
+                  };
 
         await storageClient.saveObjectInCollection(Namespace.INSTANCES, instanceData);
     }
@@ -150,6 +155,11 @@ export class InstanceD2ApiRepository implements InstanceRepository {
 
     private async getInstances(): Promise<Instance[]> {
         const instances = await this.cache.getOrPromise("instances", async () => {
+            const storageClient = await this.getStorageClient();
+            const dataStoreInstances = await storageClient.listObjectsInCollection<InstanceDataStoreData>(
+                Namespace.INSTANCES
+            );
+
             const response = await this.api
                 .get<{ routes: D2Route[] }>("/routes", {
                     paging: false,
@@ -157,9 +167,9 @@ export class InstanceD2ApiRepository implements InstanceRepository {
                 })
                 .getData();
 
-            const instances = response.routes.map(this.buildInstance);
+            const routeInstances = response.routes.map(this.buildInstance);
 
-            const instancesWithVersion = await promiseMap(instances, async targetInstance => {
+            const routeInstancesWithVersion = await promiseMap(routeInstances, async targetInstance => {
                 const d2ApiByInstance = getD2APiFromInstance(this.instance, targetInstance);
 
                 const version = await d2ApiByInstance.system.info
@@ -170,7 +180,27 @@ export class InstanceD2ApiRepository implements InstanceRepository {
                 return targetInstance.update({ version });
             });
 
-            return [this.instance, ...instancesWithVersion];
+            const allInstances = dataStoreInstances
+                .map(dataStoreInstance => {
+                    if (dataStoreInstance.type === "aggregated-data-exchange") {
+                        return Instance.build({
+                            id: dataStoreInstance.id,
+                            name: dataStoreInstance.name || "",
+                            type: dataStoreInstance.type,
+                            url: dataStoreInstance.url || "",
+                            description: dataStoreInstance.description || "",
+                        });
+                    } else {
+                        const instance = routeInstancesWithVersion.find(
+                            instance => instance.id === dataStoreInstance.id
+                        );
+
+                        return instance;
+                    }
+                })
+                .filter((instance): instance is Instance => instance !== undefined);
+
+            return [this.instance, ...allInstances];
         });
 
         return instances;
@@ -241,4 +271,12 @@ export function mapArrayToRecord(array: SharingSetting[]): Record<string, Sharin
         acc[item.id] = item;
         return acc;
     }, {} as Record<string, SharingSetting>);
+}
+
+export interface InstanceDataStoreData {
+    type?: InstanceType;
+    id: string;
+    name?: string;
+    url?: string;
+    description?: string;
 }

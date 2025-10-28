@@ -214,6 +214,8 @@ const InstanceListPage = () => {
     };
 
     const columns: TableColumn<Instance>[] = [
+        { name: "id" as const, text: i18n.t("ID"), hidden: true },
+        { name: "type" as const, text: i18n.t("Type") },
         { name: "name" as const, text: i18n.t("Server name"), sortable: true },
         { name: "url" as const, text: i18n.t("URL endpoint"), sortable: false },
         {
@@ -231,7 +233,9 @@ const InstanceListPage = () => {
     ];
 
     const details: ObjectsTableDetailField<Instance>[] = [
+        { name: "id" as const, text: i18n.t("ID") },
         { name: "name" as const, text: i18n.t("Server name") },
+        { name: "type" as const, text: i18n.t("Type") },
         { name: "url" as const, text: i18n.t("URL endpoint") },
         {
             name: "authType" as const,

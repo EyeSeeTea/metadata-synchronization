@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-10-28T05:35:51.377Z\n"
-"PO-Revision-Date: 2025-10-28T05:35:51.378Z\n"
+"POT-Creation-Date: 2025-10-28T09:05:05.957Z\n"
+"PO-Revision-Date: 2025-10-28T09:05:05.958Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1161,9 +1161,6 @@ msgstr ""
 msgid "Instance Selection"
 msgstr ""
 
-msgid "Aggregated Data Exchange Target"
-msgstr ""
-
 msgid "Scheduling"
 msgstr ""
 
@@ -1761,6 +1758,9 @@ msgstr ""
 msgid "API Token"
 msgstr ""
 
+msgid "Aggregated Data Exchange"
+msgstr ""
+
 msgid "Please fix the issues before testing the connection"
 msgstr ""
 
@@ -1785,6 +1785,9 @@ msgstr ""
 msgid "Password (*)"
 msgstr ""
 
+msgid "Metadata mapping"
+msgstr ""
+
 msgid "New Instance"
 msgstr ""
 
@@ -1798,9 +1801,6 @@ msgid "Cancel Instance Editing"
 msgstr ""
 
 msgid "All your changes will be lost. Are you sure?"
-msgstr ""
-
-msgid "Metadata mapping"
 msgstr ""
 
 msgid "Saving..."

@@ -8,7 +8,7 @@ import { SharingSetting } from "../../common/entities/SharingSetting";
 import { ModelValidation, validateModel, ValidationError } from "../../common/entities/Validations";
 
 export type PublicInstance = Omit<InstanceData, "password">;
-export type InstanceType = "local" | "dhis";
+export type InstanceType = "local" | "dhis" | "aggregated-data-exchange";
 
 type AuthType = "api-token" | "http-basic";
 export interface InstanceData extends SharedRef {
@@ -126,8 +126,8 @@ export class Instance extends ShareableEntity<InstanceData> {
         return _(this.data).omit(["password"]).cloneDeep();
     }
 
-    public validate(filter?: string[], basic: boolean = true): ValidationError[] {
-        const validations = this.type === "local" ? this.localInstanceValidations() : this.moduleValidations(basic);
+    public validate(filter?: string[]): ValidationError[] {
+        const validations = this.type === "local" ? this.localInstanceValidations() : this.moduleValidations();
 
         return validateModel<Instance>(this, validations).filter(({ property }) => filter?.includes(property) ?? true);
     }
@@ -179,9 +179,9 @@ export class Instance extends ShareableEntity<InstanceData> {
         });
     }
 
-    private moduleValidations = (basic: boolean): ModelValidation[] => {
+    private moduleValidations = (): ModelValidation[] => {
         const baseValidations: ModelValidation[] = [
-            basic ? undefined : { property: "name", validation: "hasText" },
+            { property: "name", validation: "hasText" },
             { property: "url", validation: "isUrl" },
             { property: "url", validation: "hasText" },
         ].filter((v): v is ModelValidation => v !== undefined);
@@ -194,7 +194,7 @@ export class Instance extends ShareableEntity<InstanceData> {
             ],
         } as const;
 
-        const authValidations = authValidationsByType[this.authType ?? "http-basic"];
+        const authValidations = this.type === "dhis" ? authValidationsByType[this.authType ?? "http-basic"] : [];
 
         return [...baseValidations, ...authValidations];
     };
