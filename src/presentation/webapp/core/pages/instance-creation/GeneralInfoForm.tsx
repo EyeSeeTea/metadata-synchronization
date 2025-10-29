@@ -194,7 +194,7 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisib
                         </Button>
                     </div>
                     <div className={classes.actionButtonsContainer}>
-                        {instance.id && (
+                        {instance.type === "dhis" && instance.id && (
                             <Button
                                 variant="contained"
                                 onClick={goToMetadataMapping}
@@ -204,7 +204,7 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisib
                                 {i18n.t("Metadata mapping")}
                             </Button>
                         )}
-                        {testConnectionVisible && (
+                        {testConnectionVisible && instance.type === "dhis" && (
                             <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
                                 {i18n.t("Test Connection")}
                             </Button>

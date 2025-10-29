@@ -79,7 +79,7 @@ const InstanceListPage = () => {
 
     const editInstance = async (ids: string[]) => {
         const instance = rows.find(row => row.id === ids[0]);
-        if (instance?.type === "dhis" && user?.isAppConfigurator) {
+        if (instance?.type === "dhis" || (instance?.type === "aggregated-data-exchange" && user?.isAppConfigurator)) {
             history.push(`/instances/edit/${instance.id}`);
         }
     };
@@ -286,7 +286,9 @@ const InstanceListPage = () => {
             name: "testConnection",
             text: i18n.t("Test Connection"),
             multiple: false,
-            isActive: rows => _.every(rows, row => row.type !== "local") && verifyUserCanRead(rows),
+            isActive: rows =>
+                _.every(rows, row => row.type !== "local" && row.type !== "aggregated-data-exchange") &&
+                verifyUserCanRead(rows),
             onClick: testConnection,
             icon: <SettingsInputAntenaIcon />,
         },
@@ -302,7 +304,7 @@ const InstanceListPage = () => {
             name: "mapping",
             text: i18n.t("Metadata mapping"),
             multiple: false,
-            isActive: verifyUserCanEdit,
+            isActive: rows => verifyUserCanEdit(rows) && _.every(rows, row => row.type !== "aggregated-data-exchange"),
             onClick: metadataMapping,
             icon: <DoubleArrowIcon />,
         },
@@ -310,7 +312,9 @@ const InstanceListPage = () => {
             name: "sharingSettings",
             text: i18n.t("Sharing settings"),
             multiple: false,
-            isActive: verifyUserCanEdit,
+            isActive: rows =>
+                verifyUserCanEdit(rows) &&
+                _.every(rows, row => row.type !== "local" && row.type !== "aggregated-data-exchange"),
             onClick: openSharingSettings,
             icon: <Icon>share</Icon>,
         },
