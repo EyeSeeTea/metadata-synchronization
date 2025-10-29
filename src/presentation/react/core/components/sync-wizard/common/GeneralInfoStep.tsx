@@ -100,7 +100,7 @@ export const GeneralInfoStep = ({ syncRule, onChange }: SyncWizardStepProps) => 
 
             <div className={classes.row}>
                 <InstanceSelectionDropdown
-                    showInstances={{ local: true, remote: true }}
+                    showInstances={{ local: true, remote: !syncRule.useAggregatedDataExchange }}
                     selectedInstance={syncRule.originInstance}
                     onChangeSelected={onChangeInstance}
                     view="full-width"
