@@ -96,11 +96,13 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
                 </Typography>
             )}
 
-            <SyncParamsSelector
-                syncRule={syncRule}
-                onChange={onChange}
-                generateNewUidDisabled={includeCurrentUrlAndTypeIsEvents(selectedOptions)}
-            />
+            {syncRule.useAggregatedDataExchange === false && (
+                <SyncParamsSelector
+                    syncRule={syncRule}
+                    onChange={onChange}
+                    generateNewUidDisabled={includeCurrentUrlAndTypeIsEvents(selectedOptions)}
+                />
+            )}
         </React.Fragment>
     );
 };
