@@ -329,20 +329,18 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         <React.Fragment key={"metadata-table-filters"}>
             {externalFilterComponents}
 
-            {models.length > 1 && (
-                <div className={classes.metadataFilter}>
-                    <Dropdown
-                        items={models.map(model => ({
-                            id: model.getMetadataType(),
-                            name: model.getModelName(),
-                        }))}
-                        onValueChange={changeModelFilter}
-                        value={model.getMetadataType()}
-                        label={i18n.t("Metadata type")}
-                        hideEmpty={true}
-                    />
-                </div>
-            )}
+            <div className={classes.metadataFilter}>
+                <Dropdown
+                    items={models.map(model => ({
+                        id: model.getMetadataType(),
+                        name: model.getModelName(),
+                    }))}
+                    onValueChange={changeModelFilter}
+                    value={model.getMetadataType()}
+                    label={i18n.t("Metadata type")}
+                    hideEmpty={true}
+                />
+            </div>
 
             {viewFilters.includes("lastUpdated") && (
                 <div className={classes.dateFilter}>
