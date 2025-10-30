@@ -22,7 +22,7 @@ import {
 import { SynchronizationType } from "../../synchronization/entities/SynchronizationType";
 import { TeisSyncPeriodField } from "../../aggregated/entities/TeisSyncPeriodField";
 import { EventsSyncPeriodField } from "../../aggregated/entities/EventsSyncPeriodField";
-import { Instance } from "../../instance/entities/Instance";
+import { RuleAggregatedDataExchange } from "../value-object/RuleAggregatedDataExchange";
 
 export class SynchronizationRule {
     private readonly syncRule: SynchronizationRuleData;
@@ -51,8 +51,7 @@ export class SynchronizationRule {
             "type",
             "ondemand",
             "useAggregatedDataExchange",
-            "aggregatedDataExchangeTarget",
-            "aggregatedDataExchangeId",
+            "aggregatedDataExchanges",
         ]);
 
         if (!this.syncRule.id) this.syncRule.id = generateUid();
@@ -274,12 +273,8 @@ export class SynchronizationRule {
         return this.syncRule.useAggregatedDataExchange ?? false;
     }
 
-    public get aggregatedDataExchangeTarget(): Instance | undefined {
-        return this.syncRule.aggregatedDataExchangeTarget;
-    }
-
-    public get aggregatedDataExchangeId(): string | undefined {
-        return this.syncRule.aggregatedDataExchangeId;
+    public get aggregatedDataExchanges(): RuleAggregatedDataExchange[] | undefined {
+        return this.syncRule.aggregatedDataExchanges;
     }
 
     public get teisSyncPeriodField(): TeisSyncPeriodField {
@@ -403,15 +398,11 @@ export class SynchronizationRule {
     public updateUseAggregatedDataExchange(useAggregatedDataExchange: boolean): SynchronizationRule {
         return this.update({
             useAggregatedDataExchange,
-            aggregatedDataExchangeTarget: useAggregatedDataExchange
-                ? Instance.build({ name: "", description: "", url: "" })
-                : undefined,
-            aggregatedDataExchangeId: useAggregatedDataExchange ? generateUid() : undefined,
         });
     }
 
-    public updateAggregatedDataExchangeTarget(instance: Instance): SynchronizationRule {
-        return this.update({ aggregatedDataExchangeTarget: instance });
+    public updateAggregatedDataExchanges(aggregatedDataExchanges: RuleAggregatedDataExchange[]): SynchronizationRule {
+        return this.update({ aggregatedDataExchanges });
     }
 
     public markToUseDefaultIncludeExclude(): SynchronizationRule {
@@ -888,7 +879,7 @@ export class SynchronizationRule {
             ]),
             metadataIncludeExclude: [],
             targetInstances: _.compact([
-                this.originInstance === "LOCAL" && isEmpty(this.targetInstances) && !this.useAggregatedDataExchange
+                this.originInstance === "LOCAL" && isEmpty(this.targetInstances)
                     ? {
                           key: "cannot_be_empty",
                           namespace: { element: "instance" },
@@ -911,11 +902,13 @@ export class SynchronizationRule {
                       }
                     : null,
             ]),
-            aggregatedDataExchangeTarget: _.compact([
-                this.useAggregatedDataExchange && (this.aggregatedDataExchangeTarget?.validate() || []).length > 0
+            aggregatedDataExchanges: _.compact([
+                this.useAggregatedDataExchange &&
+                (isEmpty(this.aggregatedDataExchanges) ||
+                    this.aggregatedDataExchanges?.some(adex => !adex.target.password))
                     ? {
-                          key: "invalid_aggregated_data_exchange_target",
-                          namespace: {},
+                          key: "cannot_be_empty",
+                          namespace: { element: "aggregatedDataExchanges" },
                       }
                     : null,
             ]),
@@ -943,6 +936,5 @@ export interface SynchronizationRuleData extends SharedRef {
     type: SynchronizationType;
     ondemand?: boolean;
     useAggregatedDataExchange?: boolean;
-    aggregatedDataExchangeTarget?: Instance;
-    aggregatedDataExchangeId?: string;
+    aggregatedDataExchanges?: RuleAggregatedDataExchange[];
 }

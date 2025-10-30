@@ -18,7 +18,7 @@ export interface GeneralInfoFormProps {
     testConnectionVisible: boolean;
 }
 
-const authTypeItems = [
+export const authTypeItems = [
     { id: "http-basic", name: i18n.t("Basic") },
     { id: "api-token", name: i18n.t("API Token") },
 ];

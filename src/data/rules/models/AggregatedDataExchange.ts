@@ -16,8 +16,9 @@ type AggregatedDataExchangeSource = {
 
 type AggregatedDataExchangeApiConfig = {
     url: string;
-    username: string;
-    password: string;
+    username?: string;
+    password?: string;
+    token?: string;
 };
 
 type AggregatedDataExchangeTarget = {

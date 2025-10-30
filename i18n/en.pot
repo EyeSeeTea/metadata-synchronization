@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-10-28T09:05:05.957Z\n"
-"PO-Revision-Date: 2025-10-28T09:05:05.958Z\n"
+"POT-Creation-Date: 2025-10-30T05:33:39.047Z\n"
+"PO-Revision-Date: 2025-10-30T05:33:39.048Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -153,6 +153,27 @@ msgstr ""
 msgid "Tracker Data Elements"
 msgstr ""
 
+msgid "Aggregated Data Exchange instances credentials"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Authentication Scheme (*)"
+msgstr ""
+
+msgid "Token (*)"
+msgstr ""
+
+msgid "Username (*)"
+msgstr ""
+
+msgid "Password (*)"
+msgstr ""
+
 msgid "Unauthorized - You do not have permission to view this page."
 msgstr ""
 
@@ -193,9 +214,6 @@ msgid "DHIS2 Version (*)"
 msgstr ""
 
 msgid "Description"
-msgstr ""
-
-msgid "Cancel"
 msgstr ""
 
 msgid "Save"
@@ -310,9 +328,6 @@ msgid "Delete History Notifications?"
 msgstr ""
 
 msgid "Are you sure you want to delete {{total}} history notifications?"
-msgstr ""
-
-msgid "Ok"
 msgstr ""
 
 msgid "Instances"
@@ -1247,6 +1262,9 @@ msgid ""
 "aggregation is enabled."
 msgstr ""
 
+msgid "You need to select credentials for the selected instances."
+msgstr ""
+
 msgid "Default"
 msgstr ""
 
@@ -1771,18 +1789,6 @@ msgid "Server name (*)"
 msgstr ""
 
 msgid "URL endpoint (*)"
-msgstr ""
-
-msgid "Authentication Scheme (*)"
-msgstr ""
-
-msgid "Token (*)"
-msgstr ""
-
-msgid "Username (*)"
-msgstr ""
-
-msgid "Password (*)"
 msgstr ""
 
 msgid "Metadata mapping"
@@ -2360,9 +2366,6 @@ msgid "To enable a rule you need to enter a valid {{expression}}"
 msgstr ""
 
 msgid "Start and end dates are not a valid period"
-msgstr ""
-
-msgid "The Aggregated Data Exchange Target is not valid"
 msgstr ""
 
 msgid "All time"

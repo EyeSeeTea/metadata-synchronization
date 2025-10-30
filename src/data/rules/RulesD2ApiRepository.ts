@@ -12,6 +12,9 @@ import { D2Api } from "../../types/d2-api";
 import { isDhisInstance } from "../../domain/instance/entities/DataSource";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { promiseMap } from "../../utils/common";
+import { RuleAggregatedDataExchange } from "../../domain/rules/value-object/RuleAggregatedDataExchange";
+import { InstanceDataStoreData } from "../instance/InstanceD2ApiRepository";
+import { isArray } from "lodash";
 
 export class RulesD2ApiRepository implements RulesRepository {
     private api: D2Api;
@@ -32,17 +35,15 @@ export class RulesD2ApiRepository implements RulesRepository {
         const storageClient = await this.getStorageClient();
         const data = await storageClient.getObjectInCollection<SynchronizationRuleData>(Namespace.RULES, id);
 
-        if (data?.aggregatedDataExchangeId) {
-            const ade = await this.getAggregatedDataExchange(data.aggregatedDataExchangeId);
+        if (data?.aggregatedDataExchanges && data.aggregatedDataExchanges.length > 0) {
+            const adexIds = data.aggregatedDataExchanges.map(ade => ade.id);
+            const adexItems = await this.getAggregatedDataExchanges(adexIds);
+
+            const instances = await this.getInstances();
+
             const dataWithADEX = {
                 ...data,
-                aggregatedDataExchangeTarget: Instance.build({
-                    name: "Default",
-                    url: ade.target.api.url,
-                    authType: "http-basic",
-                    username: ade.target.api.username,
-                    password: ade.target.api.password,
-                }),
+                aggregatedDataExchanges: this.buildRuleAggregatedDataExchanges(adexItems, instances),
             };
             return SynchronizationRule.build(dataWithADEX);
         } else {
@@ -62,17 +63,9 @@ export class RulesD2ApiRepository implements RulesRepository {
         return rulesData.map(ruleData => SynchronizationRule.build(ruleData));
     }
 
-    private async getRulesData(allProperties?: boolean): Promise<SynchronizationRuleData[]> {
-        const storageClient = await this.getStorageClient();
-
-        if (allProperties) {
-            return storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
-        } else {
-            return storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
-        }
-    }
-
     public async save(rules: SynchronizationRule[]): Promise<void> {
+        const originalAggregatedDataExchangeIds = await this.getOriginalAggregatedDataExchangeIds(rules);
+
         const user = await this.userRepository.getCurrent();
 
         //TODO: This business rule logic should be realized in the entity
@@ -87,18 +80,30 @@ export class RulesD2ApiRepository implements RulesRepository {
             };
         });
 
-        const aggregateDataExchanges = await this.createAggregateDataExchange(data);
+        const instances = await this.getInstances();
+
+        const aggregateDataExchanges: AggregatedDataExchange[] = await this.buildAggregatedDataExchanges(
+            data,
+            instances
+        );
+
+        await this.deleteOrphanAggregatedDataExchanges(originalAggregatedDataExchangeIds, aggregateDataExchanges);
 
         await promiseMap(aggregateDataExchanges, async ade => {
             await this.saveAggregatedDataExchange(ade);
         });
 
-        data.forEach(rule => {
-            delete rule.aggregatedDataExchangeTarget;
+        const rulesToSave = data.map(ruleData => {
+            return {
+                ...ruleData,
+                aggregatedDataExchanges: (ruleData.aggregatedDataExchanges || []).map(ade => {
+                    return { id: ade.id };
+                }),
+            };
         });
 
         const storageClient = await this.getStorageClient();
-        await storageClient.saveObjectsInCollection<SyncRulePersistedData>(Namespace.RULES, data);
+        await storageClient.saveObjectsInCollection<SyncRulePersistedData>(Namespace.RULES, rulesToSave);
     }
 
     public async delete(id: string): Promise<void> {
@@ -106,63 +111,141 @@ export class RulesD2ApiRepository implements RulesRepository {
         await storageClient.removeObjectInCollection(Namespace.RULES, id);
 
         const runcRule = await this.getById(id);
-        if (!runcRule || !runcRule.aggregatedDataExchangeId) {
+        if (!runcRule || !runcRule.aggregatedDataExchanges) {
             return;
         }
 
-        await this.deleteAggregatedDataExchange(runcRule.aggregatedDataExchangeId);
+        await promiseMap(runcRule.aggregatedDataExchanges, async ade => {
+            return this.deleteAggregatedDataExchange(ade.id);
+        });
+    }
+
+    private buildRuleAggregatedDataExchanges(
+        adexItems: AggregatedDataExchange[],
+        instances: InstanceDataStoreData[]
+    ): RuleAggregatedDataExchange[] {
+        return adexItems.map(adex => {
+            const instance = instances.find(inst => inst.url === adex.target.api.url);
+
+            if (!instance) {
+                throw new Error(
+                    `Instance with url ${adex.target.api.url} not found for Aggregated Data Exchange ${adex.id}`
+                );
+            }
+
+            return RuleAggregatedDataExchange.createExisted({
+                id: adex.id,
+                target: {
+                    instanceId: instance.id,
+                    authType: adex.target.api.username ? "http-basic" : "api-token",
+                    username: adex.target.api.username,
+                    password: adex.target.api.password,
+                    token: adex.target.api.token,
+                },
+            }).getOrThrow();
+        });
+    }
+
+    private async getRulesData(allProperties?: boolean): Promise<SynchronizationRuleData[]> {
+        const storageClient = await this.getStorageClient();
+
+        if (allProperties) {
+            return storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+        } else {
+            return storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+        }
+    }
+
+    private async getInstances(): Promise<InstanceDataStoreData[]> {
+        const storageClient = await this.getStorageClient();
+
+        return storageClient.listObjectsInCollection<InstanceDataStoreData>(Namespace.INSTANCES);
     }
 
     private getStorageClient(): Promise<StorageClient> {
         return this.storageClientFactory.getStorageClientPromise();
     }
 
-    private async createAggregateDataExchange(rulesData: SynchronizationRuleData[]) {
-        const aggregatedDataExchangeRules = rulesData.filter(
-            ruleData => ruleData.useAggregatedDataExchange && ruleData.aggregatedDataExchangeTarget
+    private async getOriginalAggregatedDataExchangeIds(rules: SynchronizationRule[]) {
+        const ruleIds = rules.map(rule => rule.id);
+        const originalRules = (await this.getRulesData(true)).filter(rule => ruleIds.includes(rule.id));
+        const originalAggregatedDataExchangeIds: string[] = originalRules
+            .map(rule => rule.aggregatedDataExchanges || [])
+            .flat()
+            .map(ruleAdex => ruleAdex.id);
+        return originalAggregatedDataExchangeIds;
+    }
+
+    private async deleteOrphanAggregatedDataExchanges(
+        originalAggregatedDataExchanges: string[],
+        aggregateDataExchanges: AggregatedDataExchange[]
+    ) {
+        const aggregatedDataExchangeIdsToRemove = originalAggregatedDataExchanges.filter(
+            originalAdexId =>
+                !aggregateDataExchanges.find(aggregateDataExchange => aggregateDataExchange.id === originalAdexId)
         );
 
-        const aggregateDataExchange: AggregatedDataExchange[] = await promiseMap(
-            aggregatedDataExchangeRules,
-            async ruleData => {
-                const orgUnits = cleanOrgUnitPaths(ruleData.builder.dataParams?.orgUnitPaths || []);
-                const metadataIds = ruleData.builder.metadataIds || [];
+        await promiseMap(aggregatedDataExchangeIdsToRemove, async adeId => {
+            await this.deleteAggregatedDataExchange(adeId);
+        });
+    }
 
-                const orgUnitCodes = await this.getMetadataCodesByIds(orgUnits);
-                const metadataCodes = await this.getMetadataCodesByIds(metadataIds);
+    private async buildAggregatedDataExchanges(
+        rulesData: SynchronizationRuleData[],
+        instances: InstanceDataStoreData[]
+    ): Promise<AggregatedDataExchange[]> {
+        const aggregatedDataExchangeRules = rulesData.filter(
+            ruleData =>
+                ruleData.useAggregatedDataExchange &&
+                ruleData.aggregatedDataExchanges &&
+                ruleData.aggregatedDataExchanges.length > 0
+        );
+
+        const aggregateDataExchange = await promiseMap(aggregatedDataExchangeRules, async ruleData => {
+            const orgUnits = cleanOrgUnitPaths(ruleData.builder.dataParams?.orgUnitPaths || []);
+            const metadataIds = ruleData.builder.metadataIds || [];
+
+            const orgUnitCodes = await this.getMetadataCodesByIds(orgUnits);
+            const metadataCodes = await this.getMetadataCodesByIds(metadataIds);
+
+            return ruleData.aggregatedDataExchanges!.map(ade => {
+                const instance = instances.find(inst => inst.id === ade.target.instanceId);
+
+                const name = `${ruleData.name} target: ${instance?.name || ""}`;
 
                 return {
-                    id: ruleData.aggregatedDataExchangeId || "",
-                    name: ruleData.name,
+                    id: ade.id,
+                    name,
                     source: {
                         params: { periodTypes: [ruleData.builder.dataParams?.aggregationType || "MONTHLY"] },
                         requests: [
                             {
-                                name: ruleData.name,
+                                name,
                                 dx: metadataCodes,
                                 pe: [ruleData.builder.dataParams?.period || "LAST_12_MONTHS"],
                                 ou: orgUnitCodes,
-                                inputIdScheme: "CODE",
-                                outputIdScheme: "CODE",
+                                inputIdScheme: "CODE" as const,
+                                outputIdScheme: "CODE" as const,
                             },
                         ],
                     },
                     target: {
-                        type: "EXTERNAL",
+                        type: "EXTERNAL" as const,
                         api: {
-                            url: ruleData.aggregatedDataExchangeTarget!.url || "",
-                            username: ruleData.aggregatedDataExchangeTarget!.username || "",
-                            password: ruleData.aggregatedDataExchangeTarget!.password || "",
+                            url: instance?.url || "",
+                            username: ade.target.username || "",
+                            password: ade.target.password || "",
+                            token: ade.target.token || "",
                         },
                         request: {
-                            idScheme: "CODE",
+                            idScheme: "CODE" as const,
                         },
                     },
                 };
-            }
-        );
+            });
+        });
 
-        return aggregateDataExchange;
+        return aggregateDataExchange.flat();
     }
 
     private async getMetadataCodesByIds(metadataIds: string[]): Promise<string[]> {
@@ -185,21 +268,30 @@ export class RulesD2ApiRepository implements RulesRepository {
             })
             .getData();
 
-        const allMetadata = Object.values(response).flat();
+        const allMetadata = Object.values(response)
+            .filter(item => isArray(item))
+            .flat();
 
         return allMetadata.map(item => item.code);
     }
 
-    private async getAggregatedDataExchange(aggregatedDataExchangeId: string): Promise<AggregatedDataExchange> {
-        return this.api.get<AggregatedDataExchange>(`aggregateDataExchanges/${aggregatedDataExchangeId}`, {}).getData();
+    private async getAggregatedDataExchanges(aggregatedDataExchangeIds: string[]): Promise<AggregatedDataExchange[]> {
+        const response = await this.api
+            .get<{ aggregateDataExchanges: AggregatedDataExchange[] }>(`aggregateDataExchanges`, {
+                filter: `id:in:[${aggregatedDataExchangeIds.join(",")}]`,
+                fields: "id,name,source,target",
+            })
+            .getData();
+
+        return response.aggregateDataExchanges;
     }
 
     private async saveAggregatedDataExchange(aggregateDataExchange: AggregatedDataExchange) {
-        const existedAggregatedDataExchange = await this.getAggregatedDataExchange(aggregateDataExchange.id);
+        const existedAggregatedDataExchanges = await this.getAggregatedDataExchanges([aggregateDataExchange.id]);
 
-        if (existedAggregatedDataExchange) {
+        if (existedAggregatedDataExchanges.length > 0) {
             await this.api
-                .put(`/aggregateDataExchanges/${existedAggregatedDataExchange.id}`, {}, aggregateDataExchange)
+                .put(`/aggregateDataExchanges/${aggregateDataExchange.id}`, {}, aggregateDataExchange)
                 .getData();
         } else {
             await this.api.post("/aggregateDataExchanges", {}, aggregateDataExchange).getData();
