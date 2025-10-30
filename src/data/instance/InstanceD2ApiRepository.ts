@@ -60,7 +60,10 @@ export class InstanceD2ApiRepository implements InstanceRepository {
 
     async save(instance: Instance): Promise<void> {
         await this.saveInstanceInDataStore(instance);
-        await this.saveRoute(instance);
+
+        if (instance.type === "dhis") {
+            await this.saveRoute(instance);
+        }
     }
 
     async delete(id: string): Promise<void> {
