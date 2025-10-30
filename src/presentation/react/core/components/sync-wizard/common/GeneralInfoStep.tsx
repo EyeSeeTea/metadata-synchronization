@@ -84,19 +84,21 @@ export const GeneralInfoStep = ({ syncRule, onChange }: SyncWizardStepProps) => 
                 helperText={errors["code"]}
             />
 
-            <div className={classes.row}>
-                <Dropdown
-                    items={[
-                        { id: "default", name: i18n.t("Default") },
-                        { id: "dataExchange", name: i18n.t("Aggregated data exchange ") },
-                    ]}
-                    value={useAggregatedDataExchange}
-                    onChange={onChangeUseAggregatedDataExchange}
-                    label={i18n.t("Type of synchronization")}
-                    hideEmpty={true}
-                    view="full-width"
-                />
-            </div>
+            {(syncRule.type === "aggregated" || syncRule.type === "events") && (
+                <div className={classes.row}>
+                    <Dropdown
+                        items={[
+                            { id: "default", name: i18n.t("Default") },
+                            { id: "dataExchange", name: i18n.t("Aggregated data exchange ") },
+                        ]}
+                        value={useAggregatedDataExchange}
+                        onChange={onChangeUseAggregatedDataExchange}
+                        label={i18n.t("Type of synchronization")}
+                        hideEmpty={true}
+                        view="full-width"
+                    />
+                </div>
+            )}
 
             <div className={classes.row}>
                 <InstanceSelectionDropdown
