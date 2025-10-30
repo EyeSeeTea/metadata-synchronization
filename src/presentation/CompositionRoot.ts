@@ -134,6 +134,8 @@ import { InstanceRepository } from "../domain/instance/repositories/InstanceRepo
 import { InstanceD2Validator } from "../data/instance/InstanceD2Validator";
 import { UserRepository } from "../domain/user/repositories/UserRepository";
 import { VisualizationD2Repository } from "../data/visualization/VisualizationD2Repository";
+import { AggregatedDataExchangeExecutor } from "../domain/aggregated/repositories/AggregatedDataExchangeExecutor";
+import { AggregatedDataExchangeApiExecutor } from "../data/aggregated/AggregatedDataExchangeApiExecutor";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -150,6 +152,7 @@ export class CompositionRoot {
     private transformationRepository: TransformationRepository;
     private instanceRepository: InstanceRepository;
     private userRepository: UserRepository;
+    private aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor;
 
     constructor(public readonly localInstance: Instance) {
         this.repositoryFactory = new DynamicRepositoryFactory();
@@ -161,6 +164,7 @@ export class CompositionRoot {
             new StorageClientD2Repository(this.localInstance)
         );
         this.userRepository = new UserD2ApiRepository(this.localInstance);
+        this.aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(this.localInstance);
 
         registerDynamicRepositoriesInFactory(this.localInstance, this.repositoryFactory);
 
@@ -195,7 +199,8 @@ export class CompositionRoot {
                     builder,
                     this.repositoryFactory,
                     this.localInstance,
-                    this.aggregatedPayloadBuilder
+                    this.aggregatedPayloadBuilder,
+                    this.aggregatedDataExchangeExecutor
                 ),
             events: (builder: SynchronizationBuilder) =>
                 new EventsSyncUseCase(
@@ -203,7 +208,8 @@ export class CompositionRoot {
                     this.repositoryFactory,
                     this.localInstance,
                     this.eventsPayloadBuilder,
-                    this.aggregatedPayloadBuilder
+                    this.aggregatedPayloadBuilder,
+                    this.aggregatedDataExchangeExecutor
                 ),
             metadata: (builder: SynchronizationBuilder) =>
                 new MetadataSyncUseCase(
