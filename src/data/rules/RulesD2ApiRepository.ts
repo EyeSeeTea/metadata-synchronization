@@ -16,6 +16,7 @@ import { RuleAggregatedDataExchange } from "../../domain/rules/value-object/Rule
 import { InstanceDataStoreData } from "../instance/InstanceD2ApiRepository";
 import _, { isArray } from "lodash";
 import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../domain/aggregated/utils";
+import { MetadataType } from "../../utils/d2";
 
 export class RulesD2ApiRepository implements RulesRepository {
     private api: D2Api;
@@ -257,23 +258,11 @@ export class RulesD2ApiRepository implements RulesRepository {
 
     private async getMetadataCodesByIds(metadataIds: string[]): Promise<string[]> {
         const params = {
-            fields: {
-                id: true,
-                code: true,
-            },
-            filter: {
-                id: { in: metadataIds },
-            },
+            fields: "id,code",
+            filter: "id:in:[" + metadataIds.join(",") + "]",
         };
 
-        const response = await this.api.metadata
-            .get({
-                organisationUnits: params,
-                programIndicators: params,
-                indicators: params,
-                dataElements: params,
-            })
-            .getData();
+        const response = await this.api.get<Record<string, MetadataType[]>>(`/metadata`, params).getData();
 
         const allMetadata = Object.values(response)
             .filter(item => isArray(item))
