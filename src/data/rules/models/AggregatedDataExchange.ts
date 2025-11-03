@@ -3,12 +3,13 @@ type AggregatedDataExchangeRequest = {
     dx: string[];
     pe: string[];
     ou: string[];
+    filters: string[];
     inputIdScheme: Scheme;
     outputIdScheme: Scheme;
 };
 
 type AggregatedDataExchangeSource = {
-    params: {
+    params?: {
         periodTypes: string[];
     };
     requests: AggregatedDataExchangeRequest[];

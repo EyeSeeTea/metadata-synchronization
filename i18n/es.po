@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-10-30T05:33:39.047Z\n"
+"POT-Creation-Date: 2025-10-31T09:27:40.397Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1295,6 +1295,9 @@ msgstr ""
 msgid "Destination"
 msgstr ""
 
+msgid "Set Credentials"
+msgstr ""
+
 msgid "Every day"
 msgstr ""
 
@@ -1320,6 +1323,9 @@ msgid "Cron expression"
 msgstr ""
 
 msgid "Cron expression must be valid"
+msgstr ""
+
+msgid "An error has ocurred during the save"
 msgstr ""
 
 msgid "Json files downloaded successfull"

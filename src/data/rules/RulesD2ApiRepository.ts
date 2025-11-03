@@ -14,7 +14,8 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { promiseMap } from "../../utils/common";
 import { RuleAggregatedDataExchange } from "../../domain/rules/value-object/RuleAggregatedDataExchange";
 import { InstanceDataStoreData } from "../instance/InstanceD2ApiRepository";
-import { isArray } from "lodash";
+import _, { isArray } from "lodash";
+import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../domain/aggregated/utils";
 
 export class RulesD2ApiRepository implements RulesRepository {
     private api: D2Api;
@@ -202,7 +203,11 @@ export class RulesD2ApiRepository implements RulesRepository {
         );
 
         const aggregateDataExchange = await promiseMap(aggregatedDataExchangeRules, async ruleData => {
-            const orgUnits = cleanOrgUnitPaths(ruleData.builder.dataParams?.orgUnitPaths || []);
+            const { orgUnitPaths = [], aggregationType } = ruleData.builder.dataParams || {};
+
+            const { startDate, endDate } = buildPeriodFromParams(ruleData.builder.dataParams || {});
+            const periods = buildPeriodsForAggregation(aggregationType, startDate, endDate);
+            const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
             const metadataIds = ruleData.builder.metadataIds || [];
 
             const orgUnitCodes = await this.getMetadataCodesByIds(orgUnits);
@@ -217,13 +222,15 @@ export class RulesD2ApiRepository implements RulesRepository {
                     id: ade.id,
                     name,
                     source: {
-                        params: { periodTypes: [ruleData.builder.dataParams?.aggregationType || "MONTHLY"] },
+                        //params: { periodTypes: [ruleData.builder.dataParams?.aggregationType || "MONTHLY"] },
                         requests: [
                             {
                                 name,
                                 dx: metadataCodes,
-                                pe: [ruleData.builder.dataParams?.period || "LAST_12_MONTHS"],
+                                //pe: [ruleData.builder.dataParams?.period || "LAST_12_MONTHS"],
+                                pe: periods,
                                 ou: orgUnitCodes,
+                                filters: [],
                                 inputIdScheme: "CODE" as const,
                                 outputIdScheme: "CODE" as const,
                             },
@@ -233,9 +240,9 @@ export class RulesD2ApiRepository implements RulesRepository {
                         type: "EXTERNAL" as const,
                         api: {
                             url: instance?.url || "",
-                            username: ade.target.username || "",
-                            password: ade.target.password || "",
-                            token: ade.target.token || "",
+                            username: ade.target.username,
+                            password: ade.target.password,
+                            token: ade.target.token,
                         },
                         request: {
                             idScheme: "CODE" as const,
@@ -289,12 +296,33 @@ export class RulesD2ApiRepository implements RulesRepository {
     private async saveAggregatedDataExchange(aggregateDataExchange: AggregatedDataExchange) {
         const existedAggregatedDataExchanges = await this.getAggregatedDataExchanges([aggregateDataExchange.id]);
 
-        if (existedAggregatedDataExchanges.length > 0) {
-            await this.api
-                .put(`/aggregateDataExchanges/${aggregateDataExchange.id}`, {}, aggregateDataExchange)
-                .getData();
-        } else {
+        const existedAggregatedDataExchange = existedAggregatedDataExchanges[0];
+
+        if (!existedAggregatedDataExchange) {
             await this.api.post("/aggregateDataExchanges", {}, aggregateDataExchange).getData();
+        } else {
+            const cleanExisted = existedAggregatedDataExchange
+                ? JSON.parse(JSON.stringify(existedAggregatedDataExchange))
+                : undefined;
+            const cleanNew = JSON.parse(JSON.stringify(aggregateDataExchange));
+
+            const hasChanged = !_.isEqual(cleanExisted, cleanNew);
+
+            if (hasChanged) {
+                if (
+                    aggregateDataExchange.target.api.url &&
+                    !aggregateDataExchange.target.api.password &&
+                    !aggregateDataExchange.target.api.token
+                ) {
+                    throw new Error(
+                        `Cannot save Aggregated Data Exchange ${aggregateDataExchange.id} without authentication details. Please provide username/password or token.`
+                    );
+                }
+
+                await this.api
+                    .put(`/aggregateDataExchanges/${aggregateDataExchange.id}`, {}, aggregateDataExchange)
+                    .getData();
+            }
         }
     }
 

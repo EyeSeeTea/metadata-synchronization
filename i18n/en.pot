@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-10-30T05:33:39.047Z\n"
-"PO-Revision-Date: 2025-10-30T05:33:39.048Z\n"
+"POT-Creation-Date: 2025-11-03T06:59:30.102Z\n"
+"PO-Revision-Date: 2025-11-03T06:59:30.102Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1292,6 +1292,9 @@ msgstr ""
 msgid "Destination"
 msgstr ""
 
+msgid "Set Credentials"
+msgstr ""
+
 msgid "Every day"
 msgstr ""
 
@@ -1317,6 +1320,9 @@ msgid "Cron expression"
 msgstr ""
 
 msgid "Cron expression must be valid"
+msgstr ""
+
+msgid "An error has ocurred during the save"
 msgstr ""
 
 msgid "Json files downloaded successfull"
