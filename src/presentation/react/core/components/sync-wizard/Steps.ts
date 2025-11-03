@@ -170,6 +170,7 @@ export const aggregatedSteps: SyncWizardStep[] = [
         component: CategoryOptionsSelectionStep,
         validationKeys: ["categoryOptionIds"],
         showOnSyncDialog: true,
+        hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
     },
     {
         ...commonSteps.aggregation,

@@ -95,7 +95,9 @@ const SyncWizard: React.FC<SyncWizardProps> = ({
                 memoizedRule.current
                     .updateMetadataTypes(types)
                     .updateDataSyncEnableAggregation(
-                        types.includes("indicators") || types.includes("programIndicators")
+                        types.includes("indicators") ||
+                            types.includes("programIndicators") ||
+                            memoizedRule.current.useAggregatedDataExchange
                     )
             );
         });

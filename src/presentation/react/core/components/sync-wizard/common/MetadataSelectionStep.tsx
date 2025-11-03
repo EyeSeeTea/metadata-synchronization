@@ -112,7 +112,9 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
                         .updateExcludedIds(newExclusionIds)
                         .updateMetadataTypes(types)
                         .updateDataSyncEnableAggregation(
-                            types.includes("indicators") || types.includes("programIndicators")
+                            types.includes("indicators") ||
+                                types.includes("programIndicators") ||
+                                syncRule.useAggregatedDataExchange
                         )
                 );
             });
