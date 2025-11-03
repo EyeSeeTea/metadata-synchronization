@@ -50,14 +50,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         return instance;
     }
 
-    async getByName(name: string): Promise<Instance | undefined> {
-        const existingInstances = await this.getInstances();
-
-        const instance = existingInstances?.find(instance => instance.name === name);
-
-        return instance;
-    }
-
     async save(instance: Instance): Promise<void> {
         await this.saveInstanceInDataStore(instance);
 
