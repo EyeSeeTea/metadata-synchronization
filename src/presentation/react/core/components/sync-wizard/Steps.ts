@@ -55,9 +55,9 @@ const commonSteps: {
             const aggregatedDataExchangeInstanceIds = (syncRule.aggregatedDataExchanges || []).map(
                 adex => adex.target.instanceId
             );
-            const hasInstancesNotInAggregatedDataExchanges = syncRule.targetInstances.some(
-                instanceId => !aggregatedDataExchangeInstanceIds.includes(instanceId)
-            );
+            const hasInstancesNotInAggregatedDataExchanges =
+                syncRule.useAggregatedDataExchange &&
+                syncRule.targetInstances.some(instanceId => !aggregatedDataExchangeInstanceIds.includes(instanceId));
 
             const hasInstancesWithoutCredentials =
                 syncRule.aggregatedDataExchanges?.some(adex => !adex.target.password) || false;

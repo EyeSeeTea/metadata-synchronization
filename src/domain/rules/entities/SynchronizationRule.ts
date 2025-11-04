@@ -398,6 +398,8 @@ export class SynchronizationRule {
     public updateUseAggregatedDataExchange(useAggregatedDataExchange: boolean): SynchronizationRule {
         return this.update({
             useAggregatedDataExchange,
+            targetInstances: [],
+            aggregatedDataExchanges: [],
         });
     }
 
