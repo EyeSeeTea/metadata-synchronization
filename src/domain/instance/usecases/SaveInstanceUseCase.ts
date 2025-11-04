@@ -28,7 +28,7 @@ export class SaveInstanceUseCase implements UseCase {
                   )
                 : undefined;
 
-        if (exitedAdexInstanceByUrl) {
+        if (exitedAdexInstanceByUrl && exitedAdexInstanceByUrl.id !== instance.id) {
             return [
                 {
                     property: "url",
