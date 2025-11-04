@@ -9,6 +9,7 @@ import { EventsPayloadBuilder } from "../../../../domain/events/builders/EventsP
 import { AggregatedPayloadBuilder } from "../../../../domain/aggregated/builders/AggregatedPayloadBuilder";
 import { DynamicRepositoryFactory } from "../../../../domain/common/factories/DynamicRepositoryFactory";
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
+import { AggregatedDataExchangeApiExecutor } from "../../../aggregated/AggregatedDataExchangeApiExecutor";
 
 const localInstance = Instance.build({
     url: "http://origin.test",
@@ -284,6 +285,12 @@ function setupMockEndpoints(local: Server, destinationVersion = "2.36") {
         ],
     }));
 
+    local.get("/dataStore/metadata-synchronization/instances", async () => [
+        {
+            id: "DESTINATION",
+        },
+    ]);
+
     local.get("/routes", async () => ({
         routes: [
             {
@@ -387,13 +394,16 @@ async function runSyncEventsTest({ from, to }: { from: string; to: string }) {
     };
 
     const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
+    const aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(localInstance);
+
     const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
     const sync = new EventsSyncUseCase(
         builder,
         repositoryFactory,
         localInstance,
         eventsPayloadBuilder,
-        aggregatedPayloadBuilder
+        aggregatedPayloadBuilder,
+        aggregatedDataExchangeExecutor
     );
 
     for await (const _sync of sync.execute()) {

@@ -52,6 +52,12 @@ export async function sync({
     local.get("/programRules", async () => []);
     local.get("/routes/DESTINATION/run/metadata", async () => ({}));
 
+    local.get("/dataStore/metadata-synchronization/instances", async () => [
+        {
+            id: "DESTINATION",
+        },
+    ]);
+
     local.get("/routes", async () => ({
         routes: [
             {
