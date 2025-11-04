@@ -54,6 +54,7 @@ export interface ListMetadataParams {
     rootJunction?: "AND" | "OR";
     programType?: "WITHOUT_REGISTRATION" | "WITH_REGISTRATION";
     childrenPropInList?: { prop: string; values: string[] };
+    categoryComboDataDimensionType?: string;
 }
 
 export interface ListMetadataResponse {

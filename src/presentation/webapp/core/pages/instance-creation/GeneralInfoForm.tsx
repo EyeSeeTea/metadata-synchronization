@@ -15,6 +15,8 @@ export interface GeneralInfoFormProps {
     instance: Instance;
     onChange: (instance: Instance) => void;
     cancelAction: () => void;
+    onSaved?: (instance: Instance) => void;
+    showMetadataMapping?: boolean;
     testConnectionVisible: boolean;
 }
 
@@ -28,7 +30,14 @@ const typeItems = [
     { id: "aggregated-data-exchange", name: i18n.t("Aggregated Data Exchange") },
 ];
 
-const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisible }: GeneralInfoFormProps) => {
+const GeneralInfoForm = ({
+    instance,
+    onChange,
+    cancelAction,
+    testConnectionVisible,
+    onSaved,
+    showMetadataMapping,
+}: GeneralInfoFormProps) => {
     const { compositionRoot } = useAppContext();
     const classes = useStyles();
     const history = useHistory();
@@ -90,12 +99,12 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisib
         const validationErrors = await compositionRoot.instances.save(instance);
         setIsSaving(false);
 
-        if (validationErrors.length === 0) {
-            history.push("/instances");
+        if (validationErrors.length === 0 && onSaved) {
+            onSaved(instance);
         } else {
             snackbar.error(validationErrors.map(({ description }) => description).join("\n"));
         }
-    }, [compositionRoot, errors, history, instance, snackbar]);
+    }, [compositionRoot, errors, instance, snackbar, onSaved]);
 
     return (
         <Card>
@@ -194,7 +203,7 @@ const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisib
                         </Button>
                     </div>
                     <div className={classes.actionButtonsContainer}>
-                        {instance.type === "dhis" && instance.id && (
+                        {instance.type === "dhis" && instance.id && showMetadataMapping && (
                             <Button
                                 variant="contained"
                                 onClick={goToMetadataMapping}

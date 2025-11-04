@@ -126,7 +126,8 @@ export class MappingMapper {
                         expression.categoryOptionCombo,
                         [innerMapping, this.mapping],
                         this.originCategoryOptionCombos,
-                        this.destinationCategoryOptionCombos
+                        this.destinationCategoryOptionCombos,
+                        false
                     ) ?? expression.categoryOptionCombo;
 
                 const attributeOptionCombo =
@@ -134,7 +135,8 @@ export class MappingMapper {
                         expression.attributeOptionCombo,
                         [innerMapping, this.mapping],
                         this.originCategoryOptionCombos,
-                        this.destinationCategoryOptionCombos
+                        this.destinationCategoryOptionCombos,
+                        true
                     ) ?? expression.attributeOptionCombo;
 
                 return {

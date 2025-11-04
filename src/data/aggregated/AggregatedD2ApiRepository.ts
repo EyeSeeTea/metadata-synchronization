@@ -1,7 +1,6 @@
 import _ from "lodash";
-import moment, { Moment } from "moment";
+import moment from "moment";
 import { AggregatedPackage } from "../../domain/aggregated/entities/AggregatedPackage";
-import { DataSyncAggregation } from "../../domain/aggregated/entities/DataSyncAggregation";
 import {
     DataImportParams,
     DataSynchronizationParams,
@@ -149,7 +148,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                                 `dx:${ids.join(";")}`,
                                 `pe:${period.join(";")}`,
                                 `ou:${orgUnits.join(";")}`,
-                                includeCategories ? `co` : undefined,
+                                //includeCategories ? `co` : undefined,
                                 attributeOptionCombo ? `ao:${attributeOptionCombo.join(";")}` : undefined,
                             ]),
                             filter,
@@ -176,7 +175,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                             dataElement,
                             period,
                             orgUnit,
-                            value,
+                            value: fixValue(value),
                             comment,
                             // Special scenario: For indicators do not send attributeOptionCombo
                             attributeOptionCombo: includeCategories
@@ -405,4 +404,19 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             .map(({ id }) => id)
             .value();
     }
+}
+
+function fixValue(value: string): string {
+    //If it's a number, remove the decimal zeros and if it's .0 leave only the integer part
+    //If the data element of destination is of value type Positive or Zero Integer fail
+    if (!isNaN(Number(value))) {
+        const num = Number(value);
+        if (Number.isInteger(num)) {
+            return num.toString();
+        } else {
+            return num.toString().replace(/\.?0+$/, "");
+        }
+    }
+
+    return value;
 }
