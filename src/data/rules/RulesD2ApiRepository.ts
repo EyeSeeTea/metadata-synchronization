@@ -127,7 +127,9 @@ export class RulesD2ApiRepository implements RulesRepository {
         instances: InstanceDataStoreData[]
     ): RuleAggregatedDataExchange[] {
         return adexItems.map(adex => {
-            const instance = instances.find(inst => inst.url === adex.target.api.url);
+            const instance = instances.find(
+                inst => inst.url === adex.target.api.url && inst.type === "aggregated-data-exchange"
+            );
 
             if (!instance) {
                 throw new Error(
@@ -215,7 +217,9 @@ export class RulesD2ApiRepository implements RulesRepository {
             const metadataCodes = await this.getMetadataCodesByIds(metadataIds);
 
             return ruleData.aggregatedDataExchanges!.map(ade => {
-                const instance = instances.find(inst => inst.id === ade.target.instanceId);
+                const instance = instances.find(
+                    inst => inst.id === ade.target.instanceId && inst.type === "aggregated-data-exchange"
+                );
 
                 const name = `${ruleData.name} target: ${instance?.name || ""}`;
 
@@ -234,6 +238,8 @@ export class RulesD2ApiRepository implements RulesRepository {
                                 filters: [],
                                 inputIdScheme: "CODE" as const,
                                 outputIdScheme: "CODE" as const,
+                                outputDataElementIdScheme: "CODE" as const,
+                                outputOrgUnitIdScheme: "CODE" as const,
                             },
                         ],
                     },
@@ -247,6 +253,9 @@ export class RulesD2ApiRepository implements RulesRepository {
                         },
                         request: {
                             idScheme: "CODE" as const,
+                            dataElementIdScheme: "CODE" as const,
+                            orgUnitIdScheme: "CODE" as const,
+                            categoryOptionComboIdScheme: "CODE" as const,
                         },
                     },
                 };

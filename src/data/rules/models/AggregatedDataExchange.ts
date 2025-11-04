@@ -6,6 +6,8 @@ type AggregatedDataExchangeRequest = {
     filters: string[];
     inputIdScheme: Scheme;
     outputIdScheme: Scheme;
+    outputDataElementIdScheme: Scheme;
+    outputOrgUnitIdScheme: Scheme;
 };
 
 type AggregatedDataExchangeSource = {
@@ -27,6 +29,9 @@ type AggregatedDataExchangeTarget = {
     api: AggregatedDataExchangeApiConfig;
     request: {
         idScheme: Scheme;
+        dataElementIdScheme: Scheme;
+        orgUnitIdScheme: Scheme;
+        categoryOptionComboIdScheme: Scheme;
     };
 };
 
