@@ -20,12 +20,13 @@ export class AggregatedDataExchangeApiExecutor implements AggregatedDataExchange
 
             return this.buildSynchronizationResult(result, targetInstance);
         } catch (error: any) {
-            if (error?.response?.data) {
+            if (error?.response?.data?.response) {
                 return this.buildSynchronizationResult(error.response.data, targetInstance);
             }
 
             return {
                 status: "NETWORK ERROR",
+                message: error?.response?.data?.message || error.message,
                 instance: targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "aggregated",
