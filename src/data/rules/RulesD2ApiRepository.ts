@@ -325,6 +325,10 @@ export class RulesD2ApiRepository implements RulesRepository {
     }
 
     private async deleteAggregatedDataExchange(aggregatedDataExchangeId: string) {
-        return this.api.delete(`aggregateDataExchanges/${aggregatedDataExchangeId}`, {}).getData();
+        try {
+            await this.api.delete(`aggregateDataExchanges/${aggregatedDataExchangeId}`, {}).getData();
+        } catch (error) {
+            console.error(`Error deleting Aggregated Data Exchange ${aggregatedDataExchangeId}:`, error);
+        }
     }
 }

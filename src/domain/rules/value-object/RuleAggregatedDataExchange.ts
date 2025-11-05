@@ -27,6 +27,10 @@ export class RuleAggregatedDataExchange extends ValueObject<RuleAggregatedDataEx
         this.target = props.target;
     }
 
+    public replicate(): RuleAggregatedDataExchange {
+        return new RuleAggregatedDataExchange({ ...this.props, id: generateUid() });
+    }
+
     public static create(
         props: RuleAggregatedDataExchangeProps
     ): Either<ValidationError[], RuleAggregatedDataExchange> {

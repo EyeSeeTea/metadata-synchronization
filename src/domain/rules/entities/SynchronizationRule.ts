@@ -60,7 +60,12 @@ export class SynchronizationRule {
     public replicate(): SynchronizationRule {
         return this.updateName(`Copy of ${this.syncRule.name}`)
             .update({ lastExecuted: undefined, lastSuccessfulSync: undefined })
-            .updateId(generateUid());
+            .updateId(generateUid())
+            .updateAggregatedDataExchanges(
+                this.aggregatedDataExchanges?.map(adex => {
+                    return adex.replicate();
+                }) || undefined
+            );
     }
 
     public toObject(): SynchronizationRuleData {
@@ -403,7 +408,7 @@ export class SynchronizationRule {
         });
     }
 
-    public updateAggregatedDataExchanges(aggregatedDataExchanges: RuleAggregatedDataExchange[]): SynchronizationRule {
+    public updateAggregatedDataExchanges(aggregatedDataExchanges?: RuleAggregatedDataExchange[]): SynchronizationRule {
         return this.update({ aggregatedDataExchanges });
     }
 
