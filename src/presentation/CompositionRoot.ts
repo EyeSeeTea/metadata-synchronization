@@ -668,6 +668,6 @@ export function registerDynamicRepositoriesInFactory(
 
     repositoryFactory.bindByInstance(
         Repositories.WmrRequisitesRepository,
-        (instance: Instance) => new WmrRequisitesD2Repository(instance)
+        (instance: Instance) => new WmrRequisitesD2Repository(localInstance, instance)
     );
 }
