@@ -1,4 +1,3 @@
-import { b } from "vitest/dist/chunks/suite.d.FvehnV49";
 import { AggregatedDataExchangeExecutor } from "../../domain/aggregated/repositories/AggregatedDataExchangeExecutor";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { SynchronizationResult } from "../../domain/reports/entities/SynchronizationResult";

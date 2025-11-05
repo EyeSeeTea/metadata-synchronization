@@ -109,17 +109,16 @@ export class RulesD2ApiRepository implements RulesRepository {
     }
 
     public async delete(id: string): Promise<void> {
-        const storageClient = await this.getStorageClient();
-        await storageClient.removeObjectInCollection(Namespace.RULES, id);
-
         const runcRule = await this.getById(id);
-        if (!runcRule || !runcRule.aggregatedDataExchanges) {
-            return;
+
+        if (runcRule && runcRule.aggregatedDataExchanges) {
+            await promiseMap(runcRule.aggregatedDataExchanges, async ade => {
+                return this.deleteAggregatedDataExchange(ade.id);
+            });
         }
 
-        await promiseMap(runcRule.aggregatedDataExchanges, async ade => {
-            return this.deleteAggregatedDataExchange(ade.id);
-        });
+        const storageClient = await this.getStorageClient();
+        await storageClient.removeObjectInCollection(Namespace.RULES, id);
     }
 
     private buildRuleAggregatedDataExchanges(
