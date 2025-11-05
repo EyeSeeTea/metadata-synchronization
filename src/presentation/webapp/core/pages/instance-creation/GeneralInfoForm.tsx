@@ -15,7 +15,7 @@ export interface GeneralInfoFormProps {
     instance: Instance;
     onChange: (instance: Instance) => void;
     cancelAction: () => void;
-       onSaved?: (instance: Instance) => void;
+    onSaved?: (instance: Instance) => void;
     showMetadataMapping?: boolean;
     testConnectionVisible: boolean;
 }
@@ -25,7 +25,14 @@ const authTypeItems = [
     { id: "api-token", name: i18n.t("API Token") },
 ];
 
-const GeneralInfoForm = ({ instance, onChange, cancelAction, testConnectionVisible,onSaved, showMetadataMapping }: GeneralInfoFormProps) => {
+const GeneralInfoForm = ({
+    instance,
+    onChange,
+    cancelAction,
+    testConnectionVisible,
+    onSaved,
+    showMetadataMapping,
+}: GeneralInfoFormProps) => {
     const { compositionRoot } = useAppContext();
     const classes = useStyles();
     const history = useHistory();
