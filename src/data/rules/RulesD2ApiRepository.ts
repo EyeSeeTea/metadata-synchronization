@@ -4,7 +4,7 @@ import { StorageClient } from "../../domain/storage/repositories/StorageClient";
 import { UserRepository } from "../../domain/user/repositories/UserRepository";
 import { Namespace } from "../storage/Namespaces";
 import { StorageClientFactory } from "../config/StorageClientFactory";
-import { AggregatedDataExchange } from "./models/AggregatedDataExchange";
+import { AggregatedDataExchange } from "../aggregated/models/AggregatedDataExchange";
 import { SyncRulePersistedData } from "./models/SyncRulePersistedData";
 import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
 import { Instance } from "../../domain/instance/entities/Instance";
@@ -17,6 +17,7 @@ import { InstanceDataStoreData } from "../instance/InstanceD2ApiRepository";
 import _, { isArray } from "lodash";
 import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../domain/aggregated/utils";
 import { MetadataType } from "../../utils/d2";
+import { getAggregatedDataExchanges } from "../aggregated/getAggregateDataExchange";
 
 export class RulesD2ApiRepository implements RulesRepository {
     private api: D2Api;
@@ -39,7 +40,7 @@ export class RulesD2ApiRepository implements RulesRepository {
 
         if (data?.aggregatedDataExchanges && data.aggregatedDataExchanges.length > 0) {
             const adexIds = data.aggregatedDataExchanges.map(ade => ade.id);
-            const adexItems = await this.getAggregatedDataExchanges(adexIds);
+            const adexItems = await getAggregatedDataExchanges(this.api, adexIds);
 
             const instances = await this.getInstances();
 
@@ -279,19 +280,8 @@ export class RulesD2ApiRepository implements RulesRepository {
         return allMetadata.map(item => item.code);
     }
 
-    private async getAggregatedDataExchanges(aggregatedDataExchangeIds: string[]): Promise<AggregatedDataExchange[]> {
-        const response = await this.api
-            .get<{ aggregateDataExchanges: AggregatedDataExchange[] }>(`aggregateDataExchanges`, {
-                filter: `id:in:[${aggregatedDataExchangeIds.join(",")}]`,
-                fields: "id,name,source,target",
-            })
-            .getData();
-
-        return response.aggregateDataExchanges;
-    }
-
     private async saveAggregatedDataExchange(aggregateDataExchange: AggregatedDataExchange) {
-        const existedAggregatedDataExchanges = await this.getAggregatedDataExchanges([aggregateDataExchange.id]);
+        const existedAggregatedDataExchanges = await getAggregatedDataExchanges(this.api, [aggregateDataExchange.id]);
 
         const existedAggregatedDataExchange = existedAggregatedDataExchanges[0];
 
