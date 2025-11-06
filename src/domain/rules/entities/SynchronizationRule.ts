@@ -313,16 +313,7 @@ export class SynchronizationRule {
         const onDemandRule = SynchronizationRule.create(type).updateName("__MANUAL__").updateOndemand(true);
 
         if (defaultInclusions) {
-            const { sharing, users, organisationUnits } = defaultInclusions;
-            return onDemandRule.updateSyncParams({
-                ...onDemandRule.syncParams,
-                includeSharingSettingsObjectsAndReferences: sharing === "includeObjectsAndReferences",
-                includeOnlySharingSettingsReferences: sharing === "includeOnlyReferences",
-                includeUsersObjectsAndReferences: users === "includeObjectsAndReferences",
-                includeOnlyUsersReferences: users === "includeOnlyReferences",
-                includeOrgUnitsObjectsAndReferences: organisationUnits === "includeObjectsAndReferences",
-                includeOnlyOrgUnitsReferences: organisationUnits === "includeOnlyReferences",
-            });
+            return onDemandRule.setDefaultInclusions(defaultInclusions);
         } else {
             return onDemandRule;
         }
@@ -782,6 +773,19 @@ export class SynchronizationRule {
                 .value().length > 0;
 
         return isUserOwner || isPublic || hasUserAccess || hasGroupAccess;
+    }
+
+    public setDefaultInclusions(defaultInclusions: UserSettingsInclusionsConfig) {
+        const { sharing, users, organisationUnits } = defaultInclusions;
+        return this.updateSyncParams({
+            ...this.syncParams,
+            includeSharingSettingsObjectsAndReferences: sharing === "includeObjectsAndReferences",
+            includeOnlySharingSettingsReferences: sharing === "includeOnlyReferences",
+            includeUsersObjectsAndReferences: users === "includeObjectsAndReferences",
+            includeOnlyUsersReferences: users === "includeOnlyReferences",
+            includeOrgUnitsObjectsAndReferences: organisationUnits === "includeObjectsAndReferences",
+            includeOnlyOrgUnitsReferences: organisationUnits === "includeOnlyReferences",
+        });
     }
 
     private get usesFilterRules(): boolean {
