@@ -455,7 +455,8 @@ export class CompositionRoot {
                 this.repositoryFactory,
                 this.downloadRepository,
                 this.transformationRepository,
-                this.localInstance
+                this.localInstance,
+                this.aggregatedDataExchangeExecutor
             ),
         });
     }

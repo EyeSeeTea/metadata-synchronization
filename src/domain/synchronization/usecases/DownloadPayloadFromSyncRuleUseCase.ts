@@ -23,6 +23,7 @@ import { DownloadRepository } from "../../storage/repositories/DownloadRepositor
 import { TransformationRepository } from "../../transformations/repositories/TransformationRepository";
 import { EventsPayloadBuilder } from "../../events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../aggregated/builders/AggregatedPayloadBuilder";
+import { AggregatedDataExchangeExecutor } from "../../aggregated/repositories/AggregatedDataExchangeExecutor";
 
 type DownloadErrors = string[];
 
@@ -48,7 +49,8 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         private repositoryFactory: DynamicRepositoryFactory,
         private downloadRepository: DownloadRepository,
         private transformationRepository: TransformationRepository,
-        private localInstance: Instance
+        private localInstance: Instance,
+        readonly aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor
     ) {}
 
     async execute(params: DownloadPayloadParams): Promise<Either<DownloadErrors, true>> {
@@ -184,7 +186,8 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
             rule.builder,
             this.repositoryFactory,
             this.localInstance,
-            this.aggregatePayloadBuilder
+            this.aggregatePayloadBuilder,
+            this.aggregatedDataExchangeExecutor
         );
 
         const downloadItemsByAggregated =
