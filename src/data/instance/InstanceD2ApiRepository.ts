@@ -56,6 +56,8 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         if (instance.type === "dhis") {
             await this.saveRoute(instance);
         }
+
+        this.cache.clear();
     }
 
     async delete(id: string): Promise<void> {
@@ -86,8 +88,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         const routeToUpload = this.buildRoute(instance);
 
         const existedRoute = await this.getById(instance.id);
-
-        this.cache.clear();
 
         if (existedRoute) {
             await this.api.put(`/routes/${existedRoute.id}`, {}, routeToUpload).getData();
