@@ -25,22 +25,25 @@ import { getChildrenRows } from "../../mapping-table/utils";
 import MetadataTable from "../../metadata-table/MetadataTable";
 import { SyncWizardStepProps } from "../Steps";
 import { DataStoreMetadata } from "../../../../../../domain/data-store/DataStoreMetadata";
-import { sync } from "../../../../../../data/transformations/__tests__/integration/helpers";
 
 const config = {
     metadata: {
         models: metadataModels,
         childrenKeys: ["keys"],
     },
-    aggregated: {
-        models: [
-            DataSetModel,
-            AggregatedDataElementModel,
-            DataElementGroupModel,
-            DataElementGroupSetModel,
-            IndicatorModel,
-        ],
-        childrenKeys: ["dataElements", "dataElementGroups"],
+    aggregated: (useAggregatedDataExchange: boolean) => {
+        return {
+            models: !useAggregatedDataExchange
+                ? [
+                      DataSetModel,
+                      AggregatedDataElementModel,
+                      DataElementGroupModel,
+                      DataElementGroupSetModel,
+                      IndicatorModel,
+                  ]
+                : [AggregatedDataElementModel, IndicatorModel],
+            childrenKeys: !useAggregatedDataExchange ? ["dataElements", "dataElementGroups"] : [],
+        };
     },
     events: (useAggregatedDataExchange: boolean) => {
         return {
@@ -72,6 +75,8 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
     const { models, childrenKeys } = useMemo(() => {
         if (syncRule.type === "events") {
             return config["events"](syncRule.useAggregatedDataExchange);
+        } else if (syncRule.type === "aggregated") {
+            return config["aggregated"](syncRule.useAggregatedDataExchange);
         } else {
             return config[syncRule.type];
         }
