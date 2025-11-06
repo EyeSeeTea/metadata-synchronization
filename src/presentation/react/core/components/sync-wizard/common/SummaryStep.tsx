@@ -140,11 +140,13 @@ export const SummaryStep = ({ syncRule, onCancel }: SyncWizardStepProps) => {
                         {syncRule.isOnDemand() ? i18n.t("Save as sync Rule") : i18n.t("Save")}
                     </Button>
                 </div>
-                <div>
-                    <Button onClick={downloadJSON} variant="contained">
-                        {i18n.t("Download JSON")}
-                    </Button>
-                </div>
+                {!syncRule.useAggregatedDataExchange && (
+                    <div>
+                        <Button onClick={downloadJSON} variant="contained">
+                            {i18n.t("Download JSON")}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {isSaving && <LinearProgress />}
