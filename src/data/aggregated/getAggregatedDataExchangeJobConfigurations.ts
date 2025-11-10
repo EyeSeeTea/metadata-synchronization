@@ -18,7 +18,3 @@ export async function getAggregatedDataExchangeJobConfigurations(
 
     return response.jobConfigurations;
 }
-
-
-
-
