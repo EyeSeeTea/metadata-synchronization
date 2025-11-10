@@ -10,7 +10,7 @@ import isValidCronExpression from "../../../utils/validCronExpression";
 import { DataSyncAggregation } from "../../aggregated/entities/DataSyncAggregation";
 import { DataSynchronizationParams } from "../../aggregated/entities/DataSynchronizationParams";
 import { DataSyncPeriod } from "../../aggregated/entities/DataSyncPeriod";
-import { NamedRef, SharedRef } from "../../common/entities/Ref";
+import { NamedRef, Ref, SharedRef } from "../../common/entities/Ref";
 import { SharingSetting } from "../../common/entities/SharingSetting";
 import { FilterRule } from "../../metadata/entities/FilterRule";
 import { ExcludeIncludeRules, MetadataIncludeExcludeRules } from "../../metadata/entities/MetadataExcludeIncludeRules";
@@ -52,6 +52,8 @@ export class SynchronizationRule {
             "ondemand",
             "useAggregatedDataExchange",
             "aggregatedDataExchanges",
+            "useAggregatedDataExchangeDhis2Job",
+            "aggregatedDataExchangeDhis2Job",
         ]);
 
         if (!this.syncRule.id) this.syncRule.id = generateUid();
@@ -282,6 +284,14 @@ export class SynchronizationRule {
         return this.syncRule.aggregatedDataExchanges;
     }
 
+    public get useAggregatedDataExchangeDhis2Job(): boolean {
+        return this.syncRule.useAggregatedDataExchangeDhis2Job ?? false;
+    }
+
+    public get aggregatedDataExchangeDhis2Job(): Ref | undefined {
+        return this.syncRule.aggregatedDataExchangeDhis2Job;
+    }
+
     public get teisSyncPeriodField(): TeisSyncPeriodField {
         return this.syncRule.builder?.dataParams?.teisSyncPeriodField ?? "ENROLLMENT_DATE";
     }
@@ -319,6 +329,7 @@ export class SynchronizationRule {
             userAccesses: [],
             userGroupAccesses: [],
             useAggregatedDataExchange: false,
+            useAggregatedDataExchangeDhis2Job: false,
         });
     }
 
@@ -405,11 +416,20 @@ export class SynchronizationRule {
             useAggregatedDataExchange,
             targetInstances: [],
             aggregatedDataExchanges: [],
+            useAggregatedDataExchangeDhis2Job: false,
+            aggregatedDataExchangeDhis2Job: undefined,
         });
     }
 
     public updateAggregatedDataExchanges(aggregatedDataExchanges?: RuleAggregatedDataExchange[]): SynchronizationRule {
         return this.update({ aggregatedDataExchanges });
+    }
+
+    public updateUseAggregatedDataExchangeDhis2Job(useAggregatedDataExchangeDhis2Job: boolean): SynchronizationRule {
+        return this.update({
+            useAggregatedDataExchangeDhis2Job,
+            aggregatedDataExchangeDhis2Job: useAggregatedDataExchangeDhis2Job ? { id: generateUid() } : undefined,
+        });
     }
 
     public markToUseDefaultIncludeExclude(): SynchronizationRule {
@@ -744,7 +764,7 @@ export class SynchronizationRule {
     }
 
     public updateEnabled(enabled: boolean): SynchronizationRule {
-        return this.update({ enabled });
+        return this.update({ enabled, aggregatedDataExchangeDhis2Job: undefined });
     }
 
     public updateNeedsUpdateSchedulingFrequency(schedulingFrequencyNeedsUpdate: boolean): SynchronizationRule {
@@ -944,4 +964,6 @@ export interface SynchronizationRuleData extends SharedRef {
     ondemand?: boolean;
     useAggregatedDataExchange?: boolean;
     aggregatedDataExchanges?: RuleAggregatedDataExchange[];
+    useAggregatedDataExchangeDhis2Job?: boolean;
+    aggregatedDataExchangeDhis2Job?: Ref;
 }

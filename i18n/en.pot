@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-11-06T10:27:06.453Z\n"
-"PO-Revision-Date: 2025-11-06T10:27:06.453Z\n"
+"POT-Creation-Date: 2025-11-10T05:42:16.348Z\n"
+"PO-Revision-Date: 2025-11-10T05:42:16.348Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1314,6 +1314,15 @@ msgid "Every year"
 msgstr ""
 
 msgid "Enabled"
+msgstr ""
+
+msgid "Metadata Sync Scheduler"
+msgstr ""
+
+msgid "DHIS2 Scheduler"
+msgstr ""
+
+msgid "Scheduler type"
 msgstr ""
 
 msgid "Select frequency template"
