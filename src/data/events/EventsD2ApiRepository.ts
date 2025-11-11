@@ -302,6 +302,7 @@ export class EventsD2ApiRepository implements EventsRepository {
             dataElementIdScheme: params.dataElementIdScheme ?? "UID",
             orgUnitIdScheme: params.orgUnitIdScheme ?? "UID",
             importMode: params.importMode ?? "COMMIT",
+            skipRuleEngine: params.skipRuleEngine,
         };
 
         const trackerPostRequest: TrackerPostRequest = {
