@@ -174,6 +174,7 @@ export class TEID2ApiRepository implements TEIRepository {
             orgUnitIdScheme: params?.orgUnitIdScheme ?? defaultTeiPostParams.orgUnitIdScheme,
             importMode: params?.importMode ?? defaultTeiPostParams.importMode,
             importStrategy: this.convertImportStrategy(params?.strategy) ?? defaultTeiPostParams.importStrategy,
+            skipRuleEngine: params?.skipRuleEngine,
         };
 
         return params?.async !== undefined ? { ...teiPostParams, async: params.async } : teiPostParams;

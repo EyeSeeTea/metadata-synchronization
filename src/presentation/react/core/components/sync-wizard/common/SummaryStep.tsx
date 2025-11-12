@@ -546,6 +546,14 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                             })}
                         />
                     </ul>
+                    {syncRule.type === "events" && (
+                        <ul>
+                            <LiEntry
+                                label={i18n.t("Skip Rule Engine on destination")}
+                                value={syncRule.dataParams.skipRuleEngine ? i18n.t("Yes") : i18n.t("No")}
+                            />
+                        </ul>
+                    )}
                 </LiEntry>
             )}
 

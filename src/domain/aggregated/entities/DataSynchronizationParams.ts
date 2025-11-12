@@ -17,6 +17,7 @@ export interface DataImportParams {
     skipAudit?: boolean;
     strategy?: "NEW_AND_UPDATES" | "NEW" | "UPDATES" | "DELETES";
     async?: boolean;
+    skipRuleEngine?: boolean;
 }
 
 export interface DataSynchronizationParams extends DataImportParams {
