@@ -55,12 +55,12 @@ export class EventsPayloadBuilder {
             .filter(({ programType }) => programType === "WITH_REGISTRATION")
             .map(({ id }) => id);
 
-        const trackedEntityInstances =
-            dataParams.allTEIs && trackerProgramIds.length > 0
-                ? await teisRepository.getAllTEIs(dataParams, trackerProgramIds)
-                : dataParams.teis
-                ? await teisRepository.getTEIsById(dataParams, dataParams.teis)
-                : [];
+        const trackedEntityInstances = await this.buildTrackedEntityInstances(
+            teisRepository,
+            dataParams,
+            trackerProgramIds,
+            events
+        );
 
         const directIndicators = programIndicators.map(({ id }) => id);
         const indicatorsByProgram = _.flatten(
@@ -94,6 +94,39 @@ export class EventsPayloadBuilder {
         const dataValues = _.reject(candidateDataValues, ({ dataElement }) => excludedIds.includes(dataElement));
 
         return { events, dataValues, trackedEntityInstances };
+    }
+
+    private async buildTrackedEntityInstances(
+        teisRepository: Awaited<ReturnType<typeof this.getTeisRepository>>,
+        dataParams: SynchronizationBuilder["dataParams"],
+        trackerProgramIds: string[],
+        events: ProgramEvent[]
+    ): Promise<TrackedEntityInstance[]> {
+        const trackedEntityInstances =
+            dataParams?.allTEIs && trackerProgramIds.length > 0
+                ? await teisRepository.getAllTEIs(dataParams, trackerProgramIds)
+                : dataParams?.teis
+                ? await teisRepository.getTEIsById(dataParams, dataParams.teis)
+                : [];
+
+        if (!dataParams?.allTEIs) {
+            return trackedEntityInstances;
+        }
+        // if allTEIs is true, get TEIs referenced by events but not included because of filters
+        // i.e. TEIs not included in the filtered period, but referenced by events from that period
+        const trackedEntityInstancesMissingIds = _(events)
+            .flatMap(event => event.trackedEntity)
+            .filter(teiId => Boolean(teiId) && !trackedEntityInstances.some(tei => tei.trackedEntity === teiId))
+            .uniq()
+            .value() as string[];
+        if (trackedEntityInstancesMissingIds.length === 0) {
+            return trackedEntityInstances;
+        }
+        const trackedEntityInstancesMissing = await teisRepository.getTEIsById(
+            dataParams,
+            trackedEntityInstancesMissingIds
+        );
+        return [...trackedEntityInstances, ...trackedEntityInstancesMissing];
     }
 
     @cache()
