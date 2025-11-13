@@ -12,6 +12,7 @@ import { DataValue } from "../../aggregated/entities/DataValue";
 import { TrackedEntityInstance } from "../../tracked-entity-instances/entities/TrackedEntityInstance";
 import { eventsFields } from "../usecases/EventsSyncUseCase";
 import { Ref } from "../../common/entities/Ref";
+import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRepository";
 
 export type EventsPayload = {
     events: ProgramEvent[];
@@ -97,7 +98,7 @@ export class EventsPayloadBuilder {
     }
 
     private async buildTrackedEntityInstances(
-        teisRepository: Awaited<ReturnType<typeof this.getTeisRepository>>,
+        teisRepository: TEIRepository,
         dataParams: SynchronizationBuilder["dataParams"],
         trackerProgramIds: string[],
         events: ProgramEvent[]
