@@ -41,6 +41,7 @@ import { D2MetadataUtils } from "./D2MetadataUtils";
 import { D2ApiDataStore } from "../common/D2ApiDataStore";
 import { DataStoreMetadata } from "../../domain/data-store/DataStoreMetadata";
 import { isDhisInstance } from "../../domain/instance/entities/DataSource";
+import { config } from "../../utils/Config";
 
 export class MetadataD2ApiRepository implements MetadataRepository {
     private api: D2Api;
@@ -88,7 +89,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             );
 
             const dataStoresMetadata = await this.getDataStoresMetadata(ids);
-            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as T;
+            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as MetadataPackage<T>;
 
             return responseWithDataStores;
         } else {
@@ -102,7 +103,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                 metadataPackage.dataStores = await d2ApiDataStore.getDataStores({ namespaces: ids });
             }
             const dataStoresMetadata = await this.getDataStoresMetadata(ids);
-            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as T;
+            const responseWithDataStores = { ...metadataPackage, ...dataStoresMetadata } as MetadataPackage<T>;
 
             return responseWithDataStores;
         }
@@ -165,26 +166,39 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     public async lookupSimilar(query: IdentifiableRef): Promise<MetadataPackage<IdentifiableRef>> {
-        const response = await this.api
-            .get<MetadataPackage<IdentifiableRef>>("/metadata", {
-                fields: getFieldsAsString({
-                    id: true,
-                    code: true,
-                    name: true,
-                    path: true,
-                    level: true,
-                }),
-                filter: getFilterAsString({
-                    name: { token: query.name },
-                    id: { eq: query.id },
-                    code: { eq: query.code },
-                }),
-                rootJunction: "OR",
-                paging: false,
-            })
-            .getData();
+        const fields = getFieldsAsString({
+            id: true,
+            code: true,
+            name: true,
+            path: true,
+            level: true,
+        });
+        // using two separate requests because rootJunction is not working with name:token:str filter (2.41.3)
+        const [responseEqual, responseSimilar] = await Promise.all([
+            this.api
+                .get<MetadataPackage<IdentifiableRef>>("/metadata", {
+                    fields: fields,
+                    filter: getFilterAsString({
+                        id: { eq: query.id },
+                        code: { eq: query.code },
+                        // identifiable: { token: query.name },
+                    }),
+                    rootJunction: "OR",
+                    paging: false,
+                })
+                .getData(),
+            this.api
+                .get<MetadataPackage<IdentifiableRef>>("/metadata", {
+                    fields: fields,
+                    filter: getFilterAsString({
+                        name: { token: query.name },
+                    }),
+                    paging: false,
+                })
+                .getData(),
+        ]);
 
-        return _.omit(response, ["system"]);
+        return _.omit(_.merge(responseEqual, responseSimilar), ["system"]);
     }
 
     @cache()
@@ -320,6 +334,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         programType,
         domainType,
         childrenPropInList,
+        categoryComboDataDimensionType,
     }: Partial<ListMetadataParams>) {
         const filter: Dictionary<FilterValue> = {};
 
@@ -342,11 +357,16 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         if (includeParents && isNotEmpty(parents)) {
             filter["parent.id"] = { in: cleanOrgUnitPaths(parents) };
         }
-        if (showOnlySelected) filter["id"] = { in: selectedIds.concat(filter["id"]?.in ?? []) };
-        if (!disableFilterRows && filterRows) {
+        if (showOnlySelected) {
+            filter["id"] = { in: selectedIds.concat(filter["id"]?.in ?? []) };
+        } else if (!disableFilterRows && filterRows) {
             filter["id"] = { in: filterRows.concat(filter["id"]?.in ?? []) };
         }
         if (search) filter[search.field] = { [search.operator]: search.value };
+
+        if (categoryComboDataDimensionType && !filter["id"]) {
+            filter["categoryCombo.dataDimensionType"] = { eq: categoryComboDataDimensionType };
+        }
 
         return filter;
     }
@@ -615,7 +635,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     private getAdditionalCategoryOptionCombosOptionsByVariant(): CategoryOptionCombosAdditionalOptions {
-        const appVariant = process.env.REACT_APP_PRESENTATION_VARIANT;
+        const appVariant = config.appPresentationVariant;
 
         switch (appVariant) {
             case "msf-aggregate-data-app": {

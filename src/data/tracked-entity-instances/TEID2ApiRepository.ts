@@ -13,24 +13,27 @@ import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
 import { TEIsPackage } from "../../domain/tracked-entity-instances/entities/TEIsPackage";
 import { TrackedEntityInstance } from "../../domain/tracked-entity-instances/entities/TrackedEntityInstance";
 import { TEIRepository, TEIsResponse } from "../../domain/tracked-entity-instances/repositories/TEIRepository";
+import { TransformationRepository } from "../../domain/transformations/repositories/TransformationRepository";
 import { D2Api } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
+import { getPageCount, getRemainingPages } from "../../utils/pagination";
+import { teiTransformations } from "../transformations/PackageTransformations";
 
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance) {
+    constructor(private instance: Instance, private transformationRepository: TransformationRepository) {
         this.api = getD2APiFromInstance(instance);
     }
 
     async getAllTEIs(params: DataSynchronizationParams, programs: string[]): Promise<TrackedEntityInstance[]> {
         const result = await promiseMap(programs, async program => {
-            const { instances, total = 0, pageSize } = await this.getTEIs(params, program, 1, 250);
+            const { instances, ...pager } = await this.getTEIs(params, program, 1, 250);
 
-            const pageCount = Math.ceil(total / pageSize);
+            const remainingPages = getRemainingPages(pager);
 
-            const paginatedTEIs = await promiseMap(_.range(2, pageCount + 1), async page => {
+            const paginatedTEIs = await promiseMap(remainingPages, async page => {
                 const { instances } = await this.getTEIs(params, program, page, 250);
                 return instances;
             });
@@ -38,9 +41,11 @@ export class TEID2ApiRepository implements TEIRepository {
             return [...instances, ..._.flatten(paginatedTEIs)];
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
-            .filter(object => isDataSynchronizationRequired(params, object.updatedAt))
+            .filter(object => isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId))
             .value();
     }
 
@@ -97,7 +102,7 @@ export class TEID2ApiRepository implements TEIRepository {
             page,
             pageSize,
             total: result.total || 0,
-            pageCount: result.total ? Math.ceil(result.total / pageSize) : 1,
+            pageCount: getPageCount(result),
         };
     }
 
@@ -125,11 +130,17 @@ export class TEID2ApiRepository implements TEIRepository {
         try {
             const teiPostParams = this.getTeiPostParams(additionalParams);
 
-            const trackerPostRequest: TrackerPostRequest = {
+            const baseRequest: TrackerPostRequest = {
                 trackedEntities: data.trackedEntities.map(tei => this.buildD2TrackerTrackedEntity(tei)),
             };
 
-            const response = await this.api.tracker.post(teiPostParams, trackerPostRequest).getData();
+            const versionedRequest = this.transformationRepository.mapPackageTo<TrackerPostRequest, TrackerPostRequest>(
+                this.instance.apiVersion,
+                baseRequest,
+                teiTransformations
+            );
+
+            const response = await this.api.tracker.post(teiPostParams, versionedRequest).getData();
 
             return this.cleanTEIsImportResponse(response);
         } catch (error: any) {
@@ -163,6 +174,7 @@ export class TEID2ApiRepository implements TEIRepository {
             orgUnitIdScheme: params?.orgUnitIdScheme ?? defaultTeiPostParams.orgUnitIdScheme,
             importMode: params?.importMode ?? defaultTeiPostParams.importMode,
             importStrategy: this.convertImportStrategy(params?.strategy) ?? defaultTeiPostParams.importStrategy,
+            skipRuleEngine: params?.skipRuleEngine,
         };
 
         return params?.async !== undefined ? { ...teiPostParams, async: params.async } : teiPostParams;
@@ -222,6 +234,10 @@ export class TEID2ApiRepository implements TEIRepository {
                 tei.enrollments?.map(enrollment => ({
                     ...enrollment,
                     orgUnit: enrollment.orgUnit || "",
+                    attributes: enrollment.attributes?.map(attribute => ({
+                        ...attribute,
+                        value: attribute.value?.toString() || "",
+                    })),
                 })) || [],
             relationships: tei.relationships || [],
             attributes:
@@ -238,7 +254,7 @@ export class TEID2ApiRepository implements TEIRepository {
         return {
             ...tei,
             enrollments: tei.enrollments.map(enrollment => {
-                return { ...enrollment, events: [], relationships: [], attributes: [], notes: [] };
+                return { ...enrollment, events: [], relationships: [], notes: [] };
             }),
         };
     }
@@ -269,6 +285,7 @@ const enrollmentsFields = {
     deleted: true,
     storedBy: true,
     notes: true,
+    attributes: true,
 } as const;
 
 const teiFields = {

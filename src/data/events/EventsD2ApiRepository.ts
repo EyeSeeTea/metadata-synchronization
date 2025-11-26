@@ -18,6 +18,7 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 import mime from "mime-types";
 import { D2TrackerEvent, TrackerEventsResponse } from "@eyeseetea/d2-api/api/trackerEvents";
 import { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eyeseetea/d2-api/api/tracker";
+import { getRemainingPages } from "../../utils/pagination";
 
 export class EventsD2ApiRepository implements EventsRepository {
     private api: D2Api;
@@ -89,7 +90,10 @@ export class EventsD2ApiRepository implements EventsRepository {
                   }
                 : {
                       occurredAfter: period !== "ALL" ? startDate.format("YYYY-MM-DD") : undefined,
-                      occurredBefore: period !== "ALL" ? endDate.format("YYYY-MM-DD") : undefined,
+                      occurredBefore:
+                          period !== "ALL" && period !== "SINCE_LAST_SUCCESSFUL_SYNC"
+                              ? endDate.format("YYYY-MM-DD")
+                              : undefined,
                       updatedAfter: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
                   };
 
@@ -109,9 +113,9 @@ export class EventsD2ApiRepository implements EventsRepository {
         const result = await promiseMap(orgUnits, async (orgUnit): Promise<D2TrackerEvent[]> => {
             const firstResponse = await fetchApi(orgUnit, 1);
 
-            const pageCount = Math.ceil((firstResponse.total || 0) / firstResponse.pageSize);
+            const remainingPages = getRemainingPages(firstResponse);
 
-            const paginatedEvents = await promiseMap(_.range(2, pageCount + 1), async page => {
+            const paginatedEvents = await promiseMap(remainingPages, async page => {
                 const response = await fetchApi(orgUnit, page);
 
                 return this.extractEvents(response);
@@ -122,11 +126,19 @@ export class EventsD2ApiRepository implements EventsRepository {
             return [...events, ..._.flatten(paginatedEvents)];
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
             .filter(({ programStage }) => (programStage ? programStageIds.includes(programStage) : false))
-            .map(object => ({ ...object, id: object.event }))
-            .map(object => cleanObjectDefault(object, defaults))
+            .map(object => {
+                const event = { ...object, id: object.event };
+
+                return isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId)
+                    ? cleanObjectDefault(event, defaults)
+                    : undefined;
+            })
+            .compact()
             .value();
     }
 
@@ -175,9 +187,9 @@ export class EventsD2ApiRepository implements EventsRepository {
             const filteredEvents = await promiseMap(orgUnits, async orgUnit => {
                 const firstResponse = await fetchApi(programStage, orgUnit, 1);
 
-                const pageCount = Math.ceil(firstResponse.total || 0 / firstResponse.pageSize);
+                const remainingPages = getRemainingPages(firstResponse);
 
-                const paginatedEvents = await promiseMap(_.range(2, pageCount + 1), async page => {
+                const paginatedEvents = await promiseMap(remainingPages, async page => {
                     const response = await fetchApi(programStage, orgUnit, page);
 
                     const events = this.extractEvents(response);
@@ -193,12 +205,14 @@ export class EventsD2ApiRepository implements EventsRepository {
             return _.flatten(filteredEvents);
         });
 
+        const systemInfo = await this.api.system.info.getData();
+        const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
             .map(object => {
                 const event = { ...object, id: object.event };
 
-                return isDataSynchronizationRequired(params, object.updatedAt)
+                return isDataSynchronizationRequired(params, object.updatedAt, serverTimeZoneId)
                     ? cleanObjectDefault(event, defaults)
                     : undefined;
             })
@@ -288,6 +302,7 @@ export class EventsD2ApiRepository implements EventsRepository {
             dataElementIdScheme: params.dataElementIdScheme ?? "UID",
             orgUnitIdScheme: params.orgUnitIdScheme ?? "UID",
             importMode: params.importMode ?? "COMMIT",
+            skipRuleEngine: params.skipRuleEngine,
         };
 
         const trackerPostRequest: TrackerPostRequest = {

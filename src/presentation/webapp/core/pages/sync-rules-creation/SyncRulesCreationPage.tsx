@@ -8,6 +8,7 @@ import PageHeader from "../../../../react/core/components/page-header/PageHeader
 import SyncWizard from "../../../../react/core/components/sync-wizard/SyncWizard";
 import { TestWrapper } from "../../../../react/core/components/test-wrapper/TestWrapper";
 import { useAppContext } from "../../../../react/core/contexts/AppContext";
+import { useUserSettings } from "../settings/useUserSettings";
 
 export interface SyncRulesCreationParams {
     id: string;
@@ -21,6 +22,7 @@ const SyncRulesCreation: React.FC = () => {
     const loading = useLoading();
     const { id, action, type } = useParams() as SyncRulesCreationParams;
     const { compositionRoot } = useAppContext();
+    const { userSettings } = useUserSettings();
 
     const [dialogOpen, updateDialogOpen] = useState(false);
     const [syncRule, updateSyncRule] = useState(location.state?.syncRule ?? SynchronizationRule.create(type));
@@ -52,8 +54,11 @@ const SyncRulesCreation: React.FC = () => {
                 setOriginalSyncRule(syncRule ?? SynchronizationRule.create(type));
                 loading.reset();
             });
+        } else {
+            updateSyncRule(syncRule => syncRule?.setDefaultInclusions(userSettings.inclusionConfig));
+            setOriginalSyncRule(syncRule => syncRule?.setDefaultInclusions(userSettings.inclusionConfig));
         }
-    }, [compositionRoot, loading, isEdit, id, type]);
+    }, [compositionRoot, loading, isEdit, id, type, userSettings.inclusionConfig]);
 
     return (
         <TestWrapper>
