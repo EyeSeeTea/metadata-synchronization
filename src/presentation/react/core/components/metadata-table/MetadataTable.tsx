@@ -311,13 +311,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         changeParentOrgUnitFilter(orgUnitPaths);
     };
 
-    const addToSelection = (ids: string[]) => {
-        const oldSelection = _.difference(selectedIds, ids);
-        const newSelection = _.difference(ids, selectedIds);
-
-        notifyNewSelection([...oldSelection, ...newSelection], excludedIds);
-    };
-
     const openResponsibleDialog = (ids: string[]) => {
         const { id, name } = rows.find(({ id }) => ids[0] === id) ?? {};
         if (!id || !name) return;
@@ -504,14 +497,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             },
         },
         {
-            name: "select",
-            text: i18n.t("Select"),
-            primary: true,
-            multiple: true,
-            onClick: addToSelection,
-            isActive: () => false,
-        },
-        {
             name: "set-responsible",
             text: i18n.t("Set metadata custodian"),
             multiple: false,
@@ -629,19 +614,81 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 .map(({ id }) => id)
                 .value();
 
-        const excluded = _(excludedIds)
-            .union(newlyUnselectedIds)
-            .difference(parseChildren(newlyUnselectedIds))
-            .difference(newlySelectedIds)
-            .difference(parseChildren(newlySelectedIds))
-            .filter(id => !_.find(rows, { id }))
-            .value();
+        if (model.getMetadataType() === "dataStore") {
+            const childrenOf = (ids: string[]) => parseChildren(ids);
+            const hasChildren = (id: string) => childrenOf([id]).length > 0;
 
-        if (!_.isEqual(stateSelection, included)) {
-            notifyNewSelection(included, excluded);
+            const parentsSelected = newlySelectedIds.filter(hasChildren);
+            const parentsUnselected = newlyUnselectedIds.filter(hasChildren);
+            const childUnselected = newlyUnselectedIds.filter(id => !hasChildren(id));
+
+            const removedByParentUnselect = _(parentsUnselected).union(childrenOf(parentsUnselected)).value();
+
+            // Downward rule:
+            // - if a parent is selected, all its children are selected
+            // - if a parent is unselected, the parent and all its children are removed
+            const includedAfterDown = _([included, childrenOf(parentsSelected)])
+                .flatten()
+                .uniq()
+                .difference(removedByParentUnselect)
+                .value();
+
+            const affectedParents = _(rows)
+                .filter(r => hasChildren(r.id))
+                .filter(r => {
+                    const kids = childrenOf([r.id]);
+                    return (
+                        _.intersection(kids, newlySelectedIds).length > 0 ||
+                        _.intersection(kids, newlyUnselectedIds).length > 0
+                    );
+                })
+                .map(r => r.id)
+                .value();
+
+            // Upward rule:
+            // - if all children are selected, select the parent
+            // - if not all children are selected, unselect the parent
+            const includedFinal = affectedParents.reduce((accIncluded, parentId) => {
+                const kids = childrenOf([parentId]);
+                const selectedKids = _.intersection(kids, accIncluded);
+
+                return kids.length > 0 && selectedKids.length === kids.length
+                    ? _.union(accIncluded, [parentId])
+                    : _.difference(accIncluded, [parentId]);
+            }, includedAfterDown);
+
+            const excludedBase = _(excludedIds)
+                .union(childUnselected)
+                .difference(includedFinal)
+                .difference(removedByParentUnselect)
+                .difference(childrenOf(parentsSelected))
+                .filter(id => !_.find(rows, { id }))
+                .value();
+
+            const parentsForcedUnselected = affectedParents.filter(p => !includedFinal.includes(p));
+            const excludedFinal = _.difference(excludedBase, parentsForcedUnselected);
+
+            if (!_.isEqual(stateSelection, includedFinal)) {
+                notifyNewSelection(includedFinal, excludedFinal);
+            }
+
+            setStateSelection(includedFinal);
+        } else {
+            const excluded = _(excludedIds)
+                .union(newlyUnselectedIds)
+                .difference(parseChildren(newlyUnselectedIds))
+                .difference(newlySelectedIds)
+                .difference(parseChildren(newlySelectedIds))
+                .filter(id => !_.find(rows, { id }))
+                .value();
+
+            if (!_.isEqual(stateSelection, included)) {
+                notifyNewSelection(included, excluded);
+            }
+
+            setStateSelection(included);
         }
 
-        setStateSelection(included);
         updateFilters({
             order: sorting,
             page: pagination.page,
