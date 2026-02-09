@@ -36,11 +36,6 @@ bak
 .eslintcache
 config.json
 
-# cypress
-cypress/screenshots/
-cypress/videos/
-cypress/fixtures/
-
 # IntelliJ
 .idea/*
 .vscode/*

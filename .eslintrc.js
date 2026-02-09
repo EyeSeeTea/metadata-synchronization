@@ -5,7 +5,7 @@ const reactAppRestrictedGlobals = reactAppConfig.rules["no-restricted-globals"] 
 const restrictedGlobals = reactAppRestrictedGlobals.filter(global => global !== "name");
 
 module.exports = {
-    extends: ["react-app", "plugin:cypress/recommended"],
+    extends: ["react-app"],
     parser: "@typescript-eslint/parser",
     ignorePatterns: ["src/**/snapshots/*.ts", ".eslintrc.js"],
     rules: {
@@ -54,8 +54,7 @@ module.exports = {
         "testing-library/no-dom-import": "off",
         "no-restricted-globals": restrictedGlobals,
     },
-    plugins: ["cypress", "unused-imports"],
-    env: { "cypress/globals": true },
+    plugins: ["unused-imports"],
     parserOptions: {
         project: "./tsconfig.json",
     },
@@ -67,9 +66,6 @@ module.exports = {
     },
     overrides: [
         {
-            files: ["cypress/**/*"],
-            plugins: ["cypress"],
-            env: { "cypress/globals": true },
             parser: "espree",
             parserOptions: {
                 ecmaVersion: 2018,
