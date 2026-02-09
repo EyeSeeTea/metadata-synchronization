@@ -2,7 +2,6 @@ import { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eye
 import {
     D2TrackerTrackedEntity,
     D2TrackerTrackedEntitySchema,
-    TrackedEntitiesGetResponse,
 } from "@eyeseetea/d2-api/api/trackerTrackedEntities";
 import _ from "lodash";
 import {

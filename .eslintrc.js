@@ -64,43 +64,4 @@ module.exports = {
             version: "17.0.2",
         },
     },
-    overrides: [
-        {
-            parser: "espree",
-            parserOptions: {
-                ecmaVersion: 2018,
-                sourceType: "module",
-            },
-            rules: {
-                "@typescript-eslint/no-misused-promises": "off",
-                "@typescript-eslint/no-unused-vars": "off",
-                "@typescript-eslint/no-unused-expressions": "off",
-                "@typescript-eslint/no-use-before-define": "off",
-                "@typescript-eslint/no-explicit-any": "off",
-                "@typescript-eslint/no-empty-interface": "off",
-                "@typescript-eslint/ban-ts-ignore": "off",
-                "@typescript-eslint/no-empty-function": "off",
-                "@typescript-eslint/explicit-module-boundary-types": "off",
-                "@typescript-eslint/ban-types": "off",
-                "@typescript-eslint/ban-ts-comment": "off",
-                "@typescript-eslint/no-var-requires": "off",
-                "@typescript-eslint/indent": "off",
-                "@typescript-eslint/member-delimiter-style": "off",
-                "@typescript-eslint/type-annotation-spacing": "off",
-                "@typescript-eslint/camelcase": "off",
-                "@typescript-eslint/explicit-function-return-type": "off",
-                "@typescript-eslint/no-this-alias": "off",
-                "@typescript-eslint/no-unnecessary-type-constraint": "off",
-            },
-        },
-        {
-            files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
-            extends: ["plugin:testing-library/react"],
-            rules: {
-                "testing-library/prefer-screen-queries": "off",
-                "testing-library/no-debugging-utils": "off",
-                "testing-library/no-dom-import": "off",
-            },
-        },
-    ],
 };
