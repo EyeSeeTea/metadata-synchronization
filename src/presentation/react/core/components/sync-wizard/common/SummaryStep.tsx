@@ -103,6 +103,7 @@ export const SummaryStep = ({ syncRule, onCancel }: SyncWizardStepProps) => {
                     i18n.t("You do not have the authority to one or multiple target instances of the sync rule")
                 );
             } else {
+                console.error(error);
                 snackbar.error(i18n.t("An error has ocurred during the download"));
             }
         }
