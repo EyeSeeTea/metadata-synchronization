@@ -39,7 +39,9 @@ export class AggregatedSyncUseCase extends GenericSyncUseCase {
 
         const previousOriginalPayload = await this.buildPayload();
 
-        const originalPayload = await this.manageDataElementWithFileType(previousOriginalPayload, instance);
+        const originalPayload = dataParams.dryRun
+            ? previousOriginalPayload
+            : await this.manageDataElementWithFileType(previousOriginalPayload, instance);
 
         const mappedPayload = await this.mapPayload(instance, originalPayload);
 
