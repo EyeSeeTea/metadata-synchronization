@@ -36,8 +36,10 @@ export class StorageDataStoreClient extends StorageClient {
             const value = await this.dataStore.get<T>(key).getData();
             return value;
         } catch (error: any) {
-            console.error(error);
-            return undefined;
+            if (error?.response?.status === 404) {
+                return undefined;
+            }
+            throw error;
         }
     }
 
@@ -137,8 +139,10 @@ export class StorageDataStoreClient extends StorageClient {
 
             return data;
         } catch (error: any) {
-            console.error(error);
-            return undefined;
+            if (error?.response?.status === 404) {
+                return undefined;
+            }
+            throw error;
         }
     }
 }
