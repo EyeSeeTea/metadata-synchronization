@@ -50,9 +50,7 @@ export class TransformationD2ApiRepository implements TransformationRepository {
         );
 
         if (transformationstoApply.length > 0) {
-            return this.cleanTransformationObject(
-                this.undoTransformations(payload, transformationstoApply)
-            );
+            return this.cleanTransformationObject(this.undoTransformations(payload, transformationstoApply));
         } else {
             return payload;
         }

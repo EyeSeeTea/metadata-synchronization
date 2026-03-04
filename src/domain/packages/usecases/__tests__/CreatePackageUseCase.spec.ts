@@ -61,22 +61,16 @@ describe("CreatePackageUseCase", () => {
 
         repositoryFactory = new DynamicRepositoryFactory();
 
-        repositoryFactory.bindByInstance(
-            "configRepository",
-            (_instance: Instance) => ({
-                getStorageClient: vi.fn(),
-                getUserStorageClient: vi.fn(),
-                changeStorageClient: vi.fn(),
-                getStorageClientPromise: vi.fn().mockResolvedValue(mockStorageClient),
-            }),
-        );
+        repositoryFactory.bindByInstance("configRepository", (_instance: Instance) => ({
+            getStorageClient: vi.fn(),
+            getUserStorageClient: vi.fn(),
+            changeStorageClient: vi.fn(),
+            getStorageClientPromise: vi.fn().mockResolvedValue(mockStorageClient),
+        }));
 
-        repositoryFactory.bindByInstance(
-            "userRepository",
-            (_instance: Instance) => ({
-                getCurrent: vi.fn().mockResolvedValue(testUser),
-            }),
-        );
+        repositoryFactory.bindByInstance("userRepository", (_instance: Instance) => ({
+            getCurrent: vi.fn().mockResolvedValue(testUser),
+        }));
     });
 
     function buildTestModule(overrides?: Partial<MetadataModule>): MetadataModule {
@@ -119,7 +113,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
-            localInstance,
+            localInstance
         );
 
         const validations = await useCase.execute("LOCAL", sourcePackage, module, dhisVersion);
@@ -145,7 +139,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
-            localInstance,
+            localInstance
         );
 
         await useCase.execute("LOCAL", sourcePackage, module, dhisVersion);
@@ -173,7 +167,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
-            localInstance,
+            localInstance
         );
 
         const validations = await useCase.execute("LOCAL", sourcePackage, module, dhisVersion, preSuppliedContents);
@@ -199,17 +193,13 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
-            localInstance,
+            localInstance
         );
 
         await useCase.execute("LOCAL", sourcePackage, module, dhisVersion);
 
         expect(transformationRepository.mapPackageTo).toHaveBeenCalledTimes(1);
-        expect(transformationRepository.mapPackageTo).toHaveBeenCalledWith(
-            38,
-            builtPayload,
-            expect.any(Array),
-        );
+        expect(transformationRepository.mapPackageTo).toHaveBeenCalledWith(38, builtPayload, expect.any(Array));
     });
 
     it("should save the module with updated lastPackageVersion", async () => {
@@ -221,7 +211,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
-            localInstance,
+            localInstance
         );
 
         await useCase.execute("LOCAL", sourcePackage, module, dhisVersion);
