@@ -38,7 +38,7 @@ export class CreatePackageUseCase implements UseCase {
             targetInstances: [],
         };
 
-        const basePayload = contents ? contents : this.metadataPayloadBuilder.build(syncBuilder);
+        const basePayload = contents ? contents : await this.metadataPayloadBuilder.build(syncBuilder);
 
         const versionedPayload = this.transformationRepository.mapPackageTo(
             apiVersion,

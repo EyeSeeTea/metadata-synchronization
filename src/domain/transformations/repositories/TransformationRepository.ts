@@ -2,17 +2,17 @@ import { Transformation } from "../entities/Transformation";
 import { MetadataPackage } from "../../metadata/entities/MetadataEntities";
 
 export interface TransformationRepository {
-    mapPackageTo<Input = MetadataPackage, Output = MetadataPackage>(
+    mapPackageTo(
         destination: number,
-        payload: Input,
+        payload: MetadataPackage,
         transformations: Transformation[],
         origin?: number
-    ): Output;
+    ): MetadataPackage;
 
-    mapPackageFrom<Input = MetadataPackage, Output = MetadataPackage>(
+    mapPackageFrom(
         origin: number,
-        payload: Input,
+        payload: MetadataPackage,
         transformations: Transformation[],
         destination?: number
-    ): Output;
+    ): MetadataPackage;
 }
