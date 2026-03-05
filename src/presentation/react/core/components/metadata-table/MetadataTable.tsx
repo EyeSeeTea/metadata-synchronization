@@ -618,14 +618,9 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
-        const currentMetadataTypeIds = rows
-            .filter(row => row.model.getMetadataType() === model.getMetadataType())
-            .map(row => row.id);
-        const prevMetadataTypeIds = selectedIds.filter(id => currentMetadataTypeIds.includes(id));
-        const mergedSelection = _.uniq([
-            ...selectedIds.filter(id => !currentMetadataTypeIds.includes(id)),
-            ...included,
-        ]);
+
+        const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
+        const mergedSelection = _.uniq([...otherMetadataTypeIds, ...included]);
 
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
