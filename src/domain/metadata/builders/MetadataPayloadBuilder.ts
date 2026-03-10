@@ -45,7 +45,7 @@ export class MetadataPayloadBuilder {
             includeOnlyOrgUnitsReferences = false,
             removeUserNonEssentialObjects = false,
             metadataIncludeExcludeRules = {},
-            useDefaultIncludeExclude = {},
+            useDefaultIncludeExclude = true,
         } = syncParams ?? {};
 
         const originInstance = await this.getOriginInstance(originInstanceId);
@@ -134,6 +134,7 @@ export class MetadataPayloadBuilder {
             : [];
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
+        const requestedTypes = new Set(_.keys(metadataWithSyncAll));
 
         const finalMetadataPackage = {
             ...(categories && { categories: this.excludeDefaultMetadataObjects(categories, removeCategoryObjects) }),
@@ -147,10 +148,27 @@ export class MetadataPayloadBuilder {
                 categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
             }),
             ...(visualizationsWithRows.length > 0 && { visualizations: visualizationsWithRows }),
-            organisationUnits: includeOrgUnitsObjectsAndReferences ? organisationUnits : undefined,
-            users: includeUsersObjectsAndReferences ? users : undefined,
-            userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
-            userRoles: includeSharingSettingsObjectsAndReferences ? userRoles : undefined,
+
+            ...(organisationUnits &&
+                (includeOrgUnitsObjectsAndReferences || requestedTypes.has("organisationUnits")) && {
+                    organisationUnits,
+                }),
+
+            ...(users &&
+                (includeUsersObjectsAndReferences || requestedTypes.has("users")) && {
+                    users,
+                }),
+
+            ...(userGroups &&
+                (includeSharingSettingsObjectsAndReferences || requestedTypes.has("userGroups")) && {
+                    userGroups,
+                }),
+
+            ...(userRoles &&
+                (includeSharingSettingsObjectsAndReferences || requestedTypes.has("userRoles")) && {
+                    userRoles,
+                }),
+
             ...rest,
         };
 
