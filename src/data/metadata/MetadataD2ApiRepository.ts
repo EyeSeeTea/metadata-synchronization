@@ -359,7 +359,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         }
         if (showOnlySelected) {
             filter["id"] = { in: selectedIds.concat(filter["id"]?.in ?? []) };
-        } else if (!disableFilterRows && filterRows && filterRows.length > 0) {
+        } else if (!disableFilterRows && isNotEmpty(filterRows)) {
             filter["id"] = { in: filterRows.concat(filter["id"]?.in ?? []) };
         }
         if (search) filter[search.field] = { [search.operator]: search.value };
