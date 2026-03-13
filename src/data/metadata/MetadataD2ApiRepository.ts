@@ -208,9 +208,9 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     @cache()
-    public async getCategoryOptionCombos(): Promise<
-        Pick<CategoryOptionCombo, "id" | "name" | "categoryCombo" | "categoryOptions">[]
-    > {
+    public async getCategoryOptionCombos(
+        filter?: FilterBase
+    ): Promise<Pick<CategoryOptionCombo, "id" | "name" | "categoryCombo" | "categoryOptions">[]> {
         const { objects } = await this.api.models.categoryOptionCombos
             .get({
                 paging: false,
@@ -220,7 +220,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                     categoryCombo: true,
                     categoryOptions: true,
                 },
-                ...this.getAdditionalCategoryOptionCombosOptionsByVariant(),
+                ...this.getAdditionalCategoryOptionCombosOptionsByVariant(filter),
             })
             .getData();
 
@@ -634,7 +634,9 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         return this.api.models[type];
     }
 
-    private getAdditionalCategoryOptionCombosOptionsByVariant(): CategoryOptionCombosAdditionalOptions {
+    private getAdditionalCategoryOptionCombosOptionsByVariant(
+        filter: FilterBase = {}
+    ): CategoryOptionCombosAdditionalOptions {
         const appVariant = config.appPresentationVariant;
 
         switch (appVariant) {
@@ -646,13 +648,16 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                 // we filter them out.
                 return {
                     filter: {
+                        ...filter,
                         "categoryCombo.code": [{ null: true }, { "!like": "RVC_" }],
                     },
                     rootJunction: "OR",
                 };
             }
             default:
-                return {};
+                return {
+                    filter: filter,
+                };
         }
     }
 }
