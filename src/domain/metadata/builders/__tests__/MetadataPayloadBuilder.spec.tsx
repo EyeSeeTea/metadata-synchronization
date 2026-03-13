@@ -139,6 +139,7 @@ describe("MetadataPayloadBuilder", () => {
             }
 
             when(mockedMetadataRepository.listAllMetadata(anything())).thenResolve([]);
+            when(mockedMetadataRepository.getCategoryOptionCombos(anything())).thenResolve([]);
 
             const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
             when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
@@ -258,6 +259,7 @@ describe("MetadataPayloadBuilder", () => {
             }
 
             when(mockedMetadataRepository.listAllMetadata(anything())).thenResolve([]);
+            when(mockedMetadataRepository.getCategoryOptionCombos(anything())).thenResolve([]);
 
             const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
             when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
@@ -374,6 +376,7 @@ describe("MetadataPayloadBuilder", () => {
             }
 
             when(mockedMetadataRepository.listAllMetadata(anything())).thenResolve([]);
+            when(mockedMetadataRepository.getCategoryOptionCombos(anything())).thenResolve([]);
 
             const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
             when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));

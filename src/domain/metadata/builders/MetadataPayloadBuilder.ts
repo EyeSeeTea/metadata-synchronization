@@ -133,7 +133,7 @@ export class MetadataPayloadBuilder {
 
         const fixedDataSets = dataSets
             ? await this.fixDataSetsCompulsoryDEOperandCatCombo(originInstance, dataSets as DataSet[])
-            : [];
+            : undefined;
 
         const visualizationsWithRows = visualizations
             ? await this.addRowsToVisualizations(originInstance, visualizations as Visualization[])
@@ -157,7 +157,7 @@ export class MetadataPayloadBuilder {
             users: includeUsersObjectsAndReferences ? users : undefined,
             userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
             userRoles: includeSharingSettingsObjectsAndReferences ? userRoles : undefined,
-            dataSets: fixedDataSets,
+            ...(fixedDataSets && { dataSets: fixedDataSets }),
             ...rest,
         };
 
