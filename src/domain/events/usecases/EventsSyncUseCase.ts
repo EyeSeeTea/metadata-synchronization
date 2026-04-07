@@ -92,7 +92,8 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
 
         const payloadByTEIs = (await mapper.map({ trackedEntities: teis })) as EventsPackage;
 
-        const finalEvents = await this.manageDataElementWithFileType(events, instance);
+        const finalEvents =
+            dataParams.importMode === "VALIDATE" ? events : await this.manageDataElementWithFileType(events, instance);
 
         const payloadByEvents = (await this.mapPayload(instance, { events: finalEvents })) as EventsPackage;
 

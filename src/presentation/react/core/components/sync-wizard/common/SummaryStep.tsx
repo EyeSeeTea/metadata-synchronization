@@ -523,7 +523,7 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                     <ul>
                         <LiEntry
                             label={i18n.t("Dry run")}
-                            value={syncRule.dataParams.dryRun ? i18n.t("Yes") : i18n.t("No")}
+                            value={isDryRunEnabled(syncRule) ? i18n.t("Yes") : i18n.t("No")}
                         />
                     </ul>
                     <ul>
@@ -546,6 +546,14 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                             })}
                         />
                     </ul>
+                    {syncRule.type === "events" && (
+                        <ul>
+                            <LiEntry
+                                label={i18n.t("Skip Rule Engine on destination")}
+                                value={syncRule.dataParams.skipRuleEngine ? i18n.t("Yes") : i18n.t("No")}
+                            />
+                        </ul>
+                    )}
                 </LiEntry>
             )}
 
@@ -581,3 +589,14 @@ export const DataStoreSectionContent = (props: { metadataIds: string[] }) => {
         </>
     );
 };
+
+function isDryRunEnabled(syncRule: SynchronizationRule) {
+    switch (syncRule.type) {
+        case "aggregated":
+            return syncRule.dataParams.dryRun;
+        case "events":
+            return syncRule.dataParams.importMode === "VALIDATE";
+        default:
+            return syncRule.dataParams.dryRun || false;
+    }
+}

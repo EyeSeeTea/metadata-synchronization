@@ -10,6 +10,7 @@ export const Namespace = {
     RESPONSIBLES: "responsibles",
     MAPPINGS: "mappings",
     SETTINGS: "settings",
+    USER_SETTINGS: "user-settings",
     SCHEDULER_EXECUTIONS: "scheduler-executions",
     EVENTS_USER_COLUMNS: "events-user-columns",
     INSTANCES: "instances",
