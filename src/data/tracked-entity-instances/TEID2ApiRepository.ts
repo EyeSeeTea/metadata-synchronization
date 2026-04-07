@@ -23,8 +23,12 @@ import { teiTransformations } from "../transformations/PackageTransformations";
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance, private transformationRepository: TransformationRepository) {
-        this.api = getD2APiFromInstance(instance);
+    constructor(
+        localInstance: Instance,
+        private targetInstance: Instance,
+        private transformationRepository: TransformationRepository
+    ) {
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     async getAllTEIs(params: DataSynchronizationParams, programs: string[]): Promise<TrackedEntityInstance[]> {
@@ -135,7 +139,7 @@ export class TEID2ApiRepository implements TEIRepository {
             };
 
             const versionedRequest = this.transformationRepository.mapPackageTo<TrackerPostRequest, TrackerPostRequest>(
-                this.instance.apiVersion,
+                this.targetInstance.apiVersion,
                 baseRequest,
                 teiTransformations
             );
@@ -150,7 +154,7 @@ export class TEID2ApiRepository implements TEIRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "events",
             };
@@ -210,7 +214,7 @@ export class TEID2ApiRepository implements TEIRepository {
                 deleted: stats?.deleted ?? 0,
                 total: stats?.total ?? 0,
             },
-            instance: this.instance.toPublicObject(),
+            instance: this.targetInstance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {
                 return {
                     id: error.uid,

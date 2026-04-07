@@ -24,8 +24,8 @@ import mime from "mime-types";
 export class AggregatedD2ApiRepository implements AggregatedRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance) {
-        this.api = getD2APiFromInstance(instance);
+    constructor(localInstance: Instance, private targetInstance: Instance) {
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     public async getAggregated(
@@ -310,7 +310,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             if (!result) {
                 return {
                     status: "ERROR",
-                    instance: this.instance.toPublicObject(),
+                    instance: this.targetInstance.toPublicObject(),
                     date: new Date(),
                     type: "aggregated",
                 };
@@ -324,7 +324,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "aggregated",
             };
@@ -377,7 +377,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             status,
             message: description,
             stats: importCount,
-            instance: this.instance.toPublicObject(),
+            instance: this.targetInstance.toPublicObject(),
             errors,
             date: new Date(),
             type: "aggregated",

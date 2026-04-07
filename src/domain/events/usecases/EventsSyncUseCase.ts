@@ -213,7 +213,9 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
             "id,valueType"
         );
 
-        const dataElementFileTypes = dataElements.filter(de => de.valueType === "FILE_RESOURCE").map(de => de.id);
+        const dataElementFileTypes = dataElements
+            .filter(de => de.valueType === "FILE_RESOURCE" || de.valueType === "IMAGE")
+            .map(de => de.id);
 
         const eventsRepository = await this.getEventsRepository();
         const fileRemoteRepository = await this.getInstanceFileRepository(remoteInstance);

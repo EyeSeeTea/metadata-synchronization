@@ -1,4 +1,4 @@
-import { MultiSelector } from "@eyeseetea/d2-ui-components";
+import { MultiSelector, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { makeStyles, Typography } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import { Instance } from "../../../../../../domain/instance/entities/Instance";
@@ -31,13 +31,28 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
     const [selectedOptions, setSelectedOptions] = useState<string[]>(syncRule.targetInstances);
     const [targetInstances, setTargetInstances] = useState<Instance[]>([]);
     const [instanceOptions, setInstanceOptions] = useState<{ value: string; text: string }[]>([]);
+    const [localInstance, setLocalInstance] = useState<Instance | null>(null);
+    const snackbar = useSnackbar();
+
+    useEffect(() => {
+        compositionRoot.instances.getById("LOCAL").then(instanceResponse => {
+            instanceResponse.match({
+                success: instance => {
+                    setLocalInstance(instance);
+                },
+                error: () => {
+                    snackbar.error(i18n.t("Error fetching local instance"));
+                },
+            });
+        });
+    }, [compositionRoot, snackbar]);
 
     const includeCurrentUrlAndTypeIsEvents = (selectedinstanceIds: string[]) => {
         return (
             syncRule.type === "events" &&
             selectedinstanceIds
                 .map(id => targetInstances.find(instance => instance.id === id)?.url)
-                .includes(compositionRoot.instances.getApi().baseUrl)
+                .includes(localInstance?.url)
         );
     };
 

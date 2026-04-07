@@ -1,16 +1,14 @@
 import i18n from "../../../utils/i18n";
 import { UseCase } from "../../common/entities/UseCase";
 import { ValidationError } from "../../common/entities/Validations";
-import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../entities/Instance";
+import { InstanceRepository } from "../repositories/InstanceRepository";
 
 export class SaveInstanceUseCase implements UseCase {
-    constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
+    constructor(private instanceRepository: InstanceRepository) {}
 
     public async execute(instance: Instance): Promise<ValidationError[]> {
-        const instanceRepository = this.repositoryFactory.instanceRepository(this.localInstance);
-
-        const instanceByName = await instanceRepository.getByName(instance.name);
+        const instanceByName = await this.instanceRepository.getByName(instance.name);
 
         if (instanceByName && instanceByName.id !== instance.id) {
             return [
@@ -26,19 +24,8 @@ export class SaveInstanceUseCase implements UseCase {
         const modelValidations = instance.validate();
         if (modelValidations.length > 0) return modelValidations;
 
-        const editedInstance = instance.update({ version: await this.getVersion(instance) });
-
-        await instanceRepository.save(editedInstance);
+        await this.instanceRepository.save(instance);
 
         return [];
-    }
-
-    private async getVersion(instance: Instance): Promise<string | undefined> {
-        try {
-            const version = await this.repositoryFactory.instanceRepository(instance).getVersion();
-            return version;
-        } catch (error: any) {
-            return instance.version;
-        }
     }
 }

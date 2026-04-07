@@ -23,8 +23,8 @@ import { getRemainingPages } from "../../utils/pagination";
 export class EventsD2ApiRepository implements EventsRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance) {
-        this.api = getD2APiFromInstance(instance);
+    constructor(localInstance: Instance, private targetInstance: Instance) {
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     public async getEvents(
@@ -265,7 +265,7 @@ export class EventsD2ApiRepository implements EventsRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "events",
             };
@@ -282,7 +282,7 @@ export class EventsD2ApiRepository implements EventsRepository {
                 deleted: importResult.stats?.deleted ?? 0,
                 total: importResult.stats?.total ?? 0,
             },
-            instance: this.instance.toPublicObject(),
+            instance: this.targetInstance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {
                 return {
                     id: error.uid,
@@ -317,7 +317,7 @@ export class EventsD2ApiRepository implements EventsRepository {
             if (!result) {
                 return {
                     status: "ERROR",
-                    instance: this.instance.toPublicObject(),
+                    instance: this.targetInstance.toPublicObject(),
                     date: new Date(),
                     type: "events",
                 };

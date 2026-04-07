@@ -159,6 +159,9 @@ msgstr ""
 msgid "Login"
 msgstr ""
 
+msgid "Error fetching instance version"
+msgstr ""
+
 msgid "An exported dhis2 file is necessary"
 msgstr ""
 
@@ -1262,6 +1265,9 @@ msgstr ""
 msgid "with stored user"
 msgstr ""
 
+msgid "Error fetching local instance"
+msgstr ""
+
 msgid "Destination"
 msgstr ""
 
@@ -1740,6 +1746,12 @@ msgstr ""
 msgid "Admin Dashboard"
 msgstr ""
 
+msgid "Basic"
+msgstr ""
+
+msgid "API Token"
+msgstr ""
+
 msgid "Please fix the issues before testing the connection"
 msgstr ""
 
@@ -1750,6 +1762,12 @@ msgid "Server name (*)"
 msgstr ""
 
 msgid "URL endpoint (*)"
+msgstr ""
+
+msgid "Authentication Scheme (*)"
+msgstr ""
+
+msgid "Token (*)"
 msgstr ""
 
 msgid "Username (*)"
@@ -1792,6 +1810,9 @@ msgid "Server name"
 msgstr ""
 
 msgid "URL endpoint"
+msgstr ""
+
+msgid "Authentication Scheme"
 msgstr ""
 
 msgid "Username"

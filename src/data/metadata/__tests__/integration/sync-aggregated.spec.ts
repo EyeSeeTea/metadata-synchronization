@@ -9,18 +9,20 @@ import { SynchronizationBuilder } from "../../../../domain/synchronization/entit
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { startDhis } from "../../../../utils/dhisServer";
 
-const repositoryFactory = buildRepositoryFactory();
+const localInstance = Instance.build({
+    url: "http://origin.test",
+    name: "Testing",
+    version: "2.36",
+    type: "local",
+});
+
+const repositoryFactory = buildRepositoryFactory(localInstance);
 
 describe("Sync aggregated", () => {
     let local: Server;
-    let remote: Server;
 
     beforeEach(() => {
         local = startDhis({ urlPrefix: "http://origin.test" });
-        remote = startDhis({
-            urlPrefix: "http://destination.test",
-            pretender: local.pretender,
-        });
 
         local.get("/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
@@ -33,7 +35,7 @@ describe("Sync aggregated", () => {
             ],
         }));
 
-        remote.get("/categoryOptionCombos", async () => ({
+        local.get("/routes/DESTINATION/run/api/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
                 {
                     name: "default",
@@ -103,7 +105,7 @@ describe("Sync aggregated", () => {
             ],
         }));
 
-        remote.get("/dataValueSets", async () => ({
+        local.get("/routes/DESTINATION/run/api/dataValueSets", async () => ({
             dataValues: [
                 {
                     dataElement: "id2",
@@ -120,7 +122,7 @@ describe("Sync aggregated", () => {
             ],
         }));
 
-        remote.get("/metadata", async () => ({
+        local.get("/routes/DESTINATION/run/api/metadata", async () => ({
             categoryOptions: [{ id: "default5" }],
             categories: [{ id: "default6" }],
             categoryCombos: [{ id: "default7" }],
@@ -128,27 +130,36 @@ describe("Sync aggregated", () => {
             dataElements: [{ id: "id2", name: "Test data element 2" }],
         }));
 
-        local.get("/dataStore/metadata-synchronization/instances", async () => [
-            {
-                type: "local",
-                id: "LOCAL",
-                name: "This instance",
-                description: "",
-                url: "http://origin.test",
-            },
-            {
-                type: "dhis",
-                id: "DESTINATION",
-                name: "Destination test",
-                url: "http://destination.test",
-                username: "test",
-                password: "",
-                description: "",
-            },
-        ]);
+        local.get("/routes/DESTINATION/run/api/metadata", async () => ({
+            categoryOptions: [{ id: "default5" }],
+            categories: [{ id: "default6" }],
+            categoryCombos: [{ id: "default7" }],
+            categoryOptionCombos: [{ id: "default8" }],
+            dataElements: [{ id: "id2", name: "Test data element 2" }],
+        }));
 
-        local.get("/dataStore/metadata-synchronization/instances-LOCAL", async () => ({}));
-        local.get("/dataStore/metadata-synchronization/instances-DESTINATION", async () => ({}));
+        local.get("/routes", async () => ({
+            routes: [
+                {
+                    id: "DESTINATION",
+                    name: "Destination test",
+                    url: "http://destination.test",
+                    username: "test",
+                    auth: { type: "http-basic", username: "test", password: "" },
+                    description: "",
+                    sharing: {
+                        external: false,
+                        owner: "H4atNsEuKxP",
+                        public: "rw------",
+                        users: {},
+                        userGroups: {},
+                    },
+                },
+            ],
+        }));
+
+        local.get("/routes/DESTINATION/run/api/system/info", () => ({ version: "2.36" }));
+
         local.get("/dataStore/metadata-synchronization/mappings", async () => [
             {
                 id: "MAPPINGDESTINATION",
@@ -171,38 +182,6 @@ describe("Sync aggregated", () => {
                     },
                 },
             },
-        }));
-
-        local.get("/dataStore/metadata-synchronization/instances-LOCAL/metaData", async () => ({
-            created: "2021-03-30T01:59:59.191",
-            lastUpdated: "2021-04-20T09:34:00.780",
-            externalAccess: false,
-            publicAccess: "rw------",
-            user: { id: "H4atNsEuKxP" },
-            userGroupAccesses: [],
-            userAccesses: [],
-            lastUpdatedBy: { id: "s5EVHUwoFKu" },
-            namespace: "metadata-synchronization",
-            key: "instances-LOCAL",
-            value: "",
-            favorite: false,
-            id: "Db5532sXKXT",
-        }));
-
-        local.get("/dataStore/metadata-synchronization/instances-DESTINATION/metaData", async () => ({
-            created: "2021-03-30T01:59:59.191",
-            lastUpdated: "2021-04-20T09:34:00.780",
-            externalAccess: false,
-            publicAccess: "rw------",
-            user: { id: "H4atNsEuKxP" },
-            userGroupAccesses: [],
-            userAccesses: [],
-            lastUpdatedBy: { id: "s5EVHUwoFKu" },
-            namespace: "metadata-synchronization",
-            key: "instances-DESTINATION",
-            value: "",
-            favorite: false,
-            id: "Db5532sXKX1",
         }));
 
         local.get("/sharing", async () => ({
@@ -235,8 +214,8 @@ describe("Sync aggregated", () => {
             },
         }));
 
-        const addAggregatedToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
-            schema.db.dataValueSets.insert(JSON.parse(request.requestBody));
+        const addAggregatedToDb = async (schema: Schema<AnyRegistry>, request: Request, collection: string) => {
+            schema.db[collection].insert(JSON.parse(request.requestBody));
 
             return {
                 responseType: "ImportSummary",
@@ -253,25 +232,20 @@ describe("Sync aggregated", () => {
             };
         };
 
-        local.db.createCollection("dataValueSets", []);
-        local.post("/dataValueSets", addAggregatedToDb);
+        local.db.createCollection("dataValueSetsLocal", []);
+        local.post("/dataValueSets", (schema, request) => addAggregatedToDb(schema, request, "dataValueSetsLocal"));
 
-        remote.db.createCollection("dataValueSets", []);
-        remote.post("/dataValueSets", addAggregatedToDb);
+        local.db.createCollection("dataValueSetsaDestination", []);
+        local.post("/routes/DESTINATION/run/api/dataValueSets", (schema, request) =>
+            addAggregatedToDb(schema, request, "dataValueSetsaDestination")
+        );
     });
 
     afterEach(() => {
         local.shutdown();
-        remote.shutdown();
     });
 
     it("Local server to remote - same version", async () => {
-        const localInstance = Instance.build({
-            url: "http://origin.test",
-            name: "Testing",
-            version: "2.36",
-        });
-
         const builder: SynchronizationBuilder = {
             originInstance: "LOCAL",
             targetInstances: ["DESTINATION"],
@@ -292,19 +266,13 @@ describe("Sync aggregated", () => {
             // no-op
         }
 
-        const response = remote.db.dataValueSets.find(1);
+        const response = local.db.dataValueSetsaDestination.find(1);
         expect(response.dataValues[0].value).toEqual("test-value-1");
         expect(response.dataValues[0].dataElement).toEqual("id2");
-        expect(local.db.dataValueSets.find(1)).toBeNull();
+        expect(local.db.dataValueSetsLocal.find(1)).toBeNull();
     });
 
     it("Remote server to local - same version", async () => {
-        const localInstance = Instance.build({
-            url: "http://origin.test",
-            name: "Testing",
-            version: "2.36",
-        });
-
         const builder: SynchronizationBuilder = {
             originInstance: "DESTINATION",
             targetInstances: ["LOCAL"],
@@ -325,17 +293,17 @@ describe("Sync aggregated", () => {
             // no-op
         }
 
-        const response = local.db.dataValueSets.find(1);
+        const response = local.db.dataValueSetsLocal.find(1);
         expect(response.dataValues[0].value).toEqual("test-value-2");
         expect(response.dataValues[0].dataElement).toEqual("id1");
-        expect(remote.db.dataValueSets.find(1)).toBeNull();
+        expect(local.db.dataValueSetsaDestination.find(1)).toBeNull();
     });
 });
 
-function buildRepositoryFactory() {
+function buildRepositoryFactory(localInstance: Instance) {
     const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();
 
-    registerDynamicRepositoriesInFactory(repositoryFactory);
+    registerDynamicRepositoriesInFactory(localInstance, repositoryFactory);
 
     return repositoryFactory;
 }
