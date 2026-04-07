@@ -92,7 +92,8 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
 
         const payloadByTEIs = (await mapper.map({ trackedEntities: teis })) as EventsPackage;
 
-        const finalEvents = await this.manageDataElementWithFileType(events, instance);
+        const finalEvents =
+            dataParams.importMode === "VALIDATE" ? events : await this.manageDataElementWithFileType(events, instance);
 
         const payloadByEvents = (await this.mapPayload(instance, { events: finalEvents })) as EventsPackage;
 
@@ -212,7 +213,9 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
             "id,valueType"
         );
 
-        const dataElementFileTypes = dataElements.filter(de => de.valueType === "FILE_RESOURCE").map(de => de.id);
+        const dataElementFileTypes = dataElements
+            .filter(de => de.valueType === "FILE_RESOURCE" || de.valueType === "IMAGE")
+            .map(de => de.id);
 
         const eventsRepository = await this.getEventsRepository();
         const fileRemoteRepository = await this.getInstanceFileRepository(remoteInstance);

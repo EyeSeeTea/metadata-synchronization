@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-10-20T15:52:19.670Z\n"
-"PO-Revision-Date: 2025-10-20T15:52:19.670Z\n"
+"POT-Creation-Date: 2025-11-11T12:44:20.444Z\n"
+"PO-Revision-Date: 2025-11-11T12:44:20.444Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -157,6 +157,9 @@ msgid "Unauthorized - You do not have permission to view this page."
 msgstr ""
 
 msgid "Login"
+msgstr ""
+
+msgid "Error fetching instance version"
 msgstr ""
 
 msgid "An exported dhis2 file is necessary"
@@ -1083,6 +1086,9 @@ msgstr ""
 msgid "Async mode"
 msgstr ""
 
+msgid "Skip Rule Engine on destination"
+msgstr ""
+
 msgid "Sync rule {{idx}}: {{name}} ({{id}})"
 msgstr ""
 
@@ -1257,6 +1263,9 @@ msgid "with logged user"
 msgstr ""
 
 msgid "with stored user"
+msgstr ""
+
+msgid "Error fetching local instance"
 msgstr ""
 
 msgid "Destination"
@@ -1737,6 +1746,12 @@ msgstr ""
 msgid "Admin Dashboard"
 msgstr ""
 
+msgid "Basic"
+msgstr ""
+
+msgid "API Token"
+msgstr ""
+
 msgid "Please fix the issues before testing the connection"
 msgstr ""
 
@@ -1747,6 +1762,12 @@ msgid "Server name (*)"
 msgstr ""
 
 msgid "URL endpoint (*)"
+msgstr ""
+
+msgid "Authentication Scheme (*)"
+msgstr ""
+
+msgid "Token (*)"
 msgstr ""
 
 msgid "Username (*)"
@@ -1789,6 +1810,9 @@ msgid "Server name"
 msgstr ""
 
 msgid "URL endpoint"
+msgstr ""
+
+msgid "Authentication Scheme"
 msgstr ""
 
 msgid "Username"
@@ -1984,6 +2008,18 @@ msgid "Retention days"
 msgstr ""
 
 msgid "Leave empty to keep all history"
+msgstr ""
+
+msgid "Metadata Sync User Settings"
+msgstr ""
+
+msgid "Default owner and sharing settings inclusion method"
+msgstr ""
+
+msgid "Default users inclusion method"
+msgstr ""
+
+msgid "Default organisation units inclusion method"
 msgstr ""
 
 msgid "Data Store"

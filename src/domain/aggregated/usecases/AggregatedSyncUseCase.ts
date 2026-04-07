@@ -39,7 +39,9 @@ export class AggregatedSyncUseCase extends GenericSyncUseCase {
 
         const previousOriginalPayload = await this.buildPayload();
 
-        const originalPayload = await this.manageDataElementWithFileType(previousOriginalPayload, instance);
+        const originalPayload = dataParams.dryRun
+            ? previousOriginalPayload
+            : await this.manageDataElementWithFileType(previousOriginalPayload, instance);
 
         const mappedPayload = await this.mapPayload(instance, originalPayload);
 
@@ -72,7 +74,9 @@ export class AggregatedSyncUseCase extends GenericSyncUseCase {
             "id,valueType"
         );
 
-        const dataElementFileTypes = dataElements.filter(de => de.valueType === "FILE_RESOURCE").map(de => de.id);
+        const dataElementFileTypes = dataElements
+            .filter(de => de.valueType === "FILE_RESOURCE" || de.valueType === "IMAGE")
+            .map(de => de.id);
 
         const aggregatedRepository = await this.getAggregatedRepository();
         const fileRemoteRepository = await this.getInstanceFileRepository(remoteInstance);

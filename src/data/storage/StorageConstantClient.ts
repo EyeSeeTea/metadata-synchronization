@@ -18,9 +18,9 @@ export class StorageConstantClient extends StorageClient {
 
     private api: D2Api;
 
-    constructor(instance: Instance) {
+    constructor(localInstance: Instance, targetInstance?: Instance) {
         super();
-        this.api = getD2APiFromInstance(instance);
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     /**
