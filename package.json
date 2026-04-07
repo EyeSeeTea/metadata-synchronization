@@ -139,7 +139,8 @@
     },
     "resolutions": {
         "@types/react": "17.0.30",
-        "@types/react-dom": "17.0.9"
+        "@types/react-dom": "17.0.9",
+        "@dhis2/ui-icons": "7.4.1"
     },
     "manifest.webapp": {
         "name": "MetaData Synchronization",
