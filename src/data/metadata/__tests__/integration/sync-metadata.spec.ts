@@ -32,6 +32,12 @@ describe("Sync metadata", () => {
             dataElements: [{ id: "id2", name: "Test data element 2" }],
         }));
 
+        local.get("/dataStore/metadata-synchronization/instances", async () => [
+            {
+                id: "DESTINATION",
+            },
+        ]);
+
         local.get("/routes", async () => ({
             routes: [
                 {

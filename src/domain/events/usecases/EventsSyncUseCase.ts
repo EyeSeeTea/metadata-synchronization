@@ -24,6 +24,7 @@ import { EventsPayloadBuilder } from "../builders/EventsPayloadBuilder";
 import { EventsPackage } from "../entities/EventsPackage";
 import { ProgramEvent } from "../entities/ProgramEvent";
 import { createEventsPayloadMapper } from "../mapper/EventsPayloadMapperFactory";
+import { AggregatedDataExchangeExecutor } from "../../aggregated/repositories/AggregatedDataExchangeExecutor";
 
 export const eventsFields =
     "id,name,programType,programStages[id,displayFormName,programStageDataElements[dataElement[id,displayFormName,name]]],programIndicators[id,name],program";
@@ -38,9 +39,10 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
         readonly repositoryFactory: DynamicRepositoryFactory,
         readonly localInstance: Instance,
         private eventsPayloadBuilder: EventsPayloadBuilder,
-        private aggregatedPayloadBuilder: AggregatedPayloadBuilder
+        private aggregatedPayloadBuilder: AggregatedPayloadBuilder,
+        readonly aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor
     ) {
-        super(builder, repositoryFactory, localInstance);
+        super(builder, repositoryFactory, localInstance, aggregatedDataExchangeExecutor);
     }
 
     /**
@@ -147,7 +149,8 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
             this.builder,
             this.repositoryFactory,
             this.localInstance,
-            this.aggregatedPayloadBuilder
+            this.aggregatedPayloadBuilder,
+            this.aggregatedDataExchangeExecutor
         );
 
         const mappedPayload = await aggregatedSync.mapPayload(instance, { dataValues });

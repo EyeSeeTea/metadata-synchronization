@@ -8,6 +8,7 @@ import { Instance } from "../../../../domain/instance/entities/Instance";
 import { SynchronizationBuilder } from "../../../../domain/synchronization/entities/SynchronizationBuilder";
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { startDhis } from "../../../../utils/dhisServer";
+import { AggregatedDataExchangeApiExecutor } from "../../../aggregated/AggregatedDataExchangeApiExecutor";
 
 const localInstance = Instance.build({
     url: "http://origin.test",
@@ -94,6 +95,8 @@ describe("Sync local instance mapped", () => {
             ],
         }));
 
+        local.get("/dataStore/metadata-synchronization/instances", async () => []);
+
         // Local is created by repostitory in memmory
         local.get("/routes", async () => ({ routes: [] }));
 
@@ -173,8 +176,15 @@ describe("Sync local instance mapped", () => {
         };
 
         const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
+        const aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(localInstance);
 
-        const sync = new AggregatedSyncUseCase(builder, repositoryFactory, localInstance, aggregatedPayloadBuilder);
+        const sync = new AggregatedSyncUseCase(
+            builder,
+            repositoryFactory,
+            localInstance,
+            aggregatedPayloadBuilder,
+            aggregatedDataExchangeExecutor
+        );
 
         const payload = await aggregatedPayloadBuilder.build(builder);
 

@@ -8,7 +8,7 @@ import { SharingSetting } from "../../common/entities/SharingSetting";
 import { ModelValidation, validateModel, ValidationError } from "../../common/entities/Validations";
 
 export type PublicInstance = Omit<InstanceData, "password">;
-export type InstanceType = "local" | "dhis";
+export type InstanceType = "local" | "dhis" | "aggregated-data-exchange";
 
 type AuthType = "api-token" | "http-basic";
 export interface InstanceData extends SharedRef {
@@ -184,7 +184,7 @@ export class Instance extends ShareableEntity<InstanceData> {
             { property: "name", validation: "hasText" },
             { property: "url", validation: "isUrl" },
             { property: "url", validation: "hasText" },
-        ];
+        ].filter((v): v is ModelValidation => v !== undefined);
 
         const authValidationsByType = {
             "api-token": [{ property: "token", validation: "hasText" }],
@@ -194,7 +194,7 @@ export class Instance extends ShareableEntity<InstanceData> {
             ],
         } as const;
 
-        const authValidations = authValidationsByType[this.authType ?? "http-basic"];
+        const authValidations = this.type === "dhis" ? authValidationsByType[this.authType ?? "http-basic"] : [];
 
         return [...baseValidations, ...authValidations];
     };

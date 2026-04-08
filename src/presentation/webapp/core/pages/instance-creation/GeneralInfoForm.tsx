@@ -20,9 +20,14 @@ export interface GeneralInfoFormProps {
     testConnectionVisible: boolean;
 }
 
-const authTypeItems = [
+export const authTypeItems = [
     { id: "http-basic", name: i18n.t("Basic") },
     { id: "api-token", name: i18n.t("API Token") },
+];
+
+const typeItems = [
+    { id: "dhis", name: i18n.t("Default") },
+    { id: "aggregated-data-exchange", name: i18n.t("Aggregated Data Exchange") },
 ];
 
 const GeneralInfoForm = ({
@@ -122,6 +127,16 @@ const GeneralInfoForm = ({
                     error={!!errors["description"]}
                     helperText={errors["description"]?.description}
                 />
+                <div className={classes.dropdown}>
+                    <Dropdown
+                        items={typeItems}
+                        label={i18n.t("Type")}
+                        value={instance.type}
+                        onValueChange={(value: string) => updateModel("type", value)}
+                        hideEmpty={true}
+                    />
+                </div>
+
                 <TextField
                     className={classes.row}
                     fullWidth={true}
@@ -132,17 +147,19 @@ const GeneralInfoForm = ({
                     helperText={errors["url"]?.description}
                 />
 
-                <div className={classes.dropdown}>
-                    <Dropdown
-                        items={authTypeItems}
-                        label={i18n.t("Authentication Scheme (*)")}
-                        value={instance.authType ?? "http-basic"}
-                        onValueChange={(value: string) => updateModel("authType", value)}
-                        hideEmpty={true}
-                    />
-                </div>
+                {instance.type === "dhis" && (
+                    <div className={classes.dropdown}>
+                        <Dropdown
+                            items={authTypeItems}
+                            label={i18n.t("Authentication Scheme (*)")}
+                            value={instance.authType ?? "http-basic"}
+                            onValueChange={(value: string) => updateModel("authType", value)}
+                            hideEmpty={true}
+                        />
+                    </div>
+                )}
 
-                {instance.authType === "api-token" && (
+                {instance.type === "dhis" && instance.authType === "api-token" && (
                     <TextField
                         className={classes.row}
                         fullWidth={true}
@@ -154,7 +171,7 @@ const GeneralInfoForm = ({
                     />
                 )}
 
-                {instance.authType === "http-basic" && (
+                {instance.type === "dhis" && instance.authType === "http-basic" && (
                     <>
                         <TextField
                             className={classes.row}
@@ -186,7 +203,7 @@ const GeneralInfoForm = ({
                         </Button>
                     </div>
                     <div className={classes.actionButtonsContainer}>
-                        {instance.id && showMetadataMapping && (
+                        {instance.type === "dhis" && instance.id && showMetadataMapping && (
                             <Button
                                 variant="contained"
                                 onClick={goToMetadataMapping}
@@ -196,7 +213,7 @@ const GeneralInfoForm = ({
                                 {i18n.t("Metadata mapping")}
                             </Button>
                         )}
-                        {testConnectionVisible && (
+                        {testConnectionVisible && instance.type === "dhis" && (
                             <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
                                 {i18n.t("Test Connection")}
                             </Button>

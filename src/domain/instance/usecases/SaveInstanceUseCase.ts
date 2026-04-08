@@ -8,7 +8,8 @@ export class SaveInstanceUseCase implements UseCase {
     constructor(private instanceRepository: InstanceRepository) {}
 
     public async execute(instance: Instance): Promise<ValidationError[]> {
-        const instanceByName = await this.instanceRepository.getByName(instance.name);
+        const instances = await this.instanceRepository.getAll({});
+        const instanceByName = instances?.find(existed => existed.name === instance.name);
 
         if (instanceByName && instanceByName.id !== instance.id) {
             return [
@@ -16,6 +17,26 @@ export class SaveInstanceUseCase implements UseCase {
                     property: "name",
                     error: "name_exists",
                     description: i18n.t("An instance with this name already exists"),
+                },
+            ];
+        }
+
+        const exitedAdexInstanceByUrl =
+            instance.type === "aggregated-data-exchange"
+                ? instances?.find(
+                      existed => existed.type === "aggregated-data-exchange" && existed.url === instance.url
+                  )
+                : undefined;
+
+        if (exitedAdexInstanceByUrl && exitedAdexInstanceByUrl.id !== instance.id) {
+            return [
+                {
+                    property: "url",
+                    error: "url_exists",
+                    description: i18n.t(
+                        "An Aggregated Data Exchange instance with this URL already exists: {{instanceName}}",
+                        { instanceName: exitedAdexInstanceByUrl.name }
+                    ),
                 },
             ];
         }

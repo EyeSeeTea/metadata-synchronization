@@ -143,6 +143,8 @@ import { InstanceRepository } from "../domain/instance/repositories/InstanceRepo
 import { InstanceD2Validator } from "../data/instance/InstanceD2Validator";
 import { UserRepository } from "../domain/user/repositories/UserRepository";
 import { VisualizationD2Repository } from "../data/visualization/VisualizationD2Repository";
+import { AggregatedDataExchangeExecutor } from "../domain/aggregated/repositories/AggregatedDataExchangeExecutor";
+import { AggregatedDataExchangeApiExecutor } from "../data/aggregated/AggregatedDataExchangeApiExecutor";
 
 /**
  * @deprecated CompositionRoot has been deprecated and will be removed in the future.
@@ -159,6 +161,7 @@ export class CompositionRoot {
     private transformationRepository: TransformationRepository;
     private instanceRepository: InstanceRepository;
     private userRepository: UserRepository;
+    private aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor;
 
     constructor(public readonly localInstance: Instance) {
         this.repositoryFactory = new DynamicRepositoryFactory();
@@ -170,6 +173,7 @@ export class CompositionRoot {
             new StorageClientD2Repository(this.localInstance)
         );
         this.userRepository = new UserD2ApiRepository(this.localInstance);
+        this.aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(this.localInstance);
 
         registerDynamicRepositoriesInFactory(this.localInstance, this.repositoryFactory);
 
@@ -204,7 +208,8 @@ export class CompositionRoot {
                     builder,
                     this.repositoryFactory,
                     this.localInstance,
-                    this.aggregatedPayloadBuilder
+                    this.aggregatedPayloadBuilder,
+                    this.aggregatedDataExchangeExecutor
                 ),
             events: (builder: SynchronizationBuilder) =>
                 new EventsSyncUseCase(
@@ -212,7 +217,8 @@ export class CompositionRoot {
                     this.repositoryFactory,
                     this.localInstance,
                     this.eventsPayloadBuilder,
-                    this.aggregatedPayloadBuilder
+                    this.aggregatedPayloadBuilder,
+                    this.aggregatedDataExchangeExecutor
                 ),
             metadata: (builder: SynchronizationBuilder) =>
                 new MetadataSyncUseCase(
@@ -449,7 +455,8 @@ export class CompositionRoot {
                 this.repositoryFactory,
                 this.downloadRepository,
                 this.transformationRepository,
-                this.localInstance
+                this.localInstance,
+                this.aggregatedDataExchangeExecutor
             ),
         });
     }
@@ -613,13 +620,13 @@ export function registerDynamicRepositoriesInFactory(
     repositoryFactory.bindByInstance(Repositories.RulesRepository, (instance: Instance) => {
         const storageClient = repositoryFactory.configRepository(instance);
 
-        return new RulesD2ApiRepository(storageClient, userRepository);
+        return new RulesD2ApiRepository(localInstance, storageClient, userRepository);
     });
 
     repositoryFactory.bindByInstance(Repositories.FileRulesRepository, (_instance: Instance) => {
         const file = new FileDataRepository();
 
-        return new FileRulesDefaultRepository(userRepository, file);
+        return new FileRulesDefaultRepository(localInstance, repositoryFactory.configRepository(localInstance), userRepository, file);
     });
 
     repositoryFactory.bindByInstance(Repositories.CustomDataRepository, (instance: Instance) => {

@@ -71,19 +71,16 @@ const InstanceCreationPage = () => {
                 description={i18n.t("All your changes will be lost. Are you sure?")}
                 saveText={i18n.t("Ok")}
             />
-
             <PageHeader title={title} onBackClick={cancelSave} />
 
-            {instance.type === "dhis" && (
-                <GeneralInfoForm
-                    instance={instance}
-                    onChange={onChange}
-                    cancelAction={cancelSave}
-                    testConnectionVisible={isEdit}
-                    onSaved={onSaved}
-                    showMetadataMapping
-                />
-            )}
+            <GeneralInfoForm
+                instance={instance}
+                onChange={onChange}
+                cancelAction={cancelSave}
+                testConnectionVisible={isEdit}
+                onSaved={onSaved}
+                showMetadataMapping
+            />
         </TestWrapper>
     );
 };

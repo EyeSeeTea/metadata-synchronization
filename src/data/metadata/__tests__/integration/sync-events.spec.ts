@@ -9,6 +9,7 @@ import { startDhis } from "../../../../utils/dhisServer";
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { EventsPayloadBuilder } from "../../../../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../../../domain/aggregated/builders/AggregatedPayloadBuilder";
+import { AggregatedDataExchangeApiExecutor } from "../../../aggregated/AggregatedDataExchangeApiExecutor";
 
 const localInstance = Instance.build({
     url: "http://origin.test",
@@ -169,6 +170,12 @@ describe("Sync events", () => {
             dataElements: [{ id: "id2", name: "Test data element 2" }],
         }));
 
+        local.get("/dataStore/metadata-synchronization/instances", async () => [
+            {
+                id: "DESTINATION",
+            },
+        ]);
+
         local.get("/routes", async () => ({
             routes: [
                 {
@@ -295,13 +302,15 @@ describe("Sync events", () => {
 
         const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
         const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
+        const aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(localInstance);
 
         const sync = new EventsSyncUseCase(
             builder,
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder
+            aggregatedPayloadBuilder,
+            aggregatedDataExchangeExecutor
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
@@ -330,13 +339,15 @@ describe("Sync events", () => {
         };
         const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
         const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
+        const aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(localInstance);
 
         const sync = new EventsSyncUseCase(
             builder,
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder
+            aggregatedPayloadBuilder,
+            aggregatedDataExchangeExecutor
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
