@@ -626,7 +626,7 @@ export function registerDynamicRepositoriesInFactory(
     repositoryFactory.bindByInstance(Repositories.FileRulesRepository, (_instance: Instance) => {
         const file = new FileDataRepository();
 
-        return new FileRulesDefaultRepository(userRepository, file);
+        return new FileRulesDefaultRepository(localInstance, repositoryFactory.configRepository(localInstance), userRepository, file);
     });
 
     repositoryFactory.bindByInstance(Repositories.CustomDataRepository, (instance: Instance) => {

@@ -1,5 +1,3 @@
-import { SynchronizationRuleData } from "../../../domain/rules/entities/SynchronizationRule";
+import { SynchronizationRulePersistedSnapshot } from "../../../domain/rules/PersistedSnapshot";
 
-export type SyncRulePersistedData = Omit<SynchronizationRuleData, "aggregatedDataExchanges"> & {
-    aggregatedDataExchanges?: { id: string }[];
-};
+export type SyncRulePersistedData = SynchronizationRulePersistedSnapshot;

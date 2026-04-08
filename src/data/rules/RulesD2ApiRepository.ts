@@ -12,13 +12,14 @@ import { D2Api } from "../../types/d2-api";
 import { isDhisInstance } from "../../domain/instance/entities/DataSource";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { promiseMap } from "../../utils/common";
-import { RuleAggregatedDataExchange } from "../../domain/rules/value-object/RuleAggregatedDataExchange";
 import { InstanceDataStoreData } from "../instance/InstanceD2ApiRepository";
 import _, { isArray } from "lodash";
 import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../domain/aggregated/utils";
 import { MetadataType } from "../../utils/d2";
 import { getAggregatedDataExchanges } from "../aggregated/getAggregateDataExchange";
 import { getAggregatedDataExchangeJobConfigurations } from "../aggregated/getAggregatedDataExchangeJobConfigurations";
+import { toSynchronizationRulePersistedSnapshot } from "../../domain/rules/PersistedSnapshot";
+import { getRuleAggregatedDataExchanges } from "./utils/getRuleAggregatedDataExchanges";
 
 export class RulesD2ApiRepository implements RulesRepository {
     private api: D2Api;
@@ -44,14 +45,15 @@ export class RulesD2ApiRepository implements RulesRepository {
         }
 
         if (data.aggregatedDataExchanges && data.aggregatedDataExchanges.length > 0) {
-            const adexIds = data.aggregatedDataExchanges.map(ade => ade.id);
-            const adexItems = await getAggregatedDataExchanges(this.api, adexIds);
-
             const instances = await this.getInstances();
 
             const dataWithADEX = {
                 ...data,
-                aggregatedDataExchanges: this.buildRuleAggregatedDataExchanges(adexItems, instances),
+                aggregatedDataExchanges: await getRuleAggregatedDataExchanges(
+                    this.api,
+                    data.aggregatedDataExchanges,
+                    instances
+                ),
             };
             return SynchronizationRule.build(dataWithADEX);
         } else {
@@ -110,14 +112,7 @@ export class RulesD2ApiRepository implements RulesRepository {
             await this.saveAggregatedDataExchangeJobConfiguration(job);
         });
 
-        const rulesToSave = data.map(ruleData => {
-            return {
-                ...ruleData,
-                aggregatedDataExchanges: (ruleData.aggregatedDataExchanges || []).map(ade => {
-                    return { id: ade.id };
-                }),
-            };
-        });
+        const rulesToSave = data.map(ruleData => toSynchronizationRulePersistedSnapshot(ruleData));
 
         const storageClient = await this.getStorageClient();
         await storageClient.saveObjectsInCollection<SyncRulePersistedData>(Namespace.RULES, rulesToSave);
@@ -140,34 +135,6 @@ export class RulesD2ApiRepository implements RulesRepository {
 
         const storageClient = await this.getStorageClient();
         await storageClient.removeObjectInCollection(Namespace.RULES, id);
-    }
-
-    private buildRuleAggregatedDataExchanges(
-        adexItems: AggregatedDataExchange[],
-        instances: InstanceDataStoreData[]
-    ): RuleAggregatedDataExchange[] {
-        return adexItems.map(adex => {
-            const instance = instances.find(
-                inst => inst.url === adex.target.api.url && inst.type === "aggregated-data-exchange"
-            );
-
-            if (!instance) {
-                throw new Error(
-                    `Instance with url ${adex.target.api.url} not found for Aggregated Data Exchange ${adex.id}`
-                );
-            }
-
-            return RuleAggregatedDataExchange.createExisted({
-                id: adex.id,
-                target: {
-                    instanceId: instance.id,
-                    authType: adex.target.api.username ? "http-basic" : "api-token",
-                    username: adex.target.api.username,
-                    password: adex.target.api.password,
-                    token: adex.target.api.token,
-                },
-            }).getOrThrow();
-        });
     }
 
     private async getRulesData(allProperties?: boolean): Promise<SynchronizationRuleData[]> {
