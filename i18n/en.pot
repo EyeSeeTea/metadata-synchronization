@@ -1101,6 +1101,9 @@ msgstr ""
 msgid "Async mode"
 msgstr ""
 
+msgid "Skip Rule Engine on destination"
+msgstr ""
+
 msgid "Sync rule {{idx}}: {{name}} ({{id}})"
 msgstr ""
 
@@ -2041,6 +2044,18 @@ msgid "Retention days"
 msgstr ""
 
 msgid "Leave empty to keep all history"
+msgstr ""
+
+msgid "Metadata Sync User Settings"
+msgstr ""
+
+msgid "Default owner and sharing settings inclusion method"
+msgstr ""
+
+msgid "Default users inclusion method"
+msgstr ""
+
+msgid "Default organisation units inclusion method"
 msgstr ""
 
 msgid "Data Store"
