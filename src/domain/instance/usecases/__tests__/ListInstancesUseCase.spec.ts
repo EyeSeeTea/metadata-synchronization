@@ -1,6 +1,5 @@
-import { mock, instance, when, anything } from "ts-mockito";
+import { mock, when, anything, instance } from "ts-mockito";
 import { ListInstancesUseCase } from "../ListInstancesUseCase";
-import { DynamicRepositoryFactory } from "../../../common/factories/DynamicRepositoryFactory";
 import { InstanceRepository } from "../../repositories/InstanceRepository";
 import { UserRepository } from "../../../user/repositories/UserRepository";
 import { Instance } from "../../entities/Instance";
@@ -383,7 +382,6 @@ describe("ListInstancesUseCase", () => {
     }
 
     function createUseCase(user: User, instances: Instance[]): ListInstancesUseCase {
-        const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
         const mockedInstanceRepository = mock<InstanceRepository>();
         const mockedUserRepository = mock<UserRepository>();
         const localInstance = Instance.build({
@@ -401,9 +399,6 @@ describe("ListInstancesUseCase", () => {
             return Promise.resolve(allInstances);
         });
 
-        when(mockedRepositoryFactory.userRepository(anything())).thenReturn(instance(mockedUserRepository));
-        when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
-
-        return new ListInstancesUseCase(instance(mockedRepositoryFactory), localInstance);
+        return new ListInstancesUseCase(instance(mockedUserRepository), instance(mockedInstanceRepository));
     }
 });

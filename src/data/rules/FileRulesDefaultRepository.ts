@@ -60,7 +60,9 @@ export class FileRulesDefaultRepository implements FileRulesRepository {
         return _.flatten(items);
     }
 
-    private async persistedSnapshotToDomainData(data: SynchronizationRulePersistedSnapshot): Promise<SynchronizationRuleData> {
+    private async persistedSnapshotToDomainData(
+        data: SynchronizationRulePersistedSnapshot
+    ): Promise<SynchronizationRuleData> {
         const { aggregatedDataExchanges: adexRefs = [], ...rest } = data;
 
         if (adexRefs.length === 0) {
