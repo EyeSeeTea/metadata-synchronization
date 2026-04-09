@@ -3368,18 +3368,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dhis2/ui-icons@npm:6.15.2":
-  version: 6.15.2
-  resolution: "@dhis2/ui-icons@npm:6.15.2"
-  dependencies:
-    "@dhis2/prop-types": "npm:^1.6.4"
-  peerDependencies:
-    react: ^16.8
-    react-dom: ^16.8
-  checksum: 10c0/5d9dc7d94542f0e83a0f55189229170b2ba71c755d97afec5ba2be06ce04ddcf75ee25df84a25a875787b1975eb48cf307a4248792ede505875dc931befb9ed1
-  languageName: node
-  linkType: hard
-
 "@dhis2/ui-icons@npm:7.4.1":
   version: 7.4.1
   resolution: "@dhis2/ui-icons@npm:7.4.1"
