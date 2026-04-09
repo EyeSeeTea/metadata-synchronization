@@ -367,7 +367,7 @@ export class CompositionRoot {
     @cache()
     public get instances() {
         return getExecute({
-            list: new ListInstancesUseCase(this.instanceRepository),
+            list: new ListInstancesUseCase(this.userRepository, this.instanceRepository),
             getById: new GetInstanceByIdUseCase(this.instanceRepository),
             save: new SaveInstanceUseCase(this.instanceRepository),
             delete: new DeleteInstanceUseCase(this.instanceRepository),
@@ -626,7 +626,12 @@ export function registerDynamicRepositoriesInFactory(
     repositoryFactory.bindByInstance(Repositories.FileRulesRepository, (_instance: Instance) => {
         const file = new FileDataRepository();
 
-        return new FileRulesDefaultRepository(localInstance, repositoryFactory.configRepository(localInstance), userRepository, file);
+        return new FileRulesDefaultRepository(
+            localInstance,
+            repositoryFactory.configRepository(localInstance),
+            userRepository,
+            file
+        );
     });
 
     repositoryFactory.bindByInstance(Repositories.CustomDataRepository, (instance: Instance) => {
