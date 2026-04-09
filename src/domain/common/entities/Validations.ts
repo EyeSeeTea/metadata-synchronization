@@ -14,7 +14,7 @@ export interface ModelValidation {
     validation: keyof typeof availableValidations;
 }
 
-const urlRegExp = /^(https?):\/\/([^:/\s]+)(?::(\d+))?([\/?#]\S*)?$/;
+const urlRegExp = /^(https?):\/\/([^:/\s]+)(?::(\d+))?([/?#]\S*)?$/;
 
 const availableValidations = {
     hasText: {

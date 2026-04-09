@@ -306,7 +306,12 @@ export class EventsD2ApiRepository implements EventsRepository {
         };
 
         const trackerPostRequest: TrackerPostRequest = {
-            events: events.map(event => ({ ...event, event: event.event || "" })),
+            events: events.map(event => ({
+                ...event,
+                event: event.event || "",
+                programStage: event.programStage ?? "",
+                scheduledAt: event.scheduledAt ?? event.occurredAt ?? "",
+            })),
         };
 
         if (params.async || params.async === undefined) {
@@ -355,7 +360,7 @@ export class EventsD2ApiRepository implements EventsRepository {
         return new File([blob], fileName, { type: fileResource.contentType });
     }
 
-    extractEvents(response: TrackerEventsResponse): D2TrackerEvent[] {
+    extractEvents(response: TrackerEventsResponse<{ $all: true }>): D2TrackerEvent[] {
         return response.instances || (hasEventsProperty(response) ? response.events : []);
     }
 }
