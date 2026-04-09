@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-11-11T12:44:20.444Z\n"
+"POT-Creation-Date: 2025-11-07T09:20:37.657Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -153,10 +153,34 @@ msgstr ""
 msgid "Tracker Data Elements"
 msgstr ""
 
+msgid "Aggregated Data Exchange instances credentials"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Authentication Scheme (*)"
+msgstr ""
+
+msgid "Token (*)"
+msgstr ""
+
+msgid "Username (*)"
+msgstr ""
+
+msgid "Password (*)"
+msgstr ""
+
 msgid "Unauthorized - You do not have permission to view this page."
 msgstr ""
 
 msgid "Login"
+msgstr ""
+
+msgid "Error fetching instance version"
 msgstr ""
 
 msgid "An exported dhis2 file is necessary"
@@ -190,9 +214,6 @@ msgid "DHIS2 Version (*)"
 msgstr ""
 
 msgid "Description"
-msgstr ""
-
-msgid "Cancel"
 msgstr ""
 
 msgid "Save"
@@ -307,9 +328,6 @@ msgid "Delete History Notifications?"
 msgstr ""
 
 msgid "Are you sure you want to delete {{total}} history notifications?"
-msgstr ""
-
-msgid "Ok"
 msgstr ""
 
 msgid "Instances"
@@ -1253,6 +1271,18 @@ msgid ""
 "aggregation is enabled."
 msgstr ""
 
+msgid "You need to select credentials for the selected instances."
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Aggregated data exchange "
+msgstr ""
+
+msgid "Type of synchronization"
+msgstr ""
+
 msgid "Source instance"
 msgstr ""
 
@@ -1265,7 +1295,13 @@ msgstr ""
 msgid "with stored user"
 msgstr ""
 
+msgid "Error fetching local instance"
+msgstr ""
+
 msgid "Destination"
+msgstr ""
+
+msgid "Set Credentials"
 msgstr ""
 
 msgid "Every day"
@@ -1286,6 +1322,15 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
+msgid "Metadata Sync Scheduler"
+msgstr ""
+
+msgid "DHIS2 Scheduler"
+msgstr ""
+
+msgid "Scheduler type"
+msgstr ""
+
 msgid "Select frequency template"
 msgstr ""
 
@@ -1293,6 +1338,9 @@ msgid "Cron expression"
 msgstr ""
 
 msgid "Cron expression must be valid"
+msgstr ""
+
+msgid "An error has ocurred during the save"
 msgstr ""
 
 msgid "Json files downloaded successfull"
@@ -1319,6 +1367,9 @@ msgid "Download JSON"
 msgstr ""
 
 msgid "Invalid origin instance"
+msgstr ""
+
+msgid "Aggregated data exchange"
 msgstr ""
 
 msgid "Target instances [{{total}}]"
@@ -1742,6 +1793,15 @@ msgstr ""
 msgid "Admin Dashboard"
 msgstr ""
 
+msgid "Basic"
+msgstr ""
+
+msgid "API Token"
+msgstr ""
+
+msgid "Aggregated Data Exchange"
+msgstr ""
+
 msgid "Please fix the issues before testing the connection"
 msgstr ""
 
@@ -1752,12 +1812,6 @@ msgid "Server name (*)"
 msgstr ""
 
 msgid "URL endpoint (*)"
-msgstr ""
-
-msgid "Username (*)"
-msgstr ""
-
-msgid "Password (*)"
 msgstr ""
 
 msgid "Metadata mapping"
@@ -1794,6 +1848,9 @@ msgid "Server name"
 msgstr ""
 
 msgid "URL endpoint"
+msgstr ""
+
+msgid "Authentication Scheme"
 msgstr ""
 
 msgid "Username"
@@ -2037,9 +2094,6 @@ msgid "Repository"
 msgstr ""
 
 msgid "Token"
-msgstr ""
-
-msgid "Default"
 msgstr ""
 
 msgid "Set as default"

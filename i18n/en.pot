@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-12-11T08:42:31.230Z\n"
-"PO-Revision-Date: 2025-12-11T08:42:31.231Z\n"
+"POT-Creation-Date: 2026-04-09T05:24:15.585Z\n"
+"PO-Revision-Date: 2026-04-09T05:24:15.585Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -153,10 +153,34 @@ msgstr ""
 msgid "Tracker Data Elements"
 msgstr ""
 
+msgid "Aggregated Data Exchange instances credentials"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Authentication Scheme (*)"
+msgstr ""
+
+msgid "Token (*)"
+msgstr ""
+
+msgid "Username (*)"
+msgstr ""
+
+msgid "Password (*)"
+msgstr ""
+
 msgid "Unauthorized - You do not have permission to view this page."
 msgstr ""
 
 msgid "Login"
+msgstr ""
+
+msgid "Error fetching instance version"
 msgstr ""
 
 msgid "An exported dhis2 file is necessary"
@@ -190,9 +214,6 @@ msgid "DHIS2 Version (*)"
 msgstr ""
 
 msgid "Description"
-msgstr ""
-
-msgid "Cancel"
 msgstr ""
 
 msgid "Save"
@@ -307,9 +328,6 @@ msgid "Delete History Notifications?"
 msgstr ""
 
 msgid "Are you sure you want to delete {{total}} history notifications?"
-msgstr ""
-
-msgid "Ok"
 msgstr ""
 
 msgid "Instances"
@@ -1250,6 +1268,18 @@ msgid ""
 "aggregation is enabled."
 msgstr ""
 
+msgid "You need to select credentials for the selected instances."
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Aggregated data exchange "
+msgstr ""
+
+msgid "Type of synchronization"
+msgstr ""
+
 msgid "Source instance"
 msgstr ""
 
@@ -1262,7 +1292,13 @@ msgstr ""
 msgid "with stored user"
 msgstr ""
 
+msgid "Error fetching local instance"
+msgstr ""
+
 msgid "Destination"
+msgstr ""
+
+msgid "Set Credentials"
 msgstr ""
 
 msgid "Every day"
@@ -1283,6 +1319,15 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
+msgid "Metadata Sync Scheduler"
+msgstr ""
+
+msgid "DHIS2 Scheduler"
+msgstr ""
+
+msgid "Scheduler type"
+msgstr ""
+
 msgid "Select frequency template"
 msgstr ""
 
@@ -1290,6 +1335,9 @@ msgid "Cron expression"
 msgstr ""
 
 msgid "Cron expression must be valid"
+msgstr ""
+
+msgid "An error has ocurred during the save"
 msgstr ""
 
 msgid "Json files downloaded successfull"
@@ -1316,6 +1364,9 @@ msgid "Download JSON"
 msgstr ""
 
 msgid "Invalid origin instance"
+msgstr ""
+
+msgid "Aggregated data exchange"
 msgstr ""
 
 msgid "Target instances [{{total}}]"
@@ -1740,6 +1791,15 @@ msgstr ""
 msgid "Admin Dashboard"
 msgstr ""
 
+msgid "Basic"
+msgstr ""
+
+msgid "API Token"
+msgstr ""
+
+msgid "Aggregated Data Exchange"
+msgstr ""
+
 msgid "Please fix the issues before testing the connection"
 msgstr ""
 
@@ -1750,12 +1810,6 @@ msgid "Server name (*)"
 msgstr ""
 
 msgid "URL endpoint (*)"
-msgstr ""
-
-msgid "Username (*)"
-msgstr ""
-
-msgid "Password (*)"
 msgstr ""
 
 msgid "Metadata mapping"
@@ -1792,6 +1846,9 @@ msgid "Server name"
 msgstr ""
 
 msgid "URL endpoint"
+msgstr ""
+
+msgid "Authentication Scheme"
 msgstr ""
 
 msgid "Username"
@@ -2035,9 +2092,6 @@ msgid "Repository"
 msgstr ""
 
 msgid "Token"
-msgstr ""
-
-msgid "Default"
 msgstr ""
 
 msgid "Set as default"
