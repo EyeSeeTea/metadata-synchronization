@@ -25,6 +25,7 @@ import { EventsPayloadBuilder } from "../../events/builders/EventsPayloadBuilder
 import { AggregatedPayloadBuilder } from "../../aggregated/builders/AggregatedPayloadBuilder";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
 import { isEmptyContent } from "../utils";
+import { AggregatedDataExchangeExecutor } from "../../aggregated/repositories/AggregatedDataExchangeExecutor";
 
 type DownloadErrors = string[];
 
@@ -50,7 +51,8 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         private repositoryFactory: DynamicRepositoryFactory,
         private downloadRepository: DownloadRepository,
         private transformationRepository: TransformationRepository,
-        private localInstance: Instance
+        private localInstance: Instance,
+        readonly aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor
     ) {}
 
     async execute(params: DownloadPayloadParams): Promise<Either<DownloadErrors, true>> {
@@ -59,7 +61,11 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
 
         const sync: GenericSyncUseCase = this.compositionRoot.sync[rule.type](rule.toBuilder());
 
-        const payload: SynchronizationPayload = await this.buildPayload(rule.type, rule);
+        const aggregateDataExchanges = rule.aggregatedDataExchanges?.map(ade => ade.id) || [];
+
+        const payload: SynchronizationPayload = rule.useAggregatedDataExchange
+            ? await this.aggregatedDataExchangeExecutor.getSourceData(aggregateDataExchanges)
+            : await this.buildPayload(rule.type, rule);
 
         const date = moment().format("YYYYMMDDHHmm");
 
@@ -131,7 +137,9 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
 
             if (instance) {
                 try {
-                    const mappedPayload = await (await createMapper(instance)).map(payload);
+                    const mappedPayload = rule.useAggregatedDataExchange
+                        ? payload
+                        : await (await createMapper(instance)).map(payload);
 
                     return {
                         name: _(["synchronization", rule.name, resultType, instance.name, date]).compact().kebabCase(),
@@ -193,7 +201,8 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
             rule.builder,
             this.repositoryFactory,
             this.localInstance,
-            this.aggregatePayloadBuilder
+            this.aggregatePayloadBuilder,
+            this.aggregatedDataExchangeExecutor
         );
 
         const downloadItemsByAggregated =

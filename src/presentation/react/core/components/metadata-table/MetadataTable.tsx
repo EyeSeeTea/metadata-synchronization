@@ -322,20 +322,18 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         <React.Fragment key={"metadata-table-filters"}>
             {externalFilterComponents}
 
-            {models.length > 1 && (
-                <div className={classes.metadataFilter}>
-                    <Dropdown
-                        items={models.map(model => ({
-                            id: model.getMetadataType(),
-                            name: model.getModelName(),
-                        }))}
-                        onValueChange={changeModelFilter}
-                        value={model.getMetadataType()}
-                        label={i18n.t("Metadata type")}
-                        hideEmpty={true}
-                    />
-                </div>
-            )}
+            <div className={classes.metadataFilter}>
+                <Dropdown
+                    items={models.map(model => ({
+                        id: model.getMetadataType(),
+                        name: model.getModelName(),
+                    }))}
+                    onValueChange={changeModelFilter}
+                    value={model.getMetadataType()}
+                    label={i18n.t("Metadata type")}
+                    hideEmpty={true}
+                />
+            </div>
 
             {viewFilters.includes("lastUpdated") && (
                 <div className={classes.dateFilter}>
@@ -532,7 +530,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             return;
         }
 
-        compositionRoot.instances
+        compositionRoot.metadata
             .getOrgUnitRoots(remoteInstance)
             .then(roots => changeParentOrgUnitFilter(roots.map(({ path }) => path)))
             .catch(handleError);
@@ -596,7 +594,9 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     useEffect(() => {
         if (remoteInstance && isJSONDataSource(remoteInstance)) return;
 
-        compositionRoot.responsibles.list(remoteInstance).then(updateResponsibles);
+        if (!remoteInstance) {
+            compositionRoot.responsibles.list().then(updateResponsibles);
+        }
     }, [compositionRoot, remoteInstance]);
 
     const handleTableChange = (tableState: TableState<ReferenceObject>) => {
