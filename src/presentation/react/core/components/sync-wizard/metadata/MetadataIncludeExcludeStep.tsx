@@ -174,8 +174,3 @@ const LoadingContainer = styled.div`
     height: 100%;
     width: 100%;
 `;
-
-const DropdownContainer = styled.div`
-    width: fit-content;
-    min-width: 350px;
-`;

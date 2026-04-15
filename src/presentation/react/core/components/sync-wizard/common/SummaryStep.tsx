@@ -70,9 +70,15 @@ export const SummaryStep = ({ syncRule, onCancel }: SyncWizardStepProps) => {
             snackbar.error(errors.join("\n"));
         } else {
             const newSyncRule = syncRule.updateName(name);
-            await compositionRoot.rules.save([newSyncRule]);
-            history.push(`/sync-rules/${syncRule.type}/edit/${newSyncRule.id}`);
-            onCancel();
+            compositionRoot.rules
+                .save([newSyncRule])
+                .then(() => {
+                    history.push(`/sync-rules/${syncRule.type}/edit/${newSyncRule.id}`);
+                    onCancel();
+                })
+                .catch(() => {
+                    snackbar.error(i18n.t("An error has ocurred during the save"));
+                });
         }
 
         setIsSaving(false);
@@ -134,6 +140,7 @@ export const SummaryStep = ({ syncRule, onCancel }: SyncWizardStepProps) => {
                         {syncRule.isOnDemand() ? i18n.t("Save as sync Rule") : i18n.t("Save")}
                     </Button>
                 </div>
+
                 <div>
                     <Button onClick={downloadJSON} variant="contained">
                         {i18n.t("Download JSON")}
@@ -215,6 +222,11 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
             <LiEntry label={i18n.t("Code")} value={syncRule.code} />
 
             <LiEntry label={i18n.t("Description")} value={syncRule.description} />
+
+            <LiEntry
+                label={i18n.t("Type of synchronization")}
+                value={syncRule.useAggregatedDataExchange ? i18n.t("Aggregated data exchange") : i18n.t("Default")}
+            />
 
             {originInstance && <LiEntry label={i18n.t("Source instance")} value={originInstance.text} />}
 
