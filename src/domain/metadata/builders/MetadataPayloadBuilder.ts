@@ -409,12 +409,10 @@ export class MetadataPayloadBuilder {
             const fixedCompulsoryDEOperands = dataSet.compulsoryDataElementOperands.map(operand => {
                 if (operand.categoryOptionCombo?.id) return operand;
 
-                return defaultCategoryOptionCombo
-                    ? {
-                          ...operand,
-                          categoryOptionCombo: { ...operand.categoryOptionCombo, id: defaultCategoryOptionCombo.id },
-                      }
-                    : operand;
+                return {
+                    ...operand,
+                    categoryOptionCombo: { ...operand.categoryOptionCombo, id: defaultCategoryOptionCombo.id },
+                };
             });
 
             return { ...dataSet, compulsoryDataElementOperands: fixedCompulsoryDEOperands };
