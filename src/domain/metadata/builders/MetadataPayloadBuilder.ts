@@ -407,7 +407,7 @@ export class MetadataPayloadBuilder {
             if (!dataSet.compulsoryDataElementOperands) return dataSet;
 
             const fixedCompulsoryDEOperands = dataSet.compulsoryDataElementOperands.map(operand => {
-                if (operand.categoryOptionCombo?.id) return operand;
+                if (!operand.categoryOptionCombo || operand.categoryOptionCombo?.id) return operand;
 
                 return {
                     ...operand,
