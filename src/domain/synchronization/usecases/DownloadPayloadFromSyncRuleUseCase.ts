@@ -94,11 +94,15 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         );
         const { metadataIds } = rule.builder;
         const dataStoreIds = DataStoreMetadata.getDataStoreIds(metadataIds);
-        const dataStoreFiles: DownloadItem[] =
+        const dataStoreResults =
             dataStoreIds.length > 0 ? await this.mapDatastoreToDownloadItems(rule) : [];
+
+        const dataStoreErrors = dataStoreResults.filter(data => typeof data === "string") as string[];
+        const dataStoreFiles = dataStoreResults.filter(data => typeof data !== "string") as DownloadItem[];
 
         const cleanedFiles = files.filter(file => !isEmptyContent(file.content));
         const allFiles = [...cleanedFiles, ...dataStoreFiles];
+        const allErrors = [...errors, ...dataStoreErrors];
 
         if (allFiles.length === 1) {
             this.downloadRepository.downloadFile(allFiles[0].name, allFiles[0].content);
@@ -106,10 +110,10 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
             await this.downloadRepository.downloadZippedFiles(`synchronization-${date}`, allFiles);
         }
 
-        if (errors.length === 0) {
+        if (allErrors.length === 0) {
             return Either.success(true);
         } else {
-            return Either.error(errors);
+            return Either.error(allErrors);
         }
     }
 
@@ -218,7 +222,7 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         return [...downloadItemsByEvents, ...downloadItemsByTEIS, ...downloadItemsByAggregated];
     }
 
-    private async mapDatastoreToDownloadItems(rule: SynchronizationRule): Promise<DownloadItem[]> {
+    private async mapDatastoreToDownloadItems(rule: SynchronizationRule): Promise<(DownloadItem | string)[]> {
         const date = moment().format("YYYYMMDDHHmm");
 
         const { targetInstances: targetInstanceIds } = rule.builder;
@@ -227,7 +231,9 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
 
         return promiseMap(targetInstanceIds, async remoteInstanceId => {
             const remoteInstance = await instanceRepository.getById(remoteInstanceId);
-            if (!remoteInstance) throw new Error("Unable to read remote instance");
+            if (!remoteInstance) {
+                return i18n.t(`Instance {{id}} not found`, { id: remoteInstanceId });
+            }
 
             try {
                 const dataStorePayload = await this.metadataPayloadBuilder.buildDataStorePayload(
@@ -247,7 +253,11 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
                 };
                 return downloadItem;
             } catch (error: unknown) {
-                throw new Error(`An error has ocurred while downloading datastore payload: ${error}`);
+                const message = error instanceof Error ? error.message : String(error);
+                return i18n.t(
+                    `An error has occurred while downloading datastore payload for instance {{name}}: {{message}}`,
+                    { name: remoteInstance.name, message }
+                );
             }
         });
     }
