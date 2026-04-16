@@ -610,11 +610,13 @@ export const DataStoreSectionContent = (props: { metadataIds: string[]; excluded
 
     const summaryInfo = React.useMemo(() => {
         const namespaces = new Set(
-            dataStoreInfo.filter(data => data.endsWith("[NS]")).map(data => data.split("[NS]")[0])
+            dataStoreInfo
+                .filter(data => DataStoreMetadata.isNamespaceOnlySelected(data))
+                .map(data => data.split(DataStoreMetadata.NS_SEPARATOR)[0])
         );
 
         return dataStoreInfo.filter(data => {
-            const [namespace, key] = data.split("[NS]");
+            const [namespace, key] = data.split(DataStoreMetadata.NS_SEPARATOR);
             const isNamespace = key === "";
             return isNamespace || !namespaces.has(namespace);
         });
@@ -624,7 +626,7 @@ export const DataStoreSectionContent = (props: { metadataIds: string[]; excluded
 
     return (
         <>
-            <LiEntry label={`DataStore [${dataStoreInfo.length}]`}>
+            <LiEntry label={`DataStore [${summaryInfo.length}]`}>
                 <ul>
                     {summaryInfo.map(dataStore => {
                         const [namespace, key] = dataStore.split(DataStoreMetadata.NS_SEPARATOR);
