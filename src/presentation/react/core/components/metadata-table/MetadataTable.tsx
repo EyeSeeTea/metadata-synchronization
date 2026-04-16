@@ -30,6 +30,7 @@ import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
 import { getFilterData, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
+import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 
 export type MetadataTableFilters =
     | "group"
@@ -615,64 +616,20 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 .value();
 
         if (model.getMetadataType() === "dataStore") {
-            const childrenOf = (ids: string[]) => parseChildren(ids);
-            const hasChildren = (id: string) => childrenOf([id]).length > 0;
+            const result = computeDataStoreSelection({
+                included,
+                newlySelectedIds,
+                newlyUnselectedIds,
+                excludedIds,
+                rows,
+                parseChildren,
+            });
 
-            const parentsSelected = newlySelectedIds.filter(hasChildren);
-            const parentsUnselected = newlyUnselectedIds.filter(hasChildren);
-            const childUnselected = newlyUnselectedIds.filter(id => !hasChildren(id));
-
-            const removedByParentUnselect = _(parentsUnselected).union(childrenOf(parentsUnselected)).value();
-
-            // Downward rule:
-            // - if a parent is selected, all its children are selected
-            // - if a parent is unselected, the parent and all its children are removed
-            const includedAfterDown = _([included, childrenOf(parentsSelected)])
-                .flatten()
-                .uniq()
-                .difference(removedByParentUnselect)
-                .value();
-
-            const affectedParents = _(rows)
-                .filter(r => hasChildren(r.id))
-                .filter(r => {
-                    const kids = childrenOf([r.id]);
-                    return (
-                        _.intersection(kids, newlySelectedIds).length > 0 ||
-                        _.intersection(kids, newlyUnselectedIds).length > 0
-                    );
-                })
-                .map(r => r.id)
-                .value();
-
-            // Upward rule:
-            // - if all children are selected, select the parent
-            // - if not all children are selected, unselect the parent
-            const includedFinal = affectedParents.reduce((accIncluded, parentId) => {
-                const kids = childrenOf([parentId]);
-                const selectedKids = _.intersection(kids, accIncluded);
-
-                return kids.length > 0 && selectedKids.length === kids.length
-                    ? _.union(accIncluded, [parentId])
-                    : _.difference(accIncluded, [parentId]);
-            }, includedAfterDown);
-
-            const excludedBase = _(excludedIds)
-                .union(childUnselected)
-                .difference(includedFinal)
-                .difference(removedByParentUnselect)
-                .difference(childrenOf(parentsSelected))
-                .filter(id => !_.find(rows, { id }))
-                .value();
-
-            const parentsForcedUnselected = affectedParents.filter(p => !includedFinal.includes(p));
-            const excludedFinal = _.difference(excludedBase, parentsForcedUnselected);
-
-            if (!_.isEqual(stateSelection, includedFinal)) {
-                notifyNewSelection(includedFinal, excludedFinal);
+            if (!_.isEqual(stateSelection, result.included)) {
+                notifyNewSelection(result.included, result.excluded);
             }
 
-            setStateSelection(includedFinal);
+            setStateSelection(result.included);
         } else {
             const excluded = _(excludedIds)
                 .union(newlyUnselectedIds)
