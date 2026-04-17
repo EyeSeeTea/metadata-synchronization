@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-29T09:34:07.496Z\n"
-"PO-Revision-Date: 2026-01-29T09:34:07.496Z\n"
+"POT-Creation-Date: 2026-04-17T04:37:05.815Z\n"
+"PO-Revision-Date: 2026-04-17T04:37:05.816Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1445,6 +1445,9 @@ msgid "{{async}}"
 msgstr ""
 
 msgid "Frequency"
+msgstr ""
+
+msgid "All Keys"
 msgstr ""
 
 msgid "Daily"
