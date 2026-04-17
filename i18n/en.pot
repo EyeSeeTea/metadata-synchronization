@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-04-09T10:14:37.106Z\n"
-"PO-Revision-Date: 2026-04-09T10:14:37.106Z\n"
+"POT-Creation-Date: 2026-04-17T04:37:05.815Z\n"
+"PO-Revision-Date: 2026-04-17T04:37:05.816Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -545,9 +545,6 @@ msgid "Sync all Organisation Units"
 msgstr ""
 
 msgid "Select with children subtree"
-msgstr ""
-
-msgid "Select"
 msgstr ""
 
 msgid "Set metadata custodian"
@@ -1450,6 +1447,9 @@ msgstr ""
 msgid "Frequency"
 msgstr ""
 
+msgid "All Keys"
+msgstr ""
+
 msgid "Daily"
 msgstr ""
 
@@ -1501,6 +1501,9 @@ msgid "Stored by"
 msgstr ""
 
 msgid "Due date"
+msgstr ""
+
+msgid "Select"
 msgstr ""
 
 msgid "An error ocurred while trying to access the required events"

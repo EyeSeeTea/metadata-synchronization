@@ -30,6 +30,7 @@ import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
 import { getFilterData, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
+import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 
 export type MetadataTableFilters =
     | "group"
@@ -311,13 +312,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         changeParentOrgUnitFilter(orgUnitPaths);
     };
 
-    const addToSelection = (ids: string[]) => {
-        const oldSelection = _.difference(selectedIds, ids);
-        const newSelection = _.difference(ids, selectedIds);
-
-        notifyNewSelection([...oldSelection, ...newSelection], excludedIds);
-    };
-
     const openResponsibleDialog = (ids: string[]) => {
         const { id, name } = rows.find(({ id }) => ids[0] === id) ?? {};
         if (!id || !name) return;
@@ -502,14 +496,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             },
         },
         {
-            name: "select",
-            text: i18n.t("Select"),
-            primary: true,
-            multiple: true,
-            onClick: addToSelection,
-            isActive: () => false,
-        },
-        {
             name: "set-responsible",
             text: i18n.t("Set metadata custodian"),
             multiple: false,
@@ -629,19 +615,37 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 .map(({ id }) => id)
                 .value();
 
-        const excluded = _(excludedIds)
-            .union(newlyUnselectedIds)
-            .difference(parseChildren(newlyUnselectedIds))
-            .difference(newlySelectedIds)
-            .difference(parseChildren(newlySelectedIds))
-            .filter(id => !_.find(rows, { id }))
-            .value();
+        if (model.getMetadataType() === "dataStore") {
+            const result = computeDataStoreSelection({
+                included,
+                newlySelectedIds,
+                newlyUnselectedIds,
+                excludedIds,
+                rows,
+                parseChildren,
+            });
 
-        if (!_.isEqual(stateSelection, included)) {
-            notifyNewSelection(included, excluded);
+            if (!_.isEqual(stateSelection, result.included)) {
+                notifyNewSelection(result.included, result.excluded);
+            }
+
+            setStateSelection(result.included);
+        } else {
+            const excluded = _(excludedIds)
+                .union(newlyUnselectedIds)
+                .difference(parseChildren(newlyUnselectedIds))
+                .difference(newlySelectedIds)
+                .difference(parseChildren(newlySelectedIds))
+                .filter(id => !_.find(rows, { id }))
+                .value();
+
+            if (!_.isEqual(stateSelection, included)) {
+                notifyNewSelection(included, excluded);
+            }
+
+            setStateSelection(included);
         }
 
-        setStateSelection(included);
         updateFilters({
             order: sorting,
             page: pagination.page,

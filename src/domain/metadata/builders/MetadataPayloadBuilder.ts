@@ -160,6 +160,36 @@ export class MetadataPayloadBuilder {
         return finalMetadataPackage;
     }
 
+    public async buildDataStorePayload(
+        syncBuilder: SynchronizationBuilder,
+        remoteInstance: Instance
+    ): Promise<DataStoreMetadata[]> {
+        const { metadataIds, excludedIds, syncParams, originInstance: originInstanceId } = syncBuilder;
+
+        const dataStoreIds = DataStoreMetadata.getDataStoreIds(metadataIds);
+        const excludedDataStoreIds = DataStoreMetadata.getDataStoreIds(excludedIds);
+        const dataStore = DataStoreMetadata.buildFromKeys(dataStoreIds, excludedDataStoreIds);
+
+        if (dataStore.length === 0) return [];
+
+        const originInstance = await this.getOriginInstance(originInstanceId);
+        const dataStoreRepository = this.repositoryFactory.dataStoreMetadataRepository(originInstance);
+
+        const dataStoreRemoteRepository = this.repositoryFactory.dataStoreMetadataRepository(remoteInstance);
+
+        const dataStoreLocal = await dataStoreRepository.get(dataStore);
+        const dataStoreRemote = await dataStoreRemoteRepository.get(dataStore);
+
+        const dataStorePayload = DataStoreMetadata.combine(metadataIds, dataStoreLocal, dataStoreRemote, {
+            action: syncParams?.mergeMode,
+        });
+
+        return syncParams?.includeSharingSettingsObjectsAndReferences ||
+            syncParams?.includeOnlySharingSettingsReferences
+            ? dataStorePayload
+            : DataStoreMetadata.removeSharingSettings(dataStorePayload);
+    }
+
     @cache()
     public async getOriginInstance(originInstanceId: string): Promise<Instance> {
         const instance = await this.repositoryFactory.instanceRepository(this.localInstance).getById(originInstanceId);
