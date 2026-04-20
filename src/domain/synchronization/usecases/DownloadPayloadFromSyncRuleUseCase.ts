@@ -16,11 +16,14 @@ import { SynchronizationResultType, SynchronizationType } from "../entities/Sync
 import { PayloadMapper } from "../mapper/PayloadMapper";
 import { GenericSyncUseCase } from "./GenericSyncUseCase";
 import { MetadataPayloadBuilder } from "../../metadata/builders/MetadataPayloadBuilder";
-import { DownloadRepository } from "../../storage/repositories/DownloadRepository";
+import { DownloadItem, DownloadRepository } from "../../storage/repositories/DownloadRepository";
 import { TransformationRepository } from "../../transformations/repositories/TransformationRepository";
 import { EventsPayloadBuilder } from "../../events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../aggregated/builders/AggregatedPayloadBuilder";
 import { EventsPayload } from "../../events/entities/EventsPayload";
+import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
+import { isEmptyContent } from "../utils";
+import { AggregatedDataExchangeExecutor } from "../../aggregated/repositories/AggregatedDataExchangeExecutor";
 
 type DownloadErrors = string[];
 
@@ -46,7 +49,8 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         private repositoryFactory: DynamicRepositoryFactory,
         private downloadRepository: DownloadRepository,
         private transformationRepository: TransformationRepository,
-        private localInstance: Instance
+        private localInstance: Instance,
+        readonly aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor
     ) {}
 
     async execute(params: DownloadPayloadParams): Promise<Either<DownloadErrors, true>> {
@@ -54,6 +58,12 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         if (!rule) return Either.success(true);
 
         const sync: GenericSyncUseCase = this.compositionRoot.sync[rule.type](rule.toBuilder());
+
+        const aggregateDataExchanges = rule.aggregatedDataExchanges?.map(ade => ade.id) || [];
+
+        const payload: SynchronizationPayload = rule.useAggregatedDataExchange
+            ? await this.aggregatedDataExchangeExecutor.getSourceData(aggregateDataExchanges)
+            : await this.buildPayload(rule.type, rule);
 
         const date = moment().format("YYYYMMDDHHmm");
 
@@ -84,17 +94,28 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
                 return { name: item.name, content: payload };
             })
         );
+        const { metadataIds } = rule.builder;
+        const dataStoreIds = DataStoreMetadata.getDataStoreIds(metadataIds);
+        const dataStoreResults =
+            dataStoreIds.length > 0 ? await this.mapDatastoreToDownloadItems(rule) : [];
 
-        if (files.length === 1) {
-            this.downloadRepository.downloadFile(files[0].name, files[0].content);
-        } else if (files.length > 1) {
-            await this.downloadRepository.downloadZippedFiles(`synchronization-${date}`, files);
+        const dataStoreErrors = dataStoreResults.filter(data => typeof data === "string") as string[];
+        const dataStoreFiles = dataStoreResults.filter(data => typeof data !== "string") as DownloadItem[];
+
+        const cleanedFiles = files.filter(file => !isEmptyContent(file.content));
+        const allFiles = [...cleanedFiles, ...dataStoreFiles];
+        const allErrors = [...errors, ...dataStoreErrors];
+
+        if (allFiles.length === 1) {
+            this.downloadRepository.downloadFile(allFiles[0].name, allFiles[0].content);
+        } else if (allFiles.length > 1) {
+            await this.downloadRepository.downloadZippedFiles(`synchronization-${date}`, allFiles);
         }
 
-        if (errors.length === 0) {
+        if (allErrors.length === 0) {
             return Either.success(true);
         } else {
-            return Either.error(errors);
+            return Either.error(allErrors);
         }
     }
 
@@ -122,7 +143,9 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
 
             if (instance) {
                 try {
-                    const mappedPayload = await (await createMapper(instance)).map(payload);
+                    const mappedPayload = rule.useAggregatedDataExchange
+                        ? payload
+                        : await (await createMapper(instance)).map(payload);
 
                     return {
                         name: _(["synchronization", rule.name, resultType, instance.name, date]).compact().kebabCase(),
@@ -184,7 +207,8 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
             rule.builder,
             this.repositoryFactory,
             this.localInstance,
-            this.aggregatePayloadBuilder
+            this.aggregatePayloadBuilder,
+            this.aggregatedDataExchangeExecutor
         );
 
         const downloadItemsByAggregated =
@@ -198,6 +222,46 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
                 : [];
 
         return [...downloadItemsByEvents, ...downloadItemsByTEIS, ...downloadItemsByAggregated];
+    }
+
+    private async mapDatastoreToDownloadItems(rule: SynchronizationRule): Promise<(DownloadItem | string)[]> {
+        const date = moment().format("YYYYMMDDHHmm");
+
+        const { targetInstances: targetInstanceIds } = rule.builder;
+
+        const instanceRepository = this.repositoryFactory.instanceRepository(this.localInstance);
+
+        return promiseMap(targetInstanceIds, async remoteInstanceId => {
+            const remoteInstance = await instanceRepository.getById(remoteInstanceId);
+            if (!remoteInstance) {
+                return i18n.t(`Instance {{id}} not found`, { id: remoteInstanceId });
+            }
+
+            try {
+                const dataStorePayload = await this.metadataPayloadBuilder.buildDataStorePayload(
+                    rule.builder,
+                    remoteInstance
+                );
+
+                const downloadItem: DownloadItem = {
+                    name: _(["synchronization", rule.name, "datastore", remoteInstance.name, date])
+                        .compact()
+                        .kebabCase(),
+                    content: dataStorePayload.map(datastoreMetadata => ({
+                        namespace: datastoreMetadata.namespace,
+                        keys: datastoreMetadata.keys,
+                        sharing: datastoreMetadata.sharing ?? undefined,
+                    })),
+                };
+                return downloadItem;
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : String(error);
+                return i18n.t(
+                    `An error has occurred while downloading datastore payload for instance {{name}}: {{message}}`,
+                    { name: remoteInstance.name, message }
+                );
+            }
+        });
     }
 
     private async getSyncRule(params: DownloadPayloadParams): Promise<SynchronizationRule | undefined> {
