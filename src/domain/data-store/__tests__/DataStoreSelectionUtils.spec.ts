@@ -1,6 +1,5 @@
 import { computeDataStoreSelection } from "../DataStoreSelectionUtils";
 
-
 describe("computeDataStoreSelection", () => {
     const structure = {
         nsA: ["nsA-key1", "nsA-key2", "nsA-key3"],
@@ -126,7 +125,6 @@ describe("computeDataStoreSelection", () => {
         });
     });
 });
-
 
 /**
  * Test helper: simulates a datastore table with namespaces (parents) and keys (children).

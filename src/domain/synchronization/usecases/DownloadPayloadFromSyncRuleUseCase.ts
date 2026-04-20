@@ -4,15 +4,12 @@ import { metadataTransformations } from "../../../data/transformations/PackageTr
 import i18n from "../../../utils/i18n";
 import { CompositionRoot } from "../../../presentation/CompositionRoot";
 import { promiseMap } from "../../../utils/common";
-import { AggregatedPackage } from "../../aggregated/entities/AggregatedPackage";
 import { AggregatedSyncUseCase } from "../../aggregated/usecases/AggregatedSyncUseCase";
 import { Either } from "../../common/entities/Either";
 import { UseCase } from "../../common/entities/UseCase";
 import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
-import { EventsPackage } from "../../events/entities/EventsPackage";
 import { Instance } from "../../instance/entities/Instance";
 import { SynchronizationRule } from "../../rules/entities/SynchronizationRule";
-import { TEIsPackage } from "../../tracked-entity-instances/entities/TEIsPackage";
 import { createTEIsPayloadMapper } from "../../tracked-entity-instances/mapper/TEIsPayloadMapperFactory";
 import { SynchronizationPayload } from "../entities/SynchronizationPayload";
 import { SynchronizationResultType, SynchronizationType } from "../entities/SynchronizationType";
@@ -23,6 +20,7 @@ import { DownloadItem, DownloadRepository } from "../../storage/repositories/Dow
 import { TransformationRepository } from "../../transformations/repositories/TransformationRepository";
 import { EventsPayloadBuilder } from "../../events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../aggregated/builders/AggregatedPayloadBuilder";
+import { EventsPayload } from "../../events/entities/EventsPayload";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
 import { isEmptyContent } from "../utils";
 import { AggregatedDataExchangeExecutor } from "../../aggregated/repositories/AggregatedDataExchangeExecutor";
@@ -71,12 +69,16 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
 
         const mappedData =
             rule.type === "events"
-                ? await this.mapEventsSyncRulePayloadToDownloadItems(rule, sync, payload)
+                ? await this.mapEventsSyncRulePayloadToDownloadItems(
+                      rule,
+                      sync,
+                      await this.eventsPayloadBuilder.build(rule.builder)
+                  )
                 : await this.mapToDownloadItems(
                       rule,
                       rule.type,
                       instance => Promise.resolve(new GenericPackageMapper(instance, sync)),
-                      payload
+                      await this.buildPayload(rule.type, rule)
                   );
 
         const errors = mappedData.filter(data => typeof data === "string") as string[];
@@ -94,8 +96,7 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         );
         const { metadataIds } = rule.builder;
         const dataStoreIds = DataStoreMetadata.getDataStoreIds(metadataIds);
-        const dataStoreResults =
-            dataStoreIds.length > 0 ? await this.mapDatastoreToDownloadItems(rule) : [];
+        const dataStoreResults = dataStoreIds.length > 0 ? await this.mapDatastoreToDownloadItems(rule) : [];
 
         const dataStoreErrors = dataStoreResults.filter(data => typeof data === "string") as string[];
         const dataStoreFiles = dataStoreResults.filter(data => typeof data !== "string") as DownloadItem[];
@@ -164,9 +165,9 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
     private async mapEventsSyncRulePayloadToDownloadItems(
         rule: SynchronizationRule,
         sync: GenericSyncUseCase,
-        payload: SynchronizationPayload
+        payload: EventsPayload
     ) {
-        const { events } = payload as EventsPackage;
+        const { events } = payload;
 
         const downloadItemsByEvents =
             events.length > 0
@@ -178,7 +179,7 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
                   )
                 : [];
 
-        const { trackedEntities } = payload as TEIsPackage;
+        const { trackedEntities } = payload;
 
         const downloadItemsByTEIS =
             trackedEntities.length > 0
@@ -198,7 +199,7 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
                   )
                 : [];
 
-        const { dataValues } = payload as AggregatedPackage;
+        const { dataValues } = payload;
 
         //TODO: we should create AggregatedMapper to don't use this use case here
         const aggregatedSync = new AggregatedSyncUseCase(
