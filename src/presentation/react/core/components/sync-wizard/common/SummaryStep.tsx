@@ -631,9 +631,7 @@ export const DataStoreSectionContent = (props: { metadataIds: string[]; excluded
                 <ul>
                     {summaryInfo.map(dataStore => {
                         const [namespace, key] = dataStore.split(DataStoreMetadata.NS_SEPARATOR);
-                        const keyName = key
-                            ? i18n.t("Key: {{key}}", { key })
-                            : i18n.t("All Keys");
+                        const keyName = key ? i18n.t("Key: {{key}}", { key }) : i18n.t("All Keys");
                         return (
                             <LiEntry
                                 key={`${namespace}-${key}`}

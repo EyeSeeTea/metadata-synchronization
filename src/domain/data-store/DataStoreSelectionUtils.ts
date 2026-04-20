@@ -35,11 +35,7 @@ export function computeDataStoreSelection(params: DataStoreSelectionParams): Dat
 
     const affectedParents = findAffectedParents(rows, newlySelectedIds, newlyUnselectedIds, parseChildren);
 
-    const includedFinal = recomputeNamespaceParents(
-        affectedParents,
-        includedAfterPropagation,
-        parseChildren
-    );
+    const includedFinal = recomputeNamespaceParents(affectedParents, includedAfterPropagation, parseChildren);
 
     const excludedBase = _(excludedIds)
         .union(childrenUnselected)
@@ -60,11 +56,7 @@ function propagateNamespaceSelection(
     childrenOfSelected: string[],
     removedByParentUnselect: string[]
 ): string[] {
-    return _([included, childrenOfSelected])
-        .flatten()
-        .uniq()
-        .difference(removedByParentUnselect)
-        .value();
+    return _([included, childrenOfSelected]).flatten().uniq().difference(removedByParentUnselect).value();
 }
 
 function findAffectedParents(
@@ -80,8 +72,7 @@ function findAffectedParents(
         .filter(r => {
             const kids = parseChildren([r.id]);
             return (
-                _.intersection(kids, newlySelectedIds).length > 0 ||
-                _.intersection(kids, newlyUnselectedIds).length > 0
+                _.intersection(kids, newlySelectedIds).length > 0 || _.intersection(kids, newlyUnselectedIds).length > 0
             );
         })
         .map(r => r.id)

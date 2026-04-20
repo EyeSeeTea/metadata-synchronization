@@ -96,8 +96,7 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
         );
         const { metadataIds } = rule.builder;
         const dataStoreIds = DataStoreMetadata.getDataStoreIds(metadataIds);
-        const dataStoreResults =
-            dataStoreIds.length > 0 ? await this.mapDatastoreToDownloadItems(rule) : [];
+        const dataStoreResults = dataStoreIds.length > 0 ? await this.mapDatastoreToDownloadItems(rule) : [];
 
         const dataStoreErrors = dataStoreResults.filter(data => typeof data === "string") as string[];
         const dataStoreFiles = dataStoreResults.filter(data => typeof data !== "string") as DownloadItem[];
