@@ -19,7 +19,7 @@ export interface Enrollment {
     attributes: EnrollmentAttribute[];
 }
 
-interface EnrollmentAttribute {
+export interface EnrollmentAttribute {
     attribute: string;
     value: string;
 }

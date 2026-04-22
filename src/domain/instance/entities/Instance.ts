@@ -8,15 +8,18 @@ import { SharingSetting } from "../../common/entities/SharingSetting";
 import { ModelValidation, validateModel, ValidationError } from "../../common/entities/Validations";
 
 export type PublicInstance = Omit<InstanceData, "password">;
-export type InstanceType = "local" | "dhis";
+export type InstanceType = "local" | "dhis" | "aggregated-data-exchange";
 
+type AuthType = "api-token" | "http-basic";
 export interface InstanceData extends SharedRef {
     type: InstanceType;
     id: string;
     name: string;
     url: string;
+    authType?: AuthType;
     username?: string;
     password?: string;
+    token?: string;
     description?: string;
     version?: string;
 }
@@ -50,6 +53,14 @@ export class Instance extends ShareableEntity<InstanceData> {
         return this.data.password;
     }
 
+    public get authType(): AuthType | undefined {
+        return this.data.authType;
+    }
+
+    public get token(): string | undefined {
+        return this.data.token;
+    }
+
     public get auth(): { username: string; password: string } | undefined {
         return this.username && this.password ? { username: this.username, password: this.password } : undefined;
     }
@@ -60,6 +71,11 @@ export class Instance extends ShareableEntity<InstanceData> {
 
     public get version(): string | undefined {
         return this.data.version;
+    }
+
+    public get versionSmall(): string {
+        const [major, minor] = this.version?.split(".") ?? [];
+        return `${major}.${minor}`;
     }
 
     public get apiVersion(): number {
@@ -158,17 +174,30 @@ export class Instance extends ShareableEntity<InstanceData> {
             },
             userAccesses: [],
             userGroupAccesses: [],
+            authType: "http-basic",
             ...data,
         });
     }
 
-    private moduleValidations = (): ModelValidation[] => [
-        { property: "name", validation: "hasText" },
-        { property: "url", validation: "isUrl" },
-        { property: "url", validation: "hasText" },
-        { property: "username", validation: "hasText" },
-        { property: "password", validation: "hasText" },
-    ];
+    private moduleValidations = (): ModelValidation[] => {
+        const baseValidations: ModelValidation[] = [
+            { property: "name", validation: "hasText" },
+            { property: "url", validation: "isUrl" },
+            { property: "url", validation: "hasText" },
+        ].filter((v): v is ModelValidation => v !== undefined);
+
+        const authValidationsByType = {
+            "api-token": [{ property: "token", validation: "hasText" }],
+            "http-basic": [
+                { property: "username", validation: "hasText" },
+                { property: "password", validation: "hasText" },
+            ],
+        } as const;
+
+        const authValidations = this.type === "dhis" ? authValidationsByType[this.authType ?? "http-basic"] : [];
+
+        return [...baseValidations, ...authValidations];
+    };
 
     private localInstanceValidations = (): ModelValidation[] => [{ property: "name", validation: "hasText" }];
 }

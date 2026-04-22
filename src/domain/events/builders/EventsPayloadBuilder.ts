@@ -8,17 +8,11 @@ import { generateUid } from "../../common/entities/uid";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
 import _ from "lodash";
 import { ProgramEvent } from "../entities/ProgramEvent";
-import { DataValue } from "../../aggregated/entities/DataValue";
 import { TrackedEntityInstance } from "../../tracked-entity-instances/entities/TrackedEntityInstance";
 import { eventsFields } from "../usecases/EventsSyncUseCase";
 import { Ref } from "../../common/entities/Ref";
 import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRepository";
-
-export type EventsPayload = {
-    events: ProgramEvent[];
-    dataValues: DataValue[];
-    trackedEntityInstances: TrackedEntityInstance[];
-};
+import { EventsPayload } from "../entities/EventsPayload";
 
 export class EventsPayloadBuilder {
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
@@ -94,7 +88,7 @@ export class EventsPayloadBuilder {
 
         const dataValues = _.reject(candidateDataValues, ({ dataElement }) => excludedIds.includes(dataElement));
 
-        return { events, dataValues, trackedEntityInstances };
+        return { events, dataValues, trackedEntities: trackedEntityInstances };
     }
 
     private async buildTrackedEntityInstances(
@@ -163,22 +157,10 @@ export class EventsPayloadBuilder {
 
     @cache()
     public async getOriginInstance(originInstanceId: string): Promise<Instance> {
-        const instance = await this.getInstanceById(originInstanceId);
+        const instance = await this.repositoryFactory.instanceRepository(this.localInstance).getById(originInstanceId);
 
         if (!instance) throw new Error("Unable to read origin instance");
         return instance;
-    }
-
-    private async getInstanceById(id: string): Promise<Instance | undefined> {
-        const instance = await this.repositoryFactory.instanceRepository(this.localInstance).getById(id);
-        if (!instance) return undefined;
-
-        try {
-            const version = await this.repositoryFactory.instanceRepository(instance).getVersion();
-            return instance.update({ version });
-        } catch (error: any) {
-            return instance;
-        }
     }
 }
 
