@@ -349,9 +349,9 @@ describe("MetadataPayloadBuilder", () => {
             if (includeObjectsAndReferences) {
                 const metadataByIdsResponses = getDataSetMetadataByIdsResponsesWithIncludeAll();
 
-                when(
-                    mockedMetadataRepository.getMetadataByIds(anything(), anything(), anything())
-                ).thenResolve(metadataByIdsResponses.first);
+                when(mockedMetadataRepository.getMetadataByIds(anything(), anything(), anything())).thenResolve(
+                    metadataByIdsResponses.first
+                );
                 when(mockedMetadataRepository.getMetadataByIds(anything()))
                     .thenResolve(metadataByIdsResponses.second)
                     .thenResolve(metadataByIdsResponses.third)
@@ -361,9 +361,9 @@ describe("MetadataPayloadBuilder", () => {
                     .thenResolve(metadataByIdsResponses.seventh)
                     .thenResolve(metadataByIdsResponses.eighth);
             } else {
-                when(
-                    mockedMetadataRepository.getMetadataByIds(anything(), anything(), anything())
-                ).thenResolve({ dataSets: [getDataSetMetadata()] });
+                when(mockedMetadataRepository.getMetadataByIds(anything(), anything(), anything())).thenResolve({
+                    dataSets: [getDataSetMetadata()],
+                });
                 when(mockedMetadataRepository.getMetadataByIds(anything()))
                     .thenResolve({
                         dataSets: [getDataSetMetadata()],
