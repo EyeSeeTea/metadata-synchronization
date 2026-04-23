@@ -68,14 +68,20 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     public async getMetadataByIds<T>(
         ids: string[],
         fields?: object | string,
-        includeDefaults = false
+        includeDefaults = false,
+        preserveNestedDefaultRefs = false
     ): Promise<MetadataPackage<T>> {
         const { apiVersion } = this.targetInstance;
 
         const d2ApiDataStore = new D2ApiDataStore(this.targetInstance);
         const dataStoreIds = DataStoreMetadata.getDataStoreIds(ids);
         const requestFields = typeof fields === "object" ? getFieldsAsString(fields) : fields;
-        const d2Metadata = await this.getMetadata<D2Model>(ids, requestFields, includeDefaults);
+        const d2Metadata = await this.getMetadata<D2Model>(
+            ids,
+            requestFields,
+            includeDefaults,
+            preserveNestedDefaultRefs
+        );
 
         if (apiVersion >= 32 && d2Metadata["dashboards"] && fields === undefined) {
             //Fix dashboard bug from 2.32
@@ -84,7 +90,8 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             const fixedD2Metadata = await this.getMetadata<D2Model>(
                 ids,
                 ":all,dashboardItems[:all,visualization[id,type]]",
-                includeDefaults
+                includeDefaults,
+                preserveNestedDefaultRefs
             );
 
             const metadataPackage = this.transformationRepository.mapPackageFrom(
@@ -589,11 +596,13 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     private async getMetadata<T>(
         elements: string[],
         fields = ":all",
-        includeDefaults: boolean
+        includeDefaults: boolean,
+        preserveNestedDefaultRefs: boolean
     ): Promise<Record<string, T[]>> {
         try {
             const promises = [];
             const chunkSize = 50;
+            const keepDefaults = includeDefaults || preserveNestedDefaultRefs === true;
 
             for (let i = 0; i < elements.length; i += chunkSize) {
                 const requestElements = elements.slice(i, i + chunkSize).toString();
@@ -602,7 +611,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                         .get("/metadata", {
                             fields,
                             filter: "id:in:[" + requestElements + "]",
-                            defaults: includeDefaults ? undefined : "EXCLUDE",
+                            defaults: keepDefaults ? undefined : "EXCLUDE",
                         })
                         .getData()
                 );

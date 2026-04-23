@@ -13,13 +13,19 @@ import {
 import { MetadataImportParams } from "../entities/MetadataSynchronizationParams";
 
 export interface MetadataRepository {
-    getMetadataByIds<T>(ids: Id[], fields?: object | string, includeDefaults?: boolean): Promise<MetadataPackage<T>>;
+    getMetadataByIds<T>(
+        ids: Id[],
+        fields?: object | string,
+        includeDefaults?: boolean,
+        preserveNestedDefaultRefs?: boolean
+    ): Promise<MetadataPackage<T>>;
     getByFilterRules(filterRules: FilterRule[]): Promise<Id[]>;
     getDefaultIds(filter?: string): Promise<string[]>;
     getCategoryOptionCombos(): Promise<
         Pick<CategoryOptionCombo, "id" | "name" | "categoryCombo" | "categoryOptions">[]
     >;
     getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]>;
+
     listMetadata(params: ListMetadataParams): Promise<ListMetadataResponse>;
     listAllMetadata(params: ListMetadataParams): Promise<MetadataEntity[]>;
     lookupSimilar(query: IdentifiableRef): Promise<MetadataPackage<IdentifiableRef>>;
