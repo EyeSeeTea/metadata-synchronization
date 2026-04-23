@@ -13,8 +13,6 @@ export type MSFSettings = {
     lastExecutions: Record<string, Date>;
 };
 
-export type PersistedMSFSettings = Omit<MSFSettings, "runAnalyticsBefore" | "runAnalyticsAfter">;
-
 export type AdvancedSettings = {
     period?: ObjectWithPeriod;
 };
