@@ -1,4 +1,4 @@
-import { FilterBase, FilterValueOperator } from "@eyeseetea/d2-api/api/common";
+import { FilterValueOperator } from "@eyeseetea/d2-api/api/common";
 import { IdentifiableRef, Ref } from "../../common/entities/Ref";
 import { Id } from "../../common/entities/Schemas";
 import { SynchronizationResult } from "../../reports/entities/SynchronizationResult";
@@ -16,9 +16,9 @@ export interface MetadataRepository {
     getMetadataByIds<T>(ids: Id[], fields?: object | string, includeDefaults?: boolean): Promise<MetadataPackage<T>>;
     getByFilterRules(filterRules: FilterRule[]): Promise<Id[]>;
     getDefaultIds(filter?: string): Promise<string[]>;
-    getCategoryOptionCombos(
-        filter?: FilterBase
-    ): Promise<Pick<CategoryOptionCombo, "id" | "name" | "categoryCombo" | "categoryOptions">[]>;
+    getCategoryOptionCombos(): Promise<
+        Pick<CategoryOptionCombo, "id" | "name" | "categoryCombo" | "categoryOptions">[]
+    >;
     getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]>;
     listMetadata(params: ListMetadataParams): Promise<ListMetadataResponse>;
     listAllMetadata(params: ListMetadataParams): Promise<MetadataEntity[]>;

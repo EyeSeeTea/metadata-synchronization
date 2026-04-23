@@ -3,7 +3,6 @@ import { Instance } from "../../instance/entities/Instance";
 import { SynchronizationBuilder } from "../../synchronization/entities/SynchronizationBuilder";
 import {
     Dashboard,
-    DataSet,
     EventVisualization,
     MetadataEntities,
     MetadataEntity,
@@ -118,7 +117,6 @@ export class MetadataPayloadBuilder {
         );
 
         const {
-            dataSets,
             organisationUnits,
             users,
             userGroups,
@@ -130,10 +128,6 @@ export class MetadataPayloadBuilder {
             visualizations,
             ...rest
         } = metadataWithoutDuplicates;
-
-        const fixedDataSets = dataSets
-            ? await this.fixDataSetsCompulsoryDEOperandCatCombo(originInstance, dataSets as DataSet[])
-            : undefined;
 
         const visualizationsWithRows = visualizations
             ? await this.addRowsToVisualizations(originInstance, visualizations as Visualization[])
@@ -157,7 +151,6 @@ export class MetadataPayloadBuilder {
             users: includeUsersObjectsAndReferences ? users : undefined,
             userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
             userRoles: includeSharingSettingsObjectsAndReferences ? userRoles : undefined,
-            ...(fixedDataSets && { dataSets: fixedDataSets }),
             ...rest,
         };
 
@@ -372,39 +365,6 @@ export class MetadataPayloadBuilder {
         return {
             eventVisualizations: lineListVisualizations,
         };
-    }
-
-    private async fixDataSetsCompulsoryDEOperandCatCombo(
-        originInstance: Instance,
-        dataSets: DataSet[]
-    ): Promise<DataSet[]> {
-        const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
-        const categoryOptionCombos = await metadataRepository.getCategoryOptionCombos({
-            code: { eq: "default" },
-        });
-
-        const defaultCategoryOptionCombo = categoryOptionCombos[0];
-        if (!defaultCategoryOptionCombo) {
-            console.error(
-                "Default category option combo not found, unable to fix data sets compulsory data element operands category option combo"
-            );
-            return dataSets;
-        }
-
-        return dataSets.map(dataSet => {
-            if (!dataSet.compulsoryDataElementOperands) return dataSet;
-
-            const fixedCompulsoryDEOperands = dataSet.compulsoryDataElementOperands.map(operand => {
-                if (!operand.categoryOptionCombo || operand.categoryOptionCombo?.id) return operand;
-
-                return {
-                    ...operand,
-                    categoryOptionCombo: { ...operand.categoryOptionCombo, id: defaultCategoryOptionCombo.id },
-                };
-            });
-
-            return { ...dataSet, compulsoryDataElementOperands: fixedCompulsoryDEOperands };
-        });
     }
 
     private async addRowsToVisualizations(

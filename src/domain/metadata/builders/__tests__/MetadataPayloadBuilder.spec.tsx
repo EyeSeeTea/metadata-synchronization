@@ -29,7 +29,6 @@ import {
     getDataSetTypeExpectedPayload,
 } from "./data/data-set-metadata-type";
 import { MetadataPayloadBuilder } from "../MetadataPayloadBuilder";
-import { DataSet } from "../../entities/MetadataEntities";
 import {
     givenABuilderWithUserGroupsAndDashboards,
     givenUserGroupsAndDashboardMetadataResponses,
@@ -139,7 +138,6 @@ describe("MetadataPayloadBuilder", () => {
             }
 
             when(mockedMetadataRepository.listAllMetadata(anything())).thenResolve([]);
-            when(mockedMetadataRepository.getCategoryOptionCombos(anything())).thenResolve([]);
 
             const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
             when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
@@ -258,7 +256,6 @@ describe("MetadataPayloadBuilder", () => {
             }
 
             when(mockedMetadataRepository.listAllMetadata(anything())).thenResolve([]);
-            when(mockedMetadataRepository.getCategoryOptionCombos(anything())).thenResolve([]);
 
             const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
             when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
@@ -328,51 +325,11 @@ describe("MetadataPayloadBuilder", () => {
             expect(payload).toEqual(expectedPayload);
         });
 
-        it("should replace missing categoryOptionCombo.id on compulsory data element operands with the default coc id", async () => {
-            const defaultCocId = "DEFAULT_COC_ID";
-            const dataSetWithOperand = {
-                ...getDataSetMetadata(),
-                compulsoryDataElementOperands: [{ dataElement: { id: "BDuY694ZAFa" }, categoryOptionCombo: {} }],
-            } as unknown as DataSet;
-
-            const builder = givenABuilderWithProgramType({
-                includeObjectsAndReferences: false,
-                includeOnlyReferences: false,
-            });
-
-            const metadataPayloadBuilder = givenMetadataPayloadBuilderOfDataSet(
-                { includeObjectsAndReferences: false, includeOnlyReferences: false },
-                {
-                    dataSet: dataSetWithOperand,
-                    categoryOptionCombos: [
-                        {
-                            id: defaultCocId,
-                            name: "default",
-                            categoryCombo: { id: "bjDvmb4bfuf" },
-                            categoryOptions: [],
-                        },
-                    ],
-                }
-            );
-
-            const payload: SynchronizationPayload = await metadataPayloadBuilder.build(builder);
-
-            const operands = (payload.dataSets?.[0] as DataSet | undefined)?.compulsoryDataElementOperands;
-            expect(operands?.[0]?.categoryOptionCombo?.id).toBe(defaultCocId);
-        });
-
-        function givenMetadataPayloadBuilderOfDataSet(
-            options: {
-                includeObjectsAndReferences: boolean;
-                includeOnlyReferences: boolean;
-            },
-            overrides?: {
-                dataSet?: DataSet;
-                categoryOptionCombos?: Awaited<ReturnType<MetadataRepository["getCategoryOptionCombos"]>>;
-            }
-        ): MetadataPayloadBuilder {
+        function givenMetadataPayloadBuilderOfDataSet(options: {
+            includeObjectsAndReferences: boolean;
+            includeOnlyReferences: boolean;
+        }): MetadataPayloadBuilder {
             const { includeObjectsAndReferences } = options;
-            const dataSet = overrides?.dataSet ?? getDataSetMetadata();
 
             const mockedInstanceRepository = mock<InstanceRepository>();
             when(mockedInstanceRepository.getById(anything())).thenResolve(dummyInstance);
@@ -392,8 +349,10 @@ describe("MetadataPayloadBuilder", () => {
             if (includeObjectsAndReferences) {
                 const metadataByIdsResponses = getDataSetMetadataByIdsResponsesWithIncludeAll();
 
+                when(
+                    mockedMetadataRepository.getMetadataByIds(anything(), anything(), anything())
+                ).thenResolve(metadataByIdsResponses.first);
                 when(mockedMetadataRepository.getMetadataByIds(anything()))
-                    .thenResolve(metadataByIdsResponses.first)
                     .thenResolve(metadataByIdsResponses.second)
                     .thenResolve(metadataByIdsResponses.third)
                     .thenResolve(metadataByIdsResponses.fourth)
@@ -402,10 +361,12 @@ describe("MetadataPayloadBuilder", () => {
                     .thenResolve(metadataByIdsResponses.seventh)
                     .thenResolve(metadataByIdsResponses.eighth);
             } else {
+                when(
+                    mockedMetadataRepository.getMetadataByIds(anything(), anything(), anything())
+                ).thenResolve({ dataSets: [getDataSetMetadata()] });
                 when(mockedMetadataRepository.getMetadataByIds(anything()))
-                    .thenResolve({ dataSets: [dataSet] })
                     .thenResolve({
-                        dataSets: [dataSet],
+                        dataSets: [getDataSetMetadata()],
                         dataElements: [getDataElementDataSetMetadata()],
                     })
                     .thenResolve({
@@ -414,9 +375,6 @@ describe("MetadataPayloadBuilder", () => {
             }
 
             when(mockedMetadataRepository.listAllMetadata(anything())).thenResolve([]);
-            when(mockedMetadataRepository.getCategoryOptionCombos(anything())).thenResolve(
-                overrides?.categoryOptionCombos ?? []
-            );
 
             const mockedRepositoryFactory = mock<DynamicRepositoryFactory>();
             when(mockedRepositoryFactory.instanceRepository(anything())).thenReturn(instance(mockedInstanceRepository));
