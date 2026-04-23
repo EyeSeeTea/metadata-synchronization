@@ -10,7 +10,14 @@ import PageHeader from "../../../react/core/components/page-header/PageHeader";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { AdvancedSettingsDialog } from "../../../react/msf-aggregate-data/components/advanced-settings-dialog/AdvancedSettingsDialog";
 import { MSFSettingsDialog } from "../../../react/msf-aggregate-data/components/msf-settings-dialog/MSFSettingsDialog";
-import { AdvancedSettings, defaultMSFSettings, MSFSettings, MSFStorageKey } from "./MSFEntities";
+import {
+    AdvancedSettings,
+    buildMSFSettings,
+    defaultMSFSettings,
+    MSFSettings,
+    MSFStorageKey,
+    StoredMSFSettings,
+} from "./MSFEntities";
 import { executeAggregateData } from "./MSFHomePagePresenter";
 
 export const MSFHomePage: React.FC = () => {
@@ -42,11 +49,8 @@ export const MSFHomePage: React.FC = () => {
     }, [api]);
 
     useEffect(() => {
-        compositionRoot.customData.get<MSFSettings>(MSFStorageKey).then(settings => {
-            setMsfSettings(oldSettings => ({
-                ...oldSettings,
-                ...settings,
-            }));
+        compositionRoot.customData.get<StoredMSFSettings>(MSFStorageKey).then(settings => {
+            setMsfSettings(buildMSFSettings(settings));
         });
     }, [compositionRoot]);
 

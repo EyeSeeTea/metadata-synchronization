@@ -3,7 +3,11 @@ import { ConfirmationDialog } from "@eyeseetea/d2-ui-components";
 import { Dictionary } from "lodash";
 import React, { ChangeEvent, useMemo, useState } from "react";
 import i18n from "../../../../../utils/i18n";
-import { MSFSettings, RunAnalyticsSettings } from "../../../../webapp/msf-aggregate-data/pages/MSFEntities";
+import {
+    defaultAnalyticsOptions,
+    MSFSettings,
+    RunAnalyticsSettings,
+} from "../../../../webapp/msf-aggregate-data/pages/MSFEntities";
 import Dropdown from "../../../core/components/dropdown/Dropdown";
 import { Toggle } from "../../../core/components/toggle/Toggle";
 import { NamedDate, OrgUnitDateSelector } from "../org-unit-date-selector/OrgUnitDateSelector";
@@ -45,8 +49,12 @@ export const MSFSettingsDialog: React.FC<MSFSettingsDialogProps> = ({ onClose, o
     };
 
     const setAnalyticsYears = (event: ChangeEvent<HTMLInputElement>) => {
-        const analyticsYears = parseInt(event.target.value);
-        updateSettings(settings => ({ ...settings, analyticsYears }));
+        const lastYears = parseInt(event.target.value);
+        updateSettings(settings => ({
+            ...settings,
+            analyticsBefore: { ...(settings.analyticsBefore ?? defaultAnalyticsOptions), lastYears },
+            analyticsAfter: { ...(settings.analyticsAfter ?? defaultAnalyticsOptions), lastYears },
+        }));
     };
 
     const updateProjectMinimumDates = (projectStartDates: Dictionary<NamedDate>) => {
@@ -97,7 +105,7 @@ export const MSFSettingsDialog: React.FC<MSFSettingsDialogProps> = ({ onClose, o
                     <TextField
                         className={classes.yearsSelector}
                         label={i18n.t("Number of years to include")}
-                        value={settings.analyticsYears}
+                        value={settings.analyticsBefore?.lastYears ?? defaultAnalyticsOptions.lastYears}
                         onChange={setAnalyticsYears}
                         type="number"
                     />
