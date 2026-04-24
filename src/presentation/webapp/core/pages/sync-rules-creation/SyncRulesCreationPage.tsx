@@ -17,7 +17,7 @@ export interface SyncRulesCreationParams {
     type: SynchronizationType;
 }
 
-function createNewSyncRule(type: SynchronizationType, defaultInclusions: UserSettingsInclusionsConfig) {
+function createSyncRuleWithInclusions(type: SynchronizationType, defaultInclusions: UserSettingsInclusionsConfig) {
     return SynchronizationRule.create(type).setDefaultInclusions(defaultInclusions);
 }
 
@@ -32,7 +32,7 @@ const SyncRulesCreation: React.FC = () => {
 
     const [dialogOpen, updateDialogOpen] = useState(false);
     const [syncRule, updateSyncRule] = useState(
-        replicatedSyncRule ?? createNewSyncRule(type, userSettings.inclusionConfig)
+        replicatedSyncRule ?? createSyncRuleWithInclusions(type, userSettings.inclusionConfig)
     );
     const [originalSyncRule, setOriginalSyncRule] = useState<SynchronizationRule | undefined>(undefined);
 
@@ -62,11 +62,9 @@ const SyncRulesCreation: React.FC = () => {
                 setOriginalSyncRule(syncRule ?? SynchronizationRule.create(type));
                 loading.reset();
             });
-        } else if (replicatedSyncRule) {
-            updateSyncRule(replicatedSyncRule);
-            setOriginalSyncRule(replicatedSyncRule);
         } else {
-            const initialSyncRule = createNewSyncRule(type, userSettings.inclusionConfig);
+            const initialSyncRule =
+                replicatedSyncRule ?? createSyncRuleWithInclusions(type, userSettings.inclusionConfig);
             updateSyncRule(initialSyncRule);
             setOriginalSyncRule(initialSyncRule);
         }
