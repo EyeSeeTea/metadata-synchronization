@@ -8,17 +8,11 @@ import { generateUid } from "../../common/entities/uid";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
 import _ from "lodash";
 import { ProgramEvent } from "../entities/ProgramEvent";
-import { DataValue } from "../../aggregated/entities/DataValue";
 import { TrackedEntityInstance } from "../../tracked-entity-instances/entities/TrackedEntityInstance";
 import { eventsFields } from "../usecases/EventsSyncUseCase";
 import { Ref } from "../../common/entities/Ref";
 import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRepository";
-
-export type EventsPayload = {
-    events: ProgramEvent[];
-    dataValues: DataValue[];
-    trackedEntityInstances: TrackedEntityInstance[];
-};
+import { EventsPayload } from "../entities/EventsPayload";
 
 export class EventsPayloadBuilder {
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
@@ -94,7 +88,7 @@ export class EventsPayloadBuilder {
 
         const dataValues = _.reject(candidateDataValues, ({ dataElement }) => excludedIds.includes(dataElement));
 
-        return { events, dataValues, trackedEntityInstances };
+        return { events, dataValues, trackedEntities: trackedEntityInstances };
     }
 
     private async buildTrackedEntityInstances(

@@ -14,18 +14,14 @@ import {
 } from "../../metadata/entities/MetadataEntities";
 import { DataStoreMetadata } from "../../data-store/DataStoreMetadata";
 import _ from "lodash";
-import { DataValue } from "../entities/DataValue";
 import { AggregatedMetadatafields } from "../usecases/AggregatedSyncUseCase";
 import { getMinimumParents } from "../utils";
-
-type AggregatedPayload = {
-    dataValues: DataValue[];
-};
+import { AggregatedPackage } from "../entities/AggregatedPackage";
 
 export class AggregatedPayloadBuilder {
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
 
-    public async build(syncBuilder: SynchronizationBuilder, remoteInstance?: Instance): Promise<AggregatedPayload> {
+    public async build(syncBuilder: SynchronizationBuilder, remoteInstance?: Instance): Promise<AggregatedPackage> {
         const { dataParams: { enableAggregation = false } = {} } = syncBuilder;
 
         if (enableAggregation) {
