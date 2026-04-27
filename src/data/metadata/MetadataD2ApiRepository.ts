@@ -602,7 +602,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         try {
             const promises = [];
             const chunkSize = 50;
-            const keepDefaults = includeDefaults || preserveNestedDefaultRefs === true;
+            const keepDefaults = includeDefaults || preserveNestedDefaultRefs;
 
             for (let i = 0; i < elements.length; i += chunkSize) {
                 const requestElements = elements.slice(i, i + chunkSize).toString();
