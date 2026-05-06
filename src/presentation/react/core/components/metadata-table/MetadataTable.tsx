@@ -618,8 +618,12 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
-        const newlySelectedIds = _.difference(included, selectedIds);
-        const newlyUnselectedIds = _.difference(selectedIds, included);
+
+        const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
+        const mergedSelection = _.uniq([...otherMetadataTypeIds, ...included]);
+
+        const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
+        const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
 
         const parseChildren = (ids: string[]) =>
             _(rows)
@@ -637,11 +641,11 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             .filter(id => !_.find(rows, { id }))
             .value();
 
-        if (!_.isEqual(stateSelection, included)) {
-            notifyNewSelection(included, excluded);
+        if (!_.isEqual(stateSelection, mergedSelection)) {
+            notifyNewSelection(mergedSelection, excluded);
         }
 
-        setStateSelection(included);
+        setStateSelection(mergedSelection);
         updateFilters({
             order: sorting,
             page: pagination.page,
