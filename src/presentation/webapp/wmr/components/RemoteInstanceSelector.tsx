@@ -65,7 +65,6 @@ export function RemoteInstanceSelector(props: RemoteInstanceSelectorProps) {
                     onChange={onChangeNewInstance}
                     cancelAction={onCancelAddNewInstance}
                     onSaved={onNewInstanceSaved}
-                    testConnectionVisible={false}
                 />
             )}
         </Box>

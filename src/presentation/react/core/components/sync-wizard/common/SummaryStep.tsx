@@ -70,15 +70,9 @@ export const SummaryStep = ({ syncRule, onCancel }: SyncWizardStepProps) => {
             snackbar.error(errors.join("\n"));
         } else {
             const newSyncRule = syncRule.updateName(name);
-            compositionRoot.rules
-                .save([newSyncRule])
-                .then(() => {
-                    history.push(`/sync-rules/${syncRule.type}/edit/${newSyncRule.id}`);
-                    onCancel();
-                })
-                .catch(() => {
-                    snackbar.error(i18n.t("An error has ocurred during the save"));
-                });
+            await compositionRoot.rules.save([newSyncRule]);
+            history.push(`/sync-rules/${syncRule.type}/edit/${newSyncRule.id}`);
+            onCancel();
         }
 
         setIsSaving(false);
@@ -109,7 +103,6 @@ export const SummaryStep = ({ syncRule, onCancel }: SyncWizardStepProps) => {
                     i18n.t("You do not have the authority to one or multiple target instances of the sync rule")
                 );
             } else {
-                console.error(error);
                 snackbar.error(i18n.t("An error has ocurred during the download"));
             }
         }
@@ -141,7 +134,6 @@ export const SummaryStep = ({ syncRule, onCancel }: SyncWizardStepProps) => {
                         {syncRule.isOnDemand() ? i18n.t("Save as sync Rule") : i18n.t("Save")}
                     </Button>
                 </div>
-
                 <div>
                     <Button onClick={downloadJSON} variant="contained">
                         {i18n.t("Download JSON")}
@@ -224,11 +216,6 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
 
             <LiEntry label={i18n.t("Description")} value={syncRule.description} />
 
-            <LiEntry
-                label={i18n.t("Type of synchronization")}
-                value={syncRule.useAggregatedDataExchange ? i18n.t("Aggregated data exchange") : i18n.t("Default")}
-            />
-
             {originInstance && <LiEntry label={i18n.t("Source instance")} value={originInstance.text} />}
 
             <LiEntry
@@ -288,7 +275,7 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                     );
                 })}
 
-            <DataStoreSectionContent metadataIds={syncRule.metadataIds} excludedIds={syncRule.excludedIds} />
+            <DataStoreSectionContent metadataIds={syncRule.metadataIds} />
 
             {syncRule.filterRules.length > 0 && (
                 <LiEntry
@@ -311,13 +298,8 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                             const values = Object.keys(metadata).map(key => metadata[key as keyof MetadataEntities]);
 
                             const element = values.flat().find(element => element?.id === id);
-                            const isDatastore = DataStoreMetadata.isDataStoreId(id);
-                            if (isDatastore) {
-                                const [namespace, key] = id.split(DataStoreMetadata.NS_SEPARATOR);
-                                return <LiEntry key={id} label={`Namespace: ${namespace} - Key: ${key}`} />;
-                            } else {
-                                return <LiEntry key={id} label={element ? `${element.name} (${id})` : id} />;
-                            }
+
+                            return <LiEntry key={id} label={element ? `${element.name} (${id})` : id} />;
                         })}
                     </ul>
                 </LiEntry>
@@ -541,7 +523,7 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                     <ul>
                         <LiEntry
                             label={i18n.t("Dry run")}
-                            value={isDryRunEnabled(syncRule) ? i18n.t("Yes") : i18n.t("No")}
+                            value={syncRule.dataParams.dryRun ? i18n.t("Yes") : i18n.t("No")}
                         />
                     </ul>
                     <ul>
@@ -582,76 +564,28 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
     );
 };
 
-export const DataStoreSectionContent = (props: { metadataIds: string[]; excludedIds: string[] }) => {
-    const { metadataIds, excludedIds } = props;
-
-    const excludedDatastoreIds = React.useMemo(() => {
-        return DataStoreMetadata.getDataStoreIds(excludedIds);
-    }, [excludedIds]);
-
-    const namespaceWithSomeExcludedKey = React.useMemo(() => {
-        return excludedDatastoreIds.map(excludedId => {
-            const [namespace] = excludedId.split(DataStoreMetadata.NS_SEPARATOR);
-            return namespace;
-        });
-    }, [excludedDatastoreIds]);
+export const DataStoreSectionContent = (props: { metadataIds: string[] }) => {
+    const { metadataIds } = props;
 
     const dataStoreInfo = React.useMemo(() => {
-        return metadataIds.filter(dataStoreId => {
-            if (DataStoreMetadata.isDataStoreId(dataStoreId)) {
-                const isOnlyNamespaceId = DataStoreMetadata.isNamespaceOnlySelected(dataStoreId);
-
-                const [namespace] = dataStoreId.split(DataStoreMetadata.NS_SEPARATOR);
-                const hasSomeExcludedKeys = namespaceWithSomeExcludedKey.includes(namespace);
-                return (isOnlyNamespaceId && !hasSomeExcludedKeys) || !isOnlyNamespaceId;
-            }
-            return false;
+        return metadataIds.filter(metadataId => {
+            return metadataId.includes(DataStoreMetadata.NS_SEPARATOR);
         });
-    }, [metadataIds, namespaceWithSomeExcludedKey]);
-
-    const summaryInfo = React.useMemo(() => {
-        const namespaces = new Set(
-            dataStoreInfo
-                .filter(data => DataStoreMetadata.isNamespaceOnlySelected(data))
-                .map(data => data.split(DataStoreMetadata.NS_SEPARATOR)[0])
-        );
-
-        return dataStoreInfo.filter(data => {
-            const [namespace, key] = data.split(DataStoreMetadata.NS_SEPARATOR);
-            const isNamespace = key === "";
-            return isNamespace || !namespaces.has(namespace);
-        });
-    }, [dataStoreInfo]);
+    }, [metadataIds]);
 
     if (dataStoreInfo.length === 0) return null;
 
     return (
         <>
-            <LiEntry label={`DataStore [${summaryInfo.length}]`}>
+            <LiEntry label={`DataStore [${dataStoreInfo.length}]`}>
                 <ul>
-                    {summaryInfo.map(dataStore => {
+                    {dataStoreInfo.map(dataStore => {
                         const [namespace, key] = dataStore.split(DataStoreMetadata.NS_SEPARATOR);
-                        const keyName = key ? i18n.t("Key: {{key}}", { key }) : i18n.t("All Keys");
-                        return (
-                            <LiEntry
-                                key={`${namespace}-${key}`}
-                                label={i18n.t("Namespace: {{namespace}} - {{keyName}}", { namespace, keyName })}
-                            />
-                        );
+                        const keyName = key ? `${key}` : "All Keys";
+                        return <LiEntry key={`${namespace}-${key}`} label={`${namespace} - ${keyName}`} />;
                     })}
                 </ul>
             </LiEntry>
         </>
     );
 };
-
-function isDryRunEnabled(syncRule: SynchronizationRule) {
-    switch (syncRule.type) {
-        case "aggregated":
-            return syncRule.dataParams.dryRun;
-        case "events":
-            return syncRule.dataParams.importMode === "VALIDATE";
-        default:
-            return syncRule.dataParams.dryRun || false;
-    }
-}

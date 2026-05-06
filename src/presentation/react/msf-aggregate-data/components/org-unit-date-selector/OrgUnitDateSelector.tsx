@@ -50,7 +50,7 @@ export const OrgUnitDateSelector: React.FC<OrgUnitDateSelectorProps> = React.mem
     );
 
     useEffect(() => {
-        compositionRoot.metadata
+        compositionRoot.instances
             .getOrgUnitRoots()
             .then(roots => roots.map(({ id }) => id))
             .then(setOrgUnitRootIds);

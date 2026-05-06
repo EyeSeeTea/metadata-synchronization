@@ -1,15 +1,16 @@
 import i18n from "../../../utils/i18n";
 import { UseCase } from "../../common/entities/UseCase";
 import { ValidationError } from "../../common/entities/Validations";
+import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../entities/Instance";
-import { InstanceRepository } from "../repositories/InstanceRepository";
 
 export class SaveInstanceUseCase implements UseCase {
-    constructor(private instanceRepository: InstanceRepository) {}
+    constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
 
     public async execute(instance: Instance): Promise<ValidationError[]> {
-        const instances = await this.instanceRepository.getAll({});
-        const instanceByName = instances?.find(existed => existed.name === instance.name);
+        const instanceRepository = this.repositoryFactory.instanceRepository(this.localInstance);
+
+        const instanceByName = await instanceRepository.getByName(instance.name);
 
         if (instanceByName && instanceByName.id !== instance.id) {
             return [
@@ -21,32 +22,23 @@ export class SaveInstanceUseCase implements UseCase {
             ];
         }
 
-        const exitedAdexInstanceByUrl =
-            instance.type === "aggregated-data-exchange"
-                ? instances?.find(
-                      existed => existed.type === "aggregated-data-exchange" && existed.url === instance.url
-                  )
-                : undefined;
-
-        if (exitedAdexInstanceByUrl && exitedAdexInstanceByUrl.id !== instance.id) {
-            return [
-                {
-                    property: "url",
-                    error: "url_exists",
-                    description: i18n.t(
-                        "An Aggregated Data Exchange instance with this URL already exists: {{instanceName}}",
-                        { instanceName: exitedAdexInstanceByUrl.name }
-                    ),
-                },
-            ];
-        }
-
         // Validate model and save it if there're no errors
         const modelValidations = instance.validate();
         if (modelValidations.length > 0) return modelValidations;
 
-        await this.instanceRepository.save(instance);
+        const editedInstance = instance.update({ version: await this.getVersion(instance) });
+
+        await instanceRepository.save(editedInstance);
 
         return [];
+    }
+
+    private async getVersion(instance: Instance): Promise<string | undefined> {
+        try {
+            const version = await this.repositoryFactory.instanceRepository(instance).getVersion();
+            return version;
+        } catch (error: any) {
+            return instance.version;
+        }
     }
 }

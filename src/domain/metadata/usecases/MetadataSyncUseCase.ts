@@ -69,7 +69,23 @@ export class MetadataSyncUseCase extends GenericSyncUseCase {
     }
 
     private async buildDataStorePayload(instance: Instance): Promise<DataStoreMetadata[]> {
-        return this.metadataPayloadBuilder.buildDataStorePayload(this.builder, instance);
+        const { metadataIds, syncParams } = this.builder;
+        const dataStore = DataStoreMetadata.buildFromKeys(metadataIds);
+        if (dataStore.length === 0) return [];
+
+        const dataStoreRepository = await this.getDataStoreMetadataRepository();
+        const dataStoreRemoteRepository = await this.getDataStoreMetadataRepository(instance);
+
+        const dataStoreLocal = await dataStoreRepository.get(dataStore);
+        const dataStoreRemote = await dataStoreRemoteRepository.get(dataStore);
+
+        const dataStorePayload = DataStoreMetadata.combine(metadataIds, dataStoreLocal, dataStoreRemote, {
+            action: syncParams?.mergeMode,
+        });
+        return syncParams?.includeSharingSettingsObjectsAndReferences ||
+            syncParams?.includeOnlySharingSettingsReferences
+            ? dataStorePayload
+            : DataStoreMetadata.removeSharingSettings(dataStorePayload);
     }
 
     private async saveDataStorePayload(

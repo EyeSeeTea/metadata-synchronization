@@ -9,21 +9,19 @@ import { startDhis } from "../../../../utils/dhisServer";
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { EventsPayloadBuilder } from "../../../../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../../../domain/aggregated/builders/AggregatedPayloadBuilder";
-import { AggregatedDataExchangeApiExecutor } from "../../../aggregated/AggregatedDataExchangeApiExecutor";
 
-const localInstance = Instance.build({
-    url: "http://origin.test",
-    name: "Testing",
-    version: "2.36",
-    type: "local",
-});
-const repositoryFactory = buildRepositoryFactory(localInstance);
+const repositoryFactory = buildRepositoryFactory();
 
 describe("Sync events", () => {
     let local: Server;
+    let remote: Server;
 
     beforeEach(() => {
         local = startDhis({ urlPrefix: "http://origin.test" });
+        remote = startDhis({
+            urlPrefix: "http://destination.test",
+            pretender: local.pretender,
+        });
 
         local.get("/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
@@ -36,7 +34,7 @@ describe("Sync events", () => {
             ],
         }));
 
-        local.get("/routes/DESTINATION/run/api/categoryOptionCombos", async () => ({
+        remote.get("/categoryOptionCombos", async () => ({
             categoryOptionCombos: [
                 {
                     name: "default",
@@ -88,7 +86,7 @@ describe("Sync events", () => {
         });
 
         local.get("/dataValueSets", async () => ({ dataValues: [] }));
-        local.get("/routes/DESTINATION/run/api/dataValueSets", async () => ({ dataValues: [] }));
+        remote.get("/dataValueSets", async () => ({ dataValues: [] }));
 
         local.get("/tracker/events", async () => ({
             page: 1,
@@ -126,7 +124,7 @@ describe("Sync events", () => {
             ],
         }));
 
-        local.get("/routes/DESTINATION/run/api/tracker/events", async () => ({
+        remote.get("/tracker/events", async () => ({
             page: 1,
             pageCount: 1,
             pageSize: 1,
@@ -162,7 +160,7 @@ describe("Sync events", () => {
             ],
         }));
 
-        local.get("/routes/DESTINATION/run/api/metadata", async () => ({
+        remote.get("/metadata", async () => ({
             categoryOptions: [{ id: "default5" }],
             categories: [{ id: "default6" }],
             categoryCombos: [{ id: "default7" }],
@@ -172,33 +170,58 @@ describe("Sync events", () => {
 
         local.get("/dataStore/metadata-synchronization/instances", async () => [
             {
+                type: "local",
+                id: "LOCAL",
+                name: "This instance",
+                description: "",
+                url: "http://origin.test",
+            },
+            {
+                type: "dhis",
                 id: "DESTINATION",
+                name: "Destination test",
+                url: "http://destination.test",
+                username: "test",
+                password: "",
+                description: "",
             },
         ]);
 
-        local.get("/routes", async () => ({
-            routes: [
-                {
-                    id: "DESTINATION",
-                    name: "Destination test",
-                    url: "http://destination.test",
-                    username: "test",
-                    auth: { type: "http-basic", username: "test", password: "" },
-                    description: "",
-                    sharing: {
-                        external: false,
-                        owner: "H4atNsEuKxP",
-                        public: "rw------",
-                        users: {},
-                        userGroups: {},
-                    },
-                },
-            ],
+        local.get("/dataStore/metadata-synchronization/instances-LOCAL", async () => ({}));
+        local.get("/dataStore/metadata-synchronization/instances-DESTINATION", async () => ({}));
+        local.get("/dataStore/metadata-synchronization/mappings", async () => []);
+
+        local.get("/dataStore/metadata-synchronization/instances-LOCAL/metaData", async () => ({
+            created: "2021-03-30T01:59:59.191",
+            lastUpdated: "2021-04-20T09:34:00.780",
+            externalAccess: false,
+            publicAccess: "rw------",
+            user: { id: "H4atNsEuKxP" },
+            userGroupAccesses: [],
+            userAccesses: [],
+            lastUpdatedBy: { id: "s5EVHUwoFKu" },
+            namespace: "metadata-synchronization",
+            key: "instances-LOCAL",
+            value: "",
+            favorite: false,
+            id: "Db5532sXKXT",
         }));
 
-        local.get("/routes/DESTINATION/run/api/system/info", () => ({ version: "2.36" }));
-
-        local.get("/dataStore/metadata-synchronization/mappings", async () => []);
+        local.get("/dataStore/metadata-synchronization/instances-DESTINATION/metaData", async () => ({
+            created: "2021-03-30T01:59:59.191",
+            lastUpdated: "2021-04-20T09:34:00.780",
+            externalAccess: false,
+            publicAccess: "rw------",
+            user: { id: "H4atNsEuKxP" },
+            userGroupAccesses: [],
+            userAccesses: [],
+            lastUpdatedBy: { id: "s5EVHUwoFKu" },
+            namespace: "metadata-synchronization",
+            key: "instances-DESTINATION",
+            value: "",
+            favorite: false,
+            id: "Db5532sXKX1",
+        }));
 
         local.get("/sharing", async () => ({
             meta: {
@@ -234,9 +257,9 @@ describe("Sync events", () => {
         //     trackedEntityInstances: [],
         // }));
 
-        const addEventsToDb = async (schema: Schema<AnyRegistry>, request: Request, collection: string) => {
+        const addEventsToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
             const body = JSON.parse(request.requestBody);
-            schema.db[collection].insert(body);
+            schema.db.events.insert(body);
 
             return {
                 status: "OK",
@@ -275,20 +298,25 @@ describe("Sync events", () => {
             };
         };
 
-        local.db.createCollection("eventsLocal", []);
-        local.post("/tracker", (schema, request) => addEventsToDb(schema, request, "eventsLocal"));
+        local.db.createCollection("events", []);
+        local.post("/tracker", addEventsToDb);
 
-        local.db.createCollection("eventsDestination", []);
-        local.post("/routes/DESTINATION/run/api/tracker", (schema, request) =>
-            addEventsToDb(schema, request, "eventsDestination")
-        );
+        remote.db.createCollection("events", []);
+        remote.post("/tracker", addEventsToDb);
     });
 
     afterEach(() => {
         local.shutdown();
+        remote.shutdown();
     });
 
     it("Local server to remote - same version", async () => {
+        const localInstance = Instance.build({
+            url: "http://origin.test",
+            name: "Testing",
+            version: "2.36",
+        });
+
         const builder: SynchronizationBuilder = {
             originInstance: "LOCAL",
             targetInstances: ["DESTINATION"],
@@ -302,15 +330,13 @@ describe("Sync events", () => {
 
         const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
         const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
-        const aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(localInstance);
 
         const sync = new EventsSyncUseCase(
             builder,
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder,
-            aggregatedDataExchangeExecutor
+            aggregatedPayloadBuilder
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
@@ -321,12 +347,18 @@ describe("Sync events", () => {
             // no-op
         }
 
-        const response = local.db.eventsDestination.find(1);
+        const response = remote.db.events.find(1);
         expect(response.events[0].id).toEqual("test-event-1");
-        expect(local.db.eventsLocal.find(1)).toBeNull();
+        expect(local.db.events.find(1)).toBeNull();
     });
 
     it("Remote server to local - same version", async () => {
+        const localInstance = Instance.build({
+            url: "http://origin.test",
+            name: "Testing",
+            version: "2.36",
+        });
+
         const builder: SynchronizationBuilder = {
             originInstance: "DESTINATION",
             targetInstances: ["LOCAL"],
@@ -339,15 +371,13 @@ describe("Sync events", () => {
         };
         const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
         const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
-        const aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(localInstance);
 
         const sync = new EventsSyncUseCase(
             builder,
             repositoryFactory,
             localInstance,
             eventsPayloadBuilder,
-            aggregatedPayloadBuilder,
-            aggregatedDataExchangeExecutor
+            aggregatedPayloadBuilder
         );
 
         const payload = await eventsPayloadBuilder.build(builder);
@@ -358,16 +388,16 @@ describe("Sync events", () => {
             // no-op
         }
 
-        const response = local.db.eventsLocal.find(1);
+        const response = local.db.events.find(1);
         expect(response.events[0].id).toEqual("test-event-2");
-        expect(local.db.eventsDestination.find(1)).toBeNull();
+        expect(remote.db.events.find(1)).toBeNull();
     });
 });
 
-function buildRepositoryFactory(localInstance: Instance) {
+function buildRepositoryFactory() {
     const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();
 
-    registerDynamicRepositoriesInFactory(localInstance, repositoryFactory);
+    registerDynamicRepositoriesInFactory(repositoryFactory);
 
     return repositoryFactory;
 }

@@ -6,14 +6,12 @@ import { UseCase } from "../../common/entities/UseCase";
 import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../../instance/entities/Instance";
 import { TransformationRepository } from "../../transformations/repositories/TransformationRepository";
-import { UserRepository } from "../../user/repositories/UserRepository";
 import { BasePackage, Package } from "../entities/Package";
 
 export class ExtendsPackagesFromPackageUseCase implements UseCase {
     constructor(
         private repositoryFactory: DynamicRepositoryFactory,
         private transformationRepository: TransformationRepository,
-        private userRepository: UserRepository,
         private localInstance: Instance
     ) {}
 
@@ -26,7 +24,7 @@ export class ExtendsPackagesFromPackageUseCase implements UseCase {
 
         const pkg = Package.build(packageData);
 
-        const user = await this.userRepository.getCurrent();
+        const user = await this.repositoryFactory.userRepository(this.localInstance).getCurrent();
 
         for (const dhisVersion of dhisVersions) {
             const originApiVersion = getMajorVersion(pkg.dhisVersion);

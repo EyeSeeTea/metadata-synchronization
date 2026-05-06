@@ -30,7 +30,6 @@ import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
 import { getFilterData, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
-import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 
 export type MetadataTableFilters =
     | "group"
@@ -312,6 +311,13 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         changeParentOrgUnitFilter(orgUnitPaths);
     };
 
+    const addToSelection = (ids: string[]) => {
+        const oldSelection = _.difference(selectedIds, ids);
+        const newSelection = _.difference(ids, selectedIds);
+
+        notifyNewSelection([...oldSelection, ...newSelection], excludedIds);
+    };
+
     const openResponsibleDialog = (ids: string[]) => {
         const { id, name } = rows.find(({ id }) => ids[0] === id) ?? {};
         if (!id || !name) return;
@@ -323,18 +329,20 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         <React.Fragment key={"metadata-table-filters"}>
             {externalFilterComponents}
 
-            <div className={classes.metadataFilter}>
-                <Dropdown
-                    items={models.map(model => ({
-                        id: model.getMetadataType(),
-                        name: model.getModelName(),
-                    }))}
-                    onValueChange={changeModelFilter}
-                    value={model.getMetadataType()}
-                    label={i18n.t("Metadata type")}
-                    hideEmpty={true}
-                />
-            </div>
+            {models.length > 1 && (
+                <div className={classes.metadataFilter}>
+                    <Dropdown
+                        items={models.map(model => ({
+                            id: model.getMetadataType(),
+                            name: model.getModelName(),
+                        }))}
+                        onValueChange={changeModelFilter}
+                        value={model.getMetadataType()}
+                        label={i18n.t("Metadata type")}
+                        hideEmpty={true}
+                    />
+                </div>
+            )}
 
             {viewFilters.includes("lastUpdated") && (
                 <div className={classes.dateFilter}>
@@ -496,6 +504,14 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             },
         },
         {
+            name: "select",
+            text: i18n.t("Select"),
+            primary: true,
+            multiple: true,
+            onClick: addToSelection,
+            isActive: () => false,
+        },
+        {
             name: "set-responsible",
             text: i18n.t("Set metadata custodian"),
             multiple: false,
@@ -531,7 +547,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             return;
         }
 
-        compositionRoot.metadata
+        compositionRoot.instances
             .getOrgUnitRoots(remoteInstance)
             .then(roots => changeParentOrgUnitFilter(roots.map(({ path }) => path)))
             .catch(handleError);
@@ -595,20 +611,15 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     useEffect(() => {
         if (remoteInstance && isJSONDataSource(remoteInstance)) return;
 
-        if (!remoteInstance) {
-            compositionRoot.responsibles.list().then(updateResponsibles);
-        }
+        compositionRoot.responsibles.list(remoteInstance).then(updateResponsibles);
     }, [compositionRoot, remoteInstance]);
 
     const handleTableChange = (tableState: TableState<ReferenceObject>) => {
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
-
-        const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
-
-        const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
-        const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
+        const newlySelectedIds = _.difference(included, selectedIds);
+        const newlyUnselectedIds = _.difference(selectedIds, included);
 
         const parseChildren = (ids: string[]) =>
             _(rows)
@@ -618,41 +629,19 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 .map(({ id }) => id)
                 .value();
 
-        if (model.getMetadataType() === "dataStore") {
-            const result = computeDataStoreSelection({
-                included,
-                newlySelectedIds,
-                newlyUnselectedIds,
-                excludedIds,
-                rows,
-                parseChildren,
-            });
+        const excluded = _(excludedIds)
+            .union(newlyUnselectedIds)
+            .difference(parseChildren(newlyUnselectedIds))
+            .difference(newlySelectedIds)
+            .difference(parseChildren(newlySelectedIds))
+            .filter(id => !_.find(rows, { id }))
+            .value();
 
-            const mergedSelection = _.uniq([...otherMetadataTypeIds, ...result.included]);
-
-            if (!_.isEqual(stateSelection, mergedSelection)) {
-                notifyNewSelection(mergedSelection, result.excluded);
-            }
-
-            setStateSelection(mergedSelection);
-        } else {
-            const excluded = _(excludedIds)
-                .union(newlyUnselectedIds)
-                .difference(parseChildren(newlyUnselectedIds))
-                .difference(newlySelectedIds)
-                .difference(parseChildren(newlySelectedIds))
-                .filter(id => !_.find(rows, { id }))
-                .value();
-
-            const mergedSelection = _.uniq([...otherMetadataTypeIds, ...included]);
-
-            if (!_.isEqual(stateSelection, mergedSelection)) {
-                notifyNewSelection(mergedSelection, excluded);
-            }
-
-            setStateSelection(mergedSelection);
+        if (!_.isEqual(stateSelection, included)) {
+            notifyNewSelection(included, excluded);
         }
 
+        setStateSelection(included);
         updateFilters({
             order: sorting,
             page: pagination.page,

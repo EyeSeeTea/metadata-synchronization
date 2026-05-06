@@ -73,7 +73,10 @@ export const InstanceSelectionDropdown: React.FC<InstanceSelectionDropdownProps>
 
         useEffect(() => {
             compositionRoot.instances.list().then(instances => {
-                setInstances(instances);
+                const instancesWithPermisions = user
+                    ? instances.filter(instance => instance.hasPermissions("read", user))
+                    : [];
+                setInstances(instancesWithPermisions);
             });
 
             if (showInstances.store) {

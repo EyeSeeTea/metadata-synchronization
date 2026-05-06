@@ -24,7 +24,6 @@ import { EventsPayloadBuilder } from "../builders/EventsPayloadBuilder";
 import { EventsPackage } from "../entities/EventsPackage";
 import { ProgramEvent } from "../entities/ProgramEvent";
 import { createEventsPayloadMapper } from "../mapper/EventsPayloadMapperFactory";
-import { AggregatedDataExchangeExecutor } from "../../aggregated/repositories/AggregatedDataExchangeExecutor";
 
 export const eventsFields =
     "id,name,programType,programStages[id,displayFormName,programStageDataElements[dataElement[id,displayFormName,name]]],programIndicators[id,name],program";
@@ -39,10 +38,9 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
         readonly repositoryFactory: DynamicRepositoryFactory,
         readonly localInstance: Instance,
         private eventsPayloadBuilder: EventsPayloadBuilder,
-        private aggregatedPayloadBuilder: AggregatedPayloadBuilder,
-        readonly aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor
+        private aggregatedPayloadBuilder: AggregatedPayloadBuilder
     ) {
-        super(builder, repositoryFactory, localInstance, aggregatedDataExchangeExecutor);
+        super(builder, repositoryFactory, localInstance);
     }
 
     /**
@@ -54,7 +52,7 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
 
     public async postPayload(instance: Instance): Promise<SynchronizationResult[]> {
         const payload = await this.buildPayload();
-        const { events, dataValues, trackedEntities: trackedEntityInstances } = payload;
+        const { events, dataValues, trackedEntityInstances } = payload;
         const { dataParams = {} } = this.builder;
 
         const wasAnyTeiSelectedToSync =
@@ -94,8 +92,7 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
 
         const payloadByTEIs = (await mapper.map({ trackedEntities: teis })) as EventsPackage;
 
-        const finalEvents =
-            dataParams.importMode === "VALIDATE" ? events : await this.manageDataElementWithFileType(events, instance);
+        const finalEvents = await this.manageDataElementWithFileType(events, instance);
 
         const payloadByEvents = (await this.mapPayload(instance, { events: finalEvents })) as EventsPackage;
 
@@ -149,8 +146,7 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
             this.builder,
             this.repositoryFactory,
             this.localInstance,
-            this.aggregatedPayloadBuilder,
-            this.aggregatedDataExchangeExecutor
+            this.aggregatedPayloadBuilder
         );
 
         const mappedPayload = await aggregatedSync.mapPayload(instance, { dataValues });
@@ -216,9 +212,7 @@ export class EventsSyncUseCase extends GenericSyncUseCase {
             "id,valueType"
         );
 
-        const dataElementFileTypes = dataElements
-            .filter(de => de.valueType === "FILE_RESOURCE" || de.valueType === "IMAGE")
-            .map(de => de.id);
+        const dataElementFileTypes = dataElements.filter(de => de.valueType === "FILE_RESOURCE").map(de => de.id);
 
         const eventsRepository = await this.getEventsRepository();
         const fileRemoteRepository = await this.getInstanceFileRepository(remoteInstance);

@@ -13,8 +13,8 @@ const AUTOGENFORMS_NAMESPACE = "d2-autogen-forms";
 const AUTOGENFORMS_MAL_WMR_KEY = "MAL_WMR_COUNTRY_SYNC";
 export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
     private api: D2Api;
-    constructor(private localInstance: Instance, private targetInstance?: Instance) {
-        this.api = getD2APiFromInstance(this.localInstance, this.targetInstance);
+    constructor(private instance: Instance) {
+        this.api = getD2APiFromInstance(this.instance);
     }
 
     checkWmrRequisites(requisiteType: WmrRequisiteType): FutureData<boolean> {
@@ -42,11 +42,7 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
 
     private dataStoreSettingsExist(): FutureData<boolean> {
         // TODO: check consistency with the file to import?
-        const dataStoreClient = new StorageDataStoreClient(
-            this.localInstance,
-            this.targetInstance,
-            AUTOGENFORMS_NAMESPACE
-        );
+        const dataStoreClient = new StorageDataStoreClient(this.instance, AUTOGENFORMS_NAMESPACE);
         return dataStoreClient.getObjectFuture(AUTOGENFORMS_MAL_WMR_KEY).map(malWmrSettings => !!malWmrSettings);
     }
 
@@ -91,11 +87,7 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
 
     private setupAutogenFormsDataStoreValue(): FutureData<void> {
         return this.fetchAutogenFormsDataStoreValue().flatMap(autogenFormsDataStoreData => {
-            const dataStoreClient = new StorageDataStoreClient(
-                this.localInstance,
-                this.targetInstance,
-                AUTOGENFORMS_NAMESPACE
-            );
+            const dataStoreClient = new StorageDataStoreClient(this.instance, AUTOGENFORMS_NAMESPACE);
             return dataStoreClient.saveObjectFuture(AUTOGENFORMS_MAL_WMR_KEY, autogenFormsDataStoreData);
         });
     }

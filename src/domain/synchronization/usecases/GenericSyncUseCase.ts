@@ -24,7 +24,6 @@ import { SynchronizationResult, SynchronizationStatus } from "../../reports/enti
 import { SynchronizationBuilder } from "../entities/SynchronizationBuilder";
 import { SynchronizationPayload } from "../entities/SynchronizationPayload";
 import { SynchronizationType } from "../entities/SynchronizationType";
-import { AggregatedDataExchangeExecutor } from "../../aggregated/repositories/AggregatedDataExchangeExecutor";
 
 export type SynchronizationClass =
     | typeof MetadataSyncUseCase
@@ -40,8 +39,7 @@ export abstract class GenericSyncUseCase {
     constructor(
         protected readonly builder: SynchronizationBuilder,
         protected readonly repositoryFactory: DynamicRepositoryFactory,
-        protected readonly localInstance: Instance,
-        protected readonly aggregatedDataExchangeExecutor?: AggregatedDataExchangeExecutor
+        protected readonly localInstance: Instance
     ) {
         this.api = getD2APiFromInstance(localInstance);
     }
@@ -97,7 +95,7 @@ export abstract class GenericSyncUseCase {
     public async getOriginInstance(): Promise<Instance> {
         const { originInstance: originInstanceId } = this.builder;
         const instance = await this.getInstanceById(originInstanceId);
-        if (!instance) throw new Error("Unable to read origin instance: " + originInstanceId);
+        if (!instance) throw new Error("Unable to read origin instance");
         return instance;
     }
 
@@ -144,10 +142,10 @@ export abstract class GenericSyncUseCase {
         return this.repositoryFactory.mappingRepository(remoteInstance ?? defaultInstance);
     }
 
-    private async buildSyncReport(useAggregatedDataExchange?: boolean): Promise<SynchronizationReport> {
+    private async buildSyncReport() {
         const { syncRule } = this.builder;
         const metadataPackage = await this.extractMetadata();
-        const dataStats = useAggregatedDataExchange ? undefined : await this.buildDataStats();
+        const dataStats = await this.buildDataStats();
         const currentUser = await this.api.currentUser
             .get({ fields: { userCredentials: { username: true } } })
             .getData();
@@ -164,10 +162,14 @@ export abstract class GenericSyncUseCase {
 
     private async getInstanceById(id: string): Promise<Instance | undefined> {
         const instance = await this.repositoryFactory.instanceRepository(this.localInstance).getById(id);
-
         if (!instance) return undefined;
 
-        return instance;
+        try {
+            const version = await this.repositoryFactory.instanceRepository(instance).getVersion();
+            return instance.update({ version });
+        } catch (error: any) {
+            return instance;
+        }
     }
 
     public async *execute() {
@@ -192,10 +194,8 @@ export abstract class GenericSyncUseCase {
         // Build instance list
         const targetInstances = _.compact(await promiseMap(targetInstanceIds, id => this.getInstanceById(id)));
 
-        const isAggregatedDataExchangeRule = await this.isAggregatedDataExchange(syncRule);
-
         // Initialize sync report
-        const syncReport = await this.buildSyncReport(isAggregatedDataExchangeRule);
+        const syncReport = await this.buildSyncReport();
         syncReport.addSyncResult(
             ...targetInstances.map(instance => ({
                 instance: instance.toPublicObject(),
@@ -218,10 +218,7 @@ export abstract class GenericSyncUseCase {
             try {
                 debug("Start import on destination instance", instance.toPublicObject());
 
-                const syncResults = isAggregatedDataExchangeRule
-                    ? await this.executeAggregatedSyncRule(instance, syncRule)
-                    : await this.postPayload(instance);
-
+                const syncResults = await this.postPayload(instance);
                 syncReport.addSyncResult(...syncResults);
 
                 debug("Finished import on instance", instance.toPublicObject());
@@ -281,42 +278,5 @@ export abstract class GenericSyncUseCase {
         yield { syncReport, done: true };
 
         return syncReport;
-    }
-
-    private async isAggregatedDataExchange(syncRule?: string): Promise<boolean> {
-        if (!syncRule) return false;
-
-        const rule = await this.repositoryFactory.rulesRepository(this.localInstance).getById(syncRule);
-
-        return rule?.useAggregatedDataExchange || false;
-    }
-
-    private async executeAggregatedSyncRule(
-        targetInstance: Instance,
-        syncRule?: string
-    ): Promise<SynchronizationResult[]> {
-        if (!syncRule) throw new Error("Missing sync rule");
-
-        const rule = await this.repositoryFactory.rulesRepository(this.localInstance).getById(syncRule);
-
-        if (!rule) throw new Error("Sync rule not found: " + syncRule);
-
-        const aggregatedDataExchange = rule.aggregatedDataExchanges?.find(
-            adex => adex.target.instanceId === targetInstance.id
-        );
-
-        if (!aggregatedDataExchange) {
-            throw new Error(
-                `Aggregated data exchange configuration not found for target instance ${targetInstance.id} in sync rule ${syncRule}`
-            );
-        }
-
-        if (!this.aggregatedDataExchangeExecutor) {
-            throw new Error("AggregatedDataExchangeExecutor not provided in GenericSyncUseCase");
-        }
-
-        const result = await this.aggregatedDataExchangeExecutor.execute(aggregatedDataExchange.id, targetInstance);
-
-        return [result];
     }
 }

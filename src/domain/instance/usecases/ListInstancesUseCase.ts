@@ -1,15 +1,12 @@
 import { UseCase } from "../../common/entities/UseCase";
-import { UserRepository } from "../../user/repositories/UserRepository";
+import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../entities/Instance";
-import { InstanceRepository, InstancesFilter } from "../repositories/InstanceRepository";
+import { InstancesFilter } from "../repositories/InstanceRepository";
 
 export class ListInstancesUseCase implements UseCase {
-    constructor(private userRepository: UserRepository, private instanceRepository: InstanceRepository) {}
+    constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
 
     public async execute(filters: InstancesFilter = {}): Promise<Instance[]> {
-        const user = await this.userRepository.getCurrent();
-        const instances = await this.instanceRepository.getAll(filters);
-
-        return instances.filter(instance => instance.hasPermissions("read", user) || instance.id === "LOCAL");
+        return this.repositoryFactory.instanceRepository(this.localInstance).getAll(filters);
     }
 }

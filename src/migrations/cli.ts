@@ -22,7 +22,7 @@ async function main() {
         version,
     });
 
-    const compositionRoot = new CompositionRoot(instance);
+    const compositionRoot = new CompositionRoot(instance, "");
     await compositionRoot.migrations.run(console.debug);
 }
 

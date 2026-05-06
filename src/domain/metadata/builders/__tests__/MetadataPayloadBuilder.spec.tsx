@@ -103,6 +103,7 @@ describe("MetadataPayloadBuilder", () => {
 
             const mockedInstanceRepository = mock<InstanceRepository>();
             when(mockedInstanceRepository.getById(anything())).thenResolve(dummyInstance);
+            when(mockedInstanceRepository.getVersion()).thenResolve("");
 
             const mockedMetadataRepository = mock<MetadataRepository>();
 
@@ -215,6 +216,7 @@ describe("MetadataPayloadBuilder", () => {
 
             const mockedInstanceRepository = mock<InstanceRepository>();
             when(mockedInstanceRepository.getById(anything())).thenResolve(dummyInstance);
+            when(mockedInstanceRepository.getVersion()).thenResolve("");
 
             const mockedMetadataRepository = mock<MetadataRepository>();
 
@@ -333,6 +335,7 @@ describe("MetadataPayloadBuilder", () => {
 
             const mockedInstanceRepository = mock<InstanceRepository>();
             when(mockedInstanceRepository.getById(anything())).thenResolve(dummyInstance);
+            when(mockedInstanceRepository.getVersion()).thenResolve("");
 
             const mockedMetadataRepository = mock<MetadataRepository>();
 
@@ -423,6 +426,7 @@ describe("MetadataPayloadBuilder", () => {
             }
             const mockedInstanceRepository = mock<InstanceRepository>();
             when(mockedInstanceRepository.getById(anything())).thenResolve(dummyInstance);
+            when(mockedInstanceRepository.getVersion()).thenResolve("");
 
             const mockedMetadataRepository = mock<MetadataRepository>();
 

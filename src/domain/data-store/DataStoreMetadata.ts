@@ -31,13 +31,12 @@ export class DataStoreMetadata {
         this.action = data.action;
     }
 
-    static buildFromKeys(dataStoreIds: string[], excludedDataStoreIds: string[]): DataStoreMetadata[] {
-        const excludedSet = new Set(excludedDataStoreIds);
-        const filteredDataStoreIds = dataStoreIds.filter(id => !excludedSet.has(id));
+    static buildFromKeys(keysWithNamespaces: string[]): DataStoreMetadata[] {
+        const dataStoreIds = this.getDataStoreIds(keysWithNamespaces);
 
-        const namespaceAndKey = filteredDataStoreIds.map(dataStoreId => {
+        const namespaceAndKey = dataStoreIds.map(dataStoreId => {
             const match = dataStoreId.split(DataStoreMetadata.NS_SEPARATOR);
-            if (match.length !== 2) {
+            if (!match) {
                 throw new Error(`dataStore value does not match expected format: ${dataStoreId}`);
             }
             const [namespace, key] = match;
@@ -110,7 +109,7 @@ export class DataStoreMetadata {
     }
 
     static getDataStoreIds(keys: string[]): string[] {
-        return keys.filter(id => this.isDataStoreId(id));
+        return keys.filter(id => id.includes(DataStoreMetadata.NS_SEPARATOR));
     }
 
     static isDataStoreId(id: string): boolean {

@@ -317,7 +317,6 @@ export class EventProgramWithIndicatorsModel extends EventProgramModel {
 
 export class DataElementFromTEIMappedModel extends DataElementModel {
     protected static metadataType = "trackedEntityAttributesToDE";
-    protected static mappingType = "trackedEntityAttributesToDE";
 }
 
 export class TrackedEntityAttributeToTEIMappedModel extends TrackedEntityAttributeModel {

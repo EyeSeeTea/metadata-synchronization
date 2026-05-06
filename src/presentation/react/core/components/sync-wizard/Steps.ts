@@ -1,8 +1,6 @@
 import { WizardStep } from "@eyeseetea/d2-ui-components";
-import { ReactComponentLike } from "prop-types";
 import { SynchronizationRule } from "../../../../../domain/rules/entities/SynchronizationRule";
 import i18n from "../../../../../utils/i18n";
-import AdexInstanceCredentials from "../adex-instances-credentials-dialog/AdexInstanceCredentialsDialog";
 import GeneralInfoStep from "./common/GeneralInfoStep";
 import InstanceSelectionStep from "./common/InstanceSelectionStep";
 import MetadataFilterRulesStep from "./common/MetadataFilterRulesStep";
@@ -17,16 +15,10 @@ import PeriodSelectionStep from "./data/PeriodSelectionStep";
 import TEIsSelectionStep from "./data/TEIsSelectionStep";
 import MetadataIncludeExcludeStep from "./metadata/MetadataIncludeExcludeStep";
 
-export type DialogOnBeforeNext = {
-    showDialog: boolean;
-    dialog: ReactComponentLike;
-};
-
 export interface SyncWizardStep extends WizardStep {
     validationKeys: string[];
     showOnSyncDialog?: boolean;
     hidden?: (syncRule: SynchronizationRule) => boolean;
-    dialogOnBeforeNext?: (syncRule: SynchronizationRule) => DialogOnBeforeNext;
 }
 
 export interface SyncWizardStepProps {
@@ -49,24 +41,8 @@ const commonSteps: {
         key: "instance-selection",
         label: i18n.t("Instance Selection"),
         component: InstanceSelectionStep,
-        validationKeys: ["targetInstances", "aggregatedDataExchanges"],
+        validationKeys: ["targetInstances"],
         showOnSyncDialog: true,
-        dialogOnBeforeNext: (syncRule: SynchronizationRule) => {
-            const aggregatedDataExchangeInstanceIds = (syncRule.aggregatedDataExchanges || []).map(
-                adex => adex.target.instanceId
-            );
-            const hasInstancesNotInAggregatedDataExchanges =
-                syncRule.useAggregatedDataExchange &&
-                syncRule.targetInstances.some(instanceId => !aggregatedDataExchangeInstanceIds.includes(instanceId));
-
-            const hasInstancesWithoutCredentials =
-                syncRule.aggregatedDataExchanges?.some(adex => !adex.target.password) || false;
-
-            return {
-                showDialog: hasInstancesNotInAggregatedDataExchanges || hasInstancesWithoutCredentials,
-                dialog: AdexInstanceCredentials,
-            };
-        },
     },
     scheduler: {
         key: "scheduler",
@@ -170,7 +146,6 @@ export const aggregatedSteps: SyncWizardStep[] = [
         component: CategoryOptionsSelectionStep,
         validationKeys: ["categoryOptionIds"],
         showOnSyncDialog: true,
-        hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
     },
     {
         ...commonSteps.aggregation,
@@ -212,7 +187,6 @@ export const eventsSteps: SyncWizardStep[] = [
         component: TEIsSelectionStep,
         validationKeys: [""],
         showOnSyncDialog: true,
-        hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
     },
     {
         key: "events",
@@ -220,7 +194,6 @@ export const eventsSteps: SyncWizardStep[] = [
         component: EventsSelectionStep,
         validationKeys: ["dataSyncEventsOrTeis"],
         showOnSyncDialog: true,
-        hidden: (syncRule: SynchronizationRule) => syncRule.useAggregatedDataExchange,
     },
     {
         ...commonSteps.aggregation,

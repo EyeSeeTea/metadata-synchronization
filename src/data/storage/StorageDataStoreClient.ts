@@ -20,14 +20,9 @@ export class StorageDataStoreClient extends StorageClient {
     private api: D2Api;
     private dataStore: DataStore;
 
-    constructor(
-        localInstance: Instance,
-        targetInstance?: Instance,
-        namespace: string = dataStoreNamespace,
-        options?: StorageOptions
-    ) {
+    constructor(instance: Instance, namespace: string = dataStoreNamespace, options?: StorageOptions) {
         super();
-        this.api = getD2APiFromInstance(localInstance, targetInstance);
+        this.api = getD2APiFromInstance(instance);
         this.dataStore =
             options?.storageType === "user" ? this.api.userDataStore(namespace) : this.api.dataStore(namespace);
     }

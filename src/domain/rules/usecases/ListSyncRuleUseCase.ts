@@ -16,7 +16,6 @@ export interface ListSyncRuleUseCaseParams {
     filters?: {
         targetInstanceFilter?: string;
         schedulerEnabledFilter?: string;
-        schedulerTypeFilter?: "metadataSync" | "dhis2";
         lastExecutedFilter?: Date | null;
         types?: SynchronizationType[];
         search?: string;
@@ -46,7 +45,6 @@ export class ListSyncRuleUseCase implements UseCase {
             types,
             search,
             allProperties = false,
-            schedulerTypeFilter,
         } = filters;
 
         const rawData = await this.repositoryFactory.rulesRepository(this.localInstance).list(allProperties);
@@ -77,22 +75,10 @@ export class ListSyncRuleUseCase implements UseCase {
             })
             .filter(rule => (targetInstanceFilter ? rule.targetInstances.includes(targetInstanceFilter) : true))
             .filter(rule => {
-                const useAggregatedDataExchangeDhis2Job = schedulerTypeFilter
-                    ? schedulerTypeFilter === "dhis2"
-                        ? true
-                        : false
-                    : undefined;
-
                 if (!schedulerEnabledFilter) return true;
                 return (
-                    (rule.enabled &&
-                        schedulerEnabledFilter === "enabled" &&
-                        (!useAggregatedDataExchangeDhis2Job ||
-                            rule.useAggregatedDataExchangeDhis2Job === useAggregatedDataExchangeDhis2Job)) ||
-                    (!rule.enabled &&
-                        schedulerEnabledFilter === "disabled" &&
-                        (!useAggregatedDataExchangeDhis2Job ||
-                            rule.useAggregatedDataExchangeDhis2Job === useAggregatedDataExchangeDhis2Job))
+                    (rule.enabled && schedulerEnabledFilter === "enabled") ||
+                    (!rule.enabled && schedulerEnabledFilter === "disabled")
                 );
             })
             .filter(rule =>

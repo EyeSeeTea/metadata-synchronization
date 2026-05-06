@@ -65,11 +65,7 @@ describe("SchedulerCLI", () => {
 
             expect(spyListRules).toHaveBeenCalledWith({
                 paging: false,
-                filters: {
-                    schedulerEnabledFilter: "enabled",
-                    schedulerTypeFilter: "metadataSync",
-                    allProperties: true,
-                },
+                filters: { schedulerEnabledFilter: "enabled", allProperties: true },
             });
             expect(result).toEqual(expectedSyncRules);
         });

@@ -7,18 +7,9 @@ import { SynchronizationBuilder } from "../../../../domain/synchronization/entit
 import { startDhis } from "../../../../utils/dhisServer";
 import { EventsPayloadBuilder } from "../../../../domain/events/builders/EventsPayloadBuilder";
 import { AggregatedPayloadBuilder } from "../../../../domain/aggregated/builders/AggregatedPayloadBuilder";
-import { DynamicRepositoryFactory } from "../../../../domain/common/factories/DynamicRepositoryFactory";
-import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
-import { AggregatedDataExchangeApiExecutor } from "../../../aggregated/AggregatedDataExchangeApiExecutor";
+import { buildRepositoryFactory } from "./helpers";
 
-const localInstance = Instance.build({
-    url: "http://origin.test",
-    name: "Testing",
-    version: "2.36",
-    type: "local",
-});
-
-const repositoryFactory = buildRepositoryFactory(localInstance);
+const repositoryFactory = buildRepositoryFactory();
 
 const mockAttributes = [
     {
@@ -33,7 +24,7 @@ const mockAttributes = [
     },
 ];
 
-function setupMockEndpoints(local: Server, destinationVersion = "2.36") {
+function setupMockEndpoints(local: Server, remote: Server) {
     local.get("/categoryOptionCombos", async () => ({
         categoryOptionCombos: [
             {
@@ -45,7 +36,7 @@ function setupMockEndpoints(local: Server, destinationVersion = "2.36") {
         ],
     }));
 
-    local.get("/routes/DESTINATION/run/api/categoryOptionCombos", async () => ({
+    remote.get("/categoryOptionCombos", async () => ({
         categoryOptionCombos: [
             {
                 name: "default",
@@ -98,7 +89,7 @@ function setupMockEndpoints(local: Server, destinationVersion = "2.36") {
     });
 
     local.get("/dataValueSets", async () => ({ dataValues: [] }));
-    local.get("/routes/DESTINATION/run/api/dataValueSets", async () => ({ dataValues: [] }));
+    remote.get("/dataValueSets", async () => ({ dataValues: [] }));
 
     local.get("/tracker/events", async () => ({
         page: 1,
@@ -136,7 +127,7 @@ function setupMockEndpoints(local: Server, destinationVersion = "2.36") {
         ],
     }));
 
-    local.get("/routes/DESTINATION/run/api/tracker/events", async () => ({
+    remote.get("/tracker/events", async () => ({
         page: 1,
         pageCount: 1,
         pageSize: 1,
@@ -144,48 +135,13 @@ function setupMockEndpoints(local: Server, destinationVersion = "2.36") {
         instances: [],
     }));
 
-    local.get("/routes/DESTINATION/run/api/metadata", async (_schema, request) => {
-        if (request.queryParams.filter === "id:in:[program1]") {
-            return {
-                programs: [
-                    {
-                        name: "Test program",
-                        id: "program1",
-                        programStages: [
-                            {
-                                programStageDataElements: [
-                                    {
-                                        dataElement: {
-                                            name: "Test data element",
-                                            id: "id1",
-                                            displayFormName: "Test data element",
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                        programIndicators: [],
-                        programType: "WITH_REGISTRATION",
-                        programTrackedEntityAttributes: [
-                            {
-                                trackedEntityAttribute: {
-                                    id: "attribute1",
-                                },
-                            },
-                        ],
-                    },
-                ],
-            };
-        } else {
-            return {
-                categoryOptions: [{ id: "default5" }],
-                categories: [{ id: "default6" }],
-                categoryCombos: [{ id: "default7" }],
-                categoryOptionCombos: [{ id: "default8" }],
-                dataElements: [{ id: "id2", name: "Test data element 2" }],
-            };
-        }
-    });
+    remote.get("/metadata", async () => ({
+        categoryOptions: [{ id: "default5" }],
+        categories: [{ id: "default6" }],
+        categoryCombos: [{ id: "default7" }],
+        categoryOptionCombos: [{ id: "default8" }],
+        dataElements: [{ id: "id2", name: "Test data element 2" }],
+    }));
 
     local.get("/dataStore/metadata-synchronization/instances", async () => [
         {
@@ -319,40 +275,12 @@ function setupMockEndpoints(local: Server, destinationVersion = "2.36") {
             },
         ],
     }));
-
-    local.get("/dataStore/metadata-synchronization/instances", async () => [
-        {
-            id: "DESTINATION",
-        },
-    ]);
-
-    local.get("/routes", async () => ({
-        routes: [
-            {
-                id: "DESTINATION",
-                name: "Destination test",
-                url: "http://destination.test",
-                username: "test",
-                auth: { type: "http-basic", username: "test", password: "" },
-                description: "",
-                sharing: {
-                    external: false,
-                    owner: "H4atNsEuKxP",
-                    public: "rw------",
-                    users: {},
-                    userGroups: {},
-                },
-            },
-        ],
-    }));
-
-    local.get("/routes/DESTINATION/run/api/system/info", () => ({ version: destinationVersion }));
 }
 
-function setupTrackerEndpoints(local: Server) {
-    const addEventsPayloadToDb = async (schema: Schema<AnyRegistry>, request: Request, collection: string) => {
+function setupTrackerEndpoints(local: Server, remote: Server) {
+    const addEventsPayloadToDb = async (schema: Schema<AnyRegistry>, request: Request) => {
         const body = JSON.parse(request.requestBody);
-        schema.db[collection].insert(body);
+        schema.db.events.insert(body);
         const { events, trackedEntities } = body;
         const report = (type: "EVENT" | "TRACKED_ENTITY", entities?: object[]) =>
             entities
@@ -401,20 +329,31 @@ function setupTrackerEndpoints(local: Server) {
         };
     };
 
-    local.db.createCollection("eventsLocal", []);
-    local.post("/tracker", (schema, request) => addEventsPayloadToDb(schema, request, "eventsLocal"));
+    local.db.createCollection("events", []);
+    local.post("/tracker", addEventsPayloadToDb);
 
-    local.db.createCollection("eventsDestination", []);
-    local.post("/routes/DESTINATION/run/api/tracker", (schema, request) =>
-        addEventsPayloadToDb(schema, request, "eventsDestination")
-    );
+    remote.db.createCollection("events", []);
+    remote.post("/tracker", addEventsPayloadToDb);
 }
 
 async function runSyncEventsTest({ from, to }: { from: string; to: string }) {
     const local = startDhis({ urlPrefix: "http://origin.test" }, { version: from });
+    const remote = startDhis(
+        {
+            urlPrefix: "http://destination.test",
+            pretender: local.pretender,
+        },
+        { version: to }
+    );
 
-    setupMockEndpoints(local, to);
-    setupTrackerEndpoints(local);
+    setupMockEndpoints(local, remote);
+    setupTrackerEndpoints(local, remote);
+
+    const localInstance = Instance.build({
+        url: "http://origin.test",
+        name: "Testing",
+        version: from,
+    });
 
     const builder: SynchronizationBuilder = {
         originInstance: "LOCAL",
@@ -429,25 +368,23 @@ async function runSyncEventsTest({ from, to }: { from: string; to: string }) {
     };
 
     const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
-    const aggregatedDataExchangeExecutor = new AggregatedDataExchangeApiExecutor(localInstance);
-
     const aggregatedPayloadBuilder = new AggregatedPayloadBuilder(repositoryFactory, localInstance);
     const sync = new EventsSyncUseCase(
         builder,
         repositoryFactory,
         localInstance,
         eventsPayloadBuilder,
-        aggregatedPayloadBuilder,
-        aggregatedDataExchangeExecutor
+        aggregatedPayloadBuilder
     );
 
     for await (const _sync of sync.execute()) {
         // no-op
     }
 
-    const response = local.db.eventsDestination.find(1);
+    const response = remote.db.events.find(1);
 
     local.shutdown();
+    remote.shutdown();
 
     return response;
 }
@@ -469,11 +406,3 @@ describe("TEI Transformations Integration tests", () => {
         expect(response.trackedEntities[0].enrollments[0].attributes).toHaveLength(0);
     });
 });
-
-function buildRepositoryFactory(localInstance: Instance) {
-    const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();
-
-    registerDynamicRepositoriesInFactory(localInstance, repositoryFactory);
-
-    return repositoryFactory;
-}

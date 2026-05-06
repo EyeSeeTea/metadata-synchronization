@@ -9,7 +9,6 @@ import { Instance } from "../../../../../domain/instance/entities/Instance";
 import i18n from "../../../../../utils/i18n";
 import { useAppContext } from "../../../../react/core/contexts/AppContext";
 import SaveButton from "./SaveButton";
-import { Dropdown } from "../../../../react/core/components/dropdown/Dropdown";
 
 export interface GeneralInfoFormProps {
     instance: Instance;
@@ -17,27 +16,9 @@ export interface GeneralInfoFormProps {
     cancelAction: () => void;
     onSaved?: (instance: Instance) => void;
     showMetadataMapping?: boolean;
-    testConnectionVisible: boolean;
 }
 
-export const authTypeItems = [
-    { id: "http-basic", name: i18n.t("Basic") },
-    { id: "api-token", name: i18n.t("API Token") },
-];
-
-const typeItems = [
-    { id: "dhis", name: i18n.t("Default") },
-    { id: "aggregated-data-exchange", name: i18n.t("Aggregated Data Exchange") },
-];
-
-const GeneralInfoForm = ({
-    instance,
-    onChange,
-    cancelAction,
-    testConnectionVisible,
-    onSaved,
-    showMetadataMapping,
-}: GeneralInfoFormProps) => {
+const GeneralInfoForm = ({ instance, onChange, cancelAction, onSaved, showMetadataMapping }: GeneralInfoFormProps) => {
     const { compositionRoot } = useAppContext();
     const classes = useStyles();
     const history = useHistory();
@@ -127,16 +108,6 @@ const GeneralInfoForm = ({
                     error={!!errors["description"]}
                     helperText={errors["description"]?.description}
                 />
-                <div className={classes.dropdown}>
-                    <Dropdown
-                        items={typeItems}
-                        label={i18n.t("Type")}
-                        value={instance.type}
-                        onValueChange={(value: string) => updateModel("type", value)}
-                        hideEmpty={true}
-                    />
-                </div>
-
                 <TextField
                     className={classes.row}
                     fullWidth={true}
@@ -146,54 +117,25 @@ const GeneralInfoForm = ({
                     error={!!errors["url"]}
                     helperText={errors["url"]?.description}
                 />
-
-                {instance.type === "dhis" && (
-                    <div className={classes.dropdown}>
-                        <Dropdown
-                            items={authTypeItems}
-                            label={i18n.t("Authentication Scheme (*)")}
-                            value={instance.authType ?? "http-basic"}
-                            onValueChange={(value: string) => updateModel("authType", value)}
-                            hideEmpty={true}
-                        />
-                    </div>
-                )}
-
-                {instance.type === "dhis" && instance.authType === "api-token" && (
-                    <TextField
-                        className={classes.row}
-                        fullWidth={true}
-                        label={i18n.t("Token (*)")}
-                        value={instance.token ?? ""}
-                        onChange={onChangeField("token")}
-                        error={!!errors["token"]}
-                        helperText={errors["token"]?.description}
-                    />
-                )}
-
-                {instance.type === "dhis" && instance.authType === "http-basic" && (
-                    <>
-                        <TextField
-                            className={classes.row}
-                            fullWidth={true}
-                            label={i18n.t("Username (*)")}
-                            value={instance.username ?? ""}
-                            onChange={onChangeField("username")}
-                            error={!!errors["username"]}
-                            helperText={errors["username"]?.description}
-                        />
-                        <TextField
-                            className={classes.row}
-                            type="password"
-                            fullWidth={true}
-                            label={i18n.t("Password (*)")}
-                            value={didPasswordChange ? instance.password : ""}
-                            onChange={onChangeField("password")}
-                            error={!!errors["password"]}
-                            helperText={errors["password"]?.description}
-                        />
-                    </>
-                )}
+                <TextField
+                    className={classes.row}
+                    fullWidth={true}
+                    label={i18n.t("Username (*)")}
+                    value={instance.username ?? ""}
+                    onChange={onChangeField("username")}
+                    error={!!errors["username"]}
+                    helperText={errors["username"]?.description}
+                />
+                <TextField
+                    className={classes.row}
+                    type="password"
+                    fullWidth={true}
+                    label={i18n.t("Password (*)")}
+                    value={didPasswordChange ? instance.password : ""}
+                    onChange={onChangeField("password")}
+                    error={!!errors["password"]}
+                    helperText={errors["password"]?.description}
+                />
 
                 <div className={classes.buttonContainer}>
                     <div>
@@ -203,7 +145,7 @@ const GeneralInfoForm = ({
                         </Button>
                     </div>
                     <div className={classes.actionButtonsContainer}>
-                        {instance.type === "dhis" && instance.id && showMetadataMapping && (
+                        {instance.id && showMetadataMapping && (
                             <Button
                                 variant="contained"
                                 onClick={goToMetadataMapping}
@@ -213,11 +155,9 @@ const GeneralInfoForm = ({
                                 {i18n.t("Metadata mapping")}
                             </Button>
                         )}
-                        {testConnectionVisible && instance.type === "dhis" && (
-                            <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
-                                {i18n.t("Test Connection")}
-                            </Button>
-                        )}
+                        <Button variant="contained" onClick={testConnection} data-test={"test-connection-button"}>
+                            {i18n.t("Test Connection")}
+                        </Button>
                     </div>
                 </div>
             </CardContent>
@@ -245,11 +185,6 @@ const useStyles = makeStyles(() => ({
     },
     row: {
         marginBottom: 25,
-    },
-    dropdown: {
-        marginTop: 15,
-        marginLeft: -10,
-        marginBottom: 20,
     },
 }));
 

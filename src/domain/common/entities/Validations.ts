@@ -14,7 +14,9 @@ export interface ModelValidation {
     validation: keyof typeof availableValidations;
 }
 
-const urlRegExp = /^(https?):\/\/([^:/\s]+)(?::(\d+))?([/?#]\S*)?$/;
+// Diego Perini (License: MIT)
+const urlRegExp =
+    /^(?:(?:https?:\/\/)?localhost(?::\d{2,5})?)$|(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/i;
 
 const availableValidations = {
     hasText: {
@@ -35,7 +37,7 @@ const availableValidations = {
     isUrl: {
         error: "invalid_url",
         getDescription: (field: string) => i18n.t("Field {{field}} needs to be a valid url", { field }),
-        check: (value?: string) => !value?.trim() || !urlRegExp.test(value.trim()),
+        check: (value?: string) => !value?.trim() || !urlRegExp.test(value),
     },
     validRef: {
         error: "invalid_url",

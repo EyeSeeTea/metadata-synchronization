@@ -18,13 +18,11 @@ import { BasePackage, Package } from "../entities/Package";
 
 export class ImportPackageUseCase implements UseCase {
     instanceRepository: InstanceRepository;
+    userRepository: UserRepository;
 
-    constructor(
-        private repositoryFactory: DynamicRepositoryFactory,
-        private userRepository: UserRepository,
-        private localInstance: Instance
-    ) {
+    constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {
         this.instanceRepository = this.repositoryFactory.instanceRepository(this.localInstance);
+        this.userRepository = this.repositoryFactory.userRepository(this.localInstance);
     }
 
     public async execute(
@@ -76,7 +74,7 @@ export class ImportPackageUseCase implements UseCase {
             const user = await this.userRepository.getCurrent();
             const userRef = { id: user.id, name: user.name };
 
-            const instance = this.localInstance.url;
+            const instance = this.instanceRepository.getBaseUrl();
 
             const newPackage = packageToCreate.update({
                 user: userRef,

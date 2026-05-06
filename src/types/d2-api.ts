@@ -36,7 +36,6 @@ export type {
     Ref,
     GetOptions,
     MetadataPick,
-    D2User,
 } from "@eyeseetea/d2-api/2.36";
 
 export const D2ApiDefault = D2Api;

@@ -1,27 +1,35 @@
-//import Cryptr from "cryptr";
 import _ from "lodash";
-import { Instance, InstanceType } from "../../domain/instance/entities/Instance";
+import { Either } from "../../domain/common/entities/Either";
+import { Instance, InstanceData } from "../../domain/instance/entities/Instance";
 import { InstanceMessage } from "../../domain/instance/entities/Message";
 import { InstanceRepository, InstancesFilter } from "../../domain/instance/repositories/InstanceRepository";
-import { D2Api, D2User } from "../../types/d2-api";
+import { OrganisationUnit } from "../../domain/metadata/entities/MetadataEntities";
+import { ObjectSharing, StorageClient } from "../../domain/storage/repositories/StorageClient";
+import { D2Api } from "../../types/d2-api";
+import { cache } from "../../utils/cache";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { InmemoryCache } from "../common/InmemoryCache";
-import { Id } from "../../domain/common/entities/Schemas";
-import { SharingSetting } from "../../domain/common/entities/SharingSetting";
-import { StorageClientFactory } from "../config/StorageClientFactory";
 import { Namespace } from "../storage/Namespaces";
-import { StorageClient } from "../../domain/storage/repositories/StorageClient";
+import { StorageClientFactory } from "../config/StorageClientFactory";
+import { decrypt, encrypt } from "../../utils/crypto";
+
+type ObjectSharingError = "authority-error" | "unexpected-error";
+
 export class InstanceD2ApiRepository implements InstanceRepository {
     private api: D2Api;
     private cache = new InmemoryCache();
 
-    constructor(private instance: Instance, private storageClientFactory: StorageClientFactory) {
+    constructor(
+        private storageClientFactory: StorageClientFactory,
+        private instance: Instance,
+        private encryptionKey: string
+    ) {
         this.api = getD2APiFromInstance(instance);
     }
 
-    async getAll({ search, ids, types }: InstancesFilter): Promise<Instance[]> {
-        const objects = await this.getInstances();
+    async getAll({ search, ids }: InstancesFilter): Promise<Instance[]> {
+        const objects = await this.getInstances(false);
 
         const filteredDataBySearch = search
             ? _.filter(objects, o =>
@@ -35,174 +43,171 @@ export class InstanceD2ApiRepository implements InstanceRepository {
 
         const filteredDataByIds = filteredDataBySearch.filter(instanceData => !ids || ids.includes(instanceData.id));
 
-        const filteredDataByType = filteredDataByIds.filter(
-            instanceData => !types || types.includes(instanceData.type)
-        );
+        const instances = await promiseMap(filteredDataByIds, async data => {
+            const sharingResult = await this.getObjectSharingOrError(data.id);
 
-        return filteredDataByType;
+            const object = await this.getInstanceDataInColletion(data.id);
+
+            return sharingResult.match({
+                success: sharing => this.mapToInstance(object ?? data, sharing),
+                error: () =>
+                    this.mapToInstance(object ?? data, {
+                        publicAccess: "--------",
+                        userAccesses: [],
+                        userGroupAccesses: [],
+                        user: {
+                            id: "",
+                            name: "",
+                        },
+                        externalAccess: false,
+                    }),
+            });
+        });
+
+        return _.compact(instances);
     }
 
     async getById(id: string): Promise<Instance | undefined> {
+        const instanceData = await this.getInstanceDataInColletion(id);
+
+        if (!instanceData) return undefined;
+
+        const sharing = await this.getObjectSharing(instanceData.id);
+
+        return this.mapToInstance(instanceData, sharing);
+    }
+
+    async getByName(name: string): Promise<Instance | undefined> {
         const existingInstances = await this.getInstances();
 
-        const instance = existingInstances?.find(instance => instance.id === id);
+        const instanceData = existingInstances?.find(instance => instance.name === name);
 
-        return instance;
+        if (!instanceData) return undefined;
+
+        const sharing = await this.getObjectSharing(instanceData.id);
+
+        return this.mapToInstance(instanceData, sharing);
     }
 
     async save(instance: Instance): Promise<void> {
-        await this.saveInstanceInDataStore(instance);
-
-        if (instance.type === "dhis") {
-            await this.saveRoute(instance);
-        }
-
         this.cache.clear();
-    }
 
-    async delete(id: string): Promise<void> {
-        await this.deleteInstanceFromDataStore(id);
-        await this.deleteRoute(id);
-    }
-
-    private getStorageClient(): Promise<StorageClient> {
-        return this.storageClientFactory.getStorageClientPromise();
-    }
-
-    private async saveInstanceInDataStore(instance: Instance) {
         const storageClient = await this.getStorageClient();
 
-        const instanceData: InstanceDataStoreData =
-            instance.type === "dhis"
-                ? {
-                      ..._.pick(instance.toObject(), "id"),
-                  }
-                : {
-                      ..._.pick(instance.toObject(), "id", "name", "type", "url", "description"),
-                  };
+        const instanceData = {
+            ..._.omit(
+                instance.toObject(),
+                "publicAccess",
+                "userAccesses",
+                "externalAccess",
+                "userGroupAccesses",
+                "user",
+                "created",
+                "lastUpdated",
+                "lastUpdatedBy"
+            ),
+            url: instance.type === "local" ? "" : instance.url,
+            password: await this.encryptPassword(instance.password),
+        };
 
         await storageClient.saveObjectInCollection(Namespace.INSTANCES, instanceData);
+
+        const objectSharing = {
+            publicAccess: instance.publicAccess,
+            externalAccess: false,
+            user: instance.user,
+            userAccesses: instance.userAccesses,
+            userGroupAccesses: instance.userGroupAccesses,
+        };
+
+        await storageClient.saveObjectSharing(`${Namespace.INSTANCES}-${instanceData.id}`, objectSharing);
     }
 
-    private async saveRoute(instance: Instance) {
-        const routeToUpload = this.buildRoute(instance);
+    private async decryptPassword(password: string): Promise<string> {
+        if (!password) return "";
+        return decrypt(password, this.encryptionKey);
+    }
 
-        const existedRoute = await this.getById(instance.id);
+    private async encryptPassword(password?: string): Promise<string> {
+        if (!password) return "";
+        return encrypt(password, this.encryptionKey);
+    }
 
-        if (existedRoute) {
-            await this.api.put(`/routes/${existedRoute.id}`, {}, routeToUpload).getData();
+    private async getInstances(useCache = true) {
+        const storageClient = await this.getStorageClient();
+
+        if (useCache) {
+            return await this.cache.getOrPromise(Namespace.INSTANCES, () =>
+                storageClient.listObjectsInCollection<InstanceData>(Namespace.INSTANCES)
+            );
         } else {
-            await this.api.post("/routes", {}, routeToUpload).getData();
+            return await storageClient.listObjectsInCollection<InstanceData>(Namespace.INSTANCES);
         }
     }
 
-    private async deleteInstanceFromDataStore(id: string) {
+    private async getInstanceDataInColletion(id: string): Promise<InstanceData | undefined> {
         const storageClient = await this.getStorageClient();
 
-        await storageClient.removeObjectInCollection(Namespace.INSTANCES, id);
+        const instanceData = await this.cache.getOrPromise(`${Namespace.INSTANCES}-${id}`, () =>
+            storageClient.getObjectInCollection<InstanceData>(Namespace.INSTANCES, id)
+        );
+
+        return instanceData;
     }
 
-    private async deleteRoute(id: string) {
-        this.cache.clear();
-        await this.api.delete(`/routes/${id}`, {}).getData();
+    private async getObjectSharingOrError(id: string): Promise<Either<ObjectSharingError, ObjectSharing>> {
+        try {
+            const objectSharing = await this.getObjectSharing(id);
+
+            return objectSharing ? Either.success(objectSharing) : Either.error("unexpected-error");
+        } catch (error: any) {
+            if (error.response?.status === 403) {
+                return Either.error("authority-error");
+            } else {
+                return Either.error("unexpected-error");
+            }
+        }
     }
 
-    private buildRoute(instance: Instance): D2Route {
-        return {
-            auth:
-                instance.authType === "api-token"
-                    ? { type: "api-token", token: instance.token }
-                    : { type: "http-basic", username: instance.username, password: instance.password },
-            code: slugify(instance.name),
-            description: instance.description,
-            disabled: false,
-            displayName: instance.name,
-            headers: { "Content-Type": "application/json" },
-            id: instance.id,
-            name: instance.name,
-            sharing: {
-                external: false,
-                owner: instance.user.id,
-                public: instance.publicAccess,
-                users: mapArrayToRecord(instance.userAccesses),
-                userGroups: mapArrayToRecord(instance.userGroupAccesses),
-            },
-            url: instance.url.endsWith("/") ? `${instance.url}**` : `${instance.url}/**`,
-        };
+    private async getObjectSharing(id: string) {
+        const storageClient = await this.getStorageClient();
+
+        const key = `${Namespace.INSTANCES}-${id}`;
+
+        const sharing = await this.cache.getOrPromise(`sharing-${key}`, () => storageClient.getObjectSharing(key));
+
+        return sharing;
     }
 
-    private buildInstance(route: D2Route): Instance {
-        return Instance.build({
-            type: "dhis",
-            id: route.id,
-            name: route.name,
-            url: route.url.replace("**", ""),
-            authType: route.auth?.type,
-            token: route.auth?.token,
-            username: route.auth?.username,
-            password: route.auth?.password,
-            description: route.description,
-            publicAccess: route.sharing.public,
-            userAccesses: Object.values(route.sharing.users),
-            userGroupAccesses: Object.values(route.sharing.userGroups),
-            user: route.user,
-            created: new Date(route.created || ""),
-            lastUpdated: new Date(route.lastUpdated || ""),
-            lastUpdatedBy: route.lastUpdatedBy,
-        });
+    public getApi(): D2Api {
+        return this.api;
     }
 
-    private async getInstances(): Promise<Instance[]> {
-        const instances = await this.cache.getOrPromise("instances", async () => {
-            const storageClient = await this.getStorageClient();
-            const dataStoreInstances = await storageClient.listObjectsInCollection<InstanceDataStoreData>(
-                Namespace.INSTANCES
-            );
+    //TODO: this should not be here, callers should getInstanceById or current and get the version
+    @cache()
+    public async getVersion(): Promise<string> {
+        const { version } = await this.api.system.info.getData();
+        return version;
+    }
 
-            const response = await this.api
-                .get<{ routes: D2Route[] }>("/routes", {
-                    paging: false,
-                    fields: "*",
-                })
-                .getData();
+    //TODO: this should not be here, callers should getInstanceById or current and get to the instance
+    @cache()
+    public getBaseUrl(): string {
+        return this.api.baseUrl;
+    }
 
-            const routeInstances = response.routes.map(this.buildInstance);
+    //TODO: this should nbe in a MetadataRepository
+    @cache()
+    public async getOrgUnitRoots(): Promise<Pick<OrganisationUnit, "id" | "name" | "displayName" | "path">[]> {
+        const { objects } = await this.api.models.organisationUnits
+            .get({
+                paging: false,
+                filter: { level: { eq: "1" } },
+                fields: { id: true, name: true, displayName: true, path: true },
+            })
+            .getData();
 
-            const routeInstancesWithVersion = await promiseMap(routeInstances, async targetInstance => {
-                const d2ApiByInstance = getD2APiFromInstance(this.instance, targetInstance);
-
-                const version = await d2ApiByInstance.system.info
-                    .getData()
-                    .then(data => data.version)
-                    .catch(() => undefined);
-
-                return targetInstance.update({ version });
-            });
-
-            const allInstances = dataStoreInstances
-                .map(dataStoreInstance => {
-                    if (dataStoreInstance.type === "aggregated-data-exchange") {
-                        return Instance.build({
-                            id: dataStoreInstance.id,
-                            name: dataStoreInstance.name || "",
-                            type: dataStoreInstance.type,
-                            url: dataStoreInstance.url || "",
-                            description: dataStoreInstance.description || "",
-                        });
-                    } else {
-                        const instance = routeInstancesWithVersion.find(
-                            instance => instance.id === dataStoreInstance.id
-                        );
-
-                        return instance;
-                    }
-                })
-                .filter((instance): instance is Instance => instance !== undefined);
-
-            return [this.instance, ...allInstances];
-        });
-
-        return instances;
+        return objects;
     }
 
     //TODO: this should not be here, may be a message repository?
@@ -210,72 +215,19 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         //@ts-ignore https://github.com/EyeSeeTea/d2-api/pull/52
         await this.api.messageConversations.post(message).getData();
     }
-}
 
-export type D2Route = {
-    auth?: RouteAuth;
-    authorities?: string[];
-    code: Id;
-    created?: string;
-    createdBy?: D2User;
-    description: string;
-    disabled: boolean;
-    displayName: string;
-    favorite?: boolean;
-    headers: Record<string, string>;
-    href?: string;
-    id: Id;
-    lastUpdated?: string;
-    lastUpdatedBy?: D2User;
-    name: string;
-    sharing: D2ObjectSharing;
-    url: string;
-    user?: D2User;
-};
+    private async mapToInstance(data: InstanceData, sharing: ObjectSharing | undefined) {
+        return Instance.build({
+            ...data,
+            url: data.type === "local" ? this.instance.url : data.url,
+            version: data.type === "local" ? this.instance.version : data.version,
+            username: data.type === "local" ? this.instance.username : data.username,
+            password: data.type === "local" ? this.instance.password : await this.decryptPassword(data.password ?? ""),
+            ...sharing,
+        });
+    }
 
-export interface D2ObjectSharing {
-    owner: string;
-    external: boolean;
-    users: Record<string, SharingSetting>;
-    userGroups: Record<string, SharingSetting>;
-    public: string;
-}
-export interface D2Sharing {
-    access: string;
-    displayName: string;
-    id: string;
-    name?: string;
-}
-
-type RouteAuth = {
-    type: "http-basic" | "api-token";
-    username?: string;
-    password?: string;
-    token?: string;
-};
-
-export function slugify(text: string): string {
-    return text
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-}
-
-export function mapArrayToRecord(array: SharingSetting[]): Record<string, SharingSetting> {
-    return array.reduce((acc, item) => {
-        acc[item.id] = item;
-        return acc;
-    }, {} as Record<string, SharingSetting>);
-}
-
-export interface InstanceDataStoreData {
-    type?: InstanceType;
-    id: string;
-    name?: string;
-    url?: string;
-    description?: string;
+    private getStorageClient(): Promise<StorageClient> {
+        return this.storageClientFactory.getStorageClientPromise();
+    }
 }

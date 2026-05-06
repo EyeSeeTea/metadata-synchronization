@@ -105,9 +105,7 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
 
         const previousOriginalPayload = await this.buildPayload();
 
-        const originalPayload = dataParams.dryRun
-            ? previousOriginalPayload
-            : await this.manageDataElementWithFileType(previousOriginalPayload, instance);
+        const originalPayload = await this.manageDataElementWithFileType(previousOriginalPayload, instance);
 
         const mappedPayload = await this.mapPayload(instance, originalPayload);
 

@@ -79,7 +79,7 @@ const InstanceListPage = () => {
 
     const editInstance = async (ids: string[]) => {
         const instance = rows.find(row => row.id === ids[0]);
-        if (instance?.type === "dhis" || (instance?.type === "aggregated-data-exchange" && user?.isAppConfigurator)) {
+        if (instance?.type === "dhis" && user?.isAppConfigurator) {
             history.push(`/instances/edit/${instance.id}`);
         }
     };
@@ -214,16 +214,8 @@ const InstanceListPage = () => {
     };
 
     const columns: TableColumn<Instance>[] = [
-        { name: "id" as const, text: i18n.t("ID"), hidden: true },
-        { name: "type" as const, text: i18n.t("Type") },
         { name: "name" as const, text: i18n.t("Server name"), sortable: true },
         { name: "url" as const, text: i18n.t("URL endpoint"), sortable: false },
-        {
-            name: "authType" as const,
-            text: i18n.t("Authentication Scheme"),
-            sortable: true,
-            getValue: row => (row.authType === "api-token" ? "Token" : "Basic"),
-        },
         {
             name: "username" as const,
             text: i18n.t("Username"),
@@ -233,15 +225,8 @@ const InstanceListPage = () => {
     ];
 
     const details: ObjectsTableDetailField<Instance>[] = [
-        { name: "id" as const, text: i18n.t("ID") },
         { name: "name" as const, text: i18n.t("Server name") },
-        { name: "type" as const, text: i18n.t("Type") },
         { name: "url" as const, text: i18n.t("URL endpoint") },
-        {
-            name: "authType" as const,
-            text: i18n.t("Authentication Scheme"),
-            getValue: row => (row.authType === "api-token" ? "Token" : "Basic"),
-        },
         {
             name: "username" as const,
             text: i18n.t("Username"),
@@ -286,9 +271,7 @@ const InstanceListPage = () => {
             name: "testConnection",
             text: i18n.t("Test Connection"),
             multiple: false,
-            isActive: rows =>
-                _.every(rows, row => row.type !== "local" && row.type !== "aggregated-data-exchange") &&
-                verifyUserCanRead(rows),
+            isActive: rows => _.every(rows, row => row.type !== "local") && verifyUserCanRead(rows),
             onClick: testConnection,
             icon: <SettingsInputAntenaIcon />,
         },
@@ -304,7 +287,7 @@ const InstanceListPage = () => {
             name: "mapping",
             text: i18n.t("Metadata mapping"),
             multiple: false,
-            isActive: rows => verifyUserCanEdit(rows) && _.every(rows, row => row.type !== "aggregated-data-exchange"),
+            isActive: verifyUserCanEdit,
             onClick: metadataMapping,
             icon: <DoubleArrowIcon />,
         },
@@ -312,9 +295,7 @@ const InstanceListPage = () => {
             name: "sharingSettings",
             text: i18n.t("Sharing settings"),
             multiple: false,
-            isActive: rows =>
-                verifyUserCanEdit(rows) &&
-                _.every(rows, row => row.type !== "local" && row.type !== "aggregated-data-exchange"),
+            isActive: verifyUserCanEdit,
             onClick: openSharingSettings,
             icon: <Icon>share</Icon>,
         },

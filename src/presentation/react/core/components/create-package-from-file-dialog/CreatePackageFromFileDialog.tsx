@@ -51,17 +51,10 @@ export const CreatePackageFromFileDialog: React.FC<CreatePackageFromFileDialogPr
     const [errors, setErrors] = useState<Dictionary<ValidationError>>({});
 
     useEffect(() => {
-        compositionRoot.instances.getById("LOCAL").then(instanceResponse => {
-            instanceResponse.match({
-                success: instance => {
-                    if (versions.length === 0 && instance.version) updateVersions([instance.versionSmall]);
-                },
-                error: () => {
-                    snackbar.error(i18n.t("Error fetching instance version"));
-                },
-            });
+        compositionRoot.instances.getVersion().then(version => {
+            if (versions.length === 0) updateVersions([version]);
         });
-    }, [compositionRoot, versions, updateVersions, snackbar]);
+    }, [compositionRoot, versions, updateVersions]);
 
     useEffect(() => {
         compositionRoot.user.current().then(({ userGroups }) => setUserGroups(userGroups));

@@ -11,7 +11,6 @@ import {
     ReceivedPullRequestNotification,
     SentPullRequestNotification,
 } from "../../notifications/entities/PullRequestNotification";
-import { UserRepository } from "../../user/repositories/UserRepository";
 import { SynchronizationBuilder } from "../entities/SynchronizationBuilder";
 import { SynchronizationType } from "../entities/SynchronizationType";
 
@@ -28,7 +27,6 @@ interface CreatePullRequestParams {
 export class CreatePullRequestUseCase implements UseCase {
     constructor(
         private repositoryFactory: DynamicRepositoryFactory,
-        private userRepository: UserRepository,
         private localInstance: Instance,
         private metadataPayloadBuilder: MetadataPayloadBuilder
     ) {}
@@ -84,7 +82,7 @@ export class CreatePullRequestUseCase implements UseCase {
     }
 
     private async getOwner(): Promise<NamedRef> {
-        const { id, name } = await this.userRepository.getCurrent();
+        const { id, name } = await this.repositoryFactory.userRepository(this.localInstance).getCurrent();
         return { id, name };
     }
 

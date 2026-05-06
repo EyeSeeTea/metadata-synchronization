@@ -9,7 +9,6 @@ import { MetadataPayloadBuilder } from "../../metadata/builders/MetadataPayloadB
 import { MetadataPackage } from "../../metadata/entities/MetadataEntities";
 import { Module } from "../../modules/entities/Module";
 import { TransformationRepository } from "../../transformations/repositories/TransformationRepository";
-import { UserRepository } from "../../user/repositories/UserRepository";
 import { Package } from "../entities/Package";
 
 export class CreatePackageUseCase implements UseCase {
@@ -17,7 +16,6 @@ export class CreatePackageUseCase implements UseCase {
         private metadataPayloadBuilder: MetadataPayloadBuilder,
         private repositoryFactory: DynamicRepositoryFactory,
         private transformationRepository: TransformationRepository,
-        private userRepository: UserRepository,
         private localInstance: Instance
     ) {}
 
@@ -53,7 +51,7 @@ export class CreatePackageUseCase implements UseCase {
         const validations = payload.validate();
 
         if (validations.length === 0) {
-            const user = await this.userRepository.getCurrent();
+            const user = await this.repositoryFactory.userRepository(this.localInstance).getCurrent();
             const newPackage = payload.update({
                 lastUpdated: new Date(),
                 lastUpdatedBy: user,

@@ -8,15 +8,15 @@ import { promiseMap } from "../../utils/common";
 import { StorageDataStoreClient } from "../storage/StorageDataStoreClient";
 
 export class DataStoreMetadataD2Repository implements DataStoreMetadataRepository {
-    constructor(private localInstance: Instance, private targetInstance: Instance) {}
+    private instance: Instance;
+
+    constructor(instance: Instance) {
+        this.instance = instance;
+    }
 
     async get(dataStores: DataStoreMetadata[]): Promise<DataStoreMetadata[]> {
         const result = await promiseMap(dataStores, async dataStore => {
-            const dataStoreClient = new StorageDataStoreClient(
-                this.localInstance,
-                this.targetInstance,
-                dataStore.namespace
-            );
+            const dataStoreClient = new StorageDataStoreClient(this.instance, dataStore.namespace);
             const dataStoreWithValue = this.getValuesByDataStore(dataStoreClient, dataStore);
             return dataStoreWithValue;
         });
@@ -54,11 +54,7 @@ export class DataStoreMetadataD2Repository implements DataStoreMetadataRepositor
         const keysIdsToDelete = await this.getKeysToDelete(dataStores);
 
         const resultStats = await promiseMap(dataStores, async dataStore => {
-            const dataStoreClient = new StorageDataStoreClient(
-                this.localInstance,
-                this.targetInstance,
-                dataStore.namespace
-            );
+            const dataStoreClient = new StorageDataStoreClient(this.instance, dataStore.namespace);
             const stats = await promiseMap(dataStore.keys, async key => {
                 const exist = await dataStoreClient.getObject(key.id);
                 await dataStoreClient.saveObject(key.id, key.value);
@@ -72,7 +68,7 @@ export class DataStoreMetadataD2Repository implements DataStoreMetadataRepositor
 
         const deleteStats = await promiseMap(keysIdsToDelete, async keyId => {
             const [namespace, key] = keyId.split(DataStoreMetadata.NS_SEPARATOR);
-            const dataStoreClient = new StorageDataStoreClient(this.localInstance, this.targetInstance, namespace);
+            const dataStoreClient = new StorageDataStoreClient(this.instance, namespace);
             await dataStoreClient.removeObject(key);
             return Stats.createOrEmpty({ deleted: 1 });
         });
@@ -82,7 +78,7 @@ export class DataStoreMetadataD2Repository implements DataStoreMetadataRepositor
 
         const result: SynchronizationResult = {
             date: new Date(),
-            instance: this.targetInstance,
+            instance: this.instance,
             status: "SUCCESS",
             type: "metadata",
             stats: dataStoreStats,

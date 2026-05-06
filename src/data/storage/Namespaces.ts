@@ -2,6 +2,7 @@ export const Namespace = {
     MODULES: "modules",
     IMPORTEDPACKAGES: "imported-packages",
     PACKAGES: "packages",
+    INSTANCES: "instances",
     RULES: "rules",
     HISTORY: "history",
     NOTIFICATIONS: "notifications",
@@ -13,13 +14,13 @@ export const Namespace = {
     USER_SETTINGS: "user-settings",
     SCHEDULER_EXECUTIONS: "scheduler-executions",
     EVENTS_USER_COLUMNS: "events-user-columns",
-    INSTANCES: "instances",
 };
 
 export const NamespaceProperties: Record<string, string[]> = {
     [Namespace.MODULES]: [],
     [Namespace.PACKAGES]: ["contents"],
     [Namespace.IMPORTEDPACKAGES]: ["contents"],
+    [Namespace.INSTANCES]: ["metadataMapping", "password", "username"],
     [Namespace.MAPPINGS]: ["mappingDictionary"],
     [Namespace.RULES]: ["builder"],
     [Namespace.HISTORY]: [],
@@ -27,5 +28,4 @@ export const NamespaceProperties: Record<string, string[]> = {
     [Namespace.CONFIG]: [],
     [Namespace.STORES]: [],
     [Namespace.RESPONSIBLES]: [],
-    [Namespace.INSTANCES]: [],
 };

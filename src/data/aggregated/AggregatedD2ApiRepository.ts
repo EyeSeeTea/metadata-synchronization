@@ -1,6 +1,7 @@
 import _ from "lodash";
-import moment from "moment";
+import moment, { Moment } from "moment";
 import { AggregatedPackage } from "../../domain/aggregated/entities/AggregatedPackage";
+import { DataSyncAggregation } from "../../domain/aggregated/entities/DataSyncAggregation";
 import {
     DataImportParams,
     DataSynchronizationParams,
@@ -8,7 +9,7 @@ import {
 import { DataValue } from "../../domain/aggregated/entities/DataValue";
 import { MappedCategoryOption } from "../../domain/aggregated/entities/MappedCategoryOption";
 import { AggregatedRepository } from "../../domain/aggregated/repositories/AggregatedRepository";
-import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../domain/aggregated/utils";
+import { buildPeriodFromParams } from "../../domain/aggregated/utils";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { MetadataMappingDictionary } from "../../domain/mapping/entities/MetadataMapping";
 import { CategoryOptionCombo } from "../../domain/metadata/entities/MetadataEntities";
@@ -23,8 +24,8 @@ import mime from "mime-types";
 export class AggregatedD2ApiRepository implements AggregatedRepository {
     private api: D2Api;
 
-    constructor(localInstance: Instance, private targetInstance: Instance) {
-        this.api = getD2APiFromInstance(localInstance, targetInstance);
+    constructor(private instance: Instance) {
+        this.api = getD2APiFromInstance(instance);
     }
 
     public async getAggregated(
@@ -133,7 +134,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
         } = dataParams;
 
         const { startDate, endDate } = buildPeriodFromParams(dataParams);
-        const periods = buildPeriodsForAggregation(aggregationType, startDate, endDate);
+        const periods = this.buildPeriodsForAggregation(aggregationType, startDate, endDate);
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
         const attributeOptionCombo = !allAttributeCategoryOptions ? attributeCategoryOptions : undefined;
 
@@ -309,7 +310,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             if (!result) {
                 return {
                     status: "ERROR",
-                    instance: this.targetInstance.toPublicObject(),
+                    instance: this.instance.toPublicObject(),
                     date: new Date(),
                     type: "aggregated",
                 };
@@ -323,7 +324,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.targetInstance.toPublicObject(),
+                instance: this.instance.toPublicObject(),
                 date: new Date(),
                 type: "aggregated",
             };
@@ -376,13 +377,32 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             status,
             message: description,
             stats: importCount,
-            instance: this.targetInstance.toPublicObject(),
+            instance: this.instance.toPublicObject(),
             errors,
             date: new Date(),
             type: "aggregated",
             response: importResult,
         };
     }
+
+    private buildPeriodsForAggregation = (
+        aggregationType: DataSyncAggregation | undefined,
+        startDate: Moment,
+        endDate: Moment
+    ): string[] => {
+        if (!aggregationType) return [];
+        const { format, unit, amount } = aggregations[aggregationType];
+
+        const current = startDate.clone();
+        const periods = [];
+
+        while (current.isSameOrBefore(endDate)) {
+            periods.push(current.format(format));
+            current.add(amount, unit);
+        }
+
+        return periods;
+    };
 
     @cache()
     public async getDefaultIds(filter?: string): Promise<string[]> {
@@ -405,6 +425,14 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             .value();
     }
 }
+
+const aggregations = {
+    DAILY: { format: "YYYYMMDD", unit: "days" as const, amount: 1 },
+    WEEKLY: { format: "GGGG[W]W", unit: "weeks" as const, amount: 1 },
+    MONTHLY: { format: "YYYYMM", unit: "months" as const, amount: 1 },
+    QUARTERLY: { format: "YYYY[Q]Q", unit: "quarters" as const, amount: 1 },
+    YEARLY: { format: "YYYY", unit: "years" as const, amount: 1 },
+};
 
 function fixValue(value: string): string {
     //If it's a number, remove the decimal zeros and if it's .0 leave only the integer part
