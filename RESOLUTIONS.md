@@ -46,6 +46,31 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 |---|---|
 | `@dhis2/ui-icons: 7.4.1` | Added in commit `f31d19d3` ("Fix yarn start and build"); commit message gives no further detail. Likely held back to match `@dhis2/ui` peer requirements, but this is inference, not confirmed. Leave alone until someone with project history can confirm. |
 
+### Security pins (added 2026-05-08 by `/sca-triage`)
+
+#### `lodash: ^4.18.0`
+- **Why:** Direct dependency was bumped from `4.17.23` → `4.18.1`. The resolution forces every transitive consumer (DHIS2 libs, depcheck, ts-mockito, eslint-plugin-flowtype, i18next-scanner, etc.) onto the same line — without it, several parents stay on `4.17.21` and the CVEs persist.
+- **Fixes:** CVE-2026-4800 (critical 9.8) and CVE-2021-23337 (high 8.1) — both template-injection in `_.template`. Fix landed in lodash 4.18.0, the first lodash minor in 5+ years and explicitly cut to address these advisories.
+- **Drop when:** Either every transitive parent natively requests `lodash@^4.18.0` or higher (verify with `yarn why lodash`), or the project removes the direct `lodash` dep entirely.
+
+#### `minimatch` per-parent (10 entries)
+```jsonc
+"@eslint/eslintrc/minimatch":                     "^3.1.4",
+"@humanwhocodes/config-array/minimatch":          "^3.1.4",
+"eslint/minimatch":                               "^3.1.4",
+"eslint-plugin-import/minimatch":                 "^3.1.4",
+"eslint-plugin-jsx-a11y/minimatch":               "^3.1.4",
+"eslint-plugin-react/minimatch":                  "^3.1.4",
+"multimatch/minimatch":                           "^3.1.4",
+"glob@npm:7.2.3/minimatch":                       "^3.1.4",
+"depcheck/minimatch":                             "^7.4.8",
+"@typescript-eslint/typescript-estree/minimatch": "^9.0.7"
+```
+- **Why:** The dev-tool chain pulls minimatch in three vulnerable major lines (3.x via the eslint-8 ecosystem, 7.x via depcheck, 9.x via @typescript-eslint 6). The 10.x line (under `glob@13.0.6` / `cacache`) is already patched and untouched. Each pin is a patch-level bump within the parent's existing range, so the fix is mechanical: yarn resolves to `minimatch@3.1.5`, `7.4.9`, `9.0.9` respectively. The `glob@npm:7.2.3` entry is versioned-parent because `glob` lives in two majors here (v7 wants `^3.1.x`, v13 wants `^10.2.x`); a parent-name pin would mis-route.
+- **Fixes:** CVE-2026-26996 / -27903 / -27904 (high 7.5 each), all ReDoS-class. Dev-tool only — no runtime path.
+- **⚠️ Decay risk:** `glob@npm:7.2.3/minimatch` is the one versioned-parent entry; if `glob` v7 ever bumps to 7.2.4 anywhere in the tree, that pin silently no-ops. The other 9 are parent-name pins and ride patch/minor bumps naturally.
+- **Drop when:** The dev toolchain is upgraded past these majors — concretely, eslint 9 (drops the minimatch 3.x chain across `eslint`, `@eslint/eslintrc`, `@humanwhocodes/config-array`, `eslint-plugin-{import,jsx-a11y,react}`), `@typescript-eslint` 8 (drops the 9.x line), and a depcheck bump past 1.4.7 (drops the 7.x line). Reconsider on each of those upgrades.
+
 ### Security pins (added 2026-05-06 by `/sca-triage`)
 
 #### `axios: 1.16.0`
