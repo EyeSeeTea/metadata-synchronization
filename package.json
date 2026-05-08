@@ -143,6 +143,8 @@
         "tar": "^7.5.10",
         "@rollup/pluginutils/picomatch": "^4.0.4",
         "tinyglobby/picomatch": "^4.0.4",
+        "vite/picomatch": "^4.0.4",
+        "vitest/picomatch": "^4.0.4",
         "micromatch/picomatch": "^2.3.2",
         "readdirp/picomatch": "^2.3.2",
         "anymatch/picomatch": "^2.3.2",

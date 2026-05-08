@@ -72,11 +72,13 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 ```jsonc
 "@rollup/pluginutils/picomatch": "^4.0.4",
 "tinyglobby/picomatch":          "^4.0.4",
+"vite/picomatch":                "^4.0.4",
+"vitest/picomatch":              "^4.0.4",
 "micromatch/picomatch":          "^2.3.2",
 "readdirp/picomatch":            "^2.3.2",
 "anymatch/picomatch":            "^2.3.2"
 ```
-- **Why:** picomatch lives in two major lines in this tree (4.x via the rollup ecosystem, 2.x via the chokidar/micromatch ecosystem). A single global resolution would force one major onto parents that can't take it. Yarn-berry doesn't support range-scoped descriptors (`picomatch@npm:^4` matches literally nothing), so we resolve per-parent-name instead, which is name-stable and version-agnostic.
+- **Why:** picomatch lives in two major lines in this tree (4.x via the rollup ecosystem, 2.x via the chokidar/micromatch ecosystem). A single global resolution would force one major onto parents that can't take it. Yarn-berry doesn't support range-scoped descriptors (`picomatch@npm:^4` matches literally nothing), so we resolve per-parent-name instead, which is name-stable and version-agnostic. The `vite/picomatch` and `vitest/picomatch` entries were added 2026-05-08 after BOM analysis showed `vite@7.3.2` and `vitest@3.2.4` were pulling `picomatch@4.0.3` directly — neither was covered by the original `@rollup/pluginutils` and `tinyglobby` parent paths.
 - **Fixes:** GHSA-c2c7-rcm5-vvqj (CVE-2024-4067, CVE-2024-45296), high 7.5.
 - **Drop when:** Each named parent updates to a version that pulls a patched picomatch on its own. Check with `yarn why picomatch`.
 
