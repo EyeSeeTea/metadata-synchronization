@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-04-17T04:37:05.815Z\n"
+"POT-Creation-Date: 2026-05-11T13:39:23.523Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -34,6 +34,13 @@ msgstr ""
 
 msgid "An instance with this name already exists"
 msgstr ""
+
+msgid ""
+"An Aggregated Data Exchange instance with this URL already exists: "
+"{{instanceName}}"
+msgstr ""
+"An Aggregated Data Exchange instance with this URL already exists: "
+"{{instanceName}}"
 
 msgid "You need to provide a username and password combination"
 msgstr ""
@@ -122,6 +129,13 @@ msgstr ""
 
 msgid "Instance {{id}} not found"
 msgstr ""
+
+msgid ""
+"An error has occurred while downloading datastore payload for instance "
+"{{name}}: {{message}}"
+msgstr ""
+"An error has occurred while downloading datastore payload for instance "
+"{{name}}: {{message}}"
 
 msgid "Analytics execution finished on {{name}}"
 msgstr ""
@@ -1450,8 +1464,14 @@ msgstr ""
 msgid "Frequency"
 msgstr ""
 
+msgid "Key: {{key}}"
+msgstr "Key: {{key}}"
+
 msgid "All Keys"
 msgstr ""
+
+msgid "Namespace: {{namespace}} - {{keyName}}"
+msgstr "Namespace: {{namespace}} - {{keyName}}"
 
 msgid "Daily"
 msgstr ""

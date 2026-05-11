@@ -195,6 +195,8 @@ $ yarn update-po
 $ yarn localize
 ```
 
+These commands use `@dhis2/cli-app-scripts` through `d2-app-scripts i18n extract` and `d2-app-scripts i18n generate`.
+
 ## depcheck
 
 Check for unused or missing dependencies:

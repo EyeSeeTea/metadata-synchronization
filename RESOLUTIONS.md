@@ -83,11 +83,6 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 - **Fixes:** CVE-2026-32141 (high 7.5), GHSA-25h7-pfq9-p65f / CVE-2026-33228 (high 7.5).
 - **Drop when:** All three parents publish new versions whose `flatted` range starts at `^3.4.0` or later. Verify with `yarn why flatted` — if every parent line shows `(via npm:^3.4.x)` or higher, the pin is redundant.
 
-#### `handlebars: ^4.7.9`
-- **Why:** `@dhis2/d2-i18n-generate@1.2.0` requests `handlebars@^4.0.11`, which resolves to the vulnerable `4.7.8` without this pin.
-- **Fixes:** CVE-2026-33937 (critical 9.8), CVE-2026-33938/-33939/-33940/-33941, GHSA-9cx6-37pm-9jff.
-- **Drop when:** `@dhis2/d2-i18n-generate` updates to a version that pulls handlebars `>= 4.7.9` natively (check on next bump of that dep).
-
 #### `tar: ^7.5.10`
 - **Why:** `node-gyp@12.2.0` requests `tar@^7.5.4`, which resolves to the vulnerable `7.5.9` without this pin.
 - **Fixes:** GHSA-qffp-2rhf-9h96 (high 8.0).
@@ -142,5 +137,4 @@ When running `/sca-triage`, treat any of these as a signal that a pin has gone s
 ## Future improvements
 
 - Make the existing `dependency-track-yarn4` GitHub workflow **block** on severity ≥ high so a regression doesn't reach `development`.
-- Treat `i18next-scanner` and the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as **eviction candidates** rather than pin-forever items. Both pull packages with no upstream fix path; replacing or removing them eliminates several findings outright.
-- Revisit `lodash` once the team has bandwidth to qualify a `^4.18.0` bump (5+ years since the last lodash minor).
+- Treat the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as an **eviction candidate** rather than a pin-forever item. It still pulls packages with no upstream fix path.
