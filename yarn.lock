@@ -4114,9 +4114,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eyeseetea/d2-api@npm:1.16.0":
-  version: 1.16.0
-  resolution: "@eyeseetea/d2-api@npm:1.16.0"
+"@eyeseetea/d2-api@npm:1.21.0":
+  version: 1.21.0
+  resolution: "@eyeseetea/d2-api@npm:1.21.0"
   dependencies:
     abort-controller: "npm:3.0.0"
     axios: "npm:1.6.4"
@@ -4127,8 +4127,7 @@ __metadata:
     iconv-lite: "npm:0.6.2"
     lodash: "npm:4.17.21"
     qs: "npm:6.9.7"
-    react: "npm:^16.12.0"
-  checksum: 10c0/e9c7c269e4a05bd2bc60df712a998eb80c3d57d162d1414821cff9c2acc61f5c964a474434622c92b8e304215bd64d79b95e45e5fbc3a2369092545087294eb1
+  checksum: 10c0/f70c2e34b7a284ccec23ea24869cc764b2607b09a55acdd1b8fea0a19337a729277f5a1a3fdd2cc4bf53539527ed5f04aaf32308d676f5f9cef5cce46ec1f2e4
   languageName: node
   linkType: hard
 
@@ -11228,7 +11227,7 @@ __metadata:
     "@dhis2/d2-i18n-extract": "npm:1.0.8"
     "@dhis2/d2-i18n-generate": "npm:1.2.0"
     "@dhis2/ui": "npm:7.4.1"
-    "@eyeseetea/d2-api": "npm:1.16.0"
+    "@eyeseetea/d2-api": "npm:1.21.0"
     "@eyeseetea/d2-ui-components": "npm:2.11.0"
     "@eyeseetea/feedback-component": "npm:0.2.0"
     "@material-ui/core": "npm:4.12.4"
@@ -13104,17 +13103,6 @@ __metadata:
     loose-envify: "npm:^1.1.0"
     object-assign: "npm:^4.1.1"
   checksum: 10c0/07ae8959acf1596f0550685102fd6097d461a54a4fd46a50f88a0cd7daaa97fdd6415de1dcb4bfe0da6aa43221a6746ce380410fa848acc60f8ac41f6649c148
-  languageName: node
-  linkType: hard
-
-"react@npm:^16.12.0":
-  version: 16.14.0
-  resolution: "react@npm:16.14.0"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-    object-assign: "npm:^4.1.1"
-    prop-types: "npm:^15.6.2"
-  checksum: 10c0/df8faae43e01387013900e8f8fb3c4ce9935b7edbcbaa77e12999c913eb958000a0a8750bf9a0886dae0ad768dd4a4ee983752d5bade8d840adbe0ce890a2438
   languageName: node
   linkType: hard
 

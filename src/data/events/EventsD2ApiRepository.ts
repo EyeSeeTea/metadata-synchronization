@@ -12,12 +12,17 @@ import { EventsRepository } from "../../domain/events/repositories/EventsReposit
 import { Instance } from "../../domain/instance/entities/Instance";
 import { SynchronizationResult } from "../../domain/reports/entities/SynchronizationResult";
 import { cleanObjectDefault, cleanOrgUnitPaths } from "../../domain/synchronization/utils";
-import { D2Api } from "../../types/d2-api";
+import {
+    D2Api,
+    D2TrackerEvent,
+    TrackerEventsResponse,
+    TrackerPostParams,
+    TrackerPostRequest,
+    TrackerPostResponse,
+} from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import mime from "mime-types";
-import { D2TrackerEvent, TrackerEventsResponse } from "@eyeseetea/d2-api/api/trackerEvents";
-import { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eyeseetea/d2-api/api/tracker";
 import { getRemainingPages } from "../../utils/pagination";
 
 export class EventsD2ApiRepository implements EventsRepository {

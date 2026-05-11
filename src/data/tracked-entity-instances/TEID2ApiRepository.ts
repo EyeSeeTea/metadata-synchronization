@@ -1,5 +1,11 @@
-import { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eyeseetea/d2-api/api/tracker";
-import { D2TrackerTrackedEntity, D2TrackerTrackedEntitySchema } from "@eyeseetea/d2-api/api/trackerTrackedEntities";
+import {
+    D2TrackerTrackedEntity,
+    D2TrackerTrackedEntitySchema,
+    TrackedEntitiesGetResponse,
+    TrackerPostParams,
+    TrackerPostRequest,
+    TrackerPostResponse,
+} from "../../types/d2-api";
 import _ from "lodash";
 import {
     DataImportParams,
@@ -118,15 +124,15 @@ export class TEID2ApiRepository implements TEIRepository {
         if (orgUnits.length === 0) return [];
         if (ids.length === 0) return [];
 
-        const result = await this.api.tracker.trackedEntities
+        // Cross-program lookup by TEI ids: the DHIS2 /tracker/trackedEntities endpoint
+        // accepts omitting `program`, but d2-api types mark it as required. Cast to bypass.
+        const result: TrackedEntitiesGetResponse<any> = await this.api.tracker.trackedEntities
             .get({
                 fields: teiFields,
                 ouMode: "SELECTED",
                 orgUnit: orgUnits.join(";"),
                 trackedEntity: ids.join(";"),
-            } as any)
-            // Any here is a hack because the type force to use trackedEntities instead of trackedEntity
-            // trackedEntities params in the API force to pass program
+            } as Parameters<typeof this.api.tracker.trackedEntities.get>[0])
             .getData();
 
         const trackedEntities = result.instances || (hasTrackedEntitiesProperty(result) ? result.trackedEntities : []);
@@ -233,13 +239,11 @@ export class TEID2ApiRepository implements TEIRepository {
     }
 
     private buildTrackedEntityInstance(tei: D2TrackerEntitySelectedPick): TrackedEntityInstance {
-        return {
-            ...tei,
-            trackedEntity: tei.trackedEntity || "",
-            orgUnit: tei.orgUnit || "",
-            programOwners: tei.programOwners || [],
-            enrollments:
-                tei.enrollments?.map(enrollment => ({
+        const enrollments: TrackedEntityInstance["enrollments"] =
+            tei.enrollments?.map(
+                (
+                    enrollment: NonNullable<D2TrackerEntitySelectedPick["enrollments"]>[number]
+                ): TrackedEntityInstance["enrollments"][number] => ({
                     ...enrollment,
                     orgUnit: enrollment.orgUnit || "",
                     notes: (enrollment.notes ?? []).map(note => (typeof note === "string" ? note : note.value)),
@@ -247,7 +251,15 @@ export class TEID2ApiRepository implements TEIRepository {
                         ...attribute,
                         value: attribute.value?.toString() || "",
                     })),
-                })) || [],
+                })
+            ) || [];
+
+        return {
+            ...tei,
+            trackedEntity: tei.trackedEntity || "",
+            orgUnit: tei.orgUnit || "",
+            programOwners: tei.programOwners || [],
+            enrollments,
             relationships: tei.relationships || [],
             attributes:
                 tei.attributes?.map(attribute => {
@@ -288,8 +300,9 @@ export class TEID2ApiRepository implements TEIRepository {
                     ),
                 };
             }),
-        };
+        } as unknown as D2TrackerTrackedEntity;
     }
+
 }
 
 function hasTrackedEntitiesProperty(obj: any): obj is { trackedEntities: D2TrackerEntitySelectedPick[] } {

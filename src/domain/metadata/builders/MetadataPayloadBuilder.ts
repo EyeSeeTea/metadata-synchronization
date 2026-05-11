@@ -18,7 +18,7 @@ import { promiseMap } from "../../../utils/common";
 import { defaultName, modelFactory } from "../../../models/dhis/factory";
 import { cache } from "../../../utils/cache";
 import { ExportBuilder } from "../../../types/synchronization";
-import { D2Api } from "../../../types/d2-api";
+import { D2Api, getApiModel } from "../../../types/d2-api";
 import { getD2APiFromInstance } from "../../../utils/d2-utils";
 import _ from "lodash";
 import { NestedRules } from "../entities/MetadataExcludeIncludeRules";
@@ -226,7 +226,7 @@ export class MetadataPayloadBuilder {
 
             //TODO: when metadata entities schema exists on domain, move this factory to domain
             const collectionName = modelFactory(type).getCollectionName();
-            const schema = this.api.models[collectionName].schema;
+            const schema = getApiModel(this.api, collectionName).schema;
             const result: MetadataPackage = {};
 
             // Each level of recursion traverse the exclude/include rules with nested values

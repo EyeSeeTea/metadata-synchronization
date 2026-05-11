@@ -157,8 +157,3 @@ type AdexImportSummary = {
         value: string;
     }>;
 };
-
-interface SourceDataResponse {
-    headers: { name: string }[];
-    rows: string[][];
-}
