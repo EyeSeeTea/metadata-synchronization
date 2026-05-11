@@ -238,7 +238,13 @@ export class MetadataPayloadBuilder {
             // Get all the required metadata
             const originInstance = await this.getOriginInstance(originInstanceId);
             const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
-            const syncMetadata = await metadataRepository.getMetadataByIds(newIds);
+            // DataSets need preserveNestedDefaultRefs because the server-side defaults=EXCLUDE
+            // strips the default categoryOptionCombo.id from compulsoryDataElementOperands,
+            // which then fails on import. Client-side default stripping still runs.
+            const syncMetadata =
+                type === "dataSets"
+                    ? await metadataRepository.getMetadataByIds(newIds, undefined, false, true)
+                    : await metadataRepository.getMetadataByIds(newIds);
             const elements = syncMetadata[collectionName] || [];
             this.registry.addList(builder, newIds);
 
