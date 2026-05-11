@@ -102,17 +102,14 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 - **Fixes:** GHSA-c2c7-rcm5-vvqj (CVE-2024-4067, CVE-2024-45296), high 7.5.
 - **Drop when:** Each named parent updates to a version that pulls a patched picomatch on its own. Check with `yarn why picomatch`.
 
-#### `brace-expansion` per-exact-parent (4 entries)
+#### `brace-expansion` per-exact-parent (1 entry)
 ```jsonc
-"minimatch@npm:10.2.4/brace-expansion": "^5.0.5",
-"minimatch@npm:9.0.3/brace-expansion":  "^2.0.3",
-"minimatch@npm:7.4.6/brace-expansion":  "^2.0.3",
-"minimatch@npm:3.1.2/brace-expansion":  "^1.1.13"
+"minimatch@npm:10.2.4/brace-expansion": "^5.0.5"
 ```
-- **Why:** brace-expansion has four vulnerable major lines in this tree (1.x, 2.x, 5.x), all parented by different `minimatch` versions sharing the same package name. Yarn-berry only resolves these reliably with the **exact** parent version key.
+- **Why:** brace-expansion now only needs exact-parent pinning for the 5.x major carried by `minimatch` 10.x. The 1.x and 2.x lines are already resolving to patched versions natively after the parent upgrades landed in the tree.
 - **Fixes:** CVE-2026-33750 (high 7.5).
-- **⚠️ Decay risk: HIGH.** When any of these `minimatch` versions bumps even by a patch (e.g. `10.2.4` → `10.2.5`), the matching pin **silently stops firing** and yarn does not warn. Re-run `/sca-triage` to re-pin. Consider this entry the most likely to need attention over time.
-- **Drop when:** Each `minimatch` major in the tree updates to a version pulling a patched brace-expansion natively, OR all four `minimatch` instances disappear (e.g., grandparents like eslint, depcheck, cacache, @typescript-eslint/typescript-estree get bumped).
+- **⚠️ Decay risk: HIGH.** Exact-parent entries silently no-op on parent patch bumps. `minimatch@10.2.4/brace-expansion` still covers the `glob@13.0.6` branch. The separate `glob@11.1.0 -> minimatch@10.2.5 -> brace-expansion@5.0.5` branch is already patched natively and does not need its own pin.
+- **Drop when:** All remaining `minimatch` 10.x parents in the tree pull patched brace-expansion natively, OR the 10.x branches disappear entirely.
 
 #### `vite@npm:^4.0.0/rollup: ^3.30.0`
 - **Why:** The application's vite (`devDependencies.vite ^4.0.0` → `vite@4.5.14`) pulls rollup `^3.27.1`, which resolves to the vulnerable `3.29.5`. The vitest tree's vite 7 already gets `rollup@4.60.3` (past the v4 fix line of 4.59.0), so it does not need a pin. The `^4.0.0` parent path scopes this to vite 4.x only — without scoping, a global `rollup` resolution would also downgrade vite 7's rollup 4.
