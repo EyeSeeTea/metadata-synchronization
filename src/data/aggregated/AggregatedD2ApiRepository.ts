@@ -388,6 +388,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
     public async getDefaultIds(filter?: string): Promise<string[]> {
         const response = (await this.api
             .get("/metadata", {
+                // filter: "code:eq:default", //TODO: identifiable fix in core fork
                 filter: "identifiable:eq:default",
                 fields: "id",
             })

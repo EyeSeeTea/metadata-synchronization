@@ -21,6 +21,7 @@ export class D2MetadataUtils {
     static async getDefaultIds(api: D2Api, filter?: string): Promise<string[]> {
         const response = (await api
             .get("/metadata", {
+                // filter: "code:eq:default", //TODO: identifiable fix in core fork
                 filter: "identifiable:eq:default",
                 fields: "id",
             })

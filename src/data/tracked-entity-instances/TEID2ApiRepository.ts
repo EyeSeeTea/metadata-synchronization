@@ -302,7 +302,6 @@ export class TEID2ApiRepository implements TEIRepository {
             }),
         } as unknown as D2TrackerTrackedEntity;
     }
-
 }
 
 function hasTrackedEntitiesProperty(obj: any): obj is { trackedEntities: D2TrackerEntitySelectedPick[] } {

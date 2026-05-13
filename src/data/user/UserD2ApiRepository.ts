@@ -45,10 +45,15 @@ export class UserD2ApiRepository implements UserRepository {
             isGlobalAdmin,
             isAppConfigurator:
                 isGlobalAdmin ||
-                !!currentUser.userRoles.find((role: { name: string; authorities: string[] }) => role.name === AppRoles.CONFIGURATION_ACCESS.name),
+                !!currentUser.userRoles.find(
+                    (role: { name: string; authorities: string[] }) => role.name === AppRoles.CONFIGURATION_ACCESS.name
+                ),
             isAppExecutor:
                 isGlobalAdmin ||
-                !!currentUser.userRoles.find((role: { name: string; authorities: string[] }) => role.name === AppRoles.SYNC_RULE_EXECUTION_ACCESS.name),
+                !!currentUser.userRoles.find(
+                    (role: { name: string; authorities: string[] }) =>
+                        role.name === AppRoles.SYNC_RULE_EXECUTION_ACCESS.name
+                ),
         };
     }
 }

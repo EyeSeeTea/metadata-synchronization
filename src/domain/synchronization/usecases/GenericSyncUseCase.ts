@@ -148,12 +148,10 @@ export abstract class GenericSyncUseCase {
         const { syncRule } = this.builder;
         const metadataPackage = await this.extractMetadata();
         const dataStats = useAggregatedDataExchange ? undefined : await this.buildDataStats();
-        const currentUser = await this.api.currentUser
-            .get({ fields: { userCredentials: { username: true } } })
-            .getData();
+        const currentUser = await this.api.currentUser.get({ fields: { username: true } }).getData();
 
         return SynchronizationReport.build({
-            user: currentUser.userCredentials.username ?? "Unknown",
+            user: currentUser.username ?? "Unknown",
             types: _.keys(metadataPackage),
             status: "RUNNING" as SynchronizationReportStatus,
             syncRule,
@@ -252,9 +250,7 @@ export abstract class GenericSyncUseCase {
             const oldRule = await this.repositoryFactory.rulesRepository(this.localInstance).getById(syncRule);
 
             if (oldRule) {
-                const currentUser = await this.api.currentUser
-                    .get({ fields: { username: true, id: true } })
-                    .getData();
+                const currentUser = await this.api.currentUser.get({ fields: { username: true, id: true } }).getData();
 
                 const updatedRule = oldRule.updateLastExecuted(executionDate, {
                     id: currentUser.id,

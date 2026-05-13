@@ -14,7 +14,7 @@ import { AggregatedDataExchangeApiExecutor } from "../../../aggregated/Aggregate
 const localInstance = Instance.build({
     url: "http://origin.test",
     name: "Testing",
-    version: "2.36",
+    version: "2.40",
     type: "local",
 });
 const repositoryFactory = buildRepositoryFactory(localInstance);

@@ -51,9 +51,7 @@ export const SummaryStep = ({ module, onCancel, onClose }: ModuleWizardStepProps
                             items.length > 0 && (
                                 <LiEntry
                                     key={metadataType}
-                                    label={`${getApiModel(api, metadataType).schema.displayName} [${
-                                        items.length
-                                    }]`}
+                                    label={`${getApiModel(api, metadataType).schema.displayName} [${items.length}]`}
                                 >
                                     <ul>
                                         {items.map(({ id, name }) => (
