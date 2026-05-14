@@ -345,12 +345,8 @@ export class EventsD2ApiRepository implements EventsRepository {
         const blob = await this.api
             .request<Blob>({
                 method: "get",
-                url: `/events/files`,
+                url: `/tracker/events/${eventUid}/dataValues/${dataElementUid}/file`,
                 responseDataType: "raw",
-                params: {
-                    eventUid,
-                    dataElementUid,
-                },
             })
             .getData();
 
