@@ -134,7 +134,12 @@ export class MetadataPayloadBuilder {
             : [];
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
-        const requestedTypes = new Set(_.keys(metadataWithSyncAll));
+
+        const includeIfRequestedOrFlagged = (
+            key: keyof MetadataEntities,
+            value: MetadataEntity[] | undefined,
+            flag: boolean
+        ): MetadataPackage => (value && (flag || key in metadataWithSyncAll) ? { [key]: value } : {});
 
         const finalMetadataPackage = {
             ...(categories && { categories: this.excludeDefaultMetadataObjects(categories, removeCategoryObjects) }),
@@ -149,25 +154,10 @@ export class MetadataPayloadBuilder {
             }),
             ...(visualizationsWithRows.length > 0 && { visualizations: visualizationsWithRows }),
 
-            ...(organisationUnits &&
-                (includeOrgUnitsObjectsAndReferences || requestedTypes.has("organisationUnits")) && {
-                    organisationUnits,
-                }),
-
-            ...(users &&
-                (includeUsersObjectsAndReferences || requestedTypes.has("users")) && {
-                    users,
-                }),
-
-            ...(userGroups &&
-                (includeSharingSettingsObjectsAndReferences || requestedTypes.has("userGroups")) && {
-                    userGroups,
-                }),
-
-            ...(userRoles &&
-                (includeSharingSettingsObjectsAndReferences || requestedTypes.has("userRoles")) && {
-                    userRoles,
-                }),
+            ...includeIfRequestedOrFlagged("organisationUnits", organisationUnits, includeOrgUnitsObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("users", users, includeUsersObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("userGroups", userGroups, includeSharingSettingsObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("userRoles", userRoles, includeSharingSettingsObjectsAndReferences),
 
             ...rest,
         };
