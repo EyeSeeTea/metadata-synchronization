@@ -13,6 +13,7 @@ import { promiseMap } from "../../../utils/common";
 import { SynchronizationBuilder } from "../../synchronization/entities/SynchronizationBuilder";
 import { DynamicRepositoryFactory } from "../../common/factories/DynamicRepositoryFactory";
 import { AggregatedPayloadBuilder } from "../builders/AggregatedPayloadBuilder";
+import { AggregatedDataExchangeExecutor } from "../repositories/AggregatedDataExchangeExecutor";
 
 export const AggregatedMetadatafields =
     "id,dataElements[id,name,valueType],dataSetElements[:all,dataElement[id,name,valueType]],dataElementGroups[id,dataElements[id,name,valueType]],name";
@@ -25,9 +26,10 @@ export class AggregatedSyncUseCase extends GenericSyncUseCase {
         readonly builder: SynchronizationBuilder,
         readonly repositoryFactory: DynamicRepositoryFactory,
         readonly localInstance: Instance,
-        private aggregatedPayloadBuilder: AggregatedPayloadBuilder
+        private aggregatedPayloadBuilder: AggregatedPayloadBuilder,
+        readonly aggregatedDataExchangeExecutor: AggregatedDataExchangeExecutor
     ) {
-        super(builder, repositoryFactory, localInstance);
+        super(builder, repositoryFactory, localInstance, aggregatedDataExchangeExecutor);
     }
 
     protected buildPayload = memoize(async (remoteInstance?: Instance) => {
@@ -74,7 +76,9 @@ export class AggregatedSyncUseCase extends GenericSyncUseCase {
             "id,valueType"
         );
 
-        const dataElementFileTypes = dataElements.filter(de => de.valueType === "FILE_RESOURCE").map(de => de.id);
+        const dataElementFileTypes = dataElements
+            .filter(de => de.valueType === "FILE_RESOURCE" || de.valueType === "IMAGE")
+            .map(de => de.id);
 
         const aggregatedRepository = await this.getAggregatedRepository();
         const fileRemoteRepository = await this.getInstanceFileRepository(remoteInstance);

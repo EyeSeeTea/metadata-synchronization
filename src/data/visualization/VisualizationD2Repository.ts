@@ -8,8 +8,8 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 export class VisualizationD2Repository implements VisualizationRepository {
     private api: D2Api;
 
-    constructor(instance: Instance) {
-        this.api = getD2APiFromInstance(instance);
+    constructor(localInstance: Instance, targetInstance: Instance) {
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     async getByIds(ids: Id[]): Promise<Visualization[]> {
