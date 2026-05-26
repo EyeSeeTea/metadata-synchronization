@@ -8,12 +8,17 @@ import PageHeader from "../../../../react/core/components/page-header/PageHeader
 import SyncWizard from "../../../../react/core/components/sync-wizard/SyncWizard";
 import { TestWrapper } from "../../../../react/core/components/test-wrapper/TestWrapper";
 import { useAppContext } from "../../../../react/core/contexts/AppContext";
+import { UserSettingsInclusionsConfig } from "../../../../../domain/user-settings/UserSettings";
 import { useUserSettings } from "../settings/useUserSettings";
 
 export interface SyncRulesCreationParams {
     id: string;
     action: "edit" | "new";
     type: SynchronizationType;
+}
+
+function createSyncRuleWithInclusions(type: SynchronizationType, defaultInclusions: UserSettingsInclusionsConfig) {
+    return SynchronizationRule.create(type).setDefaultInclusions(defaultInclusions);
 }
 
 const SyncRulesCreation: React.FC = () => {
@@ -23,9 +28,12 @@ const SyncRulesCreation: React.FC = () => {
     const { id, action, type } = useParams() as SyncRulesCreationParams;
     const { compositionRoot } = useAppContext();
     const { userSettings } = useUserSettings();
+    const replicatedSyncRule = location.state?.syncRule;
 
     const [dialogOpen, updateDialogOpen] = useState(false);
-    const [syncRule, updateSyncRule] = useState(location.state?.syncRule ?? SynchronizationRule.create(type));
+    const [syncRule, updateSyncRule] = useState(
+        replicatedSyncRule ?? createSyncRuleWithInclusions(type, userSettings.inclusionConfig)
+    );
     const [originalSyncRule, setOriginalSyncRule] = useState<SynchronizationRule | undefined>(undefined);
 
     const isEdit = action === "edit" && !!id;
@@ -55,10 +63,12 @@ const SyncRulesCreation: React.FC = () => {
                 loading.reset();
             });
         } else {
-            updateSyncRule(syncRule => syncRule?.setDefaultInclusions(userSettings.inclusionConfig));
-            setOriginalSyncRule(syncRule => syncRule?.setDefaultInclusions(userSettings.inclusionConfig));
+            const initialSyncRule =
+                replicatedSyncRule ?? createSyncRuleWithInclusions(type, userSettings.inclusionConfig);
+            updateSyncRule(initialSyncRule);
+            setOriginalSyncRule(initialSyncRule);
         }
-    }, [compositionRoot, loading, isEdit, id, type, userSettings.inclusionConfig]);
+    }, [compositionRoot, loading, isEdit, id, type, userSettings.inclusionConfig, replicatedSyncRule]);
 
     return (
         <TestWrapper>

@@ -13,7 +13,12 @@ import {
 import { MetadataImportParams } from "../entities/MetadataSynchronizationParams";
 
 export interface MetadataRepository {
-    getMetadataByIds<T>(ids: Id[], fields?: object | string, includeDefaults?: boolean): Promise<MetadataPackage<T>>;
+    getMetadataByIds<T>(
+        ids: Id[],
+        fields?: object | string,
+        includeDefaults?: boolean,
+        preserveNestedDefaultRefs?: boolean
+    ): Promise<MetadataPackage<T>>;
     getByFilterRules(filterRules: FilterRule[]): Promise<Id[]>;
     getDefaultIds(filter?: string): Promise<string[]>;
     getCategoryOptionCombos(): Promise<
