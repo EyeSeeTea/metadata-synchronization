@@ -45,7 +45,7 @@ export class MetadataPayloadBuilder {
             includeOnlyOrgUnitsReferences = false,
             removeUserNonEssentialObjects = false,
             metadataIncludeExcludeRules = {},
-            useDefaultIncludeExclude = {},
+            useDefaultIncludeExclude = true,
         } = syncParams ?? {};
 
         const originInstance = await this.getOriginInstance(originInstanceId);
@@ -135,6 +135,12 @@ export class MetadataPayloadBuilder {
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
+        const includeIfRequestedOrFlagged = (
+            key: keyof MetadataEntities,
+            value: MetadataEntity[] | undefined,
+            flag: boolean
+        ): MetadataPackage => (value && (flag || key in metadataWithSyncAll) ? { [key]: value } : {});
+
         const finalMetadataPackage = {
             ...(categories && { categories: this.excludeDefaultMetadataObjects(categories, removeCategoryObjects) }),
             ...(categoryCombos && {
@@ -147,10 +153,12 @@ export class MetadataPayloadBuilder {
                 categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
             }),
             ...(visualizationsWithRows.length > 0 && { visualizations: visualizationsWithRows }),
-            organisationUnits: includeOrgUnitsObjectsAndReferences ? organisationUnits : undefined,
-            users: includeUsersObjectsAndReferences ? users : undefined,
-            userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
-            userRoles: includeSharingSettingsObjectsAndReferences ? userRoles : undefined,
+
+            ...includeIfRequestedOrFlagged("organisationUnits", organisationUnits, includeOrgUnitsObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("users", users, includeUsersObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("userGroups", userGroups, includeSharingSettingsObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("userRoles", userRoles, includeSharingSettingsObjectsAndReferences),
+
             ...rest,
         };
 
