@@ -86,7 +86,7 @@
     "devDependencies": {
         "@babel/core": "7.15.8",
         "@babel/preset-typescript": "7.15.0",
-        "@dhis2/cli-app-scripts": "12.11.0",
+        "@dhis2/cli-app-scripts": "12.11.1",
         "@types/file-saver": "2.0.3",
         "@types/lodash": "4.14.175",
         "@types/mime-types": "2.1.1",
@@ -161,7 +161,9 @@
         "multimatch/minimatch": "^3.1.4",
         "glob@npm:7.2.3/minimatch": "^3.1.4",
         "depcheck/minimatch": "^7.4.8",
-        "@typescript-eslint/typescript-estree/minimatch": "^9.0.7"
+        "@typescript-eslint/typescript-estree/minimatch": "^9.0.7",
+        "styled-jsx/loader-utils": "^1.4.2",
+        "request/form-data": "^2.5.4"
     },
     "manifest.webapp": {
         "name": "MetaData Synchronization",

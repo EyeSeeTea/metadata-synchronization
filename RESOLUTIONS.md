@@ -46,6 +46,20 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 |---|---|
 | `@dhis2/ui-icons: 7.4.1` | Added in commit `f31d19d3` ("Fix yarn start and build"); commit message gives no further detail. Likely held back to match `@dhis2/ui` peer requirements, but this is inference, not confirmed. Leave alone until someone with project history can confirm. |
 
+### Security pins (added 2026-05-27 by `/sca-triage`)
+
+#### `styled-jsx/loader-utils: ^1.4.2`
+
+-   **Why:** `styled-jsx@4.0.1` (pulled by `@dhis2/app-shell` and `@dhis2/cli-app-scripts`) pins `loader-utils` at exactly `1.2.3`, which is vulnerable across six advisories. The scoped resolution overrides only `styled-jsx`'s request, leaving the separate `2.0.4` line (used by `babel-loader`, `file-loader`, `@pmmmwh/react-refresh-webpack-plugin`) untouched. Build-time only — no runtime surface.
+-   **Fixes:** CVE-2022-37599 (high 7.5), CVE-2022-37601 (critical 9.8), CVE-2022-37603 (high 7.5), GHSA-76p3-8jx3-jpfq (critical 9.8, confirmed 1.x fixed at `1.4.1` per GitHub advisory API), GHSA-3rfm-jhwj-7488 (high 7.5), GHSA-hhq3-ff78-jv3g (high 7.5).
+-   **Drop when:** `styled-jsx` is upgraded to a version that either drops `loader-utils` or requests `^1.4.2` or later natively (or the DHIS2 app-shell chain migrates to a non-webpack CSS-in-JS approach). Verify with `yarn why loader-utils`.
+
+#### `request/form-data: ^2.5.4`
+
+-   **Why:** `request@2.88.2` (deprecated, pulled by `@dhis2/cli-helpers-engine` under `@dhis2/cli-app-scripts`) requests `form-data@~2.3.2`, which resolves to the vulnerable `2.3.3`. All other `form-data` consumers in the tree (`@dhis2/cli-app-scripts` → `3.0.4`, `axios` → `4.0.5`, `jsdom` → `3.0.4`) are already on patched versions and are unaffected by this scoped pin. Build/dev-tool chain only — no runtime surface.
+-   **Fixes:** CVE-2025-7783 / GHSA-fjxv-7rqg-78g4 (critical 9.0) — unsafe boundary random in `form-data < 2.5.4`.
+-   **Drop when:** The `request` chain is removed (i.e., `@dhis2/cli-helpers-engine` drops `request` as a dependency) or `@dhis2/cli-app-scripts` is upgraded to a version that no longer pulls `request`. Verify with `yarn why form-data`.
+
 ### Security pins (added 2026-05-08 by `/sca-triage`)
 
 #### `lodash: ^4.18.0`

@@ -4917,11 +4917,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dhis2/app-adapter@npm:12.11.0":
-  version: 12.11.0
-  resolution: "@dhis2/app-adapter@npm:12.11.0"
+"@dhis2/app-adapter@npm:12.11.1":
+  version: 12.11.1
+  resolution: "@dhis2/app-adapter@npm:12.11.1"
   dependencies:
-    "@dhis2/pwa": "npm:12.11.0"
+    "@dhis2/pwa": "npm:12.11.1"
     moment: "npm:^2.24.0"
   peerDependencies:
     "@dhis2/app-runtime": ^3.11.1
@@ -4933,7 +4933,7 @@ __metadata:
     react: ^16.8.6 || ^18
     react-dom: ^16.8.6 || ^18
     styled-jsx: ^4
-  checksum: 10c0/20ef71a155d2a3c86a169fe31ea54e66abc6da7a585c7dddcb0f534c7983e536a262c96ce51e8f867a25590ac2661da3bf817edf89ccb2c39a3cf7407277c2d7
+  checksum: 10c0/122ab2a1c523ea3c5d6546c57925068b0165baf722dc5734b0339e3eb71e0bcce94e8cf6c4f8da1ce9d40e0cd19fc1742ff59ed29ea4764a9139d94290575197
   languageName: node
   linkType: hard
 
@@ -5117,14 +5117,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dhis2/app-shell@npm:12.11.0":
-  version: 12.11.0
-  resolution: "@dhis2/app-shell@npm:12.11.0"
+"@dhis2/app-shell@npm:12.11.1":
+  version: 12.11.1
+  resolution: "@dhis2/app-shell@npm:12.11.1"
   dependencies:
-    "@dhis2/app-adapter": "npm:12.11.0"
+    "@dhis2/app-adapter": "npm:12.11.1"
     "@dhis2/app-runtime": "npm:^3.14.3"
     "@dhis2/d2-i18n": "npm:^1.2.0"
-    "@dhis2/pwa": "npm:12.11.0"
+    "@dhis2/pwa": "npm:12.11.1"
     "@dhis2/ui": "npm:^10.9.2"
     classnames: "npm:^2.2.6"
     moment: "npm:^2.29.1"
@@ -5134,13 +5134,13 @@ __metadata:
     react-dom: "npm:^18"
     styled-jsx: "npm:^4.0.1"
     typeface-roboto: "npm:^0.0.75"
-  checksum: 10c0/4c258c4f55156d2316cb150fa7d28d02df9a8adf1f1db89e5595cd027cca148794551b2fbe4a12243b182218d70194ea28dbe2af57958e8a54db419db105a3bc
+  checksum: 10c0/df7bb4e8c4017f3e82ba324cc2ac279cf38400bd39bccb73d148d58bd206c3b9de4c01fae359467d0a2f3199166a7efcda3898d3a2b33ca2ab65a38164524488
   languageName: node
   linkType: hard
 
-"@dhis2/cli-app-scripts@npm:12.11.0":
-  version: 12.11.0
-  resolution: "@dhis2/cli-app-scripts@npm:12.11.0"
+"@dhis2/cli-app-scripts@npm:12.11.1":
+  version: 12.11.1
+  resolution: "@dhis2/cli-app-scripts@npm:12.11.1"
   dependencies:
     "@babel/core": "npm:^7.27.4"
     "@babel/plugin-syntax-dynamic-import": "npm:^7.8.3"
@@ -5153,7 +5153,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.27.2"
     "@babel/preset-react": "npm:^7.0.0"
     "@babel/preset-typescript": "npm:^7.27.1"
-    "@dhis2/app-shell": "npm:12.11.0"
+    "@dhis2/app-shell": "npm:12.11.1"
     "@dhis2/cli-helpers-engine": "npm:^3.2.2"
     "@jest/core": "npm:^27.0.6"
     "@pmmmwh/react-refresh-webpack-plugin": "npm:^0.5.4"
@@ -5194,7 +5194,7 @@ __metadata:
     workbox-build: "npm:^7.3.0"
   bin:
     d2-app-scripts: bin/d2-app-scripts
-  checksum: 10c0/e7e53aa781ac5d3d1bd08c8aa2f48fc27dd650a6db39813808ca94b17646bf347cb557a95db1652725c135fce062ab25ceedea09db394cfa6690133549c4c7b4
+  checksum: 10c0/70ffa859a29d347be95384f2829d42763459f4da636c9a5920c486f2512db9585c01ac2e889e595132db6681415419da68ba7dfa32cd29e86e644ba55334587d
   languageName: node
   linkType: hard
 
@@ -5297,15 +5297,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dhis2/pwa@npm:12.11.0":
-  version: 12.11.0
-  resolution: "@dhis2/pwa@npm:12.11.0"
+"@dhis2/pwa@npm:12.11.1":
+  version: 12.11.1
+  resolution: "@dhis2/pwa@npm:12.11.1"
   dependencies:
     idb: "npm:^6.0.0"
     workbox-precaching: "npm:^7.1.0"
     workbox-routing: "npm:^7.1.0"
     workbox-strategies: "npm:^7.1.0"
-  checksum: 10c0/944fc92062127075e4f76585b182695dd08665734b992872cccb0f0e8be2f8710e3bfbe9bcbfedc66c01110da5b5511890664f73793fb2e1641435e43833f596
+  checksum: 10c0/75e610f6fcb1f174c5f387f24bd08ad556bd53be78396533d37271ee0309103137750b1964a14c3337e5b2c582472e16dfaf30ce674418f1c7e05a68f0b45a4d
   languageName: node
   linkType: hard
 
@@ -10832,7 +10832,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"combined-stream@npm:^1.0.6, combined-stream@npm:^1.0.8, combined-stream@npm:~1.0.6":
+"combined-stream@npm:^1.0.8, combined-stream@npm:~1.0.6":
   version: 1.0.8
   resolution: "combined-stream@npm:1.0.8"
   dependencies:
@@ -12010,13 +12010,6 @@ __metadata:
   version: 9.2.2
   resolution: "emoji-regex@npm:9.2.2"
   checksum: 10c0/af014e759a72064cf66e6e694a7fc6b0ed3d8db680427b021a89727689671cefe9d04151b2cad51dbaf85d5ba790d061cd167f1cf32eb7b281f6368b3c181639
-  languageName: node
-  linkType: hard
-
-"emojis-list@npm:^2.0.0":
-  version: 2.1.0
-  resolution: "emojis-list@npm:2.1.0"
-  checksum: 10c0/bbb941223bfb3e38054cb52ed1b3098a8dac0a90fdd2699eb8a3af3b2172cdc4af0932e05c3edd52e814997c8f45cf1d7f5e86e9ecdcd4e2390a0f27e6914db5
   languageName: node
   linkType: hard
 
@@ -13481,6 +13474,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"form-data@npm:^2.5.4":
+  version: 2.5.5
+  resolution: "form-data@npm:2.5.5"
+  dependencies:
+    asynckit: "npm:^0.4.0"
+    combined-stream: "npm:^1.0.8"
+    es-set-tostringtag: "npm:^2.1.0"
+    hasown: "npm:^2.0.2"
+    mime-types: "npm:^2.1.35"
+    safe-buffer: "npm:^5.2.1"
+  checksum: 10c0/7fb70447849fc9bce4d01fe9a626f6587441f85779a2803b67f803e1ab52b0bd78db0a7acd80d944c665f68ca90936c327f1244b730719b638a0219e98b20488
+  languageName: node
+  linkType: hard
+
 "form-data@npm:^3.0.0":
   version: 3.0.4
   resolution: "form-data@npm:3.0.4"
@@ -13517,17 +13524,6 @@ __metadata:
     hasown: "npm:^2.0.2"
     mime-types: "npm:^2.1.12"
   checksum: 10c0/dd6b767ee0bbd6d84039db12a0fa5a2028160ffbfaba1800695713b46ae974a5f6e08b3356c3195137f8530dcd9dfcb5d5ae1eeff53d0db1e5aad863b619ce3b
-  languageName: node
-  linkType: hard
-
-"form-data@npm:~2.3.2":
-  version: 2.3.3
-  resolution: "form-data@npm:2.3.3"
-  dependencies:
-    asynckit: "npm:^0.4.0"
-    combined-stream: "npm:^1.0.6"
-    mime-types: "npm:^2.1.12"
-  checksum: 10c0/706ef1e5649286b6a61e5bb87993a9842807fd8f149cd2548ee807ea4fb882247bdf7f6e64ac4720029c0cd5c80343de0e22eee1dc9e9882e12db9cc7bc016a4
   languageName: node
   linkType: hard
 
@@ -16339,14 +16335,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loader-utils@npm:1.2.3":
-  version: 1.2.3
-  resolution: "loader-utils@npm:1.2.3"
+"loader-utils@npm:^1.4.2":
+  version: 1.4.2
+  resolution: "loader-utils@npm:1.4.2"
   dependencies:
     big.js: "npm:^5.2.2"
-    emojis-list: "npm:^2.0.0"
+    emojis-list: "npm:^3.0.0"
     json5: "npm:^1.0.1"
-  checksum: 10c0/b4242988adf5d50e7a3dd7b2f0c7b6534ea580a27ae4f8ba226aea3219d8a72ffb6d1a9b200fc8e0435e38a22bce740b094f57be8d0142a3f1a75e610159235b
+  checksum: 10c0/2b726088b5526f7605615e3e28043ae9bbd2453f4a85898e1151f3c39dbf7a2b65d09f3996bc588d92ac7e717ded529d3e1ea3ea42c433393be84a58234a2f53
   languageName: node
   linkType: hard
 
@@ -16761,7 +16757,7 @@ __metadata:
     "@babel/core": "npm:7.15.8"
     "@babel/preset-typescript": "npm:7.15.0"
     "@dhis2/app-runtime": "npm:3.12.0"
-    "@dhis2/cli-app-scripts": "npm:12.11.0"
+    "@dhis2/cli-app-scripts": "npm:12.11.1"
     "@dhis2/d2-i18n": "npm:1.1.3"
     "@dhis2/ui": "npm:7.4.1"
     "@eyeseetea/d2-api": "npm:1.16.0"
