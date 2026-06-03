@@ -5,7 +5,7 @@ import { NestedRules } from "./entities/MetadataExcludeIncludeRules";
 
 const blacklistedProperties = ["access"];
 const SHARING_SETTINGS_PROPERTIES = ["user", "userAccesses", "userGroupAccesses", "sharing"];
-const USER_PROPERTIES = ["createdBy", "lastUpdatedBy", "user"];
+const USER_PROPERTIES = ["createdBy", "lastUpdatedBy", "user", "users"];
 const ORG_UNITS_PROPERTIES = ["organisationUnits"];
 
 export function buildNestedRules(rules: string[][] = []): NestedRules {
