@@ -47,6 +47,9 @@ config.json
 /public/wmr
 
 
+# Git worktrees
+.worktrees/
+
 # Yarn 4
 .yarn/cache
 .yarn/install-state.gz
