@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-05-11T13:39:23.523Z\n"
+"POT-Creation-Date: 2026-06-02T13:46:20.678Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1595,6 +1595,27 @@ msgstr ""
 msgid "Use sync rules periods"
 msgstr ""
 
+msgid "Skip generation of resource tables"
+msgstr ""
+
+msgid "Skip generation of event data"
+msgstr ""
+
+msgid "Skip generation of enrollment data"
+msgstr ""
+
+msgid "Skip generation of organisation unit ownership data"
+msgstr ""
+
+msgid "Skip generation of tracked entity data"
+msgstr ""
+
+msgid "Skip generation of aggregate data and completeness data"
+msgstr ""
+
+msgid "Skip generation of outlier data"
+msgstr ""
+
 msgid "True"
 msgstr ""
 
@@ -1604,19 +1625,22 @@ msgstr ""
 msgid "Use sync rule settings"
 msgstr ""
 
+msgid "Run Analytics"
+msgstr ""
+
+msgid "Number of last years of data to include"
+msgstr ""
+
 msgid "MSF Settings"
 msgstr ""
 
 msgid "Analytics"
 msgstr ""
 
-msgid "Run Analytics Before"
+msgid "Before sync · Individual data"
 msgstr ""
 
-msgid "Run Analytics After"
-msgstr ""
-
-msgid "Number of years to include"
+msgid "After sync · Aggregate data"
 msgstr ""
 
 msgid "Data values settings"

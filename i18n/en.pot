@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-05-25T08:07:28.951Z\n"
-"PO-Revision-Date: 2026-05-25T08:07:28.951Z\n"
+"POT-Creation-Date: 2026-06-03T10:43:21.508Z\n"
+"PO-Revision-Date: 2026-06-03T10:43:21.508Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1651,6 +1651,27 @@ msgstr "Include references and objects"
 msgid "Use sync rules periods"
 msgstr "Use sync rules periods"
 
+msgid "Skip generation of resource tables"
+msgstr "Skip generation of resource tables"
+
+msgid "Skip generation of event data"
+msgstr "Skip generation of event data"
+
+msgid "Skip generation of enrollment data"
+msgstr "Skip generation of enrollment data"
+
+msgid "Skip generation of organisation unit ownership data"
+msgstr "Skip generation of organisation unit ownership data"
+
+msgid "Skip generation of tracked entity data"
+msgstr "Skip generation of tracked entity data"
+
+msgid "Skip generation of aggregate data and completeness data"
+msgstr "Skip generation of aggregate data and completeness data"
+
+msgid "Skip generation of outlier data"
+msgstr "Skip generation of outlier data"
+
 msgid "True"
 msgstr "True"
 
@@ -1660,20 +1681,23 @@ msgstr "False"
 msgid "Use sync rule settings"
 msgstr "Use sync rule settings"
 
+msgid "Run Analytics"
+msgstr "Run Analytics"
+
+msgid "Number of last years of data to include"
+msgstr "Number of last years of data to include"
+
 msgid "MSF Settings"
 msgstr "MSF Settings"
 
 msgid "Analytics"
 msgstr "Analytics"
 
-msgid "Run Analytics Before"
-msgstr "Run Analytics Before"
+msgid "Before sync · Individual data"
+msgstr "Before sync · Individual data"
 
-msgid "Run Analytics After"
-msgstr "Run Analytics After"
-
-msgid "Number of years to include"
-msgstr "Number of years to include"
+msgid "After sync · Aggregate data"
+msgstr "After sync · Aggregate data"
 
 msgid "Data values settings"
 msgstr "Data values settings"
