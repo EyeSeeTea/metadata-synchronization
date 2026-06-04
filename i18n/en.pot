@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-06-02T13:46:20.678Z\n"
-"PO-Revision-Date: 2026-06-02T13:46:20.678Z\n"
+"POT-Creation-Date: 2026-06-04T13:26:24.327Z\n"
+"PO-Revision-Date: 2026-06-04T13:26:24.327Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -549,6 +549,11 @@ msgstr ""
 
 msgid "Set metadata custodian"
 msgstr ""
+
+msgid "{{count}} items are selected in other metadata pages."
+msgid_plural "{{count}} items are selected in other metadata pages."
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Custodian"
 msgstr ""
