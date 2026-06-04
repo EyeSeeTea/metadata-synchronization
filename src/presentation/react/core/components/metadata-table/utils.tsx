@@ -2,6 +2,7 @@ import memoize from "nano-memoize";
 import { MetadataEntities } from "../../../../../domain/metadata/entities/MetadataEntities";
 import { modelFactory } from "../../../../../models/dhis/factory";
 import { D2Api } from "../../../../../types/d2-api";
+import _ from "lodash";
 
 /**
  * Load memoized filter data from an instance (This should be removed with a cache on d2-api)
@@ -35,4 +36,19 @@ export async function getOrgUnitSubtree(api: D2Api, orgUnitId: string): Promise<
         .getData()) as { organisationUnits: { id: string }[] };
 
     return organisationUnits.map(({ id }) => id);
+}
+
+// When isCleared, return [] to clear all types; otherwise merge current-type
+// included with preserved other-type ids
+export function getMergedSelection({
+    isCleared,
+    included,
+    otherTypeIds,
+}: {
+    isCleared: boolean;
+    included: string[];
+    otherTypeIds: string[];
+}): string[] {
+    if (isCleared) return [];
+    return _.uniq([...otherTypeIds, ...included]);
 }

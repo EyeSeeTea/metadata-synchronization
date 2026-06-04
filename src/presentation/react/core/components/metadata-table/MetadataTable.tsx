@@ -28,7 +28,7 @@ import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
 import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
-import { getFilterData, getOrgUnitSubtree } from "./utils";
+import { getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
 import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 
@@ -604,6 +604,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
+        const isCleared = selection.length === 0;
 
         const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
 
@@ -628,23 +629,33 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 parseChildren,
             });
 
-            const mergedSelection = _.uniq([...otherMetadataTypeIds, ...result.included]);
+            const mergedSelection = getMergedSelection({
+                isCleared,
+                included: result.included,
+                otherTypeIds: otherMetadataTypeIds,
+            });
 
             if (!_.isEqual(stateSelection, mergedSelection)) {
-                notifyNewSelection(mergedSelection, result.excluded);
+                notifyNewSelection(mergedSelection, isCleared ? [] : result.excluded);
             }
 
             setStateSelection(mergedSelection);
         } else {
-            const excluded = _(excludedIds)
-                .union(newlyUnselectedIds)
-                .difference(parseChildren(newlyUnselectedIds))
-                .difference(newlySelectedIds)
-                .difference(parseChildren(newlySelectedIds))
-                .filter(id => !_.find(rows, { id }))
-                .value();
+            const excluded = isCleared
+                ? []
+                : _(excludedIds)
+                      .union(newlyUnselectedIds)
+                      .difference(parseChildren(newlyUnselectedIds))
+                      .difference(newlySelectedIds)
+                      .difference(parseChildren(newlySelectedIds))
+                      .filter(id => !_.find(rows, { id }))
+                      .value();
 
-            const mergedSelection = _.uniq([...otherMetadataTypeIds, ...included]);
+            const mergedSelection = getMergedSelection({
+                isCleared,
+                included,
+                otherTypeIds: otherMetadataTypeIds,
+            });
 
             if (!_.isEqual(stateSelection, mergedSelection)) {
                 notifyNewSelection(mergedSelection, excluded);
