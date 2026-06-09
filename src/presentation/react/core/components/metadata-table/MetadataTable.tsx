@@ -635,7 +635,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 otherTypeIds: otherMetadataTypeIds,
             });
 
-            if (!_.isEqual(stateSelection, mergedSelection)) {
+            if (!_.isEqual(selectedIds, mergedSelection)) {
                 notifyNewSelection(mergedSelection, isCleared ? [] : result.excluded);
             }
 
@@ -657,7 +657,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 otherTypeIds: otherMetadataTypeIds,
             });
 
-            if (!_.isEqual(stateSelection, mergedSelection)) {
+            if (!_.isEqual(selectedIds, mergedSelection)) {
                 notifyNewSelection(mergedSelection, excluded);
             }
 
