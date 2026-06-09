@@ -31,6 +31,7 @@ import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
 import { getFilterData, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
 import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
+import { useSelection } from "./useSelection";
 
 export type MetadataTableFilters =
     | "group"
@@ -661,11 +662,12 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     };
 
     const exclusion = excludedIds.map(id => ({ id }));
-    const selection = selectedIds.map(id => ({
-        id,
-        checked: true,
-        indeterminate: false,
-    }));
+    const { selection, crossTypeNotifications } = useSelection(
+        model.getCollectionName(),
+        ids,
+        selectedIds,
+        remoteInstance
+    );
 
     const childrenSelection: TableSelection[] = useMemo(
         () =>
@@ -747,6 +749,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 actions={actions}
                 sideComponents={orgUnitTreeFilter}
                 {...rest}
+                tableNotifications={[...(rest.tableNotifications ?? []), ...crossTypeNotifications]}
             />
         </React.Fragment>
     );

@@ -581,6 +581,11 @@ msgstr "Custodian"
 msgid "Search by name, code or id"
 msgstr "Search by name, code or id"
 
+msgid "{{count}} items are selected in other metadata types."
+msgid_plural "{{count}} items are selected in other metadata types."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid ""
 "There has been an error. You can either retry or contact your administrator "
 "if you think there has been an un recoverable error"

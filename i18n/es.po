@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-06-02T13:46:20.678Z\n"
+"POT-Creation-Date: 2026-06-04T14:18:23.294Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -570,6 +570,11 @@ msgstr ""
 
 msgid "Search by name, code or id"
 msgstr ""
+
+msgid "{{count}} items are selected in other metadata types."
+msgid_plural "{{count}} items are selected in other metadata types."
+msgstr[0] ""
+msgstr[1] ""
 
 msgid ""
 "There has been an error. You can either retry or contact your administrator "
