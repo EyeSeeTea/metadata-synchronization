@@ -257,7 +257,7 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
                 const message = error instanceof Error ? error.message : String(error);
                 return i18n.t(
                     `An error has occurred while downloading datastore payload for instance {{name}}: {{message}}`,
-                    { name: remoteInstance.name, message }
+                    { name: remoteInstance.name, message, nsSeparator: false }
                 );
             }
         });
