@@ -1,7 +1,6 @@
 import { MultiSelector, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Button, makeStyles, Typography } from "@material-ui/core";
 import React, { useCallback, useEffect, useState } from "react";
-import { a } from "vitest/dist/chunks/suite.d.FvehnV49";
 import { Instance } from "../../../../../../domain/instance/entities/Instance";
 import { User } from "../../../../../../domain/user/entities/User";
 import i18n from "../../../../../../utils/i18n";
