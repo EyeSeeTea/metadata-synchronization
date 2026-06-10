@@ -21,6 +21,7 @@ import {
 } from "../../../../../../models/dhis/metadata";
 import { MetadataType } from "../../../../../../utils/d2";
 import { useAppContext } from "../../../contexts/AppContext";
+import { useLatestRef } from "../../../hooks/useLatestRef";
 import { getChildrenRows } from "../../mapping-table/utils";
 import MetadataTable from "../../metadata-table/MetadataTable";
 import { SyncWizardStepProps } from "../Steps";
@@ -68,7 +69,6 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
     const { compositionRoot } = useAppContext();
     const snackbar = useSnackbar();
 
-    const [metadataIds, updateMetadataIds] = useState<string[]>([]);
     const [remoteInstance, setRemoteInstance] = useState<Instance>();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
@@ -86,17 +86,19 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
     const [rows, setRows] = useState<MetadataType[]>([]);
     const [idsToIgnore, setIdsToIgnore] = useState<string[]>([]);
     const [metadataModelsSyncAll, setMetadataModelsSyncAll] = useState(syncRule.metadataModelsSyncAll);
+    const ruleRef = useLatestRef(syncRule);
 
     const changeSelection = useCallback(
         (newMetadataIds: string[], newExclusionIds: string[]) => {
-            const additions = _.difference(newMetadataIds, metadataIds);
+            const previousMetadataIds = ruleRef.current.metadataIds;
+            const additions = _.difference(newMetadataIds, previousMetadataIds);
             if (additions.length > 0) {
                 snackbar.info(i18n.t("Selected {{difference}} elements", { difference: additions.length }), {
                     autoHideDuration: 1000,
                 });
             }
 
-            const removals = _.difference(metadataIds, newMetadataIds);
+            const removals = _.difference(previousMetadataIds, newMetadataIds);
             if (removals.length > 0) {
                 snackbar.info(
                     i18n.t("Removed {{difference}} elements", {
@@ -106,27 +108,11 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
                 );
             }
 
-            const onlyMetadataIds = newMetadataIds.filter(id => !id.includes(DataStoreMetadata.NS_SEPARATOR));
-
-            compositionRoot.metadata.getByIds(onlyMetadataIds, remoteInstance, "id").then(metadata => {
-                const types = _(metadata).keys().concat(metadataModelsSyncAll).uniq().value();
-
-                onChange(
-                    syncRule
-                        .updateMetadataIds(newMetadataIds)
-                        .updateExcludedIds(newExclusionIds)
-                        .updateMetadataTypes(types)
-                        .updateDataSyncEnableAggregation(
-                            types.includes("indicators") ||
-                                types.includes("programIndicators") ||
-                                syncRule.useAggregatedDataExchange
-                        )
-                );
-            });
-
-            updateMetadataIds(newMetadataIds);
+            const updatedRule = ruleRef.current.updateMetadataIds(newMetadataIds).updateExcludedIds(newExclusionIds);
+            ruleRef.current = updatedRule;
+            onChange(updatedRule);
         },
-        [compositionRoot.metadata, metadataIds, metadataModelsSyncAll, onChange, remoteInstance, snackbar, syncRule]
+        [ruleRef, onChange, snackbar]
     );
 
     useEffect(() => {
@@ -146,22 +132,49 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
     }, [compositionRoot, snackbar, syncRule.originInstance]);
 
     useEffect(() => {
-        if (!_.isEmpty(metadataModelsSyncAll)) {
-            compositionRoot.metadata.getByIds(syncRule.metadataIds, remoteInstance, "id").then(metadata => {
-                const idsFromSyncAllMetadataTypes = _(metadata)
-                    .pick(metadataModelsSyncAll)
-                    .values()
-                    .compact()
-                    .flatten()
-                    .map(entity => entity.id)
-                    .value();
+        const applyTypes = (types: string[]) => {
+            const updatedRule = ruleRef.current
+                .updateMetadataTypes(types)
+                .updateDataSyncEnableAggregation(
+                    types.includes("indicators") ||
+                        types.includes("programIndicators") ||
+                        ruleRef.current.useAggregatedDataExchange
+                );
+            ruleRef.current = updatedRule;
+            onChange(updatedRule);
+        };
 
-                setIdsToIgnore(idsFromSyncAllMetadataTypes);
-            });
-        } else {
+        const onlyMetadataIds = syncRule.metadataIds.filter(id => !id.includes(DataStoreMetadata.NS_SEPARATOR));
+
+        if (onlyMetadataIds.length === 0) {
             setIdsToIgnore([]);
+            applyTypes(_.uniq(metadataModelsSyncAll));
+            return;
         }
-    }, [compositionRoot.metadata, metadataModelsSyncAll, remoteInstance, syncRule.metadataIds]);
+
+        let cancelled = false;
+        compositionRoot.metadata.getByIds(onlyMetadataIds, remoteInstance, "id").then(metadata => {
+            if (cancelled) return;
+
+            const types = _(metadata).keys().concat(metadataModelsSyncAll).uniq().value();
+            const idsFromSyncAllMetadataTypes = _.isEmpty(metadataModelsSyncAll)
+                ? []
+                : _(metadata)
+                      .pick(metadataModelsSyncAll)
+                      .values()
+                      .compact()
+                      .flatten()
+                      .map(entity => entity.id)
+                      .value();
+
+            setIdsToIgnore(idsFromSyncAllMetadataTypes);
+            applyTypes(types);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [compositionRoot.metadata, metadataModelsSyncAll, onChange, remoteInstance, ruleRef, syncRule.metadataIds]);
 
     const notifyNewModel = useCallback(model => {
         setModel(() => model);
