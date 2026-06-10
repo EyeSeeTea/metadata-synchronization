@@ -10,25 +10,35 @@ export function useSelection(
     collectionName: keyof MetadataEntities,
     ids: string[],
     selectedIds: string[],
-    remoteInstance: DataSource | undefined
+    remoteInstance: DataSource | undefined,
+    filterRestrictsIds: boolean
 ) {
     const { compositionRoot } = useAppContext();
     const [otherTypeCountFallback, setOtherTypeCountFallback] = useState(0);
 
-    // The current type's full id list (`ids`) is never loaded for organisationUnits,
-    // so we cannot tell cross-type selections apart by set difference. Resolve the
-    // selection's types via the API and count items in any collection other than
-    // the current one.
+    // `ids` cannot be used to tell cross-type selections apart by set difference when it is
+    // not the current type's full id list: never loaded for organisationUnits, and narrowed
+    // to matching rows when a filter (search/group/level/...) is active. In those cases
+    // same-type selections outside the filter would be miscounted as cross-type, so resolve
+    // the selection's types via the API and count items in any collection other than the
+    // current one.
+    const useApiCrossTypeCount = collectionName === "organisationUnits" || filterRestrictsIds;
+
     useEffect(() => {
-        if (collectionName !== "organisationUnits" || selectedIds.length === 0) {
+        if (!useApiCrossTypeCount || selectedIds.length === 0) {
             setOtherTypeCountFallback(0);
             return;
         }
 
-        compositionRoot.metadata
-            .getByIds(selectedIds, remoteInstance, "id")
-            .then(pkg => setOtherTypeCountFallback(countPackageOtherType(pkg, collectionName)));
-    }, [collectionName, selectedIds, compositionRoot, remoteInstance]);
+        let cancelled = false;
+        compositionRoot.metadata.getByIds(selectedIds, remoteInstance, "id").then(pkg => {
+            if (!cancelled) setOtherTypeCountFallback(countPackageOtherType(pkg, collectionName));
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [useApiCrossTypeCount, collectionName, selectedIds, compositionRoot, remoteInstance]);
 
     const idSet = ids.length > 0 ? new Set(ids) : undefined;
     const selection = (idSet ? selectedIds.filter(id => idSet.has(id)) : selectedIds).map(id => ({
@@ -37,7 +47,11 @@ export function useSelection(
         indeterminate: false,
     }));
 
-    const crossTypeCount = idSet ? selectedIds.filter(id => !idSet.has(id)).length : otherTypeCountFallback;
+    const crossTypeCount = useApiCrossTypeCount
+        ? otherTypeCountFallback
+        : idSet
+        ? selectedIds.filter(id => !idSet.has(id)).length
+        : 0;
     const crossTypeNotifications: TableNotification[] =
         crossTypeCount > 0
             ? [

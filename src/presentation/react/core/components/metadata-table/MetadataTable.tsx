@@ -661,12 +661,27 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         });
     };
 
+    const filterRestrictsIds =
+        !filters.showOnlySelected &&
+        Boolean(
+            filters.search ||
+                filters.group ||
+                filters.level ||
+                filters.lastUpdated ||
+                filters.program ||
+                filters.optionSet ||
+                filters.category ||
+                filters.programType ||
+                filters.domainType
+        );
+
     const exclusion = excludedIds.map(id => ({ id }));
     const { selection, crossTypeNotifications } = useSelection(
         model.getCollectionName(),
         ids,
         selectedIds,
-        remoteInstance
+        remoteInstance,
+        filterRestrictsIds
     );
 
     const childrenSelection: TableSelection[] = useMemo(
