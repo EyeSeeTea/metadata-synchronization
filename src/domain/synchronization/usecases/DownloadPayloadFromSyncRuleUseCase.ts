@@ -59,11 +59,12 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
 
         const sync: GenericSyncUseCase = this.compositionRoot.sync[rule.type](rule.toBuilder());
 
-        const aggregateDataExchanges = rule.aggregatedDataExchanges?.map(ade => ade.id) || [];
+        // unused
+        // const aggregateDataExchanges = rule.aggregatedDataExchanges?.map(ade => ade.id) || [];
 
-        const payload: SynchronizationPayload = rule.useAggregatedDataExchange
-            ? await this.aggregatedDataExchangeExecutor.getSourceData(aggregateDataExchanges)
-            : await this.buildPayload(rule.type, rule);
+        // const payload: SynchronizationPayload = rule.useAggregatedDataExchange
+        //     ? await this.aggregatedDataExchangeExecutor.getSourceData(aggregateDataExchanges)
+        //     : await this.buildPayload(rule.type, rule);
 
         const date = moment().format("YYYYMMDDHHmm");
 
