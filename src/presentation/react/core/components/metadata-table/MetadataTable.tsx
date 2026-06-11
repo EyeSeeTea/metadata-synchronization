@@ -1,4 +1,4 @@
-import { Box, Checkbox, FormControlLabel, Icon, Paper, Tooltip, makeStyles } from "@material-ui/core";
+import { Box, Button, Checkbox, FormControlLabel, Icon, Paper, Tooltip, makeStyles } from "@material-ui/core";
 import DoneAllIcon from "@material-ui/icons/DoneAll";
 import { isCancel } from "@eyeseetea/d2-api";
 import {
@@ -605,9 +605,8 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
-        const isCleared = selection.length === 0;
-
         const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
+        const isCleared = included.length === 0 && prevMetadataTypeIds.length > 0;
 
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
@@ -673,12 +672,38 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     };
 
     const exclusion = excludedIds.map(id => ({ id }));
-    const { selection, crossTypeNotifications } = useSelection(
-        model.getCollectionName(),
-        ids,
-        selectedIds,
-        remoteInstance
-    );
+    const { selection, crossTypeCount } = useSelection(model.getCollectionName(), ids, selectedIds, remoteInstance);
+
+    const crossTypeNotifications =
+        crossTypeCount > 0
+            ? [
+                  {
+                      message: (
+                          <>
+                              {i18n.t("{{count}} items are selected in other metadata types.", {
+                                  count: crossTypeCount,
+                              })}{" "}
+                              <Button
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => {
+                                      setStateSelection([]);
+                                      notifyNewSelection([], []);
+                                  }}
+                                  style={{
+                                      textTransform: "none",
+                                      padding: 0,
+                                      minWidth: "auto",
+                                      verticalAlign: "baseline",
+                                  }}
+                              >
+                                  {i18n.t("Clear")}
+                              </Button>
+                          </>
+                      ),
+                  },
+              ]
+            : [];
 
     const childrenSelection: TableSelection[] = useMemo(
         () =>
