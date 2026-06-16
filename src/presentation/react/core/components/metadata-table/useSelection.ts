@@ -1,28 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataSource } from "../../../../../domain/instance/entities/DataSource";
 import { MetadataEntities } from "../../../../../domain/metadata/entities/MetadataEntities";
 import { useAppContext } from "../../contexts/AppContext";
 import { TableNotification } from "@eyeseetea/d2-ui-components";
 import i18n from "../../../../../utils/i18n";
-import _ from "lodash";
 
 export function useSelection(
     collectionName: keyof MetadataEntities,
     ids: string[],
     selectedIds: string[],
     remoteInstance: DataSource | undefined,
-    filterRestrictsIds: boolean
+    idsAreComplete: boolean
 ) {
     const { compositionRoot } = useAppContext();
     const [otherTypeCountFallback, setOtherTypeCountFallback] = useState(0);
 
-    // `ids` cannot be used to tell cross-type selections apart by set difference when it is
-    // not the current type's full id list: never loaded for organisationUnits, and narrowed
-    // to matching rows when a filter (search/group/level/...) is active. In those cases
-    // same-type selections outside the filter would be miscounted as cross-type, so resolve
-    // the selection's types via the API and count items in any collection other than the
-    // current one.
-    const useApiCrossTypeCount = collectionName === "organisationUnits" || filterRestrictsIds;
+    // When `ids` is not the full id list for the current type (filter active, or collection
+    // never populates ids like organisationUnits), set-difference miscounts same-type
+    // selections outside the filter as cross-type. Fall back to resolving types via the API.
+    const useApiCrossTypeCount = !idsAreComplete;
+    const idCollectionCache = useRef(new Map<string, string | null>());
+    useEffect(() => {
+        // Invalidate the cache when the resolution context changes (different instance or root).
+        idCollectionCache.current.clear();
+    }, [remoteInstance, compositionRoot]);
 
     useEffect(() => {
         if (!useApiCrossTypeCount || selectedIds.length === 0) {
@@ -30,15 +31,35 @@ export function useSelection(
             return;
         }
 
+        const selectedSet = new Set(selectedIds);
+        idCollectionCache.current = new Map([...idCollectionCache.current].filter(([id]) => selectedSet.has(id)));
+        const cache = idCollectionCache.current;
+        const uncachedIds = selectedIds.filter(id => !cache.has(id));
+        const countOtherType = () =>
+            selectedIds.filter(id => {
+                const col = cache.get(id);
+                return col !== null && col !== collectionName;
+            }).length;
+
+        if (uncachedIds.length === 0) {
+            setOtherTypeCountFallback(countOtherType());
+            return;
+        }
+
         let cancelled = false;
-        compositionRoot.metadata.getByIds(selectedIds, remoteInstance, "id").then(pkg => {
-            if (!cancelled) setOtherTypeCountFallback(countPackageOtherType(pkg, collectionName));
+        compositionRoot.metadata.getByIds(uncachedIds, remoteInstance, "id").then(pkg => {
+            if (cancelled) return;
+            const resolved = new Map(
+                Object.entries(pkg).flatMap(([col, items]) => (items ?? []).map(item => [item.id, col] as const))
+            );
+            uncachedIds.forEach(id => cache.set(id, resolved.get(id) ?? null));
+            setOtherTypeCountFallback(countOtherType());
         });
 
         return () => {
             cancelled = true;
         };
-    }, [useApiCrossTypeCount, collectionName, selectedIds, compositionRoot, remoteInstance]);
+    }, [idsAreComplete, collectionName, selectedIds, compositionRoot, remoteInstance]);
 
     const idSet = ids.length > 0 ? new Set(ids) : undefined;
     const selection = (idSet ? selectedIds.filter(id => idSet.has(id)) : selectedIds).map(id => ({
@@ -64,10 +85,4 @@ export function useSelection(
             : [];
 
     return { selection, crossTypeNotifications };
-}
-
-function countPackageOtherType(pkg: Partial<Record<string, unknown[]>>, currentCollection: string): number {
-    return _.sumBy(Object.entries(pkg), ([collection, items]) =>
-        collection === currentCollection || !items ? 0 : items.length
-    );
 }

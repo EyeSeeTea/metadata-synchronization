@@ -675,13 +675,14 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 filters.domainType
         );
 
+    const idsAreComplete = model.getCollectionName() !== "organisationUnits" && !filterRestrictsIds;
     const exclusion = excludedIds.map(id => ({ id }));
     const { selection, crossTypeNotifications } = useSelection(
         model.getCollectionName(),
         ids,
         selectedIds,
         remoteInstance,
-        filterRestrictsIds
+        idsAreComplete
     );
 
     const childrenSelection: TableSelection[] = useMemo(
