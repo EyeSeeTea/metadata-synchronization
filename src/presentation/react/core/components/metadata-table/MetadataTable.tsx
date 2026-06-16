@@ -697,7 +697,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                                       verticalAlign: "baseline",
                                   }}
                               >
-                                  {i18n.t("Clear")}
+                                  {i18n.t("Clear all")}
                               </Button>
                           </>
                       ),
