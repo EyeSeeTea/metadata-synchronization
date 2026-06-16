@@ -153,28 +153,41 @@ export default function MetadataSelectionStep({ syncRule, onChange }: SyncWizard
         }
 
         let cancelled = false;
-        compositionRoot.metadata.getByIds(onlyMetadataIds, remoteInstance, "id").then(metadata => {
-            if (cancelled) return;
+        compositionRoot.metadata
+            .getByIds(onlyMetadataIds, remoteInstance, "id")
+            .then(metadata => {
+                if (cancelled) return;
 
-            const types = _(metadata).keys().concat(metadataModelsSyncAll).uniq().value();
-            const idsFromSyncAllMetadataTypes = _.isEmpty(metadataModelsSyncAll)
-                ? []
-                : _(metadata)
-                      .pick(metadataModelsSyncAll)
-                      .values()
-                      .compact()
-                      .flatten()
-                      .map(entity => entity.id)
-                      .value();
+                const types = _(metadata).keys().concat(metadataModelsSyncAll).uniq().value();
+                const idsFromSyncAllMetadataTypes = _.isEmpty(metadataModelsSyncAll)
+                    ? []
+                    : _(metadata)
+                          .pick(metadataModelsSyncAll)
+                          .values()
+                          .compact()
+                          .flatten()
+                          .map(entity => entity.id)
+                          .value();
 
-            setIdsToIgnore(idsFromSyncAllMetadataTypes);
-            applyTypes(types);
-        });
+                setIdsToIgnore(idsFromSyncAllMetadataTypes);
+                applyTypes(types);
+            })
+            .catch(() => {
+                if (!cancelled) snackbar.error(i18n.t("Could not load metadata types"));
+            });
 
         return () => {
             cancelled = true;
         };
-    }, [compositionRoot.metadata, metadataModelsSyncAll, onChange, remoteInstance, ruleRef, syncRule.metadataIds]);
+    }, [
+        compositionRoot.metadata,
+        metadataModelsSyncAll,
+        onChange,
+        remoteInstance,
+        ruleRef,
+        snackbar,
+        syncRule.metadataIds,
+    ]);
 
     const notifyNewModel = useCallback(model => {
         setModel(() => model);

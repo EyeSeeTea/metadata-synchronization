@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-06-03T10:43:21.508Z\n"
-"PO-Revision-Date: 2026-06-03T10:43:21.508Z\n"
+"POT-Creation-Date: 2026-06-16T15:55:22.319Z\n"
+"PO-Revision-Date: 2026-06-16T15:55:22.320Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -583,8 +583,8 @@ msgstr "Search by name, code or id"
 
 msgid "{{count}} items are selected in other metadata types."
 msgid_plural "{{count}} items are selected in other metadata types."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} items are selected in other metadata types."
+msgstr[1] "{{count}} items are selected in other metadata types."
 
 msgid ""
 "There has been an error. You can either retry or contact your administrator "
@@ -1370,6 +1370,9 @@ msgstr "Destination"
 
 msgid "Set Credentials"
 msgstr "Set Credentials"
+
+msgid "Could not load metadata types"
+msgstr "Could not load metadata types"
 
 msgid "Every day"
 msgstr "Every day"
