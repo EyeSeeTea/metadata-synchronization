@@ -606,7 +606,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
         const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
-        const isCleared = included.length === 0 && prevMetadataTypeIds.length > 1;
 
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
@@ -630,29 +629,27 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             });
 
             const mergedSelection = getMergedSelection({
-                isCleared,
+                isCleared: false,
                 included: result.included,
                 otherTypeIds: otherMetadataTypeIds,
             });
 
             if (!_.isEqual(selectedIds, mergedSelection)) {
-                notifyNewSelection(mergedSelection, isCleared ? [] : result.excluded);
+                notifyNewSelection(mergedSelection, result.excluded);
             }
 
             setStateSelection(mergedSelection);
         } else {
-            const excluded = isCleared
-                ? []
-                : _(excludedIds)
-                      .union(newlyUnselectedIds)
-                      .difference(parseChildren(newlyUnselectedIds))
-                      .difference(newlySelectedIds)
-                      .difference(parseChildren(newlySelectedIds))
-                      .filter(id => !_.find(rows, { id }))
-                      .value();
+            const excluded = _(excludedIds)
+                .union(newlyUnselectedIds)
+                .difference(parseChildren(newlyUnselectedIds))
+                .difference(newlySelectedIds)
+                .difference(parseChildren(newlySelectedIds))
+                .filter(id => !_.find(rows, { id }))
+                .value();
 
             const mergedSelection = getMergedSelection({
-                isCleared,
+                isCleared: false,
                 included,
                 otherTypeIds: otherMetadataTypeIds,
             });
