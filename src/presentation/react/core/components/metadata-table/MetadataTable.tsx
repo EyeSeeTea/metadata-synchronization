@@ -606,7 +606,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
         const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
-        const isCleared = included.length === 0 && prevMetadataTypeIds.length > 0;
+        const isCleared = included.length === 0 && prevMetadataTypeIds.length > 1;
 
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
