@@ -38,8 +38,6 @@ export async function getOrgUnitSubtree(api: D2Api, orgUnitId: string): Promise<
     return organisationUnits.map(({ id }) => id);
 }
 
-// When isCleared, return [] to clear all types; otherwise merge current-type
-// included with preserved other-type ids
 export function getMergedSelection({
     included,
     otherTypeIds,
