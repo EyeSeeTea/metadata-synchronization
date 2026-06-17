@@ -629,7 +629,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             });
 
             const mergedSelection = getMergedSelection({
-                isCleared: false,
                 included: result.included,
                 otherTypeIds: otherMetadataTypeIds,
             });
@@ -649,7 +648,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 .value();
 
             const mergedSelection = getMergedSelection({
-                isCleared: false,
                 included,
                 otherTypeIds: otherMetadataTypeIds,
             });
