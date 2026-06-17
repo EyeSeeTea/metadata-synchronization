@@ -18,7 +18,7 @@ export function useSelection(
     // When `ids` is not the full id list for the current type (filter active, or collection
     // never populates ids like organisationUnits), set-difference miscounts same-type
     // selections outside the filter as cross-type. Fall back to resolving types via the API.
-    const useApiCrossTypeCount = !idsAreComplete;
+    const shouldFetchCrossTypeData = !idsAreComplete;
     const idCollectionCache = useRef(new Map<string, string | null>());
     useEffect(() => {
         // Invalidate the cache when the resolution context changes (different instance or root).
@@ -26,7 +26,7 @@ export function useSelection(
     }, [remoteInstance, compositionRoot]);
 
     useEffect(() => {
-        if (!useApiCrossTypeCount || selectedIds.length === 0) {
+        if (!shouldFetchCrossTypeData || selectedIds.length === 0) {
             setOtherTypeCountFallback(0);
             return;
         }
@@ -47,10 +47,12 @@ export function useSelection(
         }
 
         let cancelled = false;
-        compositionRoot.metadata.getByIds(uncachedIds, remoteInstance, "id").then(pkg => {
+        compositionRoot.metadata.getByIds(uncachedIds, remoteInstance, "id").then(metadataByType => {
             if (cancelled) return;
             const resolved = new Map(
-                Object.entries(pkg).flatMap(([col, items]) => (items ?? []).map(item => [item.id, col] as const))
+                Object.entries(metadataByType).flatMap(([col, items]) =>
+                    (items ?? []).map(item => [item.id, col] as const)
+                )
             );
             uncachedIds.forEach(id => cache.set(id, resolved.get(id) ?? null));
             setOtherTypeCountFallback(countOtherType());
@@ -59,7 +61,7 @@ export function useSelection(
         return () => {
             cancelled = true;
         };
-    }, [idsAreComplete, collectionName, selectedIds, compositionRoot, remoteInstance]);
+    }, [idsAreComplete, collectionName, selectedIds, compositionRoot, remoteInstance, shouldFetchCrossTypeData]);
 
     const idSet = ids.length > 0 ? new Set(ids) : undefined;
     const selection = (idSet ? selectedIds.filter(id => idSet.has(id)) : selectedIds).map(id => ({
@@ -68,7 +70,7 @@ export function useSelection(
         indeterminate: false,
     }));
 
-    const crossTypeCount = useApiCrossTypeCount
+    const crossTypeCount = shouldFetchCrossTypeData
         ? otherTypeCountFallback
         : idSet
         ? selectedIds.filter(id => !idSet.has(id)).length
