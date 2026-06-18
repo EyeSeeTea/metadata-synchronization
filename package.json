@@ -68,7 +68,7 @@
         "build:variant": "vite build && cp -r i18n icon.png build",
         "preview": "vite preview",
         "prebuild": "yarn localize && yarn test",
-        "build-scheduler": "ncc build src/scheduler/cli.ts -m -o $npm_package_name-server && zip -r $npm_package_name-server.zip $npm_package_name-server && npx rimraf $npm_package_name-server/",
+        "build-scheduler": "ncc build src/scheduler/cli.ts -m -o ${npm_package_name}-server && zip -r ${npm_package_name}-server.zip ${npm_package_name}-server && npx rimraf ${npm_package_name}-server/",
         "run-ts": "tsx",
         "migrate": "yarn run-ts src/migrations/cli.ts",
         "test": "vitest run",
