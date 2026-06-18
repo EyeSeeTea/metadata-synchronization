@@ -177,7 +177,10 @@ To build a given front-end:
 $ yarn build [all|core-app|data-metadata-app|module-package-app|modules-list|package-exporter|msf-aggregate-data-app|sp-emergency-responses|wmr]
 ```
 
-To build the scheduler:
+`yarn build` already builds the scheduler and emits the `metadata-synchronization-server.zip` file
+alongside the front-end zips, so it is always included in releases.
+
+To build the scheduler on its own:
 
 ```
 $ yarn build-scheduler
