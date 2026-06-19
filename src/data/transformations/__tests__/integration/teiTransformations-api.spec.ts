@@ -18,8 +18,6 @@ const localInstance = Instance.build({
     type: "local",
 });
 
-const repositoryFactory = buildRepositoryFactory(localInstance);
-
 const mockAttributes = [
     {
         attribute: "attribute1",
@@ -415,6 +413,7 @@ async function runSyncEventsTest({ from, to }: { from: string; to: string }) {
 
     setupMockEndpoints(local, to);
     setupTrackerEndpoints(local);
+    const repositoryFactory = buildRepositoryFactory(localInstance);
 
     const builder: SynchronizationBuilder = {
         originInstance: "LOCAL",
