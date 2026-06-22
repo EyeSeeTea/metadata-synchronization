@@ -6,6 +6,7 @@ import { DEFAULT_SCHEDULED_JOB_ID, ScheduledJob } from "../../domain/scheduler/e
 import { SchedulerExecutionInfo } from "../../domain/scheduler/entities/SchedulerExecutionInfo";
 import { Logger } from "./Logger";
 import { SynchronizationRule } from "../../domain/rules/entities/SynchronizationRule";
+import { getErrorMessage } from "../../utils/error";
 
 // NOTICE: This is refactored
 
@@ -86,8 +87,7 @@ export class SchedulerCLI {
 
             this.updateNextExecutionOfScheduler(scheduledJobs);
         } catch (error) {
-            const errorMessage = typeof error === "string" ? error : JSON.stringify(error, null, 2);
-            logger.error("scheduler", `${errorMessage}`);
+            logger.error("scheduler", getErrorMessage(error));
         }
     }
 
@@ -139,8 +139,7 @@ export class SchedulerCLI {
                 },
             });
         } catch (error) {
-            const errorMessage = typeof error === "string" ? error : JSON.stringify(error, null, 2);
-            logger.error(name, `Failed executing rule: ${errorMessage}`);
+            logger.error(name, `Failed executing rule: ${getErrorMessage(error)}`);
         }
     }
 
