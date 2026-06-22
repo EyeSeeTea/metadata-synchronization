@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { DataSource } from "../../../../../domain/instance/entities/DataSource";
 import { MetadataEntities } from "../../../../../domain/metadata/entities/MetadataEntities";
 import { useAppContext } from "../../contexts/AppContext";
-import { TableNotification } from "@eyeseetea/d2-ui-components";
-import i18n from "../../../../../utils/i18n";
 import _ from "lodash";
 
 export function useSelection(
@@ -38,18 +36,8 @@ export function useSelection(
     }));
 
     const crossTypeCount = idSet ? selectedIds.filter(id => !idSet.has(id)).length : otherTypeCountFallback;
-    const crossTypeNotifications: TableNotification[] =
-        crossTypeCount > 0
-            ? [
-                  {
-                      message: i18n.t("{{count}} items are selected in other metadata types.", {
-                          count: crossTypeCount,
-                      }),
-                  },
-              ]
-            : [];
 
-    return { selection, crossTypeNotifications };
+    return { selection, crossTypeCount };
 }
 
 function countPackageOtherType(pkg: Partial<Record<string, unknown[]>>, currentCollection: string): number {
