@@ -34,7 +34,7 @@ const PackageImportDialog: React.FC<PackageImportDialogProps> = ({
     const [enableImport, setEnableImport] = useState(false);
     const snackbar = useSnackbar();
     const loading = useLoading();
-    const { compositionRoot, api } = useAppContext();
+    const { compositionRoot } = useAppContext();
 
     const [packageImportRule, setPackageImportRule] = useState<PackageImportRule>(
         PackageImportRule.create(instance, selectedPackagesId)
@@ -92,20 +92,14 @@ const PackageImportDialog: React.FC<PackageImportDialogProps> = ({
         //    4 - Save ImportedPackage (using ImportedPackageRepository)
         const importedPackages: Package[] = [];
 
-        const currentUser = await api.currentUser
-            .get({ fields: { id: true, userCredentials: { username: true } } })
-            .getData();
+        const currentUser = await compositionRoot.user.current();
 
-        const report = SynchronizationReport.create(
-            "metadata",
-            currentUser.userCredentials.username ?? "Unknown",
-            true
-        );
+        const report = SynchronizationReport.create("metadata", currentUser.username ?? "Unknown", true);
 
         const storePackageUrls: Record<string, string> = {};
 
         try {
-            const author = { id: currentUser.id, name: currentUser.userCredentials.username };
+            const author = { id: currentUser.id, name: currentUser.username };
 
             const executePackageImport = async (packageId: string) => {
                 const getPackageResult = await getPackage(packageId);

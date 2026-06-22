@@ -148,12 +148,15 @@ export abstract class GenericSyncUseCase {
         const { syncRule } = this.builder;
         const metadataPackage = await this.extractMetadata();
         const dataStats = useAggregatedDataExchange ? undefined : await this.buildDataStats();
-        const currentUser = await this.api.currentUser
-            .get({ fields: { userCredentials: { username: true } } })
+        // DHIS2 2.43 removed the `userCredentials` wrapper; `username` is now top-level.
+        const currentUser = await this.api
+            .get<{ username?: string; userCredentials?: { username?: string } }>("/me", {
+                fields: "username,userCredentials[username]",
+            })
             .getData();
 
         return SynchronizationReport.build({
-            user: currentUser.userCredentials.username ?? "Unknown",
+            user: currentUser.userCredentials?.username ?? currentUser.username ?? "Unknown",
             types: _.keys(metadataPackage),
             status: "RUNNING" as SynchronizationReportStatus,
             syncRule,
@@ -252,13 +255,13 @@ export abstract class GenericSyncUseCase {
             const oldRule = await this.repositoryFactory.rulesRepository(this.localInstance).getById(syncRule);
 
             if (oldRule) {
-                const currentUser = await this.api.currentUser
-                    .get({ fields: { userCredentials: { name: true }, id: true } })
+                const currentUser = await this.api
+                    .get<{ id: string; name: string }>("/me", { fields: "id,name" })
                     .getData();
 
                 const updatedRule = oldRule.updateLastExecuted(executionDate, {
                     id: currentUser.id,
-                    name: currentUser.userCredentials.name,
+                    name: currentUser.name,
                 });
                 await this.repositoryFactory.rulesRepository(this.localInstance).save([updatedRule]);
             }
