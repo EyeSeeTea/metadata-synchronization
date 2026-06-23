@@ -137,9 +137,11 @@ export class DynamicRepositoryFactory {
             throw new Error(`Dependency ${key} is not registered`);
         }
 
-        const createdRepository = this.createdReposities.get(`${key}-${tag}`) || creator(instance);
+        // Cache per instance so repeated lookups reuse the same repository instead of recreating it.
+        const cacheKey = `${key}-${tag}-${instance.id}`;
+        const createdRepository = this.createdReposities.get(cacheKey) || creator(instance);
 
-        this.createdReposities.set(key, createdRepository);
+        this.createdReposities.set(cacheKey, createdRepository);
 
         return createdRepository as T;
     }
@@ -151,9 +153,10 @@ export class DynamicRepositoryFactory {
             throw new Error(`Dependency ${key} is not registered`);
         }
 
-        const createdRepository = this.createdReposities.get(`${key}-${tag}`) || creator(instance);
+        const cacheKey = `${key}-${tag}`;
+        const createdRepository = this.createdReposities.get(cacheKey) || creator(instance);
 
-        this.createdReposities.set(key, createdRepository);
+        this.createdReposities.set(cacheKey, createdRepository);
 
         return createdRepository as T;
     }

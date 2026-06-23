@@ -565,16 +565,20 @@ msgstr ""
 msgid "Set metadata custodian"
 msgstr ""
 
+msgid "{{count}} items are selected in other metadata types."
+msgid_plural "{{count}} items are selected in other metadata types."
+msgstr[0] ""
+msgstr[1] ""
+
+#, fuzzy
+msgid "Clear all"
+msgstr "Clear"
+
 msgid "Custodian"
 msgstr ""
 
 msgid "Search by name, code or id"
 msgstr ""
-
-msgid "{{count}} items are selected in other metadata types."
-msgid_plural "{{count}} items are selected in other metadata types."
-msgstr[0] ""
-msgstr[1] ""
 
 msgid ""
 "There has been an error. You can either retry or contact your administrator "

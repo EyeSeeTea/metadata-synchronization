@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { DataSource } from "../../../../../domain/instance/entities/DataSource";
 import { MetadataEntities } from "../../../../../domain/metadata/entities/MetadataEntities";
 import { useAppContext } from "../../contexts/AppContext";
-import { TableNotification } from "@eyeseetea/d2-ui-components";
-import i18n from "../../../../../utils/i18n";
 
 export function useSelection(
     collectionName: keyof MetadataEntities,
@@ -75,16 +73,6 @@ export function useSelection(
         : idSet
         ? selectedIds.filter(id => !idSet.has(id)).length
         : 0;
-    const crossTypeNotifications: TableNotification[] =
-        crossTypeCount > 0
-            ? [
-                  {
-                      message: i18n.t("{{count}} items are selected in other metadata types.", {
-                          count: crossTypeCount,
-                      }),
-                  },
-              ]
-            : [];
 
-    return { selection, crossTypeNotifications };
+    return { selection, crossTypeCount };
 }
