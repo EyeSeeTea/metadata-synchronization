@@ -10,6 +10,7 @@ import Scheduler from "./Scheduler";
 import LoggerLog4js from "./LoggerLog4js";
 import { SchedulerCLI } from "./SchedulerCLI/SchedulerCLI";
 import { Future, FutureData } from "../domain/common/entities/Future";
+import { getErrorMessage } from "../utils/error";
 
 // NOTICE: This file is refactored
 
@@ -53,8 +54,7 @@ async function main() {
 
                 await start(config, logger);
             } catch (error) {
-                const errorMessage = typeof error === "string" ? error : JSON.stringify(error, null, 2);
-                logger.fatal("main", `${errorMessage}`);
+                logger.fatal("main", getErrorMessage(error));
                 process.exit(1);
             }
         },

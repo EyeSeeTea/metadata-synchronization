@@ -2,8 +2,23 @@ import { Instance } from "../../domain/instance/entities/Instance";
 import { AppRoles } from "../../domain/role/AppRoles";
 import { User } from "../../domain/user/entities/User";
 import { UserRepository } from "../../domain/user/repositories/UserRepository";
-import { D2Api } from "../../types/d2-api";
+import { D2Api, Id } from "../../types/d2-api";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
+import { NamedRef } from "../../domain/common/entities/Ref";
+
+// DHIS2 2.43 moved `username`/`userRoles` out of the (now removed) `userCredentials` wrapper.
+export type CurrentUserRole = NamedRef & { authorities: string[] };
+export type CurrentUserResponse = {
+    id: Id;
+    name: string;
+    email: string;
+    username: string;
+    userRoles?: CurrentUserRole[];
+    userGroups: NamedRef[];
+    organisationUnits: NamedRef[];
+    dataViewOrganisationUnits: NamedRef[];
+    userCredentials?: { username?: string; userRoles?: CurrentUserRole[] };
+};
 
 export class UserD2ApiRepository implements UserRepository {
     private api: D2Api;
@@ -13,48 +28,36 @@ export class UserD2ApiRepository implements UserRepository {
     }
 
     async getCurrent(): Promise<User> {
-        const currentUser = await this.api.currentUser
-            .get({
-                fields: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    userCredentials: {
-                        username: true,
-                        userRoles: {
-                            $all: true,
-                        },
-                    },
-                    userGroups: { id: true, name: true },
-                    organisationUnits: { id: true, name: true },
-                    dataViewOrganisationUnits: { id: true, name: true },
-                },
+        const currentUser = await this.api
+            .get<CurrentUserResponse>("/me", {
+                fields: [
+                    "id,name,email",
+                    "username,userRoles[:all]",
+                    "userCredentials[username,userRoles[:all]]",
+                    "userGroups[id,name]",
+                    "organisationUnits[id,name]",
+                    "dataViewOrganisationUnits[id,name]",
+                ].join(","),
             })
             .getData();
 
-        const isGlobalAdmin = !!currentUser.userCredentials.userRoles.find((role: any) =>
-            role.authorities.find((authority: string) => authority === "ALL")
-        );
+        const username = currentUser.userCredentials?.username ?? currentUser.username;
+        const userRoles: CurrentUserRole[] = currentUser.userCredentials?.userRoles ?? currentUser.userRoles ?? [];
+        const isGlobalAdmin = !!userRoles.find(role => role.authorities.find(authority => authority === "ALL"));
 
         return {
             id: currentUser.id,
             name: currentUser.name,
             email: currentUser.email,
-            username: currentUser.userCredentials.username,
+            username: username,
             userGroups: currentUser.userGroups,
             organisationUnits: currentUser.organisationUnits,
             dataViewOrganisationUnits: currentUser.dataViewOrganisationUnits,
             isGlobalAdmin,
             isAppConfigurator:
-                isGlobalAdmin ||
-                !!currentUser.userCredentials.userRoles.find(
-                    (role: any) => role.name === AppRoles.CONFIGURATION_ACCESS.name
-                ),
+                isGlobalAdmin || !!userRoles.find(role => role.name === AppRoles.CONFIGURATION_ACCESS.name),
             isAppExecutor:
-                isGlobalAdmin ||
-                !!currentUser.userCredentials.userRoles.find(
-                    (role: any) => role.name === AppRoles.SYNC_RULE_EXECUTION_ACCESS.name
-                ),
+                isGlobalAdmin || !!userRoles.find(role => role.name === AppRoles.SYNC_RULE_EXECUTION_ACCESS.name),
         };
     }
 }

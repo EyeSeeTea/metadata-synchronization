@@ -8,6 +8,7 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { DataStorageType } from "../../domain/storage-client-config/entities/StorageConfig";
 import { Future, FutureData } from "../../domain/common/entities/Future";
 import { apiToFuture } from "../common/utils/api-futures";
+import { getErrorMessage } from "../../utils/error";
 
 export const dataStoreNamespace = "metadata-synchronization";
 
@@ -41,7 +42,7 @@ export class StorageDataStoreClient extends StorageClient {
             const value = await this.dataStore.get<T>(key).getData();
             return value;
         } catch (error: any) {
-            console.error(error);
+            console.error(`Error reading dataStore key "${key}": ${getErrorMessage(error)}`);
             return undefined;
         }
     }
@@ -50,7 +51,7 @@ export class StorageDataStoreClient extends StorageClient {
         return Future.fromPromise(this.dataStore.get<T>(key).getData())
             .map(value => value)
             .mapError(error => {
-                console.error(error);
+                console.error(`Error reading dataStore key "${key}": ${getErrorMessage(error)}`);
                 return error;
             });
     }

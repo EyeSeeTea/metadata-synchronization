@@ -385,9 +385,7 @@ export const PackagesListTable: React.FC<PackagesListTableProps> = ({
             result.match({
                 success: async originPackage => {
                     try {
-                        const currentUser = await api.currentUser
-                            .get({ fields: { id: true, userCredentials: { username: true } } })
-                            .getData();
+                        const currentUser = await compositionRoot.user.current();
 
                         loading.show(true, i18n.t("Importing package {{name}}", { name: originPackage.name }));
 
@@ -410,7 +408,7 @@ export const PackagesListTable: React.FC<PackagesListTableProps> = ({
 
                         const report = SynchronizationReport.create(
                             "metadata",
-                            currentUser.userCredentials.username ?? "Unknown",
+                            currentUser.username ?? "Unknown",
                             true
                         );
 
@@ -431,7 +429,7 @@ export const PackagesListTable: React.FC<PackagesListTableProps> = ({
                         if (result.status === "SUCCESS") {
                             const author = {
                                 id: currentUser.id,
-                                name: currentUser.userCredentials.username,
+                                name: currentUser.username,
                             };
 
                             await saveImportedPackage(
@@ -456,7 +454,6 @@ export const PackagesListTable: React.FC<PackagesListTableProps> = ({
         },
         [
             compositionRoot,
-            api,
             loading,
             remoteInstance,
             snackbar,

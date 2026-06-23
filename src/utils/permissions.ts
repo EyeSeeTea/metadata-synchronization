@@ -2,6 +2,7 @@ import memoize from "nano-memoize";
 import { AppRoles } from "../domain/role/AppRoles";
 import { SynchronizationRule } from "../domain/rules/entities/SynchronizationRule";
 import { D2Api } from "../types/d2-api";
+import { CurrentUserResponse } from "../data/user/UserD2ApiRepository";
 
 // Applying parallel change
 // Exists a GetCurrentUseCase that we should use for the new code
@@ -24,22 +25,15 @@ export interface UserInfo {
  */
 export const getUserInfo = memoize(
     async (api: D2Api): Promise<UserInfo> => {
-        const currentUser = await api.currentUser
-            .get({
-                fields: {
-                    id: true,
-                    name: true,
-                    userCredentials: { username: true },
-                    userGroups: true,
-                },
-            })
+        const currentUser = await api
+            .get<CurrentUserResponse>("/me", { fields: "id,name,userGroups,username,userCredentials[username]" })
             .getData();
 
         return {
             userGroups: currentUser.userGroups,
             id: currentUser.id,
             name: currentUser.name,
-            username: currentUser.userCredentials.username,
+            username: currentUser.userCredentials?.username ?? currentUser.username,
         };
     },
     { serializer: (api: D2Api) => api.baseUrl }
@@ -50,19 +44,11 @@ export const getUserInfo = memoize(
  */
 const getUserRoles = memoize(
     async (api: D2Api) => {
-        const currentUser = await api.currentUser
-            .get({
-                fields: {
-                    userCredentials: {
-                        userRoles: {
-                            $all: true,
-                        },
-                    },
-                },
-            })
+        const currentUser = await api
+            .get<CurrentUserResponse>("/me", { fields: "userRoles[:all],userCredentials[userRoles[:all]]" })
             .getData();
 
-        return currentUser.userCredentials.userRoles;
+        return currentUser.userCredentials?.userRoles ?? currentUser.userRoles ?? [];
     },
     { serializer: (api: D2Api) => api.baseUrl }
 );
