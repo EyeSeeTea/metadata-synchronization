@@ -45,7 +45,7 @@ export class MetadataPayloadBuilder {
             includeOnlyOrgUnitsReferences = false,
             removeUserNonEssentialObjects = false,
             metadataIncludeExcludeRules = {},
-            useDefaultIncludeExclude = {},
+            useDefaultIncludeExclude = true,
         } = syncParams ?? {};
 
         const originInstance = await this.getOriginInstance(originInstanceId);
@@ -135,6 +135,12 @@ export class MetadataPayloadBuilder {
 
         const removeCategoryObjects = !!syncParams?.removeDefaultCategoryObjects;
 
+        const includeIfRequestedOrFlagged = (
+            key: keyof MetadataEntities,
+            value: MetadataEntity[] | undefined,
+            flag: boolean
+        ): MetadataPackage => (value && (flag || key in metadataWithSyncAll) ? { [key]: value } : {});
+
         const finalMetadataPackage = {
             ...(categories && { categories: this.excludeDefaultMetadataObjects(categories, removeCategoryObjects) }),
             ...(categoryCombos && {
@@ -147,10 +153,12 @@ export class MetadataPayloadBuilder {
                 categoryOptionCombos: this.excludeDefaultMetadataObjects(categoryOptionCombos, removeCategoryObjects),
             }),
             ...(visualizationsWithRows.length > 0 && { visualizations: visualizationsWithRows }),
-            organisationUnits: includeOrgUnitsObjectsAndReferences ? organisationUnits : undefined,
-            users: includeUsersObjectsAndReferences ? users : undefined,
-            userGroups: includeSharingSettingsObjectsAndReferences ? userGroups : undefined,
-            userRoles: includeSharingSettingsObjectsAndReferences ? userRoles : undefined,
+
+            ...includeIfRequestedOrFlagged("organisationUnits", organisationUnits, includeOrgUnitsObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("users", users, includeUsersObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("userGroups", userGroups, includeSharingSettingsObjectsAndReferences),
+            ...includeIfRequestedOrFlagged("userRoles", userRoles, includeSharingSettingsObjectsAndReferences),
+
             ...rest,
         };
 
@@ -160,24 +168,42 @@ export class MetadataPayloadBuilder {
         return finalMetadataPackage;
     }
 
+    public async buildDataStorePayload(
+        syncBuilder: SynchronizationBuilder,
+        remoteInstance: Instance
+    ): Promise<DataStoreMetadata[]> {
+        const { metadataIds, excludedIds, syncParams, originInstance: originInstanceId } = syncBuilder;
+
+        const dataStoreIds = DataStoreMetadata.getDataStoreIds(metadataIds);
+        const excludedDataStoreIds = DataStoreMetadata.getDataStoreIds(excludedIds);
+        const dataStore = DataStoreMetadata.buildFromKeys(dataStoreIds, excludedDataStoreIds);
+
+        if (dataStore.length === 0) return [];
+
+        const originInstance = await this.getOriginInstance(originInstanceId);
+        const dataStoreRepository = this.repositoryFactory.dataStoreMetadataRepository(originInstance);
+
+        const dataStoreRemoteRepository = this.repositoryFactory.dataStoreMetadataRepository(remoteInstance);
+
+        const dataStoreLocal = await dataStoreRepository.get(dataStore);
+        const dataStoreRemote = await dataStoreRemoteRepository.get(dataStore);
+
+        const dataStorePayload = DataStoreMetadata.combine(metadataIds, dataStoreLocal, dataStoreRemote, {
+            action: syncParams?.mergeMode,
+        });
+
+        return syncParams?.includeSharingSettingsObjectsAndReferences ||
+            syncParams?.includeOnlySharingSettingsReferences
+            ? dataStorePayload
+            : DataStoreMetadata.removeSharingSettings(dataStorePayload);
+    }
+
     @cache()
     public async getOriginInstance(originInstanceId: string): Promise<Instance> {
-        const instance = await this.getInstanceById(originInstanceId);
+        const instance = await this.repositoryFactory.instanceRepository(this.localInstance).getById(originInstanceId);
 
         if (!instance) throw new Error("Unable to read origin instance");
         return instance;
-    }
-
-    private async getInstanceById(id: string): Promise<Instance | undefined> {
-        const instance = await this.repositoryFactory.instanceRepository(this.localInstance).getById(id);
-        if (!instance) return undefined;
-
-        try {
-            const version = await this.repositoryFactory.instanceRepository(instance).getVersion();
-            return instance.update({ version });
-        } catch (error: any) {
-            return instance;
-        }
     }
 
     public async exportMetadata(originalBuilder: ExportBuilder, originInstanceId: string): Promise<MetadataPackage> {
@@ -220,7 +246,13 @@ export class MetadataPayloadBuilder {
             // Get all the required metadata
             const originInstance = await this.getOriginInstance(originInstanceId);
             const metadataRepository = this.repositoryFactory.metadataRepository(originInstance);
-            const syncMetadata = await metadataRepository.getMetadataByIds(newIds);
+            // DataSets need preserveNestedDefaultRefs because the server-side defaults=EXCLUDE
+            // strips the default categoryOptionCombo.id from compulsoryDataElementOperands,
+            // which then fails on import. Client-side default stripping still runs.
+            const syncMetadata =
+                type === "dataSets"
+                    ? await metadataRepository.getMetadataByIds(newIds, undefined, false, true)
+                    : await metadataRepository.getMetadataByIds(newIds);
             const elements = syncMetadata[collectionName] || [];
             this.registry.addList(builder, newIds);
 
