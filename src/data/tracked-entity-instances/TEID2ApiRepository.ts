@@ -8,7 +8,6 @@ import {
 } from "../../domain/aggregated/entities/DataSynchronizationParams";
 import { buildPeriodFromParams } from "../../domain/aggregated/utils";
 import { Instance } from "../../domain/instance/entities/Instance";
-import { MetadataPackage } from "../../domain/metadata/entities/MetadataEntities";
 import { SynchronizationResult } from "../../domain/reports/entities/SynchronizationResult";
 import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
 import { TEIsPackage } from "../../domain/tracked-entity-instances/entities/TEIsPackage";
@@ -143,11 +142,11 @@ export class TEID2ApiRepository implements TEIRepository {
                 trackedEntities: data.trackedEntities.map(tei => this.buildD2TrackerTrackedEntity(tei)),
             };
 
-            const versionedRequest = this.transformationRepository.mapPackageTo(
+            const versionedRequest = this.transformationRepository.mapPackageTo<TrackerPostRequest, TrackerPostRequest>(
                 this.targetInstance.apiVersion,
-                baseRequest as unknown as MetadataPackage,
+                baseRequest,
                 teiTransformations
-            ) as unknown as TrackerPostRequest;
+            );
 
             const response = await this.api.tracker.post(teiPostParams, versionedRequest).getData();
 

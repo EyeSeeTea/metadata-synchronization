@@ -17,7 +17,9 @@ describe("CreatePackageUseCase", () => {
     let transformationRepository: TransformationRepository;
     let userRepository: { getCurrent: Mock };
     let localInstance: Instance;
-    let mockStorageClient: { saveObjectInCollection: Mock };
+    let mockStorageClient: {
+        saveObjectInCollection: Mock<(key: string, element: unknown) => Promise<void>>;
+    };
 
     const testUser: User = {
         id: "user1",
@@ -123,8 +125,8 @@ describe("CreatePackageUseCase", () => {
         expect(validations).toEqual([]);
         expect(metadataPayloadBuilder.build).toHaveBeenCalledTimes(1);
 
-        const savedPackageCall = (mockStorageClient.saveObjectInCollection as Mock).mock.calls.find(
-            ([namespace]: [string]) => namespace === Namespace.PACKAGES
+        const savedPackageCall = mockStorageClient.saveObjectInCollection.mock.calls.find(
+            ([namespace]) => namespace === Namespace.PACKAGES
         );
 
         expect(savedPackageCall).toBeDefined();
@@ -147,8 +149,8 @@ describe("CreatePackageUseCase", () => {
 
         await useCase.execute("LOCAL", sourcePackage, module, dhisVersion);
 
-        const savedPackageCall = (mockStorageClient.saveObjectInCollection as Mock).mock.calls.find(
-            ([namespace]: [string]) => namespace === Namespace.PACKAGES
+        const savedPackageCall = mockStorageClient.saveObjectInCollection.mock.calls.find(
+            ([namespace]) => namespace === Namespace.PACKAGES
         );
 
         expect(savedPackageCall).toBeDefined();
@@ -179,8 +181,8 @@ describe("CreatePackageUseCase", () => {
         expect(validations).toEqual([]);
         expect(metadataPayloadBuilder.build).not.toHaveBeenCalled();
 
-        const savedPackageCall = (mockStorageClient.saveObjectInCollection as Mock).mock.calls.find(
-            ([namespace]: [string]) => namespace === Namespace.PACKAGES
+        const savedPackageCall = mockStorageClient.saveObjectInCollection.mock.calls.find(
+            ([namespace]) => namespace === Namespace.PACKAGES
         );
 
         expect(savedPackageCall).toBeDefined();
@@ -222,8 +224,8 @@ describe("CreatePackageUseCase", () => {
 
         await useCase.execute("LOCAL", sourcePackage, module, dhisVersion);
 
-        const savedModuleCall = (mockStorageClient.saveObjectInCollection as Mock).mock.calls.find(
-            ([namespace]: [string]) => namespace === Namespace.MODULES
+        const savedModuleCall = mockStorageClient.saveObjectInCollection.mock.calls.find(
+            ([namespace]) => namespace === Namespace.MODULES
         );
 
         expect(savedModuleCall).toBeDefined();

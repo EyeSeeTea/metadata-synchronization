@@ -1,5 +1,4 @@
 import _ from "lodash";
-import { MetadataPackage } from "../../domain/metadata/entities/MetadataEntities";
 import { Transformation } from "../../domain/transformations/entities/Transformation";
 import { TransformationRepository } from "../../domain/transformations/repositories/TransformationRepository";
 import { API_VERSION } from "../../types/d2-api";
@@ -13,20 +12,20 @@ export class TransformationD2ApiRepository implements TransformationRepository {
      * @param payload  payload to transform
      * @param transformations list of possible transformations to apply
      */
-    public mapPackageTo(
+    public mapPackageTo<Input, Output>(
         destination: number,
-        payload: MetadataPackage,
+        payload: Input,
         transformations: Transformation[] = [],
         origin?: number
-    ): MetadataPackage {
+    ): Output {
         const transformationstoApply = _.orderBy(transformations, ["apiVersion"]).filter(
             ({ apiVersion }) => apiVersion <= destination && apiVersion > (origin || API_VERSION)
         );
 
         if (transformationstoApply.length > 0) {
-            return this.applyTransformations(payload, transformationstoApply);
+            return this.applyTransformations<Input, Output>(payload, transformationstoApply);
         } else {
-            return payload;
+            return payload as unknown as Output;
         }
     }
 
@@ -39,44 +38,42 @@ export class TransformationD2ApiRepository implements TransformationRepository {
      * @param payload  payload to transform
      * @param transformations list of possible transformations to apply
      */
-    public mapPackageFrom(
+    public mapPackageFrom<Input, Output>(
         origin: number,
-        payload: MetadataPackage,
+        payload: Input,
         transformations: Transformation[] = [],
         destination?: number
-    ): MetadataPackage {
+    ): Output {
         const transformationstoApply = _.orderBy(transformations, ["apiVersion"], ["desc"]).filter(
             ({ apiVersion }) => apiVersion <= origin && apiVersion > (destination || API_VERSION)
         );
 
         if (transformationstoApply.length > 0) {
-            return this.cleanTransformationObject(this.undoTransformations(payload, transformationstoApply));
+            return this.cleanTransformationObject(
+                this.undoTransformations<Input, Output>(payload, transformationstoApply)
+            );
         } else {
-            return payload;
+            return payload as unknown as Output;
         }
     }
 
-    private applyTransformations(payload: MetadataPackage, transformations: Transformation[]): MetadataPackage {
+    private applyTransformations<Input, Output>(payload: Input, transformations: Transformation[]): Output {
         return transformations.reduce(
-            (transformedPayload: MetadataPackage, transformation: Transformation) =>
-                transformation.apply
-                    ? transformation.apply<MetadataPackage, MetadataPackage>(transformedPayload)
-                    : transformedPayload,
-            payload
+            (transformedPayload: Output, transformation: Transformation) =>
+                transformation.apply ? transformation.apply<unknown, Output>(transformedPayload) : transformedPayload,
+            payload as unknown as Output
         );
     }
 
-    private undoTransformations(payload: MetadataPackage, transformations: Transformation[]): MetadataPackage {
+    private undoTransformations<Input, Output>(payload: Input, transformations: Transformation[]): Output {
         return transformations.reduce(
-            (transformedPayload: MetadataPackage, transformation: Transformation) =>
-                transformation.undo
-                    ? transformation.undo<MetadataPackage, MetadataPackage>(transformedPayload)
-                    : transformedPayload,
-            payload
+            (transformedPayload: Output, transformation: Transformation) =>
+                transformation.undo ? transformation.undo<unknown, Output>(transformedPayload) : transformedPayload,
+            payload as unknown as Output
         );
     }
 
-    private cleanTransformationObject(payload: MetadataPackage): MetadataPackage {
+    private cleanTransformationObject<Output>(payload: Output): Output {
         return _.transform(
             payload as Record<string, unknown>,
             (result, value, key) => {
@@ -87,6 +84,6 @@ export class TransformationD2ApiRepository implements TransformationRepository {
                 }
             },
             {} as Record<string, unknown>
-        ) as MetadataPackage;
+        ) as Output;
     }
 }
