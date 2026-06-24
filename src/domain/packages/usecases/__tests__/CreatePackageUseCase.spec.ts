@@ -8,13 +8,14 @@ import { DynamicRepositoryFactory } from "../../../common/factories/DynamicRepos
 import { TransformationRepository } from "../../../transformations/repositories/TransformationRepository";
 import { MetadataPackage } from "../../../metadata/entities/MetadataEntities";
 import { User } from "../../../user/entities/User";
-import { StorageClient } from "../../../storage/repositories/StorageClient";
+import { UserRepository } from "../../../user/repositories/UserRepository";
 import { Namespace } from "../../../../data/storage/Namespaces";
 
 describe("CreatePackageUseCase", () => {
     let metadataPayloadBuilder: { build: Mock };
     let repositoryFactory: DynamicRepositoryFactory;
     let transformationRepository: TransformationRepository;
+    let userRepository: { getCurrent: Mock };
     let localInstance: Instance;
     let mockStorageClient: { saveObjectInCollection: Mock };
 
@@ -53,6 +54,10 @@ describe("CreatePackageUseCase", () => {
             mapPackageFrom: vi.fn().mockImplementation((_origin, payload, _transformations, _destination?) => payload),
         };
 
+        userRepository = {
+            getCurrent: vi.fn().mockResolvedValue(testUser),
+        };
+
         localInstance = Instance.build({
             type: "local",
             name: "Local",
@@ -66,10 +71,6 @@ describe("CreatePackageUseCase", () => {
             getUserStorageClient: vi.fn(),
             changeStorageClient: vi.fn(),
             getStorageClientPromise: vi.fn().mockResolvedValue(mockStorageClient),
-        }));
-
-        repositoryFactory.bindByInstance("userRepository", (_instance: Instance) => ({
-            getCurrent: vi.fn().mockResolvedValue(testUser),
         }));
     });
 
@@ -113,6 +114,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
+            userRepository as unknown as UserRepository,
             localInstance
         );
 
@@ -139,6 +141,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
+            userRepository as unknown as UserRepository,
             localInstance
         );
 
@@ -167,6 +170,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
+            userRepository as unknown as UserRepository,
             localInstance
         );
 
@@ -193,6 +197,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
+            userRepository as unknown as UserRepository,
             localInstance
         );
 
@@ -211,6 +216,7 @@ describe("CreatePackageUseCase", () => {
             metadataPayloadBuilder as unknown as MetadataPayloadBuilder,
             repositoryFactory,
             transformationRepository,
+            userRepository as unknown as UserRepository,
             localInstance
         );
 
