@@ -9,7 +9,9 @@ import { UserSettingsRepository } from "../../domain/user-settings/UserSettingsR
 export class UserSettingsD2ApiRepository implements UserSettingsRepository {
     private dataStoreClient: StorageDataStoreClient;
     constructor(private instance: Instance) {
-        this.dataStoreClient = new StorageDataStoreClient(this.instance, undefined, { storageType: "user" });
+        this.dataStoreClient = new StorageDataStoreClient(this.instance, undefined, undefined, {
+            storageType: "user",
+        });
     }
 
     get(): FutureData<UserSettings> {
