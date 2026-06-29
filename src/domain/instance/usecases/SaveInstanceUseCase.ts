@@ -35,7 +35,7 @@ export class SaveInstanceUseCase implements UseCase {
                     error: "url_exists",
                     description: i18n.t(
                         "An Aggregated Data Exchange instance with this URL already exists: {{instanceName}}",
-                        { instanceName: exitedAdexInstanceByUrl.name }
+                        { instanceName: exitedAdexInstanceByUrl.name, nsSeparator: false }
                     ),
                 },
             ];
