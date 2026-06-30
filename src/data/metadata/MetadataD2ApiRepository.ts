@@ -1,4 +1,4 @@
-import { FilterBase, FilterValue } from "@eyeseetea/d2-api/api/common";
+import { FilterBase, FilterValue } from "../../types/d2-api";
 import _ from "lodash";
 import moment from "moment";
 import { buildPeriodFromParams } from "../../domain/aggregated/utils";
@@ -29,7 +29,7 @@ import { SynchronizationResult } from "../../domain/reports/entities/Synchroniza
 import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
 import { TransformationRepository } from "../../domain/transformations/repositories/TransformationRepository";
 import { modelFactory } from "../../models/dhis/factory";
-import { D2Api, D2Model, Id, MetadataResponse, Model, Stats } from "../../types/d2-api";
+import { D2Api, D2Model, getApiModel, Id, MetadataResponse, Model, Stats } from "../../types/d2-api";
 import { D2ApiDefinition, D2CategoryOptionComboSchema, GetOptions } from "../../types/d2-api";
 import { Dictionary, isNotEmpty, Maybe } from "../../types/utils";
 import { cache } from "../../utils/cache";
@@ -657,7 +657,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     private getApiModel(type: keyof MetadataEntities): Model<any, any> {
-        return this.api.models[type];
+        return getApiModel(this.api, type);
     }
 
     private getAdditionalCategoryOptionCombosOptionsByVariant(): CategoryOptionCombosAdditionalOptions {

@@ -1,4 +1,3 @@
-import { SynchronizationRuleData } from "../../../domain/rules/entities/SynchronizationRule";
 import { Codec, Schema } from "../../../utils/codec";
 import { NamedRefModel, RefModel } from "../../common/models/RefModel";
 import { SharingSettingModel } from "../../common/models/SharingSettingModel";

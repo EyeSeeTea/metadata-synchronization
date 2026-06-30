@@ -5,7 +5,7 @@ import { InstanceMessage } from "../../domain/instance/entities/Message";
 import { InstanceRepository, InstancesFilter } from "../../domain/instance/repositories/InstanceRepository";
 import { D2Api, D2User } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
-import { getD2APiFromInstance } from "../../utils/d2-utils";
+import { getD2APiFromInstance, removeTrailingSlash } from "../../utils/d2-utils";
 import { InmemoryCache } from "../common/InmemoryCache";
 import { Id } from "../../domain/common/entities/Schemas";
 import { SharingSetting } from "../../domain/common/entities/SharingSetting";
@@ -108,6 +108,8 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     }
 
     private buildRoute(instance: Instance): D2Route {
+        const url = removeTrailingSlash(instance.url);
+
         return {
             auth:
                 instance.authType === "api-token"
@@ -127,7 +129,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
                 users: mapArrayToRecord(instance.userAccesses),
                 userGroups: mapArrayToRecord(instance.userGroupAccesses),
             },
-            url: instance.url.endsWith("/") ? `${instance.url}**` : `${instance.url}/**`,
+            url: `${url}/**`,
         };
     }
 
@@ -136,7 +138,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
             type: "dhis",
             id: route.id,
             name: route.name,
-            url: route.url.replace("**", ""),
+            url: removeTrailingSlash(route.url.replace("**", "")),
             authType: route.auth?.type,
             token: route.auth?.token,
             username: route.auth?.username,

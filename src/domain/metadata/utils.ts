@@ -1,8 +1,6 @@
-import { D2SchemaProperties } from "@eyeseetea/d2-api/schemas";
 import { isValidUid } from "d2/uid";
 import _ from "lodash";
-import { D2Api } from "../../types/d2-api";
-import { MetadataEntities } from "./entities/MetadataEntities";
+import { D2Api, D2SchemaProperties, getApiModel } from "../../types/d2-api";
 import { NestedRules } from "./entities/MetadataExcludeIncludeRules";
 
 const blacklistedProperties = ["access"];
@@ -206,10 +204,8 @@ export function cleanToAPIChildReferenceName(api: D2Api, key: string, parent: st
         return ["notificationTemplates"];
     } else if (isValidModel(api, key)) {
         // Children reference name may be plural or singular
-        return [
-            api.models[key as keyof MetadataEntities].schema.name,
-            api.models[key as keyof MetadataEntities].schema.plural,
-        ];
+        const model = getApiModel(api, key);
+        return [model.schema.name, model.schema.plural];
     } else {
         return [key];
     }
