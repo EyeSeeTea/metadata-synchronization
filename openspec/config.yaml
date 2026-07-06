@@ -1,0 +1,204 @@
+schema: spec-driven
+
+context: |
+  Project: MetaData Sync (metadata-synchronization)
+
+  What it is:
+  - DHIS2 Web Application for synchronizing metadata and data between DHIS2 instances
+  - Generates metadata packages for distribution across instances
+  - Supports scheduled synchronization via a server-side scheduler
+  - Multiple build variants for different deployment scenarios
+  - Manages metadata custodians (guardians) who approve sync requests
+
+  Repository: EyeSeeTea/metadata-synchronization-blessed (GitHub)
+
+  Key features:
+  - Metadata sync: push/pull metadata between DHIS2 instances with dependency resolution
+  - Data sync: transfer aggregated data and events between instances with automatic transformations
+  - Metadata packages: bundle metadata into modules, generate versioned packages, distribute via repositories
+  - Sync rules: define reusable synchronization configurations with schedules (cron)
+  - Metadata custodians: configure approval workflows for metadata changes
+  - Instance management: register and manage multiple DHIS2 instances with encrypted credentials
+  - Migration system: automatic dataStore schema migrations with versioning
+  - Sync history: audit trail of all synchronization operations
+
+  Tech stack:
+  - Node.js
+  - TypeScript
+  - React (CRA via react-scripts, craco available for WDYR debugging)
+  - Material UI 4 (@material-ui/core, @material-ui/icons, @material-ui/lab)
+  - DHIS2 libraries:
+    - @dhis2/app-runtime (API hooks and data engine)
+    - @dhis2/d2-i18n (i18n)
+    - @dhis2/ui (DHIS2 design system)
+    - @eyeseetea/d2-api (typed DHIS2 API wrapper)
+    - @eyeseetea/d2-ui-components (shared UI components)
+    - @eyeseetea/feedback-component (user feedback widget)
+  - @monaco-editor/react (JSON viewer/editor for metadata)
+  - @octokit/rest (GitHub API for package distribution)
+  - cryptr (credential encryption)
+  - cronstrue (cron expression display)
+  - fluture (async functional programming)
+  - cmd-ts (CLI scripts)
+  - jszip (package bundling)
+  - lodash, axios, log4js
+  - Testing: Jest (unit, from CRA), Cypress (e2e)
+  - Husky + githooks for pre-commit checks
+
+  Directory structure (Clean Architecture):
+  - src/
+    - domain/        # Entities, use cases, repository interfaces
+    - data/          # Repository implementations, DHIS2 API calls
+    - presentation/  # React UI layer (or src/webapp/ — check actual structure)
+      - react/       # React components, pages, hooks
+    - models/        # Shared type definitions
+    - types/         # TypeScript declarations
+    - scheduler/     # Server-side sync scheduler (CLI entry point)
+    - migrations/    # DataStore schema migrations (versioned, auto-loaded)
+    - scripts/       # Utility CLI scripts
+    - compositionRoot.ts  # Dependency injection wiring
+
+  Build variants:
+  - yarn build all              — builds all variants
+  - yarn build core-app         — main synchronization app
+  - yarn build data-metadata-app — data + metadata sync focused
+  - yarn build module-package-app — module/package management
+  - yarn build modules-list     — module listing
+  - yarn build package-exporter — package export tool
+  - yarn build msf-aggregate-data-app — MSF-specific aggregate data
+  - yarn build sp-emergency-responses — Samaritan's Purse emergency responses
+
+  Server-side scheduler:
+  - yarn build-scheduler        — builds scheduler as standalone Node.js server
+  - Runs via: node index.js -c app-config.json
+  - Requires app-config.json with encryptionKey, baseUrl, username, password
+
+  Migrations:
+  - DataStore schema migrations in src/migrations/
+  - Each migration defines old/new types (never rely on current app types, use unknown)
+  - *.ts files auto-loaded by version order
+  - CLI: yarn migrate 'http://admin:PASSWORD@localhost:8080'
+  - App checks dataStore version on startup, prompts user if migration needed
+
+  Development setup:
+  - yarn start → dev server on localhost:8081, proxies DHIS2 requests to localhost:8080
+  - yarn craco-start → dev server with why-did-you-render enabled
+  - yarn test → Jest unit tests
+  - Cypress e2e: requires eyeseetea/dhis2-data:2.30-datasync-sender docker instance
+  - Environment config via .env.local (copy from .env)
+  - public/app-config.json: must be created from app-config.template.json (encryptionKey)
+  - REACT_APP_DHIS2_BASE_URL: target DHIS2 instance
+  - REACT_APP_DHIS2_AUTH: optional USERNAME:PASSWORD override for proxy
+
+  Code conventions:
+  - TypeScript strict mode
+  - Functional composition (fluture for async, lodash for data transforms)
+  - Clean Architecture: domain has no framework dependencies
+  - Naming: camelCase variables/functions, PascalCase React components
+  - i18n via @dhis2/d2-i18n, translations managed with yarn update-po / yarn localize
+
+  Architecture:
+  - Clean Architecture — BUT significant technical debt exists
+  - Target layers: Presentation → Domain → Data
+  - Domain layer should have no framework dependencies, no DHIS2 imports
+  - Data layer implements domain repository interfaces using d2-api
+  - Presentation layer: React components should contain ZERO business logic
+  - CompositionRoot wires data implementations to domain interfaces
+  - IMPORTANT: Not all code follows Clean Architecture yet. Apply the boy scout principle:
+    every change must leave the code cleaner than it was found.
+
+  Technical debt & boy scout principle:
+  - Many areas of the codebase predate the Clean Architecture adoption
+  - When modifying existing code, always refactor toward Clean Architecture
+  - Extract business logic from React components into use cases
+  - Move direct DHIS2 API calls into proper data/ repositories
+  - Add missing repository interfaces in domain/ for any data/ code you touch
+  - If you touch code that lacks tests, add tests as part of the change
+  - Document any technical debt you encounter but can't address in the current scope
+
+  Git workflow (gitflow):
+  - Feature branches start from `development` and merge back to `development`
+  - If a feature depends on another unmerged feature, branch from that feature branch
+    and merge back to the same branch (not development), making the dependency explicit
+  - Branch naming:
+    - New features: feature/<human-readable-name>
+    - Bug fixes: fix/<human-readable-name>
+  - Commits follow Conventional Commits (https://www.conventionalcommits.org/en/v1.0.0/):
+    - feat: new feature
+    - fix: bug fix
+    - refactor: code change that neither fixes nor adds
+    - test: adding or updating tests
+    - docs: documentation changes
+    - chore: maintenance tasks
+    - Scope is encouraged: feat(sync): add retry logic for failed metadata pushes
+
+  Extension principles:
+  - Maintain (and improve) Clean Architecture boundaries
+  - Domain logic must not depend on DHIS2 API specifics
+  - Encrypted credentials must never be logged or exposed
+  - Migration files must define self-contained old/new types (no importing from app)
+  - Preserve backward compatibility of dataStore schema (always provide migrations)
+  - Build variants must remain independently buildable
+
+  Known constraints:
+  - Large metadata payloads can cause DHIS2 API timeouts
+  - Cross-version sync (e.g., 2.33 → 2.38) requires metadata transformations
+  - Encrypted credentials stored in dataStore via cryptr
+  - Tests require a specific Docker image (eyeseetea/dhis2-data:2.30-datasync-sender)
+  - Multiple build variants add complexity to changes that touch shared code
+
+  Versioning:
+  - Semantic versioning
+  - Backward compatibility for dataStore schema (always migrate)
+  - Explicit change proposals required for sync behavior, migration schema, or package format changes
+
+  Testing strategy:
+  - Unit tests (Jest) for domain logic, use cases, sync operations, transformations
+  - MANDATORY: every new feature must include unit tests
+  - MANDATORY: every modified function must have its tests updated or added (boy scout)
+  - Cypress e2e for user workflows (requires running DHIS2 Docker instance)
+  - Mock d2-api in unit tests using getMockApiFromClass pattern
+
+  ClickUp project structure:
+  - Space: "Web Development"
+  - Folder: "Metadata & Data Sync"
+  - List: "Backlog"
+
+rules:
+  project:
+    - "Specs first: before modifying any behavior, check openspec/specs/ for existing specs. If behavior is unclear, read the spec. If no spec exists, propose one under changes/. Never change behavior without updating specs first."
+    - Follow Clean Architecture strictly in all new code: domain/ has no DHIS2 or React imports, data/ implements domain interfaces, presentation/ contains only UI.
+    - "Boy scout principle: every change must leave the code cleaner than found. When touching code that violates Clean Architecture, refactor it. When touching code without tests, add them. Document debt you can't fix now."
+    - "Test coverage is mandatory: every new feature must include unit tests. Every modified function must have tests added or updated. No exceptions."
+    - Do not introduce new direct DHIS2 API calls outside of data/; always go through repository interfaces defined in domain/.
+    - Follow code conventions: TypeScript strict, functional composition, correct naming (camelCase/PascalCase).
+    - "Migrations: when changing dataStore schema, always create a new migration in src/migrations/. Define old/new types locally in the migration file — never import from app types. Use unknown for unrelated fields."
+    - "Do NOT: change sync behavior without a spec + proposal, modify dataStore schema without a migration, introduce direct DHIS2 API calls in domain/ or presentation/, bypass the CompositionRoot, log or expose encrypted credentials."
+    - "Definition of Done: specs updated, code aligns with specs, all tests pass (new + existing), Clean Architecture boundaries respected (or improved), migrations included if dataStore changes, no breaking changes without proposal."
+    - "Clean Architecture: domain layer must have no framework dependencies (no React, no DHIS2 imports). React components must contain zero business logic — they only render state and forward events. All logic goes in use cases or the composition root."
+    - "Git: always branch from `development` unless the feature depends on an unmerged branch, in which case branch from that branch and merge back to it. Use feature/<n> for features, fix/<n> for bugs. All commits must follow Conventional Commits."
+    - "When modifying shared code used by multiple build variants, verify the change doesn't break any variant. At minimum, check that yarn build all still succeeds."
+
+  proposal:
+    - Must include: Goals, Non-goals, User impact, Compatibility (sync behavior + dataStore schema + package format), and Rollback plan.
+    - If changing sync behavior, explicitly describe old vs new behavior for both metadata and data sync.
+    - If changing dataStore schema, include the migration strategy and describe backward compatibility.
+    - If the change affects build variants, list which variants are impacted.
+
+  design:
+    - Must describe: which DHIS2 metadata types are involved, how data flows through domain → data → presentation, and which sync operations are affected.
+    - For sync-related changes, describe error handling, retry strategy, and how partial failures are managed.
+    - For package-related changes, describe impact on package format and distribution.
+    - Note known constraints (API timeouts, cross-version compat, large payloads) when relevant.
+    - "Boy scout: identify any technical debt in the affected area and include at least one cleanup task."
+
+  tasks:
+    - Include at least one task for unit tests (Jest) for any domain logic or sync behavior changes.
+    - Include at least one task for Cypress e2e tests when user-facing workflows change.
+    - Include a task to update specs/ domain docs whenever behavior changes.
+    - "Include a boy scout task for any refactoring identified during design (e.g., 'Extract sync logic from component X into use case')."
+    - "Tag each task with the responsible agent role: [FE], [BE]."
+
+  specs:
+    - Specs are source-of-truth; code must align to specs before merge.
+    - Any change that affects sync behavior, dataStore schema, package format, or migration logic must come with delta specs under changes/<change-name>/specs/.
