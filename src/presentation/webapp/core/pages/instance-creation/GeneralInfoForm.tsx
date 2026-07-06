@@ -96,13 +96,18 @@ const GeneralInfoForm = ({
         }
 
         setIsSaving(true);
-        const validationErrors = await compositionRoot.instances.save(instance);
-        setIsSaving(false);
+        try {
+            const validationErrors = await compositionRoot.instances.save(instance);
 
-        if (validationErrors.length === 0 && onSaved) {
-            onSaved(instance);
-        } else {
-            snackbar.error(validationErrors.map(({ description }) => description).join("\n"));
+            if (validationErrors.length === 0 && onSaved) {
+                onSaved(instance);
+            } else {
+                snackbar.error(validationErrors.map(({ description }) => description).join("\n"));
+            }
+        } catch (error: any) {
+            snackbar.error(i18n.t("Failed to save instance"));
+        } finally {
+            setIsSaving(false);
         }
     }, [compositionRoot, errors, instance, snackbar, onSaved]);
 

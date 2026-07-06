@@ -49,10 +49,17 @@ export function useSyncLocalWmr() {
 
         await result.match({
             success: async () => {
-                // TODO: Error handling here?
-                await synchronize();
-                syncRule.rule = syncRuleUpdated;
-                setWmrLocalSyncResult({ type: "success" });
+                try {
+                    await synchronize();
+                    syncRule.rule = syncRuleUpdated;
+                    setWmrLocalSyncResult({ type: "success" });
+                } catch (error: any) {
+                    loading.hide();
+                    setWmrLocalSyncResult({
+                        type: "error",
+                        message: error?.message ?? "Failed to synchronize",
+                    });
+                }
             },
             error: async code => {
                 loading.hide();

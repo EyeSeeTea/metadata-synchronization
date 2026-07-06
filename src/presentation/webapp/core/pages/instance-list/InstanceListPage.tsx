@@ -144,19 +144,24 @@ const InstanceListPage = () => {
         if (toDelete.length === 0) return;
         loading.show(true, i18n.t("Deleting Instances"));
 
-        const results = [];
-        for (const id of toDelete) {
-            results.push(await compositionRoot.instances.delete(id));
-        }
+        try {
+            const results = [];
+            for (const id of toDelete) {
+                results.push(await compositionRoot.instances.delete(id));
+            }
 
-        loading.reset();
-        updateSelection([]);
-        deleteInstances([]);
+            updateSelection([]);
+            deleteInstances([]);
 
-        if (_.some(results, [false])) {
-            snackbar.error(i18n.t("Failed to delete some instances"));
-        } else {
-            snackbar.success(i18n.t("Successfully deleted {{total}} instances", { total: toDelete.length }));
+            if (_.some(results, [false])) {
+                snackbar.error(i18n.t("Failed to delete some instances"));
+            } else {
+                snackbar.success(i18n.t("Successfully deleted {{total}} instances", { total: toDelete.length }));
+            }
+        } catch (error: any) {
+            snackbar.error(i18n.t("Failed to delete instances"));
+        } finally {
+            loading.reset();
         }
     };
 

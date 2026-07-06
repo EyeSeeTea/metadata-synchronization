@@ -54,6 +54,7 @@ export class ReportsD2ApiRepository implements ReportsRepository {
             );
         } catch (error: any) {
             console.error(error);
+            throw error;
         }
     }
 
@@ -72,6 +73,7 @@ export class ReportsD2ApiRepository implements ReportsRepository {
             await storageClient.removeObjectInCollection(Namespace.HISTORY, id);
         } catch (error: any) {
             console.error(error);
+            throw error;
         }
     }
 
@@ -85,6 +87,7 @@ export class ReportsD2ApiRepository implements ReportsRepository {
             }
         } catch (error: any) {
             console.error(error);
+            throw error;
         }
     }
 

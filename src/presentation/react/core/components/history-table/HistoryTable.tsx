@@ -207,18 +207,22 @@ export const HistoryTable: React.FC<HistoryTableProps> = React.memo(props => {
     const confirmDelete = async () => {
         loading.show(true, i18n.t("Deleting History Notifications"));
 
-        await promiseMap(toDelete, id => compositionRoot.reports.delete(id));
+        try {
+            await promiseMap(toDelete, id => compositionRoot.reports.delete(id));
 
-        loading.reset();
+            snackbar.success(
+                i18n.t("Successfully deleted {{total}} history notifications", {
+                    total: toDelete.length,
+                })
+            );
 
-        snackbar.success(
-            i18n.t("Successfully deleted {{total}} history notifications", {
-                total: toDelete.length,
-            })
-        );
-
-        updateSelection([]);
-        setToDelete([]);
+            updateSelection([]);
+            setToDelete([]);
+        } catch (error: any) {
+            snackbar.error(i18n.t("Failed to delete history notifications"));
+        } finally {
+            loading.reset();
+        }
     };
 
     const customFilters = (

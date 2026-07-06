@@ -15,9 +15,14 @@ export function useGetDataSetOrgUnits(props: { id: Id }) {
     React.useEffect(() => {
         async function getInstance() {
             loading.show();
-            const dataSet = await compositionRoot.wmr.getDataSetById(props.id);
-            setDataSet(dataSet);
-            loading.hide();
+            try {
+                const dataSet = await compositionRoot.wmr.getDataSetById(props.id);
+                setDataSet(dataSet);
+            } catch (error: any) {
+                snackbar.error("Failed to load dataset organisation units");
+            } finally {
+                loading.hide();
+            }
         }
 
         getInstance();
@@ -35,28 +40,36 @@ export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
     React.useEffect(() => {
         async function getInstance() {
             loading.show();
-            const instanceResult = await compositionRoot.instances.getById(WmrSettings.LOCAL_INSTANCE_ID);
+            try {
+                const instanceResult = await compositionRoot.instances.getById(WmrSettings.LOCAL_INSTANCE_ID);
 
-            instanceResult.match({
-                error: () => {
-                    snackbar.error("Failed to load LOCAL instance");
-                    loading.hide();
-                },
-                success: async instance => {
-                    const dataSourceMapping = await compositionRoot.mapping.get({ type: "instance", id: instance.id });
-                    const mapping = dataSourceMapping?.mappingDictionary ?? {};
-                    const dataElementsIds =
-                        dataElementsFrom === "LOCAL"
-                            ? _(mapping.aggregatedDataElements).keys().value()
-                            : _(mapping.aggregatedDataElements)
-                                  .values()
-                                  .map(mapping => mapping.mappedId)
-                                  .compact()
-                                  .value();
-                    setDataElementsToMigrate(dataElementsIds);
-                    loading.hide();
-                },
-            });
+                await instanceResult.match({
+                    error: async () => {
+                        snackbar.error("Failed to load LOCAL instance");
+                        loading.hide();
+                    },
+                    success: async instance => {
+                        const dataSourceMapping = await compositionRoot.mapping.get({
+                            type: "instance",
+                            id: instance.id,
+                        });
+                        const mapping = dataSourceMapping?.mappingDictionary ?? {};
+                        const dataElementsIds =
+                            dataElementsFrom === "LOCAL"
+                                ? _(mapping.aggregatedDataElements).keys().value()
+                                : _(mapping.aggregatedDataElements)
+                                      .values()
+                                      .map(mapping => mapping.mappedId)
+                                      .compact()
+                                      .value();
+                        setDataElementsToMigrate(dataElementsIds);
+                        loading.hide();
+                    },
+                });
+            } catch (error: any) {
+                snackbar.error("Failed to load data elements mapping");
+                loading.hide();
+            }
         }
 
         getInstance();
