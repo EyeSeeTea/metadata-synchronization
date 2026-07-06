@@ -1,6 +1,4 @@
 import { useConfig } from "@dhis2/app-runtime";
-//@ts-ignore
-import { HeaderBar } from "@dhis2/ui";
 import { LoadingProvider, SnackbarProvider } from "@eyeseetea/d2-ui-components";
 import { MuiThemeProvider } from "@material-ui/core/styles";
 import { createGenerateClassName, StylesProvider } from "@material-ui/styles";
@@ -23,6 +21,7 @@ import { Feedback } from "@eyeseetea/feedback-component";
 import { AppConfig } from "../../app-config.template";
 import { Maybe } from "../../types/utils";
 import { getWebappCompositionRoot } from "../NewCompositionRoot";
+import { HeaderBar } from "../react/core/components/header-bar/HeaderBar";
 
 const generateClassName = createGenerateClassName({
     productionPrefix: "c",
@@ -94,7 +93,7 @@ const App = () => {
                 <MuiThemeProvider theme={muiTheme}>
                     <LoadingProvider>
                         <SnackbarProvider>
-                            <HeaderBar appName={appTitle} />
+                            <HeaderBar appName={appTitle ?? ""} />
 
                             <div id="app" className="content">
                                 <AppContext.Provider value={appContext}>

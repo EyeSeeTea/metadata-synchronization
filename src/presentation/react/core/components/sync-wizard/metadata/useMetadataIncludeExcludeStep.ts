@@ -1,4 +1,4 @@
-import { D2Api } from "@eyeseetea/d2-api/2.36";
+import { D2Api, getApiModel } from "../../../../../../types/d2-api";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Instance } from "../../../../../../domain/instance/entities/Instance";
@@ -307,7 +307,7 @@ function getModelSelectItems(models: typeof D2Model[], api: D2Api) {
     return models
         .filter(model => model.getMetadataType() !== defaultName)
         .map(model => {
-            const apiModel = api.models[model.getCollectionName()];
+            const apiModel = getApiModel(api, model.getCollectionName());
             return apiModel.schema;
         })
         .map(schema => ({
