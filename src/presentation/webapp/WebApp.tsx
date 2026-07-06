@@ -1,5 +1,6 @@
 import { useConfig } from "@dhis2/app-runtime";
 import { LoadingProvider, SnackbarProvider } from "@eyeseetea/d2-ui-components";
+import { Typography } from "@material-ui/core";
 import { MuiThemeProvider } from "@material-ui/core/styles";
 import { createGenerateClassName, StylesProvider } from "@material-ui/styles";
 //@ts-ignore
@@ -7,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { D2Api } from "../../types/d2-api";
 import { config } from "../../utils/Config";
+import i18n from "../../utils/i18n";
 import { CompositionRoot } from "../CompositionRoot";
 import { useMigrations } from "../react/core/components/migrations/hooks";
 import Migrations from "../react/core/components/migrations/Migrations";
@@ -78,6 +80,14 @@ const App = () => {
         );
     }
     const showShareButton = appConfig?.appearance.showShareButton || false;
+
+    if (migrations.state.type === "error") {
+        return (
+            <Typography variant="h6" component="h1">
+                {i18n.t("An error occurred while checking pending migrations")}: {migrations.state.message}
+            </Typography>
+        );
+    }
 
     if (migrations.state.type === "pending") {
         return (

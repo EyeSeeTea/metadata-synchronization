@@ -138,19 +138,29 @@ export class RulesD2ApiRepository implements RulesRepository {
     }
 
     private async getRulesData(allProperties?: boolean): Promise<SynchronizationRuleData[]> {
-        const storageClient = await this.getStorageClient();
+        try {
+            const storageClient = await this.getStorageClient();
 
-        if (allProperties) {
-            return storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
-        } else {
-            return storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+            if (allProperties) {
+                return await storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+            } else {
+                return await storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+            }
+        } catch (error: any) {
+            console.error(error);
+            return [];
         }
     }
 
     private async getInstances(): Promise<InstanceDataStoreData[]> {
-        const storageClient = await this.getStorageClient();
+        try {
+            const storageClient = await this.getStorageClient();
 
-        return storageClient.listObjectsInCollection<InstanceDataStoreData>(Namespace.INSTANCES);
+            return await storageClient.listObjectsInCollection<InstanceDataStoreData>(Namespace.INSTANCES);
+        } catch (error: any) {
+            console.error(error);
+            return [];
+        }
     }
 
     private getStorageClient(): Promise<StorageClient> {

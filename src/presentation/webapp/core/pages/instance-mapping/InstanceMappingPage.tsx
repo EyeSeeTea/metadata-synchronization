@@ -1,3 +1,4 @@
+import { useSnackbar } from "@eyeseetea/d2-ui-components";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
@@ -97,6 +98,7 @@ export default function InstanceMappingPage(props: InstanceMappingProps) {
     const { showHeader = true } = props;
     const { compositionRoot } = useAppContext();
     const history = useHistory();
+    const snackbar = useSnackbar();
 
     const { id, section } = useDefaultParams(props);
     const { models, title: sectionTitle } = config[section];
@@ -112,19 +114,22 @@ export default function InstanceMappingPage(props: InstanceMappingProps) {
             })
         );
 
-        compositionRoot.mapping.get({ type: "instance", id }).then(result => {
-            setDataSourceMapping(
-                result ??
-                    DataSourceMapping.build({
-                        owner: {
-                            type: "instance" as const,
-                            id,
-                        },
-                        mappingDictionary: {},
-                    })
-            );
-        });
-    }, [compositionRoot, id]);
+        compositionRoot.mapping
+            .get({ type: "instance", id })
+            .then(result => {
+                setDataSourceMapping(
+                    result ??
+                        DataSourceMapping.build({
+                            owner: {
+                                type: "instance" as const,
+                                id,
+                            },
+                            mappingDictionary: {},
+                        })
+                );
+            })
+            .catch(() => snackbar.error(i18n.t("Couldn't load instance mapping")));
+    }, [compositionRoot, id, snackbar]);
 
     const backHome = () => {
         history.push(`/instances/mapping/${id}`);

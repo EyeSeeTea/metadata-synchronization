@@ -72,24 +72,31 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
 
         await result.match({
             success: async () => {
-                // TODO: Error handling here?
-                const report = await synchronize();
-                const result = report?.getResults()[0];
-                if (result?.status === "ERROR") {
+                try {
+                    const report = await synchronize();
+                    const result = report?.getResults()[0];
+                    if (result?.status === "ERROR") {
+                        setWmrRemoteSyncResult({
+                            type: "error",
+                            message: result.message ?? "Synchronization result has errors",
+                            stats: result.stats,
+                        });
+                    } else if (result?.status === "WARNING") {
+                        setWmrRemoteSyncResult({
+                            type: "warning",
+                            stats: result.stats,
+                        });
+                    } else {
+                        setWmrRemoteSyncResult({ type: "success", stats: result?.stats });
+                    }
+                    syncRule.rule = syncRuleUpdated;
+                } catch (error: any) {
+                    loading.hide();
                     setWmrRemoteSyncResult({
                         type: "error",
-                        message: result.message ?? "Synchronization result has errors",
-                        stats: result.stats,
+                        message: error?.message ?? "Failed to synchronize",
                     });
-                } else if (result?.status === "WARNING") {
-                    setWmrRemoteSyncResult({
-                        type: "warning",
-                        stats: result.stats,
-                    });
-                } else {
-                    setWmrRemoteSyncResult({ type: "success", stats: result?.stats });
                 }
-                syncRule.rule = syncRuleUpdated;
             },
             error: async code => {
                 setWmrRemoteSyncResult({

@@ -274,14 +274,19 @@ export const SyncRulesListPage: React.FC = () => {
     const confirmDelete = async () => {
         loading.show(true, i18n.t("Deleting Sync Rules"));
 
-        await promiseMap(toDelete, id => compositionRoot.rules.delete(id));
+        try {
+            await promiseMap(toDelete, id => compositionRoot.rules.delete(id));
 
-        snackbar.success(i18n.t("Successfully deleted {{total}} rules", { total: toDelete.length }));
+            snackbar.success(i18n.t("Successfully deleted {{total}} rules", { total: toDelete.length }));
 
-        loading.reset();
-        setToDelete([]);
-        updateSelection([]);
-        setRefreshKey(Math.random());
+            setToDelete([]);
+            updateSelection([]);
+            setRefreshKey(Math.random());
+        } catch (error: any) {
+            snackbar.error(i18n.t("Failed to delete sync rules"));
+        } finally {
+            loading.reset();
+        }
     };
 
     const createRule = () => {
@@ -417,9 +422,13 @@ export const SyncRulesListPage: React.FC = () => {
                 autoHideDuration: null,
             });
         } else {
-            await compositionRoot.rules.save([syncRule]);
-            snackbar.success(i18n.t("Successfully updated sync rule"));
-            setRefreshKey(Math.random());
+            try {
+                await compositionRoot.rules.save([syncRule]);
+                snackbar.success(i18n.t("Successfully updated sync rule"));
+                setRefreshKey(Math.random());
+            } catch (error: any) {
+                snackbar.error(i18n.t("Failed to update sync rule"));
+            }
         }
     };
 
@@ -494,10 +503,14 @@ export const SyncRulesListPage: React.FC = () => {
                         title: i18n.t("Importing {{n}} rules", { n: rules.length }),
                         description: <SyncRuleImportSummary rules={validRules} errors={errors} />,
                         onSave: async () => {
-                            await compositionRoot.rules.save(validRules);
-                            snackbar.success(i18n.t("Imported {{n}} rules", { n: validRules.length }));
-                            setRefreshKey(Math.random());
-                            updateDialog(null);
+                            try {
+                                await compositionRoot.rules.save(validRules);
+                                snackbar.success(i18n.t("Imported {{n}} rules", { n: validRules.length }));
+                                setRefreshKey(Math.random());
+                                updateDialog(null);
+                            } catch (error: any) {
+                                snackbar.error(i18n.t("Failed to import sync rules"));
+                            }
                         },
                         onCancel: () => updateDialog(null),
                         disableSave: errors.length !== 0,
@@ -613,9 +626,13 @@ export const SyncRulesListPage: React.FC = () => {
         };
 
         const syncRule = SynchronizationRule.build(newSharingSettings.object as SynchronizationRuleData);
-        await compositionRoot.rules.save([syncRule]);
 
-        setSharingSettingsObject(newSharingSettings);
+        try {
+            await compositionRoot.rules.save([syncRule]);
+            setSharingSettingsObject(newSharingSettings);
+        } catch (error: any) {
+            snackbar.error(i18n.t("Failed to update sharing settings"));
+        }
     };
 
     const renderCustomFilters = (
