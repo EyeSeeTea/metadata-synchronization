@@ -666,8 +666,29 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         });
     };
 
+    const filterRestrictsIds =
+        !filters.showOnlySelected &&
+        Boolean(
+            filters.search ||
+                filters.group ||
+                filters.level ||
+                filters.lastUpdated ||
+                filters.program ||
+                filters.optionSet ||
+                filters.category ||
+                filters.programType ||
+                filters.domainType
+        );
+
+    const idsAreComplete = model.getCollectionName() !== "organisationUnits" && !filterRestrictsIds;
     const exclusion = excludedIds.map(id => ({ id }));
-    const { selection, crossTypeCount } = useSelection(model.getCollectionName(), ids, selectedIds, remoteInstance);
+    const { selection, crossTypeCount } = useSelection(
+        model.getCollectionName(),
+        ids,
+        selectedIds,
+        remoteInstance,
+        idsAreComplete
+    );
 
     const crossTypeNotifications =
         crossTypeCount > 0
