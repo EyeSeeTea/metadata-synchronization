@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-06-16T15:11:31.847Z\n"
+"POT-Creation-Date: 2026-07-06T06:46:17.020Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -334,6 +334,9 @@ msgstr ""
 
 msgid "Successfully deleted {{total}} history notifications"
 msgstr ""
+
+msgid "Failed to delete history notifications"
+msgstr "Failed to delete history notifications"
 
 msgid "Synchronization status"
 msgstr ""
@@ -1667,6 +1670,9 @@ msgstr ""
 msgid "Minimum date"
 msgstr ""
 
+msgid "An error occurred while checking pending migrations"
+msgstr "An error occurred while checking pending migrations"
+
 msgid "Distributed under GNU GLPv3"
 msgstr ""
 
@@ -1864,6 +1870,9 @@ msgstr ""
 msgid "Connected successfully to instance"
 msgstr ""
 
+msgid "Failed to save instance"
+msgstr "Failed to save instance"
+
 msgid "Server name (*)"
 msgstr ""
 
@@ -1899,6 +1908,9 @@ msgstr ""
 
 msgid "Successfully deleted {{total}} instances"
 msgstr ""
+
+msgid "Failed to delete instances"
+msgstr "Failed to delete instances"
 
 msgid "Server name"
 msgstr ""
@@ -1968,6 +1980,9 @@ msgstr ""
 
 msgid "Global mapping"
 msgstr ""
+
+msgid "Couldn't load instance mapping"
+msgstr "Couldn't load instance mapping"
 
 msgid "Metadata Synchronization"
 msgstr ""
@@ -2215,11 +2230,17 @@ msgstr ""
 msgid "Successfully deleted {{total}} rules"
 msgstr ""
 
+msgid "Failed to delete sync rules"
+msgstr "Failed to delete sync rules"
+
 msgid "Synchronizing {{name}}"
 msgstr ""
 
 msgid "Successfully updated sync rule"
 msgstr ""
+
+msgid "Failed to update sync rule"
+msgstr "Failed to update sync rule"
 
 msgid "Couldn't read the file because it's not valid"
 msgstr ""
@@ -2236,6 +2257,9 @@ msgstr ""
 msgid "Imported {{n}} rules"
 msgstr ""
 
+msgid "Failed to import sync rules"
+msgstr "Failed to import sync rules"
+
 msgid "Execute"
 msgstr ""
 
@@ -2247,6 +2271,9 @@ msgstr ""
 
 msgid "Import sync rules"
 msgstr ""
+
+msgid "Failed to update sharing settings"
+msgstr "Failed to update sharing settings"
 
 msgid "Last executed date"
 msgstr ""

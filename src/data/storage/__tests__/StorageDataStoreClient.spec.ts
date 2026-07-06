@@ -88,9 +88,9 @@ function givenAStorageDataStoreClientThatResolvesGetWith<T>(data: T) {
 function givenAStorageDataStoreClientThatRejectsGetWith(error: unknown) {
     const { client, mockedDataStore } = givenAStorageDataStoreClient();
 
-    when(mockedDataStore.get(anything())).thenReturn({ getData: () => Promise.reject(error) } as D2ApiResponse<
-        unknown
-    >);
+    when(mockedDataStore.get(anything())).thenReturn({
+        getData: () => Promise.reject(error),
+    } as D2ApiResponse<unknown>);
 
     return { client, mockedDataStore };
 }
