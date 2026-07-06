@@ -9,6 +9,8 @@ import dataValuesIndicator from "./data/data-values/dataValues_indicator.json";
 import dataValuesCommentOption from "./data/data-values/dataValues_comment_option.json";
 import dataValuesProgramIndicator from "./data/data-values/dataValues_program_indicator.json";
 import dataValuesProgramIndicatorWithOptionCombos from "./data/data-values/dataValues_program_indicator_with_option_combos.json";
+import dataValuesProgramIndicatorCompoundOptionCombo from "./data/data-values/dataValues_program_indicator_compound_option_combo.json";
+import dataValuesProgramIndicatorCompoundOptionComboNoMapping from "./data/data-values/dataValues_program_indicator_compound_option_combo_no_mapping.json";
 import dataValuesProgramdataElement from "./data/data-values/dataValues_program_data_element.json";
 
 import orgUnitsMapping from "./data/mapping/mapping_orgUnits.json";
@@ -45,6 +47,8 @@ import dataValuesIndicatorDataElementMapping from "./data/expected/dataValues_in
 import dataValuesCommentMapping from "./data/expected/dataValues_comment_option_mapping.json";
 import dataValuesProgramIndicatorDataElementMapping from "./data/expected/dataValues_program_indicator_de_mapping.json";
 import dataValuesProgramIndicatorWithAttributeOptionCombosMapping from "./data/expected/dataValues_program_indicator_with_attribute_option_combos_mapping.json";
+import dataValuesProgramIndicatorCompoundOptionComboMapping from "./data/expected/dataValues_program_indicator_compound_option_combo_mapping.json";
+import dataValuesProgramIndicatorCompoundOptionComboNoMappingExpected from "./data/expected/dataValues_program_indicator_compound_option_combo_no_mapping.json";
 import dataValuesProgramDataElementToAggregatedMapping from "./data/expected/dataValues_program_DE_Aggregated_mapping.json";
 
 describe("AggreggatedPayloadMapper", () => {
@@ -180,6 +184,20 @@ describe("AggreggatedPayloadMapper", () => {
         const mappedPayload = await aggregatedMapper.map(dataValuesProgramdataElement);
 
         expect(mappedPayload).toEqual(dataValuesProgramDataElementToAggregatedMapping);
+    });
+    it("should return the payload with unpacked and mapped category option combo and attribute option combo if they are received in the compound {dataElement}.{optionCombo} format", async () => {
+        const aggregatedMapper = createAggregatedPayloadMapper(programIndicatorWithAttributeOptionCombosMapping);
+
+        const mappedPayload = await aggregatedMapper.map(dataValuesProgramIndicatorCompoundOptionCombo);
+
+        expect(mappedPayload).toEqual(dataValuesProgramIndicatorCompoundOptionComboMapping);
+    });
+    it("should return the payload with the unpacked category option combo if it is received in the compound {dataElement}.{optionCombo} format and there is no mapping for it", async () => {
+        const aggregatedMapper = createAggregatedPayloadMapper(programIndicatorDataElementMapping);
+
+        const mappedPayload = await aggregatedMapper.map(dataValuesProgramIndicatorCompoundOptionComboNoMapping);
+
+        expect(mappedPayload).toEqual(dataValuesProgramIndicatorCompoundOptionComboNoMappingExpected);
     });
 });
 

@@ -1,10 +1,11 @@
-import { MultiSelector } from "@eyeseetea/d2-ui-components";
-import { makeStyles, Typography } from "@material-ui/core";
-import React, { useEffect, useState } from "react";
+import { MultiSelector, useSnackbar } from "@eyeseetea/d2-ui-components";
+import { Button, makeStyles, Typography } from "@material-ui/core";
+import React, { useCallback, useEffect, useState } from "react";
 import { Instance } from "../../../../../../domain/instance/entities/Instance";
 import { User } from "../../../../../../domain/user/entities/User";
 import i18n from "../../../../../../utils/i18n";
 import { useAppContext } from "../../../contexts/AppContext";
+import AdexInstanceCredentialsDialog from "../../adex-instances-credentials-dialog/AdexInstanceCredentialsDialog";
 import SyncParamsSelector from "../../sync-params-selector/SyncParamsSelector";
 import { SyncWizardStepProps } from "../Steps";
 
@@ -31,13 +32,29 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
     const [selectedOptions, setSelectedOptions] = useState<string[]>(syncRule.targetInstances);
     const [targetInstances, setTargetInstances] = useState<Instance[]>([]);
     const [instanceOptions, setInstanceOptions] = useState<{ value: string; text: string }[]>([]);
+    const [localInstance, setLocalInstance] = useState<Instance | null>(null);
+    const [showDialog, setShowDialog] = useState(false);
+    const snackbar = useSnackbar();
+
+    useEffect(() => {
+        compositionRoot.instances.getById("LOCAL").then(instanceResponse => {
+            instanceResponse.match({
+                success: instance => {
+                    setLocalInstance(instance);
+                },
+                error: () => {
+                    snackbar.error(i18n.t("Error fetching local instance"));
+                },
+            });
+        });
+    }, [compositionRoot, snackbar]);
 
     const includeCurrentUrlAndTypeIsEvents = (selectedinstanceIds: string[]) => {
         return (
             syncRule.type === "events" &&
             selectedinstanceIds
                 .map(id => targetInstances.find(instance => instance.id === id)?.url)
-                .includes(compositionRoot.instances.getApi().baseUrl)
+                .includes(localInstance?.url)
         );
     };
 
@@ -52,16 +69,34 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
                 })
             );
         } else {
-            onChange(syncRule.updateTargetInstances(instances));
+            if (
+                syncRule.useAggregatedDataExchange &&
+                syncRule.aggregatedDataExchanges &&
+                syncRule.aggregatedDataExchanges.length > 0
+            ) {
+                const adexTargetInstances = syncRule.aggregatedDataExchanges.filter(adex => {
+                    return instances.includes(adex.target.instanceId);
+                });
+
+                onChange(syncRule.updateTargetInstances(instances).updateAggregatedDataExchanges(adexTargetInstances));
+            } else {
+                onChange(syncRule.updateTargetInstances(instances));
+            }
         }
     };
 
     useEffect(() => {
-        compositionRoot.instances.list().then(instances => {
-            setTargetInstances(instances);
-            compositionRoot.user.current().then(user => setInstanceOptions(buildInstanceOptions(instances, user)));
-        });
-    }, [compositionRoot]);
+        compositionRoot.instances
+            .list({ types: syncRule.useAggregatedDataExchange ? ["aggregated-data-exchange"] : ["dhis", "local"] })
+            .then(instances => {
+                setTargetInstances(instances);
+                compositionRoot.user.current().then(user => setInstanceOptions(buildInstanceOptions(instances, user)));
+            });
+    }, [compositionRoot, syncRule.useAggregatedDataExchange]);
+
+    const onSetAdexCredentials = useCallback(() => {
+        setShowDialog(true);
+    }, []);
 
     return (
         <React.Fragment>
@@ -79,11 +114,25 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
                 </Typography>
             )}
 
-            <SyncParamsSelector
-                syncRule={syncRule}
-                onChange={onChange}
-                generateNewUidDisabled={includeCurrentUrlAndTypeIsEvents(selectedOptions)}
-            />
+            {syncRule.useAggregatedDataExchange === false && (
+                <SyncParamsSelector
+                    syncRule={syncRule}
+                    onChange={onChange}
+                    generateNewUidDisabled={includeCurrentUrlAndTypeIsEvents(selectedOptions)}
+                />
+            )}
+            {syncRule.useAggregatedDataExchange && syncRule.targetInstances.length > 0 && (
+                <Button variant="contained" onClick={onSetAdexCredentials} style={{ marginTop: 16 }}>
+                    {i18n.t("Set Credentials")}
+                </Button>
+            )}
+            {showDialog && (
+                <AdexInstanceCredentialsDialog
+                    onDismiss={() => setShowDialog(false)}
+                    syncRule={syncRule}
+                    onChange={onChange}
+                />
+            )}
         </React.Fragment>
     );
 };
