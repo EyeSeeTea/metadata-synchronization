@@ -10,6 +10,7 @@ export type RuleAggregatedDataExchangeProps = {
 
 type RuleAggregatedDataExchangeTarget = {
     instanceId: string;
+    type: "external" | "internal";
     authType: "http-basic" | "api-token";
     username?: string;
     password?: string;
@@ -31,11 +32,19 @@ export class RuleAggregatedDataExchange extends ValueObject<RuleAggregatedDataEx
         return new RuleAggregatedDataExchange({ ...this.props, id: generateUid() });
     }
 
+    public get isMissingCredentials(): boolean {
+        if (this.target.type === "internal") return false;
+
+        return this.target.authType === "http-basic" ? !this.target.password : !this.target.token;
+    }
+
     public static create(
         props: RuleAggregatedDataExchangeProps
     ): Either<ValidationError[], RuleAggregatedDataExchange> {
         const authTargetValidations: ModelValidation[] =
-            props.target.authType === "http-basic"
+            props.target.type === "internal"
+                ? []
+                : props.target.authType === "http-basic"
                 ? [
                       {
                           property: "username",
@@ -66,7 +75,7 @@ export class RuleAggregatedDataExchange extends ValueObject<RuleAggregatedDataEx
         props: RuleAggregatedDataExchangeProps
     ): Either<ValidationError[], RuleAggregatedDataExchange> {
         const authTargetValidations: ModelValidation[] =
-            props.target.authType === "http-basic"
+            props.target.type !== "internal" && props.target.authType === "http-basic"
                 ? [
                       {
                           property: "username",

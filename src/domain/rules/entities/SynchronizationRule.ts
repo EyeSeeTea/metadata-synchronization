@@ -955,7 +955,7 @@ export class SynchronizationRule {
             aggregatedDataExchanges: _.compact([
                 this.useAggregatedDataExchange &&
                 (isEmpty(this.aggregatedDataExchanges) ||
-                    this.aggregatedDataExchanges?.some(adex => !adex.target.password))
+                    this.aggregatedDataExchanges?.some(adex => adex.isMissingCredentials))
                     ? {
                           key: "cannot_be_empty",
                           namespace: { element: "aggregatedDataExchanges" },
