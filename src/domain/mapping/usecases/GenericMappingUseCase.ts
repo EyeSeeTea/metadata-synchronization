@@ -369,6 +369,15 @@ export abstract class GenericMappingUseCase {
                     },
                 ];
             }
+            case "dataElements": {
+                return (
+                    object.categoryCombo?.categoryOptionCombos.map(({ id, name }) => ({
+                        id,
+                        name,
+                        model: "categoryOptionCombos",
+                    })) ?? []
+                );
+            }
             default: {
                 return [];
             }
