@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-06-16T15:11:31.847Z\n"
+"POT-Creation-Date: 2026-07-06T15:09:17.686Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -34,6 +34,22 @@ msgstr ""
 
 msgid "An instance with this name already exists"
 msgstr ""
+
+msgid "The instance type cannot be changed after the instance is created"
+msgstr "The instance type cannot be changed after the instance is created"
+
+msgid ""
+"The exchange target type cannot be changed after the instance is created"
+msgstr ""
+"The exchange target type cannot be changed after the instance is created"
+
+#, fuzzy
+msgid ""
+"An internal Aggregated Data Exchange instance already exists: "
+"{{instanceName}}"
+msgstr ""
+"An Aggregated Data Exchange instance with this URL already exists: "
+"{{instanceName}}"
 
 msgid ""
 "An Aggregated Data Exchange instance with this URL already exists: "
@@ -175,6 +191,12 @@ msgstr ""
 
 msgid "Cancel"
 msgstr ""
+
+msgid "Instance: {{name}}"
+msgstr "Instance: {{name}}"
+
+msgid "Internal exchange — no credentials required."
+msgstr "Internal exchange — no credentials required."
 
 msgid "Authentication Scheme (*)"
 msgstr ""
@@ -1858,6 +1880,12 @@ msgstr ""
 msgid "Aggregated Data Exchange"
 msgstr ""
 
+msgid "External"
+msgstr "External"
+
+msgid "Internal"
+msgstr "Internal"
+
 msgid "Please fix the issues before testing the connection"
 msgstr ""
 
@@ -1866,6 +1894,9 @@ msgstr ""
 
 msgid "Server name (*)"
 msgstr ""
+
+msgid "Exchange target type (*)"
+msgstr "Exchange target type (*)"
 
 msgid "URL endpoint (*)"
 msgstr ""
