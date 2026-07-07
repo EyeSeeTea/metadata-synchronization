@@ -29,9 +29,11 @@ export function useAdexInstanceCredentials(
                 if (existingAdex) {
                     return existingAdex.toProps();
                 } else {
+                    const instance = fetchedInstances.find(instance => instance.id === instanceId);
+                    const type = instance?.isInternalDataExchange ? "internal" : "external";
                     return {
                         id: "",
-                        target: { instanceId, authType: "http-basic", username: "", password: "" },
+                        target: { instanceId, type, authType: "http-basic", username: "", password: "" },
                     };
                 }
             });
