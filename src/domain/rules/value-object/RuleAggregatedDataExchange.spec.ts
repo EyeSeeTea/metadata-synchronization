@@ -115,11 +115,11 @@ describe("RuleAggregatedDataExchange", () => {
                 id: "F12345678901",
                 target: {
                     instanceId: "G12345678901",
-                    type: "external",
-                    authType: "http-basic",
+                    type: "external" as const,
+                    authType: "http-basic" as const,
                     // username missing
                     // password missing
-                } as any,
+                },
             });
 
             res.match({
@@ -131,15 +131,37 @@ describe("RuleAggregatedDataExchange", () => {
             });
         });
 
+        it("Should return error when http-basic with a password but no username", () => {
+            const res = RuleAggregatedDataExchange.create({
+                ...validprops,
+                id: "F12345678902",
+                target: {
+                    instanceId: "G12345678902",
+                    type: "external" as const,
+                    authType: "http-basic" as const,
+                    password: "pass",
+                    // username missing
+                },
+            });
+
+            res.match({
+                success: _ => fail("expected error for missing username"),
+                error: errors => {
+                    expect(errors.some(e => e.property === "username")).toBe(true);
+                    expect(errors.some(e => e.property === "password")).toBe(false);
+                },
+            });
+        });
+
         it("Should return error when api-token without token", () => {
             const res = RuleAggregatedDataExchange.create({
                 ...validprops,
                 id: "H12345678901",
                 target: {
                     instanceId: "I12345678901",
-                    type: "external",
-                    authType: "api-token",
-                } as any,
+                    type: "external" as const,
+                    authType: "api-token" as const,
+                },
             });
 
             res.match({
@@ -198,10 +220,10 @@ describe("RuleAggregatedDataExchange", () => {
                 id: "L12345678901",
                 target: {
                     instanceId: "M12345678901",
-                    type: "external",
-                    authType: "http-basic",
+                    type: "external" as const,
+                    authType: "http-basic" as const,
                     // username missing
-                } as any,
+                },
             });
 
             res.match({

@@ -35,7 +35,9 @@ export class RuleAggregatedDataExchange extends ValueObject<RuleAggregatedDataEx
     public get isMissingCredentials(): boolean {
         if (this.target.type === "internal") return false;
 
-        return this.target.authType === "http-basic" ? !this.target.password : !this.target.token;
+        return this.target.authType === "http-basic"
+            ? !this.target.username || !this.target.password
+            : !this.target.token;
     }
 
     public static create(
