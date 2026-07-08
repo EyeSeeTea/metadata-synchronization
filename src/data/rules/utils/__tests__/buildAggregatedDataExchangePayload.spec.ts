@@ -117,6 +117,14 @@ describe("buildAggregatedDataExchangePayload", () => {
         expect(payload.name).toBe("My rule target: Internal ADEX");
     });
 
+    it("throws when the target instance is undefined (deleted after the rule was created)", () => {
+        const ade = buildRuleAdex(externalInstance.id, "external", { username: "admin", password: "district" });
+
+        expect(() => buildAggregatedDataExchangePayload(ade, RULE_NAME, undefined, dimensions)).toThrow(
+            `Cannot build aggregated data exchange payload for rule "${RULE_NAME}": target instance "${externalInstance.id}" was not found (it may have been deleted).`
+        );
+    });
+
     it("truncates the source request name to 50 characters (E4001)", () => {
         const longRuleName = "x".repeat(60);
         const ade = buildRuleAdex(internalInstance.id, "internal");

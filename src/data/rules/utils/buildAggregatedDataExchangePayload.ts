@@ -19,10 +19,16 @@ export function buildAggregatedDataExchangePayload(
     instance: InstanceDataStoreData | undefined,
     dimensions: AdexRequestDimensions
 ): AggregatedDataExchange {
-    const name = `${ruleName} target: ${instance?.name || ""}`;
+    if (!instance) {
+        throw new Error(
+            `Cannot build aggregated data exchange payload for rule "${ruleName}": target instance "${ade.target.instanceId}" was not found (it may have been deleted).`
+        );
+    }
+
+    const name = `${ruleName} target: ${instance.name || ""}`;
     const requestName = name.slice(0, MAX_ADEX_SOURCE_REQUEST_NAME_LENGTH);
 
-    const isInternal = instance?.exchangeTargetType === "internal";
+    const isInternal = instance.exchangeTargetType === "internal";
 
     const scheme: "UID" | "CODE" = isInternal ? "UID" : "CODE";
     const dx = isInternal ? dimensions.metadataIds : dimensions.metadataCodes;
@@ -40,7 +46,7 @@ export function buildAggregatedDataExchangePayload(
         : {
               type: "EXTERNAL" as const,
               api: {
-                  url: instance?.url || "",
+                  url: instance.url || "",
                   username: ade.target.username,
                   password: ade.target.password,
                   token: ade.target.token,
