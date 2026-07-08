@@ -6,6 +6,7 @@ import { RuleAggregatedDataExchange } from "../../../../../../domain/rules/value
 import { User } from "../../../../../../domain/user/entities/User";
 import i18n from "../../../../../../utils/i18n";
 import { useAppContext } from "../../../contexts/AppContext";
+import { useLocalInstance } from "../../../hooks/useLocalInstance";
 import AdexInstanceCredentialsDialog from "../../adex-instances-credentials-dialog/AdexInstanceCredentialsDialog";
 import SyncParamsSelector from "../../sync-params-selector/SyncParamsSelector";
 import { SyncWizardStepProps } from "../Steps";
@@ -56,22 +57,14 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
     const [selectedOptions, setSelectedOptions] = useState<string[]>(syncRule.targetInstances);
     const [targetInstances, setTargetInstances] = useState<Instance[]>([]);
     const [instanceOptions, setInstanceOptions] = useState<{ value: string; text: string }[]>([]);
-    const [localInstance, setLocalInstance] = useState<Instance | null>(null);
     const [showDialog, setShowDialog] = useState(false);
     const snackbar = useSnackbar();
 
+    const { localInstance, error } = useLocalInstance();
+
     useEffect(() => {
-        compositionRoot.instances.getById("LOCAL").then(instanceResponse => {
-            instanceResponse.match({
-                success: instance => {
-                    setLocalInstance(instance);
-                },
-                error: () => {
-                    snackbar.error(i18n.t("Error fetching local instance"));
-                },
-            });
-        });
-    }, [compositionRoot, snackbar]);
+        if (error) snackbar.error(i18n.t("Error fetching local instance"));
+    }, [error, snackbar]);
 
     const includeCurrentUrlAndTypeIsEvents = (selectedinstanceIds: string[]) => {
         return (

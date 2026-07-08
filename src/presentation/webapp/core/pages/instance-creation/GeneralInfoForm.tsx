@@ -8,6 +8,7 @@ import { ValidationError } from "../../../../../domain/common/entities/Validatio
 import { ExchangeTargetType, exchangeTargetTypes, Instance } from "../../../../../domain/instance/entities/Instance";
 import i18n from "../../../../../utils/i18n";
 import { useAppContext } from "../../../../react/core/contexts/AppContext";
+import { useLocalInstance } from "../../../../react/core/hooks/useLocalInstance";
 import SaveButton from "./SaveButton";
 import { Dropdown } from "../../../../react/core/components/dropdown/Dropdown";
 
@@ -55,16 +56,9 @@ const GeneralInfoForm = ({
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [didPasswordChange, setPasswordChange] = useState<boolean>(false);
     const [errors, setErrors] = useState<Dictionary<ValidationError>>({});
-    const [localInstanceUrl, setLocalInstanceUrl] = useState<string>("");
 
-    useEffect(() => {
-        compositionRoot.instances.getById("LOCAL").then(instanceResponse => {
-            instanceResponse.match({
-                success: local => setLocalInstanceUrl(local.url),
-                error: () => setLocalInstanceUrl(""),
-            });
-        });
-    }, [compositionRoot]);
+    const { localInstance } = useLocalInstance();
+    const localInstanceUrl = localInstance?.url ?? "";
 
     useEffect(() => {
         if (instance.isInternalDataExchange && localInstanceUrl && instance.url !== localInstanceUrl) {
