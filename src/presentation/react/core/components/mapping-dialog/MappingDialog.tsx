@@ -7,6 +7,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { DataSource, isDhisInstance } from "../../../../../domain/instance/entities/DataSource";
 import { MetadataMappingDictionary } from "../../../../../domain/mapping/entities/MetadataMapping";
 import i18n from "../../../../../utils/i18n";
+import { D2Model } from "../../../../../models/dhis/default";
 import { modelFactory } from "../../../../../models/dhis/factory";
 import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
@@ -19,6 +20,7 @@ export interface MappingDialogConfig {
     mappingType?: string;
     mappingPath?: string[];
     firstElement?: MetadataType;
+    model?: typeof D2Model;
 }
 
 export interface MappingDialogProps {
@@ -69,7 +71,7 @@ const MappingDialog: React.FC<MappingDialogProps> = ({
 
     const [selected, updateSelected] = useState<string | undefined>(defaultSelection);
 
-    const model = useMemo(() => modelFactory(mappingType), [mappingType]);
+    const model = useMemo(() => config.model ?? modelFactory(mappingType), [config.model, mappingType]);
     const modelName = useMemo(() => model.getModelName(), [model]);
     const api = useMemo(() => {
         return isDhisInstance(instance) ? compositionRoot.instances.getApi(instance) : defaultApi;
