@@ -10,6 +10,9 @@ import { ModelValidation, validateModel, ValidationError } from "../../common/en
 export type PublicInstance = Omit<InstanceData, "password">;
 export type InstanceType = "local" | "dhis" | "aggregated-data-exchange";
 
+export const exchangeTargetTypes = ["external", "internal"] as const;
+export type ExchangeTargetType = typeof exchangeTargetTypes[number];
+
 type AuthType = "api-token" | "http-basic";
 export interface InstanceData extends SharedRef {
     type: InstanceType;
@@ -22,6 +25,7 @@ export interface InstanceData extends SharedRef {
     token?: string;
     description?: string;
     version?: string;
+    exchangeTargetType?: ExchangeTargetType;
 }
 
 export class Instance extends ShareableEntity<InstanceData> {
@@ -71,6 +75,14 @@ export class Instance extends ShareableEntity<InstanceData> {
 
     public get version(): string | undefined {
         return this.data.version;
+    }
+
+    public get exchangeTargetType(): ExchangeTargetType {
+        return this.data.exchangeTargetType ?? "external";
+    }
+
+    public get isInternalDataExchange(): boolean {
+        return this.type === "aggregated-data-exchange" && this.exchangeTargetType === "internal";
     }
 
     public get versionSmall(): string {
@@ -176,14 +188,23 @@ export class Instance extends ShareableEntity<InstanceData> {
             userGroupAccesses: [],
             authType: "http-basic",
             ...data,
+            ...(type === "aggregated-data-exchange"
+                ? { exchangeTargetType: data.exchangeTargetType ?? "external" }
+                : {}),
         });
     }
 
     private moduleValidations = (): ModelValidation[] => {
+        const urlValidations: ModelValidation[] = this.isInternalDataExchange
+            ? []
+            : [
+                  { property: "url", validation: "isUrl" },
+                  { property: "url", validation: "hasText" },
+              ];
+
         const baseValidations: ModelValidation[] = [
             { property: "name", validation: "hasText" },
-            { property: "url", validation: "isUrl" },
-            { property: "url", validation: "hasText" },
+            ...urlValidations,
         ].filter((v): v is ModelValidation => v !== undefined);
 
         const authValidationsByType = {

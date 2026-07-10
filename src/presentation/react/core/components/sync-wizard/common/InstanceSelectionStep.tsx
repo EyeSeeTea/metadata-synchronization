@@ -2,9 +2,11 @@ import { MultiSelector, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Button, makeStyles, Typography } from "@material-ui/core";
 import React, { useCallback, useEffect, useState } from "react";
 import { Instance } from "../../../../../../domain/instance/entities/Instance";
+import { RuleAggregatedDataExchange } from "../../../../../../domain/rules/value-object/RuleAggregatedDataExchange";
 import { User } from "../../../../../../domain/user/entities/User";
 import i18n from "../../../../../../utils/i18n";
 import { useAppContext } from "../../../contexts/AppContext";
+import { useLocalInstance } from "../../../hooks/useLocalInstance";
 import AdexInstanceCredentialsDialog from "../../adex-instances-credentials-dialog/AdexInstanceCredentialsDialog";
 import SyncParamsSelector from "../../sync-params-selector/SyncParamsSelector";
 import { SyncWizardStepProps } from "../Steps";
@@ -25,6 +27,29 @@ export const buildInstanceOptions = (instances: Instance[], currentUser: User) =
     });
 };
 
+export const buildAdexTargetInstances = (
+    selectedInstanceIds: string[],
+    existingAdexes: RuleAggregatedDataExchange[],
+    availableInstances: Instance[]
+): RuleAggregatedDataExchange[] => {
+    return selectedInstanceIds.flatMap(instanceId => {
+        const existingAdex = existingAdexes.find(adex => adex.target.instanceId === instanceId);
+        if (existingAdex) return [existingAdex];
+
+        const instance = availableInstances.find(target => target.id === instanceId);
+        if (instance?.isInternalDataExchange) {
+            return [
+                RuleAggregatedDataExchange.create({
+                    id: "",
+                    target: { instanceId, type: "internal", authType: "http-basic" },
+                }).getOrThrow(),
+            ];
+        }
+
+        return [];
+    });
+};
+
 const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChange }) => {
     const { d2, compositionRoot } = useAppContext();
     const classes = useStyles();
@@ -32,26 +57,19 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
     const [selectedOptions, setSelectedOptions] = useState<string[]>(syncRule.targetInstances);
     const [targetInstances, setTargetInstances] = useState<Instance[]>([]);
     const [instanceOptions, setInstanceOptions] = useState<{ value: string; text: string }[]>([]);
-    const [localInstance, setLocalInstance] = useState<Instance | null>(null);
     const [showDialog, setShowDialog] = useState(false);
     const snackbar = useSnackbar();
 
+    const { localInstance, error } = useLocalInstance();
+
     useEffect(() => {
-        compositionRoot.instances.getById("LOCAL").then(instanceResponse => {
-            instanceResponse.match({
-                success: instance => {
-                    setLocalInstance(instance);
-                },
-                error: () => {
-                    snackbar.error(i18n.t("Error fetching local instance"));
-                },
-            });
-        });
-    }, [compositionRoot, snackbar]);
+        if (error) snackbar.error(i18n.t("Error fetching local instance"));
+    }, [error, snackbar]);
 
     const includeCurrentUrlAndTypeIsEvents = (selectedinstanceIds: string[]) => {
         return (
             syncRule.type === "events" &&
+            !syncRule.useAggregatedDataExchange &&
             selectedinstanceIds
                 .map(id => targetInstances.find(instance => instance.id === id)?.url)
                 .includes(localInstance?.url)
@@ -69,19 +87,7 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
                 })
             );
         } else {
-            if (
-                syncRule.useAggregatedDataExchange &&
-                syncRule.aggregatedDataExchanges &&
-                syncRule.aggregatedDataExchanges.length > 0
-            ) {
-                const adexTargetInstances = syncRule.aggregatedDataExchanges.filter(adex => {
-                    return instances.includes(adex.target.instanceId);
-                });
-
-                onChange(syncRule.updateTargetInstances(instances).updateAggregatedDataExchanges(adexTargetInstances));
-            } else {
-                onChange(syncRule.updateTargetInstances(instances));
-            }
+            onChange(syncRule.updateTargetInstances(instances));
         }
     };
 
@@ -94,9 +100,26 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
             });
     }, [compositionRoot, syncRule.useAggregatedDataExchange]);
 
+    useEffect(() => {
+        if (!syncRule.useAggregatedDataExchange || targetInstances.length === 0) return;
+
+        const existingAdexes = syncRule.aggregatedDataExchanges ?? [];
+        const reconciledAdexes = buildAdexTargetInstances(syncRule.targetInstances, existingAdexes, targetInstances);
+
+        const existingIds = existingAdexes.map(adex => adex.target.instanceId).sort();
+        const reconciledIds = reconciledAdexes.map(adex => adex.target.instanceId).sort();
+
+        if (existingIds.join() !== reconciledIds.join()) {
+            onChange(syncRule.updateAggregatedDataExchanges(reconciledAdexes));
+        }
+    }, [syncRule, targetInstances, onChange]);
+
     const onSetAdexCredentials = useCallback(() => {
         setShowDialog(true);
     }, []);
+
+    const selectedTargetInstances = targetInstances.filter(instance => syncRule.targetInstances.includes(instance.id));
+    const hasExternalTargetSelected = selectedTargetInstances.some(instance => !instance.isInternalDataExchange);
 
     return (
         <React.Fragment>
@@ -121,7 +144,7 @@ const InstanceSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChan
                     generateNewUidDisabled={includeCurrentUrlAndTypeIsEvents(selectedOptions)}
                 />
             )}
-            {syncRule.useAggregatedDataExchange && syncRule.targetInstances.length > 0 && (
+            {syncRule.useAggregatedDataExchange && syncRule.targetInstances.length > 0 && hasExternalTargetSelected && (
                 <Button variant="contained" onClick={onSetAdexCredentials} style={{ marginTop: 16 }}>
                     {i18n.t("Set Credentials")}
                 </Button>

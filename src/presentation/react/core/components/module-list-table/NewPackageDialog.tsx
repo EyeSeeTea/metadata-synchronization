@@ -9,10 +9,9 @@ import { Module } from "../../../../../domain/modules/entities/Module";
 import { Package } from "../../../../../domain/packages/entities/Package";
 import i18n from "../../../../../utils/i18n";
 import { Dictionary } from "../../../../../types/utils";
-import { useAppContext } from "../../contexts/AppContext";
+import { useLocalInstance } from "../../hooks/useLocalInstance";
 
 export const NewPackageDialog: React.FC<NewPackageDialogProps> = ({ module, save, close }) => {
-    const { compositionRoot } = useAppContext();
     const classes = useStyles();
     const snackbar = useSnackbar();
 
@@ -75,18 +74,15 @@ export const NewPackageDialog: React.FC<NewPackageDialogProps> = ({ module, save
         else setErrors(messages);
     }, [item, save, module, versions]);
 
+    const { localInstance, error } = useLocalInstance();
+
     useEffect(() => {
-        compositionRoot.instances.getById("LOCAL").then(instanceResponse => {
-            instanceResponse.match({
-                success: instance => {
-                    if (versions.length === 0 && instance.version) updateVersions([instance.versionSmall]);
-                },
-                error: () => {
-                    snackbar.error(i18n.t("Error fetching instance version"));
-                },
-            });
-        });
-    }, [compositionRoot, versions, updateVersions, snackbar]);
+        if (versions.length === 0 && localInstance?.version) updateVersions([localInstance.versionSmall]);
+    }, [localInstance, versions, updateVersions]);
+
+    useEffect(() => {
+        if (error) snackbar.error(i18n.t("Error fetching instance version"));
+    }, [error, snackbar]);
 
     return (
         <ConfirmationDialog

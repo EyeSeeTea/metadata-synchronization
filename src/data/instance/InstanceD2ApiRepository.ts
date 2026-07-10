@@ -1,6 +1,6 @@
 //import Cryptr from "cryptr";
 import _ from "lodash";
-import { Instance, InstanceType } from "../../domain/instance/entities/Instance";
+import { ExchangeTargetType, Instance, InstanceType } from "../../domain/instance/entities/Instance";
 import { InstanceMessage } from "../../domain/instance/entities/Message";
 import { InstanceRepository, InstancesFilter } from "../../domain/instance/repositories/InstanceRepository";
 import { D2Api, D2User } from "../../types/d2-api";
@@ -78,7 +78,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
                       ..._.pick(instance.toObject(), "id"),
                   }
                 : {
-                      ..._.pick(instance.toObject(), "id", "name", "type", "url", "description"),
+                      ..._.pick(instance.toObject(), "id", "name", "type", "url", "description", "exchangeTargetType"),
                   };
 
         await storageClient.saveObjectInCollection(Namespace.INSTANCES, instanceData);
@@ -190,6 +190,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
                             type: dataStoreInstance.type,
                             url: dataStoreInstance.url || "",
                             description: dataStoreInstance.description || "",
+                            exchangeTargetType: dataStoreInstance.exchangeTargetType ?? "external",
                         });
                     } else {
                         const instance = routeInstancesWithVersion.find(
@@ -280,4 +281,5 @@ export interface InstanceDataStoreData {
     name?: string;
     url?: string;
     description?: string;
+    exchangeTargetType?: ExchangeTargetType;
 }

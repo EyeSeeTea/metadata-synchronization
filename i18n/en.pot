@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-06-16T15:11:31.847Z\n"
-"PO-Revision-Date: 2026-06-16T15:11:31.854Z\n"
+"POT-Creation-Date: 2026-07-07T09:14:53.473Z\n"
+"PO-Revision-Date: 2026-07-07T09:14:53.473Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -37,6 +37,19 @@ msgstr "Program not found"
 
 msgid "An instance with this name already exists"
 msgstr "An instance with this name already exists"
+
+msgid "The instance type cannot be changed after the instance is created"
+msgstr "The instance type cannot be changed after the instance is created"
+
+msgid "The exchange target type cannot be changed after the instance is created"
+msgstr "The exchange target type cannot be changed after the instance is created"
+
+msgid ""
+"An internal Aggregated Data Exchange instance already exists: "
+"{{instanceName}}"
+msgstr ""
+"An internal Aggregated Data Exchange instance already exists: "
+"{{instanceName}}"
 
 msgid ""
 "An Aggregated Data Exchange instance with this URL already exists: "
@@ -182,6 +195,12 @@ msgstr "Ok"
 
 msgid "Cancel"
 msgstr "Cancel"
+
+msgid "Instance: {{name}}"
+msgstr "Instance: {{name}}"
+
+msgid "Internal exchange — no credentials required."
+msgstr "Internal exchange — no credentials required."
 
 msgid "Authentication Scheme (*)"
 msgstr "Authentication Scheme (*)"
@@ -1958,6 +1977,12 @@ msgstr "API Token"
 msgid "Aggregated Data Exchange"
 msgstr "Aggregated Data Exchange"
 
+msgid "External"
+msgstr "External"
+
+msgid "Internal"
+msgstr "Internal"
+
 msgid "Please fix the issues before testing the connection"
 msgstr "Please fix the issues before testing the connection"
 
@@ -1966,6 +1991,9 @@ msgstr "Connected successfully to instance"
 
 msgid "Server name (*)"
 msgstr "Server name (*)"
+
+msgid "Exchange target type (*)"
+msgstr "Exchange target type (*)"
 
 msgid "URL endpoint (*)"
 msgstr "URL endpoint (*)"

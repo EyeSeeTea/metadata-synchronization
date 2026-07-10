@@ -1,49 +1,14 @@
-import { AggregatedPackage } from "../../domain/aggregated/entities/AggregatedPackage";
 import { AggregatedDataExchangeExecutor } from "../../domain/aggregated/repositories/AggregatedDataExchangeExecutor";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { SynchronizationResult } from "../../domain/reports/entities/SynchronizationResult";
 import { D2Api } from "../../types/d2-api";
-import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
-import { getAggregatedDataExchanges } from "./getAggregateDataExchange";
 
 export class AggregatedDataExchangeApiExecutor implements AggregatedDataExchangeExecutor {
     private api: D2Api;
 
     constructor(localInstance: Instance) {
         this.api = getD2APiFromInstance(localInstance);
-    }
-
-    async getSourceData(aggregatedDataExchangeId: string[]): Promise<AggregatedPackage> {
-        const responses = await promiseMap(aggregatedDataExchangeId, async adexId => {
-            return this.getByAdexId(adexId);
-        });
-
-        return {
-            dataValues: responses.flatMap(res => res.dataValues),
-        };
-    }
-
-    private async getByAdexId(aggregatedDataExchangeId: string) {
-        const aggregatedDataExchanges = await getAggregatedDataExchanges(this.api, [aggregatedDataExchangeId]);
-
-        const aggregatedDataExchange = aggregatedDataExchanges[0];
-
-        if (!aggregatedDataExchange) {
-            throw new Error(`AggregatedDataExchange with id ${aggregatedDataExchangeId} not found`);
-        }
-
-        const request = aggregatedDataExchange.source.requests[0];
-
-        const analyticsResponse = await this.api
-            .get<AggregatedPackage>("/analytics/dataValueSet.json", {
-                dimension: [`dx:${request.dx.join(";")}`, `pe:${request.pe.join(";")}`, `ou:${request.ou.join(";")}`],
-                inputIdScheme: "CODE",
-                outputIdScheme: "CODE",
-            })
-            .getData();
-
-        return analyticsResponse;
     }
 
     async execute(aggregatedDataExchangeId: string, targetInstance: Instance): Promise<SynchronizationResult> {

@@ -21,21 +21,70 @@ export class SaveInstanceUseCase implements UseCase {
             ];
         }
 
-        const exitedAdexInstanceByUrl =
-            instance.type === "aggregated-data-exchange"
+        const existedInstance = instances?.find(existed => existed.id === instance.id);
+
+        if (existedInstance && existedInstance.type !== instance.type) {
+            return [
+                {
+                    property: "type",
+                    error: "type_immutable",
+                    description: i18n.t("The instance type cannot be changed after the instance is created"),
+                },
+            ];
+        }
+
+        if (
+            existedInstance &&
+            instance.type === "aggregated-data-exchange" &&
+            existedInstance.type === "aggregated-data-exchange" &&
+            existedInstance.exchangeTargetType !== instance.exchangeTargetType
+        ) {
+            return [
+                {
+                    property: "exchangeTargetType",
+                    error: "exchange_target_type_immutable",
+                    description: i18n.t("The exchange target type cannot be changed after the instance is created"),
+                },
+            ];
+        }
+
+        if (instance.isInternalDataExchange) {
+            const existedInternalAdexInstance = instances?.find(
+                existed => existed.isInternalDataExchange && existed.id !== instance.id
+            );
+
+            if (existedInternalAdexInstance) {
+                return [
+                    {
+                        property: "exchangeTargetType",
+                        error: "internal_exists",
+                        description: i18n.t(
+                            "An internal Aggregated Data Exchange instance already exists: {{instanceName}}",
+                            { instanceName: existedInternalAdexInstance.name, nsSeparator: false }
+                        ),
+                    },
+                ];
+            }
+        }
+
+        const existedAdexInstanceByUrl =
+            instance.type === "aggregated-data-exchange" && !instance.isInternalDataExchange
                 ? instances?.find(
-                      existed => existed.type === "aggregated-data-exchange" && existed.url === instance.url
+                      existed =>
+                          existed.type === "aggregated-data-exchange" &&
+                          !existed.isInternalDataExchange &&
+                          existed.url === instance.url
                   )
                 : undefined;
 
-        if (exitedAdexInstanceByUrl && exitedAdexInstanceByUrl.id !== instance.id) {
+        if (existedAdexInstanceByUrl && existedAdexInstanceByUrl.id !== instance.id) {
             return [
                 {
                     property: "url",
                     error: "url_exists",
                     description: i18n.t(
                         "An Aggregated Data Exchange instance with this URL already exists: {{instanceName}}",
-                        { instanceName: exitedAdexInstanceByUrl.name, nsSeparator: false }
+                        { instanceName: existedAdexInstanceByUrl.name, nsSeparator: false }
                     ),
                 },
             ];
