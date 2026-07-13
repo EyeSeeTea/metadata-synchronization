@@ -1,1 +1,0 @@
-import{R as e,j as t}from"./main-cdd8154f.js";import{M as o}from"./WebApp-2b8d924c.js";const s={modules:!0,packages:!0},r={local:!0,remote:!0,store:!0},c=e.memo(()=>t.jsx(o,{showSelector:s,showInstances:r,presentation:"widget"}));export{c as ModuleListWidget};
