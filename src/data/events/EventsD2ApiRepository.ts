@@ -12,19 +12,24 @@ import { EventsRepository } from "../../domain/events/repositories/EventsReposit
 import { Instance } from "../../domain/instance/entities/Instance";
 import { SynchronizationResult } from "../../domain/reports/entities/SynchronizationResult";
 import { cleanObjectDefault, cleanOrgUnitPaths } from "../../domain/synchronization/utils";
-import { D2Api } from "../../types/d2-api";
+import {
+    D2Api,
+    D2TrackerEvent,
+    TrackerEventsResponse,
+    TrackerPostParams,
+    TrackerPostRequest,
+    TrackerPostResponse,
+} from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import mime from "mime-types";
-import { D2TrackerEvent, TrackerEventsResponse } from "@eyeseetea/d2-api/api/trackerEvents";
-import { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eyeseetea/d2-api/api/tracker";
 import { getRemainingPages } from "../../utils/pagination";
 
 export class EventsD2ApiRepository implements EventsRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance) {
-        this.api = getD2APiFromInstance(instance);
+    constructor(localInstance: Instance, private targetInstance: Instance) {
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     public async getEvents(
@@ -265,7 +270,7 @@ export class EventsD2ApiRepository implements EventsRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "events",
             };
@@ -282,7 +287,7 @@ export class EventsD2ApiRepository implements EventsRepository {
                 deleted: importResult.stats?.deleted ?? 0,
                 total: importResult.stats?.total ?? 0,
             },
-            instance: this.instance.toPublicObject(),
+            instance: this.targetInstance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {
                 return {
                     id: error.uid,
@@ -306,7 +311,12 @@ export class EventsD2ApiRepository implements EventsRepository {
         };
 
         const trackerPostRequest: TrackerPostRequest = {
-            events: events.map(event => ({ ...event, event: event.event || "" })),
+            events: events.map(event => ({
+                ...event,
+                event: event.event || "",
+                programStage: event.programStage ?? "",
+                scheduledAt: event.scheduledAt ?? event.occurredAt ?? "",
+            })),
         };
 
         if (params.async || params.async === undefined) {
@@ -317,7 +327,7 @@ export class EventsD2ApiRepository implements EventsRepository {
             if (!result) {
                 return {
                     status: "ERROR",
-                    instance: this.instance.toPublicObject(),
+                    instance: this.targetInstance.toPublicObject(),
                     date: new Date(),
                     type: "events",
                 };
@@ -335,12 +345,8 @@ export class EventsD2ApiRepository implements EventsRepository {
         const blob = await this.api
             .request<Blob>({
                 method: "get",
-                url: `/events/files`,
+                url: `/tracker/events/${eventUid}/dataValues/${dataElementUid}/file`,
                 responseDataType: "raw",
-                params: {
-                    eventUid,
-                    dataElementUid,
-                },
             })
             .getData();
 
@@ -355,7 +361,7 @@ export class EventsD2ApiRepository implements EventsRepository {
         return new File([blob], fileName, { type: fileResource.contentType });
     }
 
-    extractEvents(response: TrackerEventsResponse): D2TrackerEvent[] {
+    extractEvents(response: TrackerEventsResponse<{ $all: true }>): D2TrackerEvent[] {
         return response.instances || (hasEventsProperty(response) ? response.events : []);
     }
 }

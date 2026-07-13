@@ -1,5 +1,11 @@
-import { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eyeseetea/d2-api/api/tracker";
-import { D2TrackerTrackedEntity, TrackedEntitiesGetResponse } from "@eyeseetea/d2-api/api/trackerTrackedEntities";
+import {
+    D2TrackerTrackedEntity,
+    D2TrackerTrackedEntitySchema,
+    TrackedEntitiesGetResponse,
+    TrackerPostParams,
+    TrackerPostRequest,
+    TrackerPostResponse,
+} from "../../types/d2-api";
 import _ from "lodash";
 import {
     DataImportParams,
@@ -14,7 +20,7 @@ import { TEIsPackage } from "../../domain/tracked-entity-instances/entities/TEIs
 import { TrackedEntityInstance } from "../../domain/tracked-entity-instances/entities/TrackedEntityInstance";
 import { TEIRepository, TEIsResponse } from "../../domain/tracked-entity-instances/repositories/TEIRepository";
 import { TransformationRepository } from "../../domain/transformations/repositories/TransformationRepository";
-import { D2Api } from "../../types/d2-api";
+import { D2Api, SelectedPick } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { getPageCount, getRemainingPages } from "../../utils/pagination";
@@ -23,8 +29,12 @@ import { teiTransformations } from "../transformations/PackageTransformations";
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
 
-    constructor(private instance: Instance, private transformationRepository: TransformationRepository) {
-        this.api = getD2APiFromInstance(instance);
+    constructor(
+        localInstance: Instance,
+        private targetInstance: Instance,
+        private transformationRepository: TransformationRepository
+    ) {
+        this.api = getD2APiFromInstance(localInstance, targetInstance);
     }
 
     async getAllTEIs(params: DataSynchronizationParams, programs: string[]): Promise<TrackedEntityInstance[]> {
@@ -87,6 +97,7 @@ export class TEID2ApiRepository implements TEIRepository {
             .get({
                 fields: teiFields,
                 program,
+                ouMode: "SELECTED",
                 orgUnit: orgUnits.join(";"),
                 totalPages: true,
                 page,
@@ -95,7 +106,7 @@ export class TEID2ApiRepository implements TEIRepository {
             })
             .getData();
 
-        const trackedEntities = this.extractTrackeEntity(result);
+        const trackedEntities = result.instances || (hasTrackedEntitiesProperty(result) ? result.trackedEntities : []);
 
         return {
             instances: trackedEntities.map(tei => this.buildTrackedEntityInstance(tei)),
@@ -113,15 +124,18 @@ export class TEID2ApiRepository implements TEIRepository {
         if (orgUnits.length === 0) return [];
         if (ids.length === 0) return [];
 
-        const result: TrackedEntitiesGetResponse = await this.api.tracker.trackedEntities
+        // Cross-program lookup by TEI ids: the DHIS2 /tracker/trackedEntities endpoint
+        // accepts omitting `program`, but d2-api types mark it as required. Cast to bypass.
+        const result: TrackedEntitiesGetResponse<any> = await this.api.tracker.trackedEntities
             .get({
                 fields: teiFields,
+                ouMode: "SELECTED",
                 orgUnit: orgUnits.join(";"),
                 trackedEntity: ids.join(";"),
-            })
+            } as Parameters<typeof this.api.tracker.trackedEntities.get>[0])
             .getData();
 
-        const trackedEntities = this.extractTrackeEntity(result);
+        const trackedEntities = result.instances || (hasTrackedEntitiesProperty(result) ? result.trackedEntities : []);
 
         return trackedEntities.map(tei => this.buildTrackedEntityInstance(tei));
     }
@@ -135,7 +149,7 @@ export class TEID2ApiRepository implements TEIRepository {
             };
 
             const versionedRequest = this.transformationRepository.mapPackageTo<TrackerPostRequest, TrackerPostRequest>(
-                this.instance.apiVersion,
+                this.targetInstance.apiVersion,
                 baseRequest,
                 teiTransformations
             );
@@ -150,7 +164,7 @@ export class TEID2ApiRepository implements TEIRepository {
 
             return {
                 status: "NETWORK ERROR",
-                instance: this.instance.toPublicObject(),
+                instance: this.targetInstance.toPublicObject(),
                 date: new Date(),
                 type: "events",
             };
@@ -210,7 +224,7 @@ export class TEID2ApiRepository implements TEIRepository {
                 deleted: stats?.deleted ?? 0,
                 total: stats?.total ?? 0,
             },
-            instance: this.instance.toPublicObject(),
+            instance: this.targetInstance.toPublicObject(),
             errors: importResult.validationReport.errorReports.map(error => {
                 return {
                     id: error.uid,
@@ -224,21 +238,28 @@ export class TEID2ApiRepository implements TEIRepository {
         };
     }
 
-    private buildTrackedEntityInstance(tei: D2TrackerTrackedEntity): TrackedEntityInstance {
+    private buildTrackedEntityInstance(tei: D2TrackerEntitySelectedPick): TrackedEntityInstance {
+        const enrollments: TrackedEntityInstance["enrollments"] =
+            tei.enrollments?.map(
+                (
+                    enrollment: NonNullable<D2TrackerEntitySelectedPick["enrollments"]>[number]
+                ): TrackedEntityInstance["enrollments"][number] => ({
+                    ...enrollment,
+                    orgUnit: enrollment.orgUnit || "",
+                    notes: (enrollment.notes ?? []).map(note => (typeof note === "string" ? note : note.value)),
+                    attributes: enrollment.attributes?.map(attribute => ({
+                        ...attribute,
+                        value: attribute.value?.toString() || "",
+                    })),
+                })
+            ) || [];
+
         return {
             ...tei,
             trackedEntity: tei.trackedEntity || "",
             orgUnit: tei.orgUnit || "",
             programOwners: tei.programOwners || [],
-            enrollments:
-                tei.enrollments?.map(enrollment => ({
-                    ...enrollment,
-                    orgUnit: enrollment.orgUnit || "",
-                    attributes: enrollment.attributes?.map(attribute => ({
-                        ...attribute,
-                        value: attribute.value?.toString() || "",
-                    })),
-                })) || [],
+            enrollments,
             relationships: tei.relationships || [],
             attributes:
                 tei.attributes?.map(attribute => {
@@ -253,18 +274,37 @@ export class TEID2ApiRepository implements TEIRepository {
     private buildD2TrackerTrackedEntity(tei: TrackedEntityInstance): D2TrackerTrackedEntity {
         return {
             ...tei,
+            geometry: (tei as any).geometry ?? { type: "Point" as const, coordinates: [0, 0] },
+            trackedEntityType: tei.trackedEntityType || "",
+            createdAt: tei.createdAt || "",
+            createdAtClient: tei.createdAtClient || "",
+            updatedAt: tei.updatedAt || "",
+            updatedAtClient: tei.updatedAtClient || "",
+            inactive: tei.inactive || false,
+            deleted: tei.deleted || false,
+            attributes:
+                tei.attributes.map(attribute => ({
+                    ...attribute,
+                    createdAt: attribute.createdAt || "",
+                    updatedAt: attribute.updatedAt || "",
+                    storedBy: attribute.storedBy || "",
+                    valueType: attribute.valueType || "",
+                })) || [],
             enrollments: tei.enrollments.map(enrollment => {
-                return { ...enrollment, events: [], relationships: [], notes: [] };
+                return {
+                    ...enrollment,
+                    events: [],
+                    relationships: [],
+                    notes: (enrollment.notes ?? []).map(value =>
+                        typeof value === "string" ? { note: "", storedAt: "", storedBy: "", value } : value
+                    ),
+                };
             }),
-        };
-    }
-
-    extractTrackeEntity(response: TrackedEntitiesGetResponse): D2TrackerTrackedEntity[] {
-        return response.instances || (hasEventsProperty(response) ? response.trackedEntities : []);
+        } as unknown as D2TrackerTrackedEntity;
     }
 }
 
-function hasEventsProperty(obj: any): obj is { trackedEntities: D2TrackerTrackedEntity[] } {
+function hasTrackedEntitiesProperty(obj: any): obj is { trackedEntities: D2TrackerEntitySelectedPick[] } {
     return obj && Array.isArray(obj.trackedEntities);
 }
 
@@ -302,4 +342,7 @@ const teiFields = {
     enrollments: enrollmentsFields,
     relationships: true,
     attributes: true,
+    geometry: true,
 } as const;
+
+export type D2TrackerEntitySelectedPick = SelectedPick<D2TrackerTrackedEntitySchema, typeof teiFields>;
