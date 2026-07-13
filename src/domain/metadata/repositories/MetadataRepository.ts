@@ -1,4 +1,4 @@
-import { FilterValueOperator } from "@eyeseetea/d2-api/api/common";
+import { FilterValueOperator } from "../../../types/d2-api";
 import { IdentifiableRef, Ref } from "../../common/entities/Ref";
 import { Id } from "../../common/entities/Schemas";
 import { SynchronizationResult } from "../../reports/entities/SynchronizationResult";
@@ -13,7 +13,12 @@ import {
 import { MetadataImportParams } from "../entities/MetadataSynchronizationParams";
 
 export interface MetadataRepository {
-    getMetadataByIds<T>(ids: Id[], fields?: object | string, includeDefaults?: boolean): Promise<MetadataPackage<T>>;
+    getMetadataByIds<T>(
+        ids: Id[],
+        fields?: object | string,
+        includeDefaults?: boolean,
+        preserveNestedDefaultRefs?: boolean
+    ): Promise<MetadataPackage<T>>;
     getByFilterRules(filterRules: FilterRule[]): Promise<Id[]>;
     getDefaultIds(filter?: string): Promise<string[]>;
     getCategoryOptionCombos(): Promise<

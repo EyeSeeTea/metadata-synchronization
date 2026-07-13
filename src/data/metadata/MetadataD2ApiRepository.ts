@@ -1,4 +1,4 @@
-import { FilterBase, FilterValue } from "@eyeseetea/d2-api/api/common";
+import { FilterBase, FilterValue } from "../../types/d2-api";
 import _ from "lodash";
 import moment from "moment";
 import { buildPeriodFromParams } from "../../domain/aggregated/utils";
@@ -29,7 +29,7 @@ import { SynchronizationResult } from "../../domain/reports/entities/Synchroniza
 import { cleanOrgUnitPaths } from "../../domain/synchronization/utils";
 import { TransformationRepository } from "../../domain/transformations/repositories/TransformationRepository";
 import { modelFactory } from "../../models/dhis/factory";
-import { D2Api, D2Model, Id, MetadataResponse, Model, Stats } from "../../types/d2-api";
+import { D2Api, D2Model, getApiModel, Id, MetadataResponse, Model, Stats } from "../../types/d2-api";
 import { D2ApiDefinition, D2CategoryOptionComboSchema, GetOptions } from "../../types/d2-api";
 import { Dictionary, isNotEmpty, Maybe } from "../../types/utils";
 import { cache } from "../../utils/cache";
@@ -68,14 +68,20 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     public async getMetadataByIds<T>(
         ids: string[],
         fields?: object | string,
-        includeDefaults = false
+        includeDefaults = false,
+        preserveNestedDefaultRefs = false
     ): Promise<MetadataPackage<T>> {
         const { apiVersion } = this.targetInstance;
 
         const d2ApiDataStore = new D2ApiDataStore(this.targetInstance);
         const dataStoreIds = DataStoreMetadata.getDataStoreIds(ids);
         const requestFields = typeof fields === "object" ? getFieldsAsString(fields) : fields;
-        const d2Metadata = await this.getMetadata<D2Model>(ids, requestFields, includeDefaults);
+        const d2Metadata = await this.getMetadata<D2Model>(
+            ids,
+            requestFields,
+            includeDefaults,
+            preserveNestedDefaultRefs
+        );
 
         if (apiVersion >= 32 && d2Metadata["dashboards"] && fields === undefined) {
             //Fix dashboard bug from 2.32
@@ -84,7 +90,8 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             const fixedD2Metadata = await this.getMetadata<D2Model>(
                 ids,
                 ":all,dashboardItems[:all,visualization[id,type]]",
-                includeDefaults
+                includeDefaults,
+                preserveNestedDefaultRefs
             );
 
             const metadataPackage = this.transformationRepository.mapPackageFrom(
@@ -589,11 +596,13 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     private async getMetadata<T>(
         elements: string[],
         fields = ":all",
-        includeDefaults: boolean
+        includeDefaults: boolean,
+        preserveNestedDefaultRefs: boolean
     ): Promise<Record<string, T[]>> {
         try {
             const promises = [];
             const chunkSize = 50;
+            const keepDefaults = includeDefaults || preserveNestedDefaultRefs;
 
             for (let i = 0; i < elements.length; i += chunkSize) {
                 const requestElements = elements.slice(i, i + chunkSize).toString();
@@ -602,7 +611,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
                         .get("/metadata", {
                             fields,
                             filter: "id:in:[" + requestElements + "]",
-                            defaults: includeDefaults ? undefined : "EXCLUDE",
+                            defaults: keepDefaults ? undefined : "EXCLUDE",
                         })
                         .getData()
                 );
@@ -648,7 +657,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
     }
 
     private getApiModel(type: keyof MetadataEntities): Model<any, any> {
-        return this.api.models[type];
+        return getApiModel(this.api, type);
     }
 
     private getAdditionalCategoryOptionCombosOptionsByVariant(): CategoryOptionCombosAdditionalOptions {

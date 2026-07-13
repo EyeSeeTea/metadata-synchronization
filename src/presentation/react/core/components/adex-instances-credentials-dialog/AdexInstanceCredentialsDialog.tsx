@@ -38,9 +38,24 @@ const AdexInstanceCredentialsDialog: React.FC<AdexInstanceCredentialsDialogProps
             {adexInstanceCandidates.map((adexProps, index) => {
                 const instance = instances.find((instance: Instance) => instance.id === adexProps.target.instanceId);
 
+                const instanceTitle = i18n.t("Instance: {{name}}", {
+                    name: instance?.name ?? "",
+                    nsSeparator: false,
+                });
+
+                if (adexProps.target.type === "internal") {
+                    return (
+                        <div key={index}>
+                            <h4>{instanceTitle}</h4>
+                            <p>{i18n.t("Internal exchange — no credentials required.")}</p>
+                            <Divider style={{ marginTop: 20, marginBottom: 20 }} />
+                        </div>
+                    );
+                }
+
                 return (
                     <div key={index}>
-                        <h4>Instance: {instance?.name}</h4>
+                        <h4>{instanceTitle}</h4>
 
                         <DropdownContainer>
                             <Dropdown

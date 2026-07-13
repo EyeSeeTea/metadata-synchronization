@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-04-17T04:37:05.815Z\n"
+"POT-Creation-Date: 2026-07-06T15:09:17.686Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -34,6 +34,29 @@ msgstr ""
 
 msgid "An instance with this name already exists"
 msgstr ""
+
+msgid "The instance type cannot be changed after the instance is created"
+msgstr "The instance type cannot be changed after the instance is created"
+
+msgid ""
+"The exchange target type cannot be changed after the instance is created"
+msgstr ""
+"The exchange target type cannot be changed after the instance is created"
+
+#, fuzzy
+msgid ""
+"An internal Aggregated Data Exchange instance already exists: "
+"{{instanceName}}"
+msgstr ""
+"An Aggregated Data Exchange instance with this URL already exists: "
+"{{instanceName}}"
+
+msgid ""
+"An Aggregated Data Exchange instance with this URL already exists: "
+"{{instanceName}}"
+msgstr ""
+"An Aggregated Data Exchange instance with this URL already exists: "
+"{{instanceName}}"
 
 msgid "You need to provide a username and password combination"
 msgstr ""
@@ -123,6 +146,13 @@ msgstr ""
 msgid "Instance {{id}} not found"
 msgstr ""
 
+msgid ""
+"An error has occurred while downloading datastore payload for instance "
+"{{name}}: {{message}}"
+msgstr ""
+"An error has occurred while downloading datastore payload for instance "
+"{{name}}: {{message}}"
+
 msgid "Analytics execution finished on {{name}}"
 msgstr ""
 
@@ -161,6 +191,12 @@ msgstr ""
 
 msgid "Cancel"
 msgstr ""
+
+msgid "Instance: {{name}}"
+msgstr "Instance: {{name}}"
+
+msgid "Internal exchange — no credentials required."
+msgstr "Internal exchange — no credentials required."
 
 msgid "Authentication Scheme (*)"
 msgstr ""
@@ -550,6 +586,15 @@ msgstr ""
 
 msgid "Set metadata custodian"
 msgstr ""
+
+msgid "{{count}} items are selected in other metadata types."
+msgid_plural "{{count}} items are selected in other metadata types."
+msgstr[0] ""
+msgstr[1] ""
+
+#, fuzzy
+msgid "Clear all"
+msgstr "Clear"
 
 msgid "Custodian"
 msgstr ""
@@ -1450,8 +1495,14 @@ msgstr ""
 msgid "Frequency"
 msgstr ""
 
+msgid "Key: {{key}}"
+msgstr "Key: {{key}}"
+
 msgid "All Keys"
 msgstr ""
+
+msgid "Namespace: {{namespace}} - {{keyName}}"
+msgstr "Namespace: {{namespace}} - {{keyName}}"
 
 msgid "Daily"
 msgstr ""
@@ -1575,6 +1626,27 @@ msgstr ""
 msgid "Use sync rules periods"
 msgstr ""
 
+msgid "Skip generation of resource tables"
+msgstr ""
+
+msgid "Skip generation of event data"
+msgstr ""
+
+msgid "Skip generation of enrollment data"
+msgstr ""
+
+msgid "Skip generation of organisation unit ownership data"
+msgstr ""
+
+msgid "Skip generation of tracked entity data"
+msgstr ""
+
+msgid "Skip generation of aggregate data and completeness data"
+msgstr ""
+
+msgid "Skip generation of outlier data"
+msgstr ""
+
 msgid "True"
 msgstr ""
 
@@ -1584,19 +1656,22 @@ msgstr ""
 msgid "Use sync rule settings"
 msgstr ""
 
+msgid "Run Analytics"
+msgstr ""
+
+msgid "Number of last years of data to include"
+msgstr ""
+
 msgid "MSF Settings"
 msgstr ""
 
 msgid "Analytics"
 msgstr ""
 
-msgid "Run Analytics Before"
+msgid "Before sync · Individual data"
 msgstr ""
 
-msgid "Run Analytics After"
-msgstr ""
-
-msgid "Number of years to include"
+msgid "After sync · Aggregate data"
 msgstr ""
 
 msgid "Data values settings"
@@ -1805,6 +1880,12 @@ msgstr ""
 msgid "Aggregated Data Exchange"
 msgstr ""
 
+msgid "External"
+msgstr "External"
+
+msgid "Internal"
+msgstr "Internal"
+
 msgid "Please fix the issues before testing the connection"
 msgstr ""
 
@@ -1813,6 +1894,9 @@ msgstr ""
 
 msgid "Server name (*)"
 msgstr ""
+
+msgid "Exchange target type (*)"
+msgstr "Exchange target type (*)"
 
 msgid "URL endpoint (*)"
 msgstr ""

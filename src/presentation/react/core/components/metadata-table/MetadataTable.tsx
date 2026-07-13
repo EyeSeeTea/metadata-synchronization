@@ -1,6 +1,6 @@
-import { Box, Checkbox, FormControlLabel, Icon, Paper, Tooltip, makeStyles } from "@material-ui/core";
+import { Box, Button, Checkbox, FormControlLabel, Icon, Paper, Tooltip, makeStyles } from "@material-ui/core";
 import DoneAllIcon from "@material-ui/icons/DoneAll";
-import { isCancel } from "@eyeseetea/d2-api";
+import { isCancel } from "../../../../../types/d2-api";
 import {
     DatePicker,
     ObjectsTable,
@@ -28,9 +28,10 @@ import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
 import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
-import { getFilterData, getOrgUnitSubtree } from "./utils";
+import { getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
 import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
+import { useSelection } from "./useSelection";
 
 export type MetadataTableFilters =
     | "group"
@@ -604,12 +605,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
-
         const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
-<<<<<<< HEAD
-        const mergedSelection = _.uniq([...otherMetadataTypeIds, ...included]);
-=======
->>>>>>> parent of cb10ea53 (Revert "Merge branch 'development'")
 
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
@@ -632,16 +628,12 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 parseChildren,
             });
 
-<<<<<<< HEAD
-        if (!_.isEqual(stateSelection, mergedSelection)) {
-            notifyNewSelection(mergedSelection, excluded);
-        }
+            const mergedSelection = getMergedSelection({
+                included: result.included,
+                otherTypeIds: otherMetadataTypeIds,
+            });
 
-        setStateSelection(mergedSelection);
-=======
-            const mergedSelection = _.uniq([...otherMetadataTypeIds, ...result.included]);
-
-            if (!_.isEqual(stateSelection, mergedSelection)) {
+            if (!_.isEqual(selectedIds, mergedSelection)) {
                 notifyNewSelection(mergedSelection, result.excluded);
             }
 
@@ -655,16 +647,18 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 .filter(id => !_.find(rows, { id }))
                 .value();
 
-            const mergedSelection = _.uniq([...otherMetadataTypeIds, ...included]);
+            const mergedSelection = getMergedSelection({
+                included,
+                otherTypeIds: otherMetadataTypeIds,
+            });
 
-            if (!_.isEqual(stateSelection, mergedSelection)) {
+            if (!_.isEqual(selectedIds, mergedSelection)) {
                 notifyNewSelection(mergedSelection, excluded);
             }
 
             setStateSelection(mergedSelection);
         }
 
->>>>>>> parent of cb10ea53 (Revert "Merge branch 'development'")
         updateFilters({
             order: sorting,
             page: pagination.page,
@@ -673,11 +667,38 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     };
 
     const exclusion = excludedIds.map(id => ({ id }));
-    const selection = selectedIds.map(id => ({
-        id,
-        checked: true,
-        indeterminate: false,
-    }));
+    const { selection, crossTypeCount } = useSelection(model.getCollectionName(), ids, selectedIds, remoteInstance);
+
+    const crossTypeNotifications =
+        crossTypeCount > 0
+            ? [
+                  {
+                      message: (
+                          <>
+                              {i18n.t("{{count}} items are selected in other metadata types.", {
+                                  count: crossTypeCount,
+                              })}{" "}
+                              <Button
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => {
+                                      setStateSelection([]);
+                                      notifyNewSelection([], []);
+                                  }}
+                                  style={{
+                                      textTransform: "none",
+                                      padding: 0,
+                                      minWidth: "auto",
+                                      verticalAlign: "baseline",
+                                  }}
+                              >
+                                  {i18n.t("Clear all")}
+                              </Button>
+                          </>
+                      ),
+                  },
+              ]
+            : [];
 
     const childrenSelection: TableSelection[] = useMemo(
         () =>
@@ -759,6 +780,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
                 actions={actions}
                 sideComponents={orgUnitTreeFilter}
                 {...rest}
+                tableNotifications={[...(rest.tableNotifications ?? []), ...crossTypeNotifications]}
             />
         </React.Fragment>
     );

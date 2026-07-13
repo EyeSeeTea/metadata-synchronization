@@ -80,6 +80,7 @@ const InstanceCreationPage = () => {
                 testConnectionVisible={isEdit}
                 onSaved={onSaved}
                 showMetadataMapping
+                isEdit={isEdit}
             />
         </TestWrapper>
     );

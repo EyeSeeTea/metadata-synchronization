@@ -17,6 +17,7 @@ import { cleanOrgUnitPaths } from "../../../../../../domain/synchronization/util
 import i18n from "../../../../../../utils/i18n";
 import { getValidationMessages } from "../../../../../../utils/old-validations";
 import { availablePeriods } from "../../../../../../utils/synchronization";
+import { getApiModel } from "../../../../../../types/d2-api";
 import { useAppContext } from "../../../contexts/AppContext";
 import { buildAggregationItems } from "../data/AggregationStep";
 import { SyncWizardStepProps } from "../Steps";
@@ -250,7 +251,7 @@ export const SummaryStepContent = (props: SummaryStepContentProps) => {
                 .sort()
                 .value()
                 .map(metadataType => {
-                    const modelByMetadataType = api.models[metadataType as keyof MetadataEntities]; //TODO: remove "as"
+                    const modelByMetadataType = getApiModel(api, metadataType);
                     if (!modelByMetadataType) {
                         console.warn(`Metadata type "${metadataType}" not supported in d2-api`); //TODO: Remove d2-api reference (data layer) - here (presentation layer) 963#discussion_r1682402091
                         return null;
@@ -631,11 +632,15 @@ export const DataStoreSectionContent = (props: { metadataIds: string[]; excluded
                 <ul>
                     {summaryInfo.map(dataStore => {
                         const [namespace, key] = dataStore.split(DataStoreMetadata.NS_SEPARATOR);
-                        const keyName = key ? i18n.t("Key: {{key}}", { key }) : i18n.t("All Keys");
+                        const keyName = key ? i18n.t("Key: {{key}}", { key, nsSeparator: false }) : i18n.t("All Keys");
                         return (
                             <LiEntry
                                 key={`${namespace}-${key}`}
-                                label={i18n.t("Namespace: {{namespace}} - {{keyName}}", { namespace, keyName })}
+                                label={i18n.t("Namespace: {{namespace}} - {{keyName}}", {
+                                    namespace,
+                                    keyName,
+                                    nsSeparator: false,
+                                })}
                             />
                         );
                     })}

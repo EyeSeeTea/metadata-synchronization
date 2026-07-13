@@ -7,7 +7,11 @@ export const metadataTransformations: Transformation[] = [
         apply: ({ users, ...rest }: any) => {
             return {
                 ...rest,
-                users: users?.map((user: any) => ({ ...user, userRoles: user.userCredentials.userRoles })) || undefined,
+                users:
+                    users?.map((user: any) => ({
+                        ...user,
+                        userRoles: user.userCredentials?.userRoles ?? user.userRoles,
+                    })) || undefined,
             };
         },
     },
