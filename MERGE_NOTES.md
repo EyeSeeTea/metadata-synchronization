@@ -1,0 +1,167 @@
+# Merge notes — special handling required before next `development → master`
+
+> **Read this before merging `development` into `master`.** A previous merge
+> was reverted on master, which leaves the branches in a state where a plain
+> `git merge` will silently produce a no-op. Follow the procedure below to
+> avoid shipping an empty merge.
+>
+> Once the next `development → master` merge has been completed successfully,
+> **delete this file** as part of the same PR.
+
+## Why this file exists
+
+A short timeline of how we got here:
+
+1. v2.24.0 was released from `master`.
+2. While `development` accumulated unrelated work (security patches, ADEX,
+   "routes as instances", datastore selection rework, etc.), two narrow
+   bugfixes — PR #1059 (sync rule replication) and PR #1048 (select-all in
+   metadata table) — needed to ship as patch releases.
+3. To ship them without dragging in the rest of `development`, a release
+   branch was created from `v2.24.0`, the two PRs were cherry-picked, and
+   the branch was tagged and released as **v2.24.1** and **v2.24.2**.
+4. In parallel, an attempt to fast-track things merged `development` →
+   `master` directly. That merge brought in **all** the unreleased
+   `development` work, which is not what we wanted on `master`.
+5. That merge was undone on `master` with `git revert -m 1`, leaving:
+   - The merge commit (`7678cf9d Merge branch 'development'`) still in
+     master's history.
+   - A revert commit (`cb10ea53 Revert "Merge branch 'development'"`)
+     immediately after it, undoing the file changes.
+   - The v2.24.2 release commits added on top.
+
+## What that means for the next merge
+
+Because the merge commit `7678cf9d` is still in master's ancestry, **every
+commit on `development` is topologically reachable from `master`**. That has
+two visible consequences:
+
+- `git log master..development` shows zero commits.
+- `git merge development` from `master` will look like a fast-forward / empty
+  merge and will not re-introduce any of the reverted changes. The actual
+  file contents stay at the post-revert state.
+
+This is the well-known "revert of a merge" trap, documented by Linus here:
+<https://github.com/git/git/blob/master/Documentation/howto/revert-a-faulty-merge.txt>.
+
+## Recommended procedure
+
+Pick **one** of the two options below. Option A is simpler and is the
+recommended default. Option B is cleaner if `development` is in heavy use
+and you do not want to disturb its history.
+
+### Option A — revert the revert directly on `master` (recommended)
+
+```bash
+git checkout master
+git pull
+git checkout -b integrate/development-into-master
+
+# 1. Re-apply the changes that the revert undid.
+git revert cb10ea53
+
+# 2. Bring in anything added to development since the original merge.
+git merge origin/development
+
+# 3. Resolve conflicts (see "Expected conflicts" below), run the test suite,
+#    delete this MERGE_NOTES.md, then bump the version for the next release.
+
+# 4. Open a PR from integrate/development-into-master → master.
+```
+
+### Option B — revert the revert on a development-side branch first
+
+Use this if `master` should stay strictly releasable until the integration is
+fully reviewed.
+
+```bash
+git checkout development
+git pull
+git checkout -b restore-reverted-changes
+
+# 1. Re-apply the reverted changes on the development side.
+git revert cb10ea53
+
+# 2. Merge this branch back into development. After this, development is
+#    "ahead of master" again in the normal sense, and master can merge it
+#    cleanly.
+git checkout development
+git merge restore-reverted-changes
+git push origin development
+
+# 3. From here, the standard development → master flow works:
+git checkout master
+git merge development
+```
+
+## Expected conflicts
+
+When the revert is undone, expect conflicts in the following places. None of
+them are tricky — the resolution is mechanical.
+
+- **`src/presentation/react/core/components/metadata-table/MetadataTable.tsx`** —
+  PR #1048's commits live on master (cherry-picked into the v2.24.2 release)
+  *and* on development (via the original merge). The diff is textually
+  identical, but the SHAs differ, so Git will flag it. **Keep the master
+  side.**
+- **`src/presentation/webapp/core/pages/sync-rules-creation/SyncRulesCreationPage.tsx`** —
+  same situation for PR #1059. **Keep the master side.**
+- **`package.json`** — `version` field. Master is at `2.24.2`; development
+  has whatever it was last bumped to. **Decide what the next release version
+  should be and set it explicitly.**
+- **`vite.config.ts`** — the `dedupe: ["@dhis2/prop-types"]` line was added
+  on `master` (and on the v2.24.2 release branch) to make the production
+  build work; it is not on `development`. **Keep the master side** (the
+  `dedupe` line) unless development has independently fixed the underlying
+  dependency issue.
+- **`i18n/en.pot`** — auto-regenerated by `yarn extract-pot`. Resolve by
+  taking either side and re-running `yarn localize` after the merge.
+- **`yarn.lock`** — large diff, but Git usually merges it cleanly. If it
+  does conflict, take the development side and run `yarn install` to
+  reconcile.
+
+## Sanity checks after the merge
+
+Before opening the PR, verify the merge actually moved the tree forward:
+
+```bash
+# Should list a substantial set of changed files (hundreds), not zero.
+git diff master..integrate/development-into-master --stat | tail -1
+
+# These features should now be present on the integration branch (they were
+# the visible markers of the development-only work):
+grep -r 'AdexInstanceCredentialsDialog' src/presentation                 # ADEX dialog (PR #1039)
+grep -rE 'typeItems|authTypeItems' src/presentation/webapp/core/pages/instance-creation  # "Routes as instances" (PR #1032)
+```
+
+If either grep returns no hits, something went wrong — the revert was not
+actually undone. Stop and investigate before merging.
+
+## Things not to forget
+
+- **Delete this file (`MERGE_NOTES.md`)** as part of the same PR that
+  performs the merge. Once the situation is resolved, the warning is just
+  noise.
+- **The `eslint-plugin-cypress` issue** — `.eslintrc.js` references
+  `plugin:cypress/recommended`, but `eslint-plugin-cypress` is not in
+  `package.json`. The pre-push hook fails until the plugin is installed
+  manually (`npm install --no-save --legacy-peer-deps eslint-plugin-cypress@2.15.1`).
+  This pre-existed the v2.24.x releases and is unrelated to the merge,
+  but it will trip up anyone trying to push the integration branch.
+  Worth fixing in a separate PR before or after this merge.
+- **The `dedupe` workaround in `vite.config.ts`** — added to make the v2.24.2
+  production build pass. The underlying issue (nested `@dhis2/prop-types`
+  copies without a `default` export) may have been addressed on
+  `development` via dependency upgrades. After the merge, verify
+  `yarn build all` and `yarn start` still work; if so, the workaround can
+  stay or be removed depending on whether it is still load-bearing.
+
+## Reference commits
+
+- `a702c87f` — `master` at v2.24.0 (the "good" baseline before the bad merge).
+- `7678cf9d` — the `Merge branch 'development'` that brought in the unwanted
+  work.
+- `cb10ea53` — the `Revert "Merge branch 'development'"` that this document
+  is here to undo.
+- `f17ace8b` — the v2.24.2 release merge into `master`.
+- Tag `v2.24.2` — what `master` should resemble until this merge is performed.

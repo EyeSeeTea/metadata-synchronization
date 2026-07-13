@@ -1,0 +1,1 @@
+import{p as s}from"./WebApp-2b8d924c.js";import"./main-cdd8154f.js";async function e(a,c,r){const i=(await a.listKeys()).filter(t=>t.startsWith("notifications"));await s(i,async t=>{const o=await a.get(t)??[],n=t.replace("notifications","history");await a.save(n,o),await a.remove(t)})}const y={name:"Update history notifications",migrate:e};export{y as default,e as migrate};

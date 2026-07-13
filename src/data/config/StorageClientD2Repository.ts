@@ -18,9 +18,9 @@ export class StorageClientD2Repository implements StorageClientRepository, Stora
     private dataStoreClient: StorageDataStoreClient;
     private constantClient: StorageConstantClient;
 
-    constructor(private instance: Instance) {
-        this.dataStoreClient = new StorageDataStoreClient(this.instance);
-        this.constantClient = new StorageConstantClient(this.instance);
+    constructor(private localInstance: Instance, private targetInstance?: Instance) {
+        this.dataStoreClient = new StorageDataStoreClient(localInstance, this.targetInstance);
+        this.constantClient = new StorageConstantClient(localInstance, this.targetInstance);
     }
 
     @cache()
@@ -49,7 +49,9 @@ export class StorageClientD2Repository implements StorageClientRepository, Stora
 
     @cache()
     public getUserStorageClient(): FutureData<StorageClient> {
-        const dataStoreClient = new StorageDataStoreClient(this.instance, undefined, { storageType: "user" });
+        const dataStoreClient = new StorageDataStoreClient(this.localInstance, this.targetInstance, undefined, {
+            storageType: "user",
+        });
 
         return this.constantClient.getObjectFuture(Namespace.CONFIG).map(constantConfig => {
             return constantConfig ? this.constantClient : dataStoreClient;

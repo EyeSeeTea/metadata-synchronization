@@ -1,0 +1,1 @@
+import{L as i}from"./main-ae6f6dc0.js";async function s(t,r,c){const e="store",a="stores",n=await t.get(e);if(n){const o=[{...n,id:i(),default:!0}];await t.save(a,o),await t.remove(e)}}const m={name:"Update history notifications",migrate:s};export{m as default,s as migrate};
