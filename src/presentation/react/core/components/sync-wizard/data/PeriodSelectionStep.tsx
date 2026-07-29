@@ -101,7 +101,7 @@ const PeriodSelectionStep: React.FC<SyncWizardStepProps> = ({ syncRule, onChange
                 onFieldChange={onFieldChange}
                 skipPeriods={skipPeriods}
             />
-            {objectWithPeriod.period === "SINCE_LAST_SUCCESSFUL_SYNC" && syncRule.metadataTypes.includes("programs") ? (
+            {syncRule.metadataTypes.includes("programs") ? (
                 <>
                     <Dropdown
                         label={i18n.t("Tracked entities sync period field")}
