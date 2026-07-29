@@ -26,6 +26,13 @@ import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { getPageCount, getRemainingPages } from "../../utils/pagination";
 import { teiTransformations } from "../transformations/PackageTransformations";
 
+// d2-api's tracker/trackedEntities types don't declare `trackedEntities` (plural, comma-separated),
+// the replacement for the deprecated `trackedEntity` param required to satisfy DHIS2 2.42+'s
+// "either program, trackedEntityType or trackedEntities" validation (E1003) on cross-program lookups.
+type GetTrackedEntitiesParams = Parameters<D2Api["tracker"]["trackedEntities"]["get"]>[0] & {
+    trackedEntities?: string;
+};
+
 export class TEID2ApiRepository implements TEIRepository {
     private api: D2Api;
 
@@ -124,15 +131,31 @@ export class TEID2ApiRepository implements TEIRepository {
         if (orgUnits.length === 0) return [];
         if (ids.length === 0) return [];
 
-        // Cross-program lookup by TEI ids: the DHIS2 /tracker/trackedEntities endpoint
-        // accepts omitting `program`, but d2-api types mark it as required. Cast to bypass.
+        // Cross-program lookup by TEI ids: the DHIS2 /tracker/trackedEntities endpoint accepts
+        // omitting `program`, but d2-api types mark it as required. Cast to bypass.
+        // Empirically verified against play.im.dhis2.org 2.40/2.41/2.42/2.43 that there's no
+        // single param that works on all versions:
+        // - <= 2.40: only the deprecated singular `trackedEntity` filters by id. The plural
+        //   `trackedEntities` either 409s (no program/trackedEntityType given) or, when `program`
+        //   is added to satisfy that, silently ignores the id filter and returns the whole list.
+        // - 2.41: singular `trackedEntity` alone still works, but sending both params together is
+        //   itself rejected (400 E1003, "only one of trackedEntity/trackedEntities").
+        // - >= 2.42: singular `trackedEntity` alone fails (400 E1003, "either program,
+        //   trackedEntityType or trackedEntities should be specified"); only the plural
+        //   `trackedEntities` works.
+        // So the param must be chosen based on the target server's version, not sent unconditionally.
+        const useTrackedEntitiesPlural = this.targetInstance.apiVersion >= 41;
+        const trackedEntityParam = useTrackedEntitiesPlural
+            ? { trackedEntities: ids.join(",") }
+            : { trackedEntity: ids.join(";") };
+
         const result: TrackedEntitiesGetResponse<any> = await this.api.tracker.trackedEntities
             .get({
                 fields: teiFields,
                 ouMode: "SELECTED",
                 orgUnit: orgUnits.join(";"),
-                trackedEntity: ids.join(";"),
-            } as Parameters<typeof this.api.tracker.trackedEntities.get>[0])
+                ...trackedEntityParam,
+            } as GetTrackedEntitiesParams)
             .getData();
 
         const trackedEntities = result.instances || (hasTrackedEntitiesProperty(result) ? result.trackedEntities : []);

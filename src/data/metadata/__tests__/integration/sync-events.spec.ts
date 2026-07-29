@@ -90,41 +90,47 @@ describe("Sync events", () => {
         local.get("/dataValueSets", async () => ({ dataValues: [] }));
         local.get("/routes/DESTINATION/run/api/dataValueSets", async () => ({ dataValues: [] }));
 
-        local.get("/tracker/events", async () => ({
-            page: 1,
-            pageCount: 1,
-            pageSize: 1,
-            total: 1,
-            instances: [
-                {
-                    storedBy: "widp.admin",
-                    scheduledAt: "2020-04-11T00:00:02.846",
-                    program: "program1",
-                    event: "test-event-1",
-                    programStage: "EGA9fqLFtxM",
-                    orgUnit: "Global",
-                    status: "ACTIVE",
-                    orgUnitName: "Global",
-                    occurredAt: "2020-04-11T00:00:00.000",
-                    attributeCategoryOptions: "Y7fcspgsU43",
-                    updatedAt: "2020-06-09T07:06:35.514",
-                    createdAt: "2020-06-09T07:06:35.513",
-                    deleted: false,
-                    attributeOptionCombo: "Xr12mI7VPn3",
-                    dataValues: [
-                        {
-                            updatedAt: "2020-06-09T07:06:35.515",
-                            storedBy: "widp.admin",
-                            createdAt: "2020-06-09T07:06:35.515",
-                            dataElement: "id1",
-                            value: "true",
-                            providedElsewhere: false,
-                        },
-                    ],
-                    notes: [],
-                },
-            ],
-        }));
+        local.get("/tracker/events", async (_schema, request) => {
+            if (!request.queryParams.program) {
+                throw new Error("Missing required 'program' query param in /tracker/events request");
+            }
+
+            return {
+                page: 1,
+                pageCount: 1,
+                pageSize: 1,
+                total: 1,
+                instances: [
+                    {
+                        storedBy: "widp.admin",
+                        scheduledAt: "2020-04-11T00:00:02.846",
+                        program: "program1",
+                        event: "test-event-1",
+                        programStage: "EGA9fqLFtxM",
+                        orgUnit: "Global",
+                        status: "ACTIVE",
+                        orgUnitName: "Global",
+                        occurredAt: "2020-04-11T00:00:00.000",
+                        attributeCategoryOptions: "Y7fcspgsU43",
+                        updatedAt: "2020-06-09T07:06:35.514",
+                        createdAt: "2020-06-09T07:06:35.513",
+                        deleted: false,
+                        attributeOptionCombo: "Xr12mI7VPn3",
+                        dataValues: [
+                            {
+                                updatedAt: "2020-06-09T07:06:35.515",
+                                storedBy: "widp.admin",
+                                createdAt: "2020-06-09T07:06:35.515",
+                                dataElement: "id1",
+                                value: "true",
+                                providedElsewhere: false,
+                            },
+                        ],
+                        notes: [],
+                    },
+                ],
+            };
+        });
 
         local.get("/routes/DESTINATION/run/api/tracker/events", async () => ({
             page: 1,
