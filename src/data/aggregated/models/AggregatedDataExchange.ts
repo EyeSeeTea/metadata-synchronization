@@ -1,3 +1,6 @@
+// DHIS2 caps the aggregate data exchange source request name at 50 characters (error E4001).
+export const MAX_ADEX_SOURCE_REQUEST_NAME_LENGTH = 50;
+
 type AggregatedDataExchangeRequest = {
     name: string;
     dx: string[];
@@ -26,7 +29,7 @@ type AggregatedDataExchangeApiConfig = {
 
 type AggregatedDataExchangeTarget = {
     type: "EXTERNAL" | "INTERNAL";
-    api: AggregatedDataExchangeApiConfig;
+    api?: AggregatedDataExchangeApiConfig;
     request: {
         idScheme: Scheme;
         dataElementIdScheme: Scheme;

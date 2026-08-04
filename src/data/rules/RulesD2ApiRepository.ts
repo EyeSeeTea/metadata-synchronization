@@ -20,6 +20,7 @@ import { getAggregatedDataExchanges } from "../aggregated/getAggregateDataExchan
 import { getAggregatedDataExchangeJobConfigurations } from "../aggregated/getAggregatedDataExchangeJobConfigurations";
 import { toSynchronizationRulePersistedSnapshot } from "../../domain/rules/PersistedSnapshot";
 import { getRuleAggregatedDataExchanges } from "./utils/getRuleAggregatedDataExchanges";
+import { buildAggregatedDataExchangePayload } from "./utils/buildAggregatedDataExchangePayload";
 
 export class RulesD2ApiRepository implements RulesRepository {
     private api: D2Api;
@@ -208,42 +209,13 @@ export class RulesD2ApiRepository implements RulesRepository {
                     inst => inst.id === ade.target.instanceId && inst.type === "aggregated-data-exchange"
                 );
 
-                const name = `${ruleData.name} target: ${instance?.name || ""}`;
-
-                return {
-                    id: ade.id,
-                    name,
-                    source: {
-                        requests: [
-                            {
-                                name,
-                                dx: metadataCodes,
-                                pe: periods,
-                                ou: orgUnitCodes,
-                                filters: [],
-                                inputIdScheme: "CODE" as const,
-                                outputIdScheme: "CODE" as const,
-                                outputDataElementIdScheme: "CODE" as const,
-                                outputOrgUnitIdScheme: "CODE" as const,
-                            },
-                        ],
-                    },
-                    target: {
-                        type: "EXTERNAL" as const,
-                        api: {
-                            url: instance?.url || "",
-                            username: ade.target.username,
-                            password: ade.target.password,
-                            token: ade.target.token,
-                        },
-                        request: {
-                            idScheme: "CODE" as const,
-                            dataElementIdScheme: "CODE" as const,
-                            orgUnitIdScheme: "CODE" as const,
-                            categoryOptionComboIdScheme: "CODE" as const,
-                        },
-                    },
-                };
+                return buildAggregatedDataExchangePayload(ade, ruleData.name, instance, {
+                    periods,
+                    orgUnits,
+                    orgUnitCodes,
+                    metadataIds,
+                    metadataCodes,
+                });
             });
         });
 
@@ -282,7 +254,7 @@ export class RulesD2ApiRepository implements RulesRepository {
 
             if (hasChanged) {
                 if (
-                    aggregateDataExchange.target.api.url &&
+                    aggregateDataExchange.target.api?.url &&
                     !aggregateDataExchange.target.api.password &&
                     !aggregateDataExchange.target.api.token
                 ) {

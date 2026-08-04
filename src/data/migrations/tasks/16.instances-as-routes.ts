@@ -7,7 +7,7 @@ import { AppStorage, Migration } from "../client/types";
 import { D2Route, mapArrayToRecord, slugify } from "../../instance/InstanceD2ApiRepository";
 import { decrypt } from "../../../utils/crypto";
 import { Namespace } from "../../storage/Namespaces";
-import { getD2APiFromInstance } from "../../../utils/d2-utils";
+import { getD2APiFromInstance, removeTrailingSlash } from "../../../utils/d2-utils";
 
 type DataStoreInstance = { id: string };
 
@@ -114,6 +114,8 @@ async function getObjectSharingOrError(storage: AppStorage, id: string): Promise
 }
 
 function buildRoute(instance: Instance): D2Route {
+    const url = removeTrailingSlash(instance.url);
+
     return {
         auth:
             instance.authType === "api-token"
@@ -133,6 +135,6 @@ function buildRoute(instance: Instance): D2Route {
             users: mapArrayToRecord(instance.userAccesses),
             userGroups: mapArrayToRecord(instance.userGroupAccesses),
         },
-        url: instance.url.endsWith("/") ? `${instance.url}**` : `${instance.url}/**`,
+        url: `${url}/**`,
     };
 }

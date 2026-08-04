@@ -1,4 +1,4 @@
-import { ConfirmationDialog, useSnackbar, Wizard, WizardStep } from "@eyeseetea/d2-ui-components";
+import { Wizard, WizardStep } from "@eyeseetea/d2-ui-components";
 import _ from "lodash";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -46,7 +46,6 @@ const SyncWizard: React.FC<SyncWizardProps> = ({
         }
     >(initialDialogState);
     const [stepKey, setStepKey] = useState<string | undefined>(undefined);
-    const snackbar = useSnackbar();
 
     const steps = config[syncRule.type]
         .filter(({ showOnSyncDialog }) => !isDialog || showOnSyncDialog)

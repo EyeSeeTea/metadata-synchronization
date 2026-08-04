@@ -32,6 +32,7 @@ export class StorageClientD2Repository implements StorageClientRepository, Stora
         });
     }
 
+    @cache()
     public getStorageClient(): FutureData<StorageClient> {
         return this.constantClient.getObjectFuture(Namespace.CONFIG).map(constantConfig => {
             return constantConfig ? this.constantClient : this.dataStoreClient;
@@ -42,6 +43,7 @@ export class StorageClientD2Repository implements StorageClientRepository, Stora
     @deprecated - We are moving from Promises to Futures, this method will be removed in future refactors.
     use getStorageClient instead
     */
+    @cache()
     public async getStorageClientPromise(): Promise<StorageClient> {
         const constantConfig = await this.constantClient.getObject(Namespace.CONFIG);
         return constantConfig ? this.constantClient : this.dataStoreClient;
@@ -82,6 +84,8 @@ export class StorageClientD2Repository implements StorageClientRepository, Stora
         // Reset memoize
         clear(this.detectStorageClients, this);
         clear(this.getUserStorageClient, this);
+        clear(this.getStorageClient, this);
+        clear(this.getStorageClientPromise, this);
     }
 
     public changeStorageClient(client: AppStorageType): FutureData<void> {

@@ -46,7 +46,7 @@ function getCompositionRoot(repositories: Repositories) {
 export function getWebappCompositionRoot(instance: Instance) {
     const storageClientRepository = new StorageClientD2Repository(instance);
     const repositories: Repositories = {
-        storageClientRepository: new StorageClientD2Repository(instance),
+        storageClientRepository: storageClientRepository,
         settingsRepository: new SettingsD2ApiRepository(storageClientRepository),
         userSettingsRepository: new UserSettingsD2ApiRepository(instance),
     };

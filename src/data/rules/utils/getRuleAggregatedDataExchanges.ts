@@ -20,13 +20,34 @@ export async function getRuleAggregatedDataExchanges(
     }
 
     return adexItems.map(adex => {
+        if (adex.target.type === "INTERNAL") {
+            const instance = instances.find(
+                inst => inst.type === "aggregated-data-exchange" && inst.exchangeTargetType === "internal"
+            );
+
+            if (!instance) {
+                throw new Error(
+                    `Internal Aggregated Data Exchange instance not found for Aggregated Data Exchange ${adex.id}`
+                );
+            }
+
+            return RuleAggregatedDataExchange.createExisted({
+                id: adex.id,
+                target: {
+                    instanceId: instance.id,
+                    type: "internal",
+                    authType: "http-basic",
+                },
+            }).getOrThrow();
+        }
+
         const instance = instances.find(
-            inst => inst.url === adex.target.api.url && inst.type === "aggregated-data-exchange"
+            inst => inst.url === adex.target.api?.url && inst.type === "aggregated-data-exchange"
         );
 
         if (!instance) {
             throw new Error(
-                `Instance with url ${adex.target.api.url} not found for Aggregated Data Exchange ${adex.id}`
+                `Instance with url ${adex.target.api?.url} not found for Aggregated Data Exchange ${adex.id}`
             );
         }
 
@@ -34,10 +55,11 @@ export async function getRuleAggregatedDataExchanges(
             id: adex.id,
             target: {
                 instanceId: instance.id,
-                authType: adex.target.api.username ? "http-basic" : "api-token",
-                username: adex.target.api.username,
-                password: adex.target.api.password,
-                token: adex.target.api.token,
+                type: "external",
+                authType: adex.target.api?.username ? "http-basic" : "api-token",
+                username: adex.target.api?.username,
+                password: adex.target.api?.password,
+                token: adex.target.api?.token,
             },
         }).getOrThrow();
     });

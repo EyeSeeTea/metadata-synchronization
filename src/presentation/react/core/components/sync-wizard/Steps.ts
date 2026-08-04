@@ -60,7 +60,7 @@ const commonSteps: {
                 syncRule.targetInstances.some(instanceId => !aggregatedDataExchangeInstanceIds.includes(instanceId));
 
             const hasInstancesWithoutCredentials =
-                syncRule.aggregatedDataExchanges?.some(adex => !adex.target.password) || false;
+                syncRule.aggregatedDataExchanges?.some(adex => adex.isMissingCredentials) || false;
 
             return {
                 showDialog: hasInstancesNotInAggregatedDataExchanges || hasInstancesWithoutCredentials,

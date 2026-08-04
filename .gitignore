@@ -47,6 +47,12 @@ config.json
 /public/wmr
 
 
+# Claude Code (skill + local settings distributed externally)
+.claude/
+
+# sca-triage generated report (regenerable; durable knowledge lives in RESOLUTIONS.md)
+sca-triage-report.md
+
 # Yarn 4
 .yarn/cache
 .yarn/install-state.gz

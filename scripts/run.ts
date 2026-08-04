@@ -113,6 +113,8 @@ function build(args: BuildArgs): void {
             cleanupVariantAssets(variant.name);
         }
     }
+
+    run(`yarn build-scheduler`);
 }
 
 function updateManifestNamespace(manifestPath: string, variantFile: string) {

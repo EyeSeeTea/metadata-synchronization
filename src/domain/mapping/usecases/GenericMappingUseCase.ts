@@ -108,16 +108,20 @@ export abstract class GenericMappingUseCase {
             this.getCategoryOptions(destinationItem)
         );
 
+        // The "default" combo has a different UID per instance, so it never matches by UID/code/name.
+        // Fall back to the destination default (not EXCLUDED_KEY) to avoid a false mapping conflict.
         const categoryOptionCombos = await this.autoMapCollection(
             destinationInstance,
             this.getCategoryOptionCombos(originMetadata, defaultOriginCategoryOptionCombo[0]),
-            this.getCategoryOptionCombos(destinationItem, defaultDestinationCategoryOptionCombo[0])
+            this.getCategoryOptionCombos(destinationItem, defaultDestinationCategoryOptionCombo[0]),
+            defaultDestinationCategoryOptionCombo[0]
         );
 
         const attributeOptionCombos = await this.autoMapCollection(
             destinationInstance,
             this.getAttributeOptionCombos(originMetadata, defaultOriginCategoryOptionCombo[0]),
-            this.getAttributeOptionCombos(destinationItem, defaultDestinationCategoryOptionCombo[0])
+            this.getAttributeOptionCombos(destinationItem, defaultDestinationCategoryOptionCombo[0]),
+            defaultDestinationCategoryOptionCombo[0]
         );
 
         const options =
@@ -253,7 +257,8 @@ export abstract class GenericMappingUseCase {
     protected async autoMapCollection(
         destinationInstance: DataSource,
         originMetadata: CombinedMetadata[],
-        destinationMetadata: CombinedMetadata[]
+        destinationMetadata: CombinedMetadata[],
+        defaultValue: string = EXCLUDED_KEY
     ) {
         if (originMetadata.length === 0) return {};
         const filter = _.compact(destinationMetadata.map(({ id }) => cleanNestedMappedId(id)));
@@ -266,7 +271,7 @@ export abstract class GenericMappingUseCase {
             const [candidate] = await this.autoMap({
                 destinationInstance,
                 selectedItem: { ...item, id: cleanNestedMappedId(item.id) },
-                defaultValue: EXCLUDED_KEY,
+                defaultValue,
                 filter,
             });
             if (item.id && candidate) {

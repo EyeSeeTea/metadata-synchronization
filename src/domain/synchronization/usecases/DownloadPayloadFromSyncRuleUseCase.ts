@@ -59,12 +59,6 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
 
         const sync: GenericSyncUseCase = this.compositionRoot.sync[rule.type](rule.toBuilder());
 
-        const aggregateDataExchanges = rule.aggregatedDataExchanges?.map(ade => ade.id) || [];
-
-        const payload: SynchronizationPayload = rule.useAggregatedDataExchange
-            ? await this.aggregatedDataExchangeExecutor.getSourceData(aggregateDataExchanges)
-            : await this.buildPayload(rule.type, rule);
-
         const date = moment().format("YYYYMMDDHHmm");
 
         const mappedData =
@@ -257,7 +251,7 @@ export class DownloadPayloadFromSyncRuleUseCase implements UseCase {
                 const message = error instanceof Error ? error.message : String(error);
                 return i18n.t(
                     `An error has occurred while downloading datastore payload for instance {{name}}: {{message}}`,
-                    { name: remoteInstance.name, message }
+                    { name: remoteInstance.name, message, nsSeparator: false }
                 );
             }
         });
