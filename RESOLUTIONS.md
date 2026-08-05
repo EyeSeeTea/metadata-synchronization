@@ -6,13 +6,26 @@ This file documents every entry in the `resolutions` block of `package.json`. Ea
 
 ## Conventions
 
--   Use `^` ranges for `<package>: <range>` style pins so future patch/minor releases land naturally.
+-   **`^` range or exact version? Ask what the number is asserting.**
+
+    A **floor** — "never below this" — takes a `^` range. Almost every security constraint is a floor: it does not matter whether `axios` resolves to 1.18.1 or 1.19.0, only that it is not 1.16.0. Newer is strictly better, so let it land.
+
+    A **fixture** — "exactly this" — takes an exact version, and only when something genuinely binds to that release. These are compatibility constraints, not security ones. `@types/react`, `@types/react-dom` and `i18next` are the fixtures in this file.
+
+    The two failure modes mirror each other, and this repository has now hit both. An exact version where a floor belonged **decays**: `axios: 1.16.0` was correct when written and became the finding it was added to fix, because no patch could ever be selected. Decay has a nastier form still — `qs: 6.14.2` was written to fix an advisory, a later advisory landed on 6.14.2 itself, and the constraint ended up holding the whole tree _at_ the vulnerable version rather than above it.
+
+    In practice: is there a higher version that would also work? Use `^`. Does something bind to this exact release? Pin it — **and write the condition for unpinning it.** If that condition cannot be stated, it should have been a range.
+
+-   **Removing a constraint is not the same as upgrading.** For a package no direct dependency requests, deleting the entry hands version selection back to the parents, and a parent may be the reason the old version was there. `axios`, `qs` and `lodash` all resolve _downwards_ if their entries are removed, because `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` request older exact versions. A floor is still a resolution; it just needs to be a range.
 -   Prefer **per-parent** paths (`parent/child`) over standalone descriptors. Yarn-berry only matches a standalone descriptor on exact text — `picomatch@npm:^4` will _not_ match a child request of `^4.0.2`. The reliable forms are `parent/child`, `parent@npm:<exact-version>/child`, or `parent@npm:^<major>/child`.
--   **Versioned-parent pins go stale silently.** When `minimatch@10.2.4` becomes `10.2.5` in the tree, `minimatch@npm:10.2.4/brace-expansion` matches nothing and yarn does not warn. Re-run `/sca-triage` periodically to catch this.
+-   **Versioned-parent pins go stale silently.** When `minimatch@10.2.4` becomes `10.2.5` in the tree, `minimatch@npm:10.2.4/brace-expansion` matches nothing and yarn does not warn. Mark any entry of that shape as a decay risk and re-check it at every audit.
+-   **Prefer re-resolution to a new constraint.** Most transitive findings are a stale lockfile rather than a missing fix: the parent's declared range already admits the patched release, and `yarn up -R <package>` reaches it with no manifest change at all. Reach for a resolution only once that has been shown to fail.
 
 ## Audit cadence
 
-Run `/sca-triage` monthly or before every release. The classifier will surface any silently-broken resolution as a recurring high-severity finding. Each entry below has a **drop when** condition — when that condition becomes true, delete the entry and re-install.
+Re-audit the dependency tree monthly, and before every release. A constraint that has silently stopped working shows up as a finding that keeps coming back for a package that already has one. Each entry below has a **drop when** condition — when that condition becomes true, delete the entry and re-install.
+
+Note that a local `yarn npm audit` and the Dependency-Track analysis score against different advisory sources and will disagree. **The CI gate follows Dependency-Track**, so measure there before concluding the tree is clean.
 
 ---
 
@@ -52,7 +65,7 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@dhis2/ui-icons: 7.4.1` | Added in commit `f31d19d3` ("Fix yarn start and build"); commit message gives no further detail. Likely held back to match `@dhis2/ui` peer requirements, but this is inference, not confirmed. Leave alone until someone with project history can confirm. |
 
-### Security pins (added 2026-05-27 by `/sca-triage`)
+### Security pins (added 2026-05-27)
 
 #### `styled-jsx/loader-utils: ^1.4.2`
 
@@ -66,7 +79,7 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 -   **Fixes:** CVE-2025-7783 / GHSA-fjxv-7rqg-78g4 (critical 9.0) — unsafe boundary random in `form-data < 2.5.4`.
 -   **Drop when:** The `request` chain is removed (i.e., `@dhis2/cli-helpers-engine` drops `request` as a dependency) or `@dhis2/cli-app-scripts` is upgraded to a version that no longer pulls `request`. Verify with `yarn why form-data`.
 
-### Security pins (added 2026-05-08 by `/sca-triage`)
+### Security pins (added 2026-05-08)
 
 #### `lodash: ^4.18.0`
 
@@ -92,9 +105,10 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 -   **Why:** The dev-tool chain pulls minimatch in three vulnerable major lines (3.x via the eslint-8 ecosystem, 7.x via depcheck, 9.x via @typescript-eslint 6). The 10.x line (under `glob@13.0.6` / `cacache`) is already patched and untouched. Each pin is a patch-level bump within the parent's existing range, so the fix is mechanical: yarn resolves to `minimatch@3.1.5`, `7.4.9`, `9.0.9` respectively. The `glob@npm:7.2.3` entry is versioned-parent because `glob` lives in two majors here (v7 wants `^3.1.x`, v13 wants `^10.2.x`); a parent-name pin would mis-route.
 -   **Fixes:** CVE-2026-26996 / -27903 / -27904 (high 7.5 each), all ReDoS-class. Dev-tool only — no runtime path.
 -   **⚠️ Decay risk:** `glob@npm:7.2.3/minimatch` is the one versioned-parent entry; if `glob` v7 ever bumps to 7.2.4 anywhere in the tree, that pin silently no-ops. The other 9 are parent-name pins and ride patch/minor bumps naturally.
--   **Drop when:** The dev toolchain is upgraded past these majors — concretely, eslint 9 (drops the minimatch 3.x chain across `eslint`, `@eslint/eslintrc`, `@humanwhocodes/config-array`, `eslint-plugin-{import,jsx-a11y,react}`), `@typescript-eslint` 8 (drops the 9.x line), and a depcheck bump past 1.4.7 (drops the 7.x line). Reconsider on each of those upgrades.
+-   **Drop when:** The dev toolchain is upgraded past these majors — concretely **eslint 10** (drops the minimatch 3.x chain), `@typescript-eslint` 8 (drops the 9.x line), and a depcheck bump past 1.4.7 (drops the 7.x line). Reconsider on each of those upgrades.
+-   **⚠️ Corrected 2026-08-05: it is eslint 10, not eslint 9.** This entry previously named eslint 9 as the condition, and that is not true — `eslint@9.39.5` still declares `minimatch ^3.1.5` itself, and reaches the same line again through `@eslint/eslintrc@^3.3.6`, which also declares `^3.1.5`. `eslint@10.8.0` is the first release that drops `@eslint/eslintrc` and moves to `minimatch ^10.2.5`. Upgrading to eslint 9 would leave every one of these entries load-bearing, so anyone acting on the old condition would have removed them and reintroduced the finding. Verified against the published package metadata, not inferred.
 
-### Security pins (added 2026-05-06 by `/sca-triage`)
+### Security pins (added 2026-05-06)
 
 #### `axios: ^1.18.0`
 
@@ -132,16 +146,7 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 -   **Fixes:** GHSA-c2c7-rcm5-vvqj (CVE-2024-4067, CVE-2024-45296), high 7.5.
 -   **Drop when:** Each named parent updates to a version that pulls a patched picomatch on its own. Check with `yarn why picomatch`.
 
-#### `brace-expansion` per-exact-parent (1 entry)
-
-```jsonc
-"minimatch@npm:10.2.4/brace-expansion": "^5.0.5"
-```
-
--   **Why:** brace-expansion now only needs exact-parent pinning for the 5.x major carried by `minimatch` 10.x. The 1.x and 2.x lines are already resolving to patched versions natively after the parent upgrades landed in the tree.
--   **Fixes:** CVE-2026-33750 (high 7.5).
--   **⚠️ Decay risk: HIGH.** Exact-parent entries silently no-op on parent patch bumps. `minimatch@10.2.4/brace-expansion` still covers the `glob@13.0.6` branch. The separate `glob@11.1.0 -> minimatch@10.2.5 -> brace-expansion@5.0.5` branch is already patched natively and does not need its own pin.
--   **Drop when:** All remaining `minimatch` 10.x parents in the tree pull patched brace-expansion natively, OR the 10.x branches disappear entirely.
+_(The `minimatch@npm:10.2.4/brace-expansion` entry that used to sit here was removed on 2026-08-05 — see [Removed](#removed).)_
 
 #### `vite@npm:^4.0.0/rollup: ^3.30.0`
 
@@ -201,15 +206,73 @@ with `yarn install`.
 
 ---
 
+## Removed
+
+### `minimatch@npm:10.2.4/brace-expansion: ^5.0.5` — removed 2026-08-05
+
+The entry still matched a descriptor, so it was not inert in the way a copied pin usually is — but it
+**made no difference to the resolved version**, which is the test that matters.
+
+`minimatch@10.2.4` requests `brace-expansion@^5.0.2` and `minimatch@10.2.5` requests `^5.0.5`. Both
+ranges already admit every published patch on the 5.x line, so the tree resolves to the same
+`brace-expansion` with or without the entry. Removing it, re-installing and comparing the lockfile
+showed the resolved version unchanged; the only difference was that the `^5.0.2` descriptor is no
+longer rewritten to `^5.0.5`.
+
+It was written when the 5.x line had no backport available and the range genuinely could not reach a
+fix. That is no longer the case, and it was the highest-decay-risk shape in this file — a
+versioned-parent pin that silently stops matching when the parent patch-bumps. Re-resolution now does
+the job unaided.
+
+**Restore it only if** a future advisory affects a `brace-expansion` release that `^5.0.2` can still
+select — that is, if re-resolution stops reaching a patched version on its own.
+
+---
+
+## Known findings with no fix available
+
+Recorded here rather than in `resolutions` because **no version resolves them**. None of these is a
+constraint; they are states of the upstream package, or of the line this repository is on.
+
+### `esbuild` — GHSA-gv7w-rqvm-qjhr
+
+**This advisory was withdrawn on 2026-06-17.** It may still appear in scanner output, because
+different databases pick up withdrawals at different times. It does not describe a real defect, and
+the upgrade it appears to call for corrects nothing. It should be dismissed rather than remediated.
+
+**Revisit when:** never — a withdrawn advisory is dismissed, not fixed. If it reappears after being
+dismissed, check whether it has been re-published rather than assuming it is the same record.
+
+### `vite@4.5.14` — GHSA-fx2h-pf6j-xcff, GHSA-c27g-q93r-2cwf
+
+-   **Chain:** `devDependencies.vite` at `^4.0.0` — the application's own build tool, not a transitive path.
+-   **Why it cannot be fixed on this line:** GHSA-fx2h-pf6j-xcff is patched at 6.4.3 for everything `<= 6.4.2`, and GHSA-c27g-q93r-2cwf at 5.4.9 for vite `<= 5.4.8`. **There is no patched release anywhere on the 4.x line**, so neither re-resolution nor a scoped resolution can reach one. The only remediation is moving the application to vite 6 or later.
+-   **Impact:** build and dev-server tooling; neither advisory describes anything that reaches the production bundle. `server.fs.deny` and the launch-editor endpoint are dev-server surfaces.
+-   **Why it is not done here:** a vite major upgrade changes the build configuration and needs its own testing, so bundling it into a dependency pass would turn that pass into a toolchain migration. Tracked separately as the "vite 4 → 7 migration" work, which also drops the `vite@npm:^4.0.0/rollup` entry above.
+-   **Note for whoever picks it up:** the vite upgrade does **not** require moving off ESLint 8. The two are independent; check the coupling in your own tree before bundling a linter migration into it.
+-   **Revisit when:** the vite migration is scheduled.
+
+### `uuid@3.4.0` — GHSA-w5hq-g745-h8pq
+
+-   **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `request@2.88.2` → `uuid@^3.3.2`.
+-   **Why it cannot be fixed:** the advisory patches the line `uuid` is on at 11.1.1, but `request` calls `require('uuid/v4')`, and that subpath was removed in uuid v7. **No published `uuid` release satisfies both the advisory and the subpath `request` imports**, so the finding cannot be re-resolved, scoped or upgraded away. Forcing the patched version fails at load time with `ERR_PACKAGE_PATH_NOT_EXPORTED`. `request` has been deprecated since 2020 and receives no releases, so the call site will not change upstream.
+-   **Impact:** build/dev-tool chain only. `request` is reached through the i18n commands and is never bundled into the application.
+-   **Revisit when:** `@dhis2/cli-helpers-engine` stops depending on `request`. That is the single condition that removes this path, and it is upstream — nobody on this project controls it.
+
+---
+
 ## Decay-monitoring checklist
 
-When running `/sca-triage`, treat any of these as a signal that a pin has gone stale:
+When auditing, treat any of these as a signal that a constraint has gone stale:
 
--   A high-severity finding reappears for a package that has an active resolution.
+-   A finding of **any severity** reappears for a package that has an active resolution. Do not filter this check to critical/high — `qs` was pinned to the exact version that later became the vulnerable one, and that finding sat at medium while nothing was looking below the gate's threshold.
 -   `yarn why <pkg>` shows the resolved version _not matching_ the right-hand side of the resolution.
--   A versioned-parent pin (e.g. `minimatch@npm:10.2.4/...`) where `yarn why minimatch` shows no `10.2.4` entry — the pin is now a no-op and should be either re-pinned to the new parent version or removed if no longer needed.
+-   A versioned-parent pin (e.g. `parent@npm:1.2.3/child`) where `yarn why parent` shows no `1.2.3` entry — the pin is now a no-op and should be either re-pointed at the new parent version or removed.
+-   **A constraint whose removal changes nothing.** Delete it, re-install, and compare: if the resolved version is unchanged, the parent's own range already reaches a patched release and the entry is maintenance debt. This is what retired the `brace-expansion` entry above.
 
 ## Future improvements
 
 -   Make the existing `dependency-track-yarn4` GitHub workflow **block** on severity ≥ high so a regression doesn't reach `development`.
--   Treat the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as an **eviction candidate** rather than a pin-forever item. It still pulls packages with no upstream fix path.
+-   Treat the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as an **eviction candidate** rather than a pin-forever item. It still pulls packages with no upstream fix path, and it is the reason the `isomorphic-fetch/node-fetch` entry exists.
+-   **Upgrade the application off vite 4**, which clears two findings with no fix on the current line and drops the `vite@npm:^4.0.0/rollup` entry.
+-   **Fix `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` upstream.** Between them they request `axios`, `qs`, `lodash` and `react-linkify` at exact versions, which is what forces four of the entries in this file into every application that uses them.
