@@ -214,6 +214,36 @@ with `yarn install`.
 -   **Build/dev-tool chain only** — this vite instance serves the i18n commands and never builds the application.
 -   **Drop when:** `@dhis2/cli-app-scripts` requests a vite range admitting 6.4.3 or later.
 
+### Medium and low severity (added 2026-08-05)
+
+Most of the medium and low findings were cleared by re-resolution alone — `ajv` to 6.15.0, `bn.js` to 4.12.5 and 5.2.5, `yaml` to 1.10.3, and `@babel/core` onto a single 7.29.7 after its direct dependency was reopened from the exact `7.15.8` to `^7.29.6`. None of those needed an entry here. The three below did.
+
+All three cross a major inside the `@dhis2/cli-app-scripts` chain, which is build-time only, so each was verified by loading the consumer and exercising it rather than by `yarn install` alone.
+
+#### `http-proxy-agent/@tootallnate/once: ^2.0.1`
+
+-   **Why:** `http-proxy-agent@4.0.1` requests `@tootallnate/once@1`, and the fix for that line is on 2.0.1, so the range cannot reach it. Reached through `@dhis2/cli-app-scripts` → `@jest/core` → `jest-environment-jsdom` → `jsdom@16`. Scoped to the only consumer.
+    Verified by instantiating an `HttpProxyAgent` against the 2.x package.
+-   **Fixes:** GHSA-vpq2-c234-7xj6 (low) — incorrect control-flow scoping.
+-   **Build/dev-tool chain only.** This `jsdom` belongs to the bundled jest, which this project does not run — its tests use vitest.
+-   **Drop when:** `http-proxy-agent` requests `@tootallnate/once@^2` or later, or the bundled jest chain leaves the tree.
+
+#### `request/tough-cookie: ^4.1.3`
+
+-   **Why:** `request@2.88.2` requests `tough-cookie@~2.5.0`, which cannot reach the 4.x fix line. The separate `jsdom` path already resolves to a patched 4.x on its own and is unaffected. Scoped to `request`.
+    ⚠️ `request` is deprecated and written against the tough-cookie 2 API, so this was checked rather than assumed: with 4.1.4 installed, `request.jar()` still creates a jar, `request.cookie()` parses, and `getCookieString` round-trips the value.
+-   **Fixes:** GHSA-72xf-g2v4-qvf3 (medium) — prototype pollution.
+-   **Build/dev-tool chain only** — `request` is reached through `@dhis2/cli-helpers-engine` and never bundled.
+-   **Drop when:** the `request` chain leaves the tree. That is the same condition as the `uuid` finding below, and it is the one thing that would remove several entries at once.
+
+#### `package-json/got: ^11.8.5`
+
+-   **Why:** `package-json@6.5.0` requests `got@^9.6.0`, and the fix for that line is on 11.8.5, so the range cannot reach it. Reached through `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier` → `latest-version` → `package-json`. Scoped to the only consumer.
+    Verified by loading `package-json` and `update-notifier` against `got@11.8.6`.
+-   **Fixes:** GHSA-pfrx-2q88-qq97 (medium) — redirect to a UNIX socket.
+-   **Build/dev-tool chain only** — `update-notifier` checks for new releases of the CLI during i18n commands.
+-   **Drop when:** `package-json` requests a `got` range admitting 11.8.5, or the `update-notifier` chain leaves the tree.
+
 ---
 
 ## Removed
@@ -268,6 +298,31 @@ dismissed, check whether it has been re-published rather than assuming it is the
 -   **Why it cannot be fixed:** the advisory patches the line `uuid` is on at 11.1.1, but `request` calls `require('uuid/v4')`, and that subpath was removed in uuid v7. **No published `uuid` release satisfies both the advisory and the subpath `request` imports**, so the finding cannot be re-resolved, scoped or upgraded away. Forcing the patched version fails at load time with `ERR_PACKAGE_PATH_NOT_EXPORTED`. `request` has been deprecated since 2020 and receives no releases, so the call site will not change upstream.
 -   **Impact:** build/dev-tool chain only. `request` is reached through the i18n commands and is never bundled into the application.
 -   **Revisit when:** `@dhis2/cli-helpers-engine` stops depending on `request`. That is the single condition that removes this path, and it is upstream — nobody on this project controls it.
+
+### `request@2.88.2` — GHSA-p8p7-x288-28g6
+
+-   **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `request@^2.88.0`.
+-   **Why it cannot be fixed:** the advisory affects `<= 2.88.2` and **records no patched version at all** — 2.88.2 is the last release `request` has ever published, and the package has been deprecated since 2020. Unlike the `node-gettext` case, where "no patched version recorded" turned out to mean the fix was simply not registered, here the published version list confirms it: there is nothing above the affected range to move to. Scoped resolutions on its children (`form-data`, `tough-cookie`) address those packages, not this one.
+-   **Impact:** build/dev-tool chain only, never bundled.
+-   **Revisit when:** `@dhis2/cli-helpers-engine` drops `request`. Same condition as the `uuid` finding above — that single upstream change would close both.
+
+### `elliptic@6.6.1` — GHSA-848j-6mx2-7j84
+
+-   **Chain:** reached through the browser crypto polyfills, which exist because `md5.js` needs the `Buffer` shim.
+-   **Why it cannot be fixed:** the advisory covers **every published version** (`<= 6.6.1`), and 6.6.1 is the latest release. There is no version to move to and no range that avoids it — verified against the published version list rather than the patched-version field.
+-   **Revisit when:** a release above 6.6.1 is published, or `md5.js` is replaced and the polyfill chain leaves the tree entirely.
+
+### `eslint@8.57.1` — GHSA-p5wg-g6qr-c7cg
+
+-   **This advisory was withdrawn on 2026-02-03.** It may still appear in scanner output, because different databases pick up withdrawals at different times. It does not describe a real defect and should be dismissed rather than remediated — **do not upgrade `eslint` on account of it.**
+-   It is reported at medium severity here, which is why it survived a first pass filtered to critical and high. Worth knowing that withdrawn advisories can sit below the gate's threshold and go unexamined for longer.
+
+### `esbuild@0.18.20` — GHSA-67mh-4wv8-2f99
+
+-   **Chain:** `devDependencies.vite@^4.0.0` → `esbuild@^0.18.10`.
+-   **Why it cannot be fixed on this line:** the advisory is patched at 0.25.0 and vite 4 requests `^0.18.10`, which cannot reach it. A scoped `vite@npm:^4.0.0/esbuild: ^0.25.0` was **tried and had no effect** — the lockfile came back byte-identical and `vite@4.5.14` still received 0.18.20, even though the sibling entry `vite@npm:^4.0.0/rollup` binds correctly. Recorded here so nobody re-attempts it.
+-   **Impact:** the advisory describes esbuild's development server accepting cross-origin requests. It affects `esbuild serve`, which this project does not run — the application's dev server is vite's own.
+-   **Revisit when:** the application moves off vite 4, which replaces this esbuild entirely. Same migration as the `vite@4.5.14` findings above.
 
 ---
 
