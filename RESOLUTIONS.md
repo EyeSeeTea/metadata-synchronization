@@ -155,6 +155,50 @@ Run `/sca-triage` monthly or before every release. The classifier will surface a
 -   **Fixes:** CVE-2026-39363, CVE-2026-39364, GHSA-v2wj-q39q-566r — all high 7.5–8.0, dev-server-only.
 -   **Drop when:** vitest is upgraded past `^3.2.4` to a version whose vite peer range starts at `^7.3.2` or later. (Note: vitest@4 requires vite@6+, which the app does not yet have — see "vite 4 → 7 migration" PR.)
 
+### Security pins (added 2026-08-05)
+
+Each of these was verified against the tool or component that actually consumes the package, not only
+with `yarn install`.
+
+#### `react-linkify/linkify-it: ^5.0.2`
+
+-   **Why:** `react-linkify@1.0.0-alpha` requests `linkify-it@^2.0.3`, and the fix exists only on the 5.x line, so the range cannot reach it. `react-linkify` is requested at the exact version `1.0.0-alpha` by `@eyeseetea/d2-ui-components`, so the parent cannot be moved either. Scoped to that parent so any other `linkify-it` consumer is untouched.
+    `react-linkify` is unmaintained and written against the linkify-it 2 API, so this was **checked rather than assumed**: `linkify-it@5.0.2` still exports a callable CJS function, and `.tlds()`, `.match()` and `.test()` behave the same. Rendering `<Linkify>` produces the expected `<a href>` for both URLs and `mailto:` addresses.
+-   **Fixes:** GHSA-22p9-wv53-3rq4 (patched 5.0.1) and GHSA-v245-v573-v5vm (patched 5.0.2) — quadratic-complexity DoS in the scan loop and the `mailto:` validator.
+-   **Runtime.** `<Linkify>` is rendered by the store-creation pages.
+-   **Drop when:** `@eyeseetea/d2-ui-components` drops `react-linkify` or moves to a release requesting a patched `linkify-it`.
+
+#### `styled-components/postcss: ^8.5.18`
+
+-   **Why:** `styled-components@6.1.8` requests `postcss` at the exact version `8.4.31`, so no re-resolution can move it. Every other `postcss` consumer in the tree already requests a range that admits the patched line and is unaffected. Scoped to `styled-components` rather than applied globally.
+    Verified by rendering a styled component through `ServerStyleSheet` and confirming the generated CSS still contains the declared properties and nested `:hover` rule, in addition to the test suite and a production build.
+-   **Fixes:** GHSA-r28c-9q8g-f849 (patched 8.5.18) — path traversal in previous-source-map auto-loading; GHSA-6g55-p6wh-862q (patched 8.5.12) — arbitrary file read via attacker-controlled source map comments.
+-   **Runtime.** `styled-components` is a direct dependency used throughout the presentation layer.
+-   **Drop when:** `styled-components` requests a `postcss` range admitting 8.5.18 or later.
+
+#### `external-editor/tmp: ^0.2.6`
+
+-   **Why:** `external-editor@3.1.0` requests `tmp@^0.0.33`, which cannot reach the fix on the 0.2.x line. Reached through `@dhis2/cli-app-scripts` → `inquirer` → `external-editor`. Scoped to the only consumer.
+-   **Fixes:** GHSA-ph9p-34f9-6g65 (patched 0.2.6) — path traversal via unsanitized `prefix`/`postfix` allowing writes outside the temporary directory.
+-   **Build/dev-tool chain only** — `external-editor` provides interactive prompt editing and is never bundled.
+-   **Drop when:** `external-editor` requests `tmp@^0.2.6` or later, or the `inquirer` chain leaves the tree.
+
+#### `isomorphic-fetch/node-fetch: ^2.6.7`
+
+-   **Why:** `isomorphic-fetch@2.2.1` requests `node-fetch@^1.0.1`, and the fix for the 1.x line is on 2.6.7, so the range cannot reach it. Reached through `@eyeseetea/d2-ui-components` → `@dhis2/d2-ui-core` → `d2@31.7.0`, and again through `material-ui` → `recompose` → `fbjs`. Scoped to `isomorphic-fetch`; the separate `cross-fetch` path already requests a patched `node-fetch` and is untouched.
+    This crosses a major, so it was verified rather than assumed: `isomorphic-fetch` loads against `node-fetch@2.7.0` and still installs a global `fetch`.
+-   **Fixes:** GHSA-r683-j2x4-v87g (patched 2.6.7) — secure headers forwarded to untrusted sites across a cross-host redirect.
+-   **Runtime**, through the legacy `d2` chain.
+-   **Drop when:** the `d2@31.7.0` chain is removed — see _Future improvements_ — or `isomorphic-fetch` requests a patched `node-fetch`.
+
+#### `@dhis2/cli-app-scripts/vite: ^6.4.3`
+
+-   **Why:** `@dhis2/cli-app-scripts@12.11.1` bundles its own `vite` at `^5.2.9`. The advisory is patched at 6.4.3 and **there is no fix anywhere on the 5.x line**, so the range cannot reach it and the parent has no release that requests a patched vite. Scoped to `@dhis2/cli-app-scripts` because the application's own vite is on a different major and must not be moved by this entry.
+    Verified by running the commands that actually use this package — `yarn localize`, which still extracts the same number of strings and produces no content change to the generated `.pot` beyond its timestamp.
+-   **Fixes:** GHSA-fx2h-pf6j-xcff (patched 6.4.3) — `server.fs.deny` bypass via Windows alternate paths.
+-   **Build/dev-tool chain only** — this vite instance serves the i18n commands and never builds the application.
+-   **Drop when:** `@dhis2/cli-app-scripts` requests a vite range admitting 6.4.3 or later.
+
 ---
 
 ## Decay-monitoring checklist
