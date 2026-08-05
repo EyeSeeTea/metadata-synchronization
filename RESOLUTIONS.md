@@ -196,6 +196,16 @@ with `yarn install`.
 -   **Runtime**, through the legacy `d2` chain.
 -   **Drop when:** the `d2@31.7.0` chain is removed — see _Future improvements_ — or `isomorphic-fetch` requests a patched `node-fetch`.
 
+#### `i18next-conv/node-gettext: ^3.0.1`
+
+-   **Why:** `i18next-conv@9.2.1` requests `node-gettext@^2.0.0`, which resolves to the vulnerable `2.1.0`. Reached through `@dhis2/cli-app-scripts` → `i18next-conv`. Scoped to that parent because it is the only consumer.
+    ⚠️ **The advisory looks unfixable and is not.** GHSA-g974-hxvm-x689 records **no patched version at all**, so tooling that reads only that field reports it as a dead end — but its affected range is `<= 3.0.0`, and **3.0.1 is published and outside it**. Always compare the affected range against the published version list before concluding a finding cannot be fixed.
+    This crosses a major, so it was verified against the tool that consumes it: `yarn localize` still extracts the same 840 strings and produces no change to the generated `.pot` or the `.po` files beyond their timestamps.
+-   **Fixes:** GHSA-g974-hxvm-x689 — prototype pollution.
+-   **Build/dev-tool chain only** — `node-gettext` converts PO/POT files during i18n generation and is never bundled.
+-   **Severity note:** the Dependency-Track analysis scores this **medium** while a local `yarn npm audit` scores it high. It is fixed here regardless of which side of the gate's threshold it falls on, because a published fix exists.
+-   **Drop when:** `i18next-conv` requests `node-gettext@^3.0.1` or later natively, or drops it. Verify with `yarn why node-gettext`.
+
 #### `@dhis2/cli-app-scripts/vite: ^6.4.3`
 
 -   **Why:** `@dhis2/cli-app-scripts@12.11.1` bundles its own `vite` at `^5.2.9`. The advisory is patched at 6.4.3 and **there is no fix anywhere on the 5.x line**, so the range cannot reach it and the parent has no release that requests a patched vite. Scoped to `@dhis2/cli-app-scripts` because the application's own vite is on a different major and must not be moved by this entry.
@@ -276,3 +286,4 @@ When auditing, treat any of these as a signal that a constraint has gone stale:
 -   Treat the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as an **eviction candidate** rather than a pin-forever item. It still pulls packages with no upstream fix path, and it is the reason the `isomorphic-fetch/node-fetch` entry exists.
 -   **Upgrade the application off vite 4**, which clears two findings with no fix on the current line and drops the `vite@npm:^4.0.0/rollup` entry.
 -   **Fix `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` upstream.** Between them they request `axios`, `qs`, `lodash` and `react-linkify` at exact versions, which is what forces four of the entries in this file into every application that uses them.
+-   **`cross-spawn@5.1.0`, reached through `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier` → `boxen` → `term-size` → `execa@0.7.0`.** A local `yarn npm audit` reports it against a ReDoS advisory affecting `< 6.0.6`; the Dependency-Track analysis does not report it at all, which is the scanner disagreement noted under _Audit cadence_. Left alone deliberately rather than overlooked — fixing it needs a versioned-parent entry against `execa@npm:0.7.0`, the shape with the highest decay risk, for a build-only path that the gate does not flag. Revisit if Dependency-Track starts reporting it, or if the `update-notifier` chain is removed.

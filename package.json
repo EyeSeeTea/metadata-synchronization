@@ -167,7 +167,8 @@
         "styled-components/postcss": "^8.5.18",
         "external-editor/tmp": "^0.2.6",
         "isomorphic-fetch/node-fetch": "^2.6.7",
-        "@dhis2/cli-app-scripts/vite": "^6.4.3"
+        "@dhis2/cli-app-scripts/vite": "^6.4.3",
+        "i18next-conv/node-gettext": "^3.0.1"
     },
     "manifest.webapp": {
         "name": "MetaData Synchronization",
