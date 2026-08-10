@@ -283,11 +283,25 @@ the upgrade it appears to call for corrects nothing. It should be dismissed rath
 **Revisit when:** never — a withdrawn advisory is dismissed, not fixed. If it reappears after being
 dismissed, check whether it has been re-published rather than assuming it is the same record.
 
-### `vite@4.5.14` — GHSA-fx2h-pf6j-xcff, GHSA-c27g-q93r-2cwf
+### `vite@4.5.14` — seven advisories
 
 -   **Chain:** `devDependencies.vite` at `^4.0.0` — the application's own build tool, not a transitive path.
--   **Why it cannot be fixed on this line:** GHSA-fx2h-pf6j-xcff is patched at 6.4.3 for everything `<= 6.4.2`, and GHSA-c27g-q93r-2cwf at 5.4.9 for vite `<= 5.4.8`. **There is no patched release anywhere on the 4.x line**, so neither re-resolution nor a scoped resolution can reach one. The only remediation is moving the application to vite 6 or later.
--   **Impact:** build and dev-server tooling; neither advisory describes anything that reaches the production bundle. `server.fs.deny` and the launch-editor endpoint are dev-server surfaces.
+-   **Why it cannot be fixed on this line:** every one of the seven is patched on 5.x or later, and **there is no patched release anywhere on the 4.x line**, so neither re-resolution nor a scoped resolution can reach one. The lowest release that clears all seven is 6.4.3. The only remediation is moving the application to vite 6 or later.
+
+    | Advisory              | Severity | Range that catches 4.5.14 | First patch |
+    | --------------------- | -------- | ------------------------- | ----------- |
+    | `GHSA-fx2h-pf6j-xcff` | high     | `<= 6.4.2`                | 6.4.3       |
+    | `GHSA-c27g-q93r-2cwf` | high     | `<= 5.4.8`                | 5.4.9       |
+    | `GHSA-v6wh-96g9-6wx3` | medium   | `<= 6.4.2`                | 6.4.3       |
+    | `GHSA-4w7w-66w2-5vf9` | medium   | `<= 6.4.1`                | 6.4.2       |
+    | `GHSA-93m4-6634-74q7` | medium   | `>= 4.5.3, < 5.0.0`       | 5.4.21      |
+    | `GHSA-g4jq-h2w9-997c` | low      | `<= 5.4.19`               | 5.4.20      |
+    | `GHSA-jqfw-vq24-v9c3` | low      | `<= 5.4.19`               | 5.4.20      |
+
+    Note `GHSA-93m4-6634-74q7`: it carries a range specifically for the 4.x line (`>= 4.5.3, < 5.0.0`) whose first patched version is 5.4.21 — the advisory itself states there is no 4.x fix, rather than leaving it to be inferred.
+
+-   ⚠️ **Two of these name `launch-editor` as well as `vite`, and it cannot be pinned.** `GHSA-c27g-q93r-2cwf` (command injection, patched at `launch-editor@2.9.0`) and `GHSA-v6wh-96g9-6wx3` (NTLMv2 hash disclosure via UNC paths) both list `launch-editor <= 2.8.2` beside the vite ranges, which makes a scoped `vite/launch-editor` entry look like a cheap way out. There is nothing to scope to: `launch-editor` does not appear in `yarn.lock` at all, because vite 4 **vendors it into its own bundle** — `dist/node/chunks/dep-827b23df.js` carries `launchEditorMiddleware` inline and mounts it at `/__open-in-editor`. A resolution would install cleanly and change nothing, exactly like the `esbuild` attempt recorded below. Verified by unpacking the published `vite@4.5.14` tarball, not inferred from the dependency list.
+-   **Impact:** build and dev-server tooling; none of the seven describes anything that reaches the production bundle. `server.fs.deny`, the `.map` and HTML serving paths, and the launch-editor endpoint are all dev-server surfaces.
 -   **Why it is not done here:** a vite major upgrade changes the build configuration and needs its own testing, so bundling it into a dependency pass would turn that pass into a toolchain migration. Tracked separately as the "vite 4 → 7 migration" work, which also drops the `vite@npm:^4.0.0/rollup` entry above.
 -   **Note for whoever picks it up:** the vite upgrade does **not** require moving off ESLint 8. The two are independent; check the coupling in your own tree before bundling a linter migration into it.
 -   **Revisit when:** the vite migration is scheduled.
