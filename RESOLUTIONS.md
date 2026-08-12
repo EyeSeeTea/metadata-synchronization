@@ -19,6 +19,8 @@ This file documents every entry in the `resolutions` block of `package.json`. Ea
 -   **Removing a constraint is not the same as upgrading.** For a package no direct dependency requests, deleting the entry hands version selection back to the parents, and a parent may be the reason the old version was there. `axios`, `qs` and `lodash` all resolve _downwards_ if their entries are removed, because `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` request older exact versions. A floor is still a resolution; it just needs to be a range.
 -   Prefer **per-parent** paths (`parent/child`) over standalone descriptors. Yarn-berry only matches a standalone descriptor on exact text — `picomatch@npm:^4` will _not_ match a child request of `^4.0.2`. The reliable forms are `parent/child`, `parent@npm:<exact-version>/child`, or `parent@npm:^<major>/child`.
 -   **Versioned-parent pins go stale silently.** When `minimatch@10.2.4` becomes `10.2.5` in the tree, `minimatch@npm:10.2.4/brace-expansion` matches nothing and yarn does not warn. Mark any entry of that shape as a decay risk and re-check it at every audit.
+-   **The version in a versioned-parent path is the _descriptor_, not the resolved version.** `glob@npm:7.2.3/minimatch` looks right next to a lockfile entry reading `version: 7.2.3`, and matches nothing: the descriptors consumers actually request are `^7.1.1`, `^7.1.2`, `^7.1.3` and `^7.1.4`. Read the key off the descriptor line, never off the `version:` line below it. This one shipped as a no-op and was only caught by testing it — see [Removed](#removed).
+-   **A versioned-parent path cannot select a version outside the range the parent declares; a parent-name path can.** This is the difference between the two `vite@npm:^4.0.0/…` attempts below, and it is not obvious. `vite@4.5.14` declares `rollup: ^3.27.1` and `esbuild: ^0.18.10`. The pin `vite@npm:^4.0.0/rollup: ^3.30.0` binds, because 3.30.0 is _inside_ `^3.27.1`. The pin `vite@npm:^4.0.0/esbuild: ^0.25.0` silently does nothing, because 0.25.0 is _outside_ `^0.18.10` — same parent, same matched descriptor, opposite outcome. A parent-name pin (`vite/esbuild`) does override the declared range, but applies to every `vite` in the tree, which here would drag vite 6 and 7 below the esbuild they declare. **So: to lift a child past what its parent declares, you need the parent-name form, and you must first check what else shares that parent name.**
 -   **Prefer re-resolution to a new constraint.** Most transitive findings are a stale lockfile rather than a missing fix: the parent's declared range already admits the patched release, and `yarn up -R <package>` reaches it with no manifest change at all. Reach for a resolution only once that has been shown to fail.
 
 ## Audit cadence
@@ -47,10 +49,11 @@ Note that a local `yarn npm audit` and the Dependency-Track analysis score again
 -   **Runtime, not build-only.** `qs` is reached through `@eyeseetea/d2-api`, so this change was verified with the test suite and a production build rather than with `yarn install` alone.
 -   **Drop when:** every consumer requests `qs >= 6.15.2` natively. `@eyeseetea/d2-api` is the blocker — it requests an older exact version, so removing this entry resolves `qs` _downwards_ rather than upwards. Verify with `yarn why qs`.
 
-#### `diff: 5.2.2`
+#### `diff: ^5.2.2`
 
 -   **Why:** Forces transitive `diff` consumers off the vulnerable older line. Added in commit `73df6b5a`.
 -   **Fixes:** SNYK-JS-DIFF-14917201 — ReDoS (Medium).
+-   **Converted from the exact `5.2.2` to a range on 2026-08-12.** This is a security floor, and an exact version cannot receive a patch — the shape that turns a fix into the next finding. 5.2.2 is currently the newest release on the 5.x line, so the resolved version is unchanged today; the range simply lets the next 5.x patch land unaided.
 -   **Drop when:** All parents pulling `diff` request `^5.2.0` or later natively. Verify with `yarn why diff`.
 
 #### `i18next: 19.8.5`
@@ -87,7 +90,7 @@ Note that a local `yarn npm audit` and the Dependency-Track analysis score again
 -   **Fixes:** CVE-2026-4800 (critical 9.8) and CVE-2021-23337 (high 8.1) — both template-injection in `_.template`. Fix landed in lodash 4.18.0, the first lodash minor in 5+ years and explicitly cut to address these advisories.
 -   **Drop when:** Either every transitive parent natively requests `lodash@^4.18.0` or higher (verify with `yarn why lodash`), or the project removes the direct `lodash` dep entirely.
 
-#### `minimatch` per-parent (10 entries)
+#### `minimatch` per-parent (9 entries)
 
 ```jsonc
 "@eslint/eslintrc/minimatch":                     "^3.1.4",
@@ -97,14 +100,13 @@ Note that a local `yarn npm audit` and the Dependency-Track analysis score again
 "eslint-plugin-jsx-a11y/minimatch":               "^3.1.4",
 "eslint-plugin-react/minimatch":                  "^3.1.4",
 "multimatch/minimatch":                           "^3.1.4",
-"glob@npm:7.2.3/minimatch":                       "^3.1.4",
 "depcheck/minimatch":                             "^7.4.8",
 "@typescript-eslint/typescript-estree/minimatch": "^9.0.7"
 ```
 
--   **Why:** The dev-tool chain pulls minimatch in three vulnerable major lines (3.x via the eslint-8 ecosystem, 7.x via depcheck, 9.x via @typescript-eslint 6). The 10.x line (under `glob@13.0.6` / `cacache`) is already patched and untouched. Each pin is a patch-level bump within the parent's existing range, so the fix is mechanical: yarn resolves to `minimatch@3.1.5`, `7.4.9`, `9.0.9` respectively. The `glob@npm:7.2.3` entry is versioned-parent because `glob` lives in two majors here (v7 wants `^3.1.x`, v13 wants `^10.2.x`); a parent-name pin would mis-route.
+-   **Why:** The dev-tool chain pulls minimatch in three vulnerable major lines (3.x via the eslint-8 ecosystem, 7.x via depcheck, 9.x via @typescript-eslint 6). The 10.x line (under `glob@13.0.6` / `cacache`) is already patched and untouched. Each pin is a patch-level bump within the parent's existing range, so the fix is mechanical: yarn resolves to `minimatch@3.1.5`, `7.4.9`, `9.0.9` respectively.
 -   **Fixes:** CVE-2026-26996 / -27903 / -27904 (high 7.5 each), all ReDoS-class. Dev-tool only — no runtime path.
--   **⚠️ Decay risk:** `glob@npm:7.2.3/minimatch` is the one versioned-parent entry; if `glob` v7 ever bumps to 7.2.4 anywhere in the tree, that pin silently no-ops. The other 9 are parent-name pins and ride patch/minor bumps naturally.
+-   **All nine are parent-name pins** and ride patch and minor bumps of their parents naturally. There is no versioned-parent entry left in this file; the one that existed, `glob@npm:7.2.3/minimatch`, never matched anything — see [Removed](#removed).
 -   **Drop when:** The dev toolchain is upgraded past these majors — concretely **eslint 10** (drops the minimatch 3.x chain), `@typescript-eslint` 8 (drops the 9.x line), and a depcheck bump past 1.4.7 (drops the 7.x line). Reconsider on each of those upgrades.
 -   **⚠️ Corrected 2026-08-05: it is eslint 10, not eslint 9.** This entry previously named eslint 9 as the condition, and that is not true — `eslint@9.39.5` still declares `minimatch ^3.1.5` itself, and reaches the same line again through `@eslint/eslintrc@^3.3.6`, which also declares `^3.1.5`. `eslint@10.8.0` is the first release that drops `@eslint/eslintrc` and moves to `minimatch ^10.2.5`. Upgrading to eslint 9 would leave every one of these entries load-bearing, so anyone acting on the old condition would have removed them and reintroduced the finding. Verified against the published package metadata, not inferred.
 
@@ -248,6 +250,32 @@ All three cross a major inside the `@dhis2/cli-app-scripts` chain, which is buil
 
 ## Removed
 
+### `glob@npm:7.2.3/minimatch: ^3.1.4` — removed 2026-08-12
+
+**It never matched anything.** The key names the descriptor `glob@npm:7.2.3`, and no consumer
+requests that. The only glob 7 entry in the lockfile is:
+
+```
+"glob@npm:^7.1.1, glob@npm:^7.1.2, glob@npm:^7.1.3, glob@npm:^7.1.4":
+  version: 7.2.3
+```
+
+`7.2.3` is the version yarn resolved to, not a range anyone asked for. Resolution keys match
+descriptor text, so the entry was inert from the day it was written — the value was read off the
+`version:` line instead of the descriptor line above it.
+
+Verified by removing it and re-installing: no resolved version changes anywhere in the tree, and the
+lockfile moves by a single line. `glob@7.2.3` gets `minimatch@3.1.5` through its own `^3.1.1`, which
+already admits the patched release, so the entry was not needed either — this is the
+re-resolution-first rule in the conventions, applied after the fact.
+
+The intent behind it was sound: `glob` lives in two majors here, v7 on the 3.x line and v13 on 10.x,
+and a parent-name `glob/minimatch` pin would have dragged v13 down seven majors. That reasoning still
+holds; it simply was not needed, because v7 reaches its own patch unaided.
+
+**Restore it only if** a glob 7 consumer appears whose declared range cannot reach a patched
+`minimatch` 3.x — and if so, key it on the descriptor, not on the resolved version.
+
 ### `minimatch@npm:10.2.4/brace-expansion: ^5.0.5` — removed 2026-08-05
 
 The entry still matched a descriptor, so it was not inert in the way a copied pin usually is — but it
@@ -370,6 +398,7 @@ dismissed, check whether it has been re-published rather than assuming it is the
 
 -   **Chain:** `devDependencies.vite@^4.0.0` → `esbuild@^0.18.10`.
 -   **Why it cannot be fixed on this line:** the advisory is patched at 0.25.0 and vite 4 requests `^0.18.10`, which cannot reach it. A scoped `vite@npm:^4.0.0/esbuild: ^0.25.0` was **tried and had no effect** — the lockfile came back byte-identical and `vite@4.5.14` still received 0.18.20, even though the sibling entry `vite@npm:^4.0.0/rollup` binds correctly. Recorded here so nobody re-attempts it.
+-   **Why the sibling binds and this one does not — re-tested 2026-08-12.** It is not a quirk of esbuild. A versioned-parent path can only select inside the range the parent already declares. `^3.30.0` is inside vite 4's `rollup: ^3.27.1`, so that pin binds; `^0.25.0` is outside vite 4's `esbuild: ^0.18.10`, so this one cannot. The parent-name form `vite/esbuild: ^0.25.0` **does** bind and was measured — but it applies to every `vite` in the tree, and this tree has three. It pulled vite 6 and vite 7 onto 0.25.12 as well, below the `^0.25.0` and `^0.27.0 || ^0.28.0` they respectively declare. Trading a dev-only advisory on vite 4 for two consumers held under their declared ranges is not a good exchange, so the finding stands. Recorded as a rule in [Conventions](#conventions), because the same shape will come up again.
 -   **Impact:** the advisory describes esbuild's development server accepting cross-origin requests. It affects `esbuild serve`, which this project does not run — the application's dev server is vite's own.
 -   **Revisit when:** the application moves off vite 4, which replaces this esbuild entirely. Same migration as the `vite@4.5.14` findings above.
 
