@@ -320,8 +320,8 @@ medium, 2 low.** They reduce to four groups, and only one of them has nothing th
 
 Read in order of cost:
 
-1. **Dismissing the four withdrawn alerts takes 6 of the highs down to 3** and needs no commit. Three
-   are `GHSA-gv7w-rqvm-qjhr` against `esbuild` and one is `GHSA-p5wg-g6qr-c7cg` against `eslint`; both
+1. **Dismissing the withdrawn alerts is the cheapest item and needs no commit.** Three are
+   `GHSA-gv7w-rqvm-qjhr` against `esbuild` and one is `GHSA-p5wg-g6qr-c7cg` against `eslint`; both
    advisories were withdrawn upstream. Dismiss them rather than acting on them — **do not upgrade
    either package on their account.**
 2. **The vite migration clears more than half of everything open** — 2 high, 4 medium, 2 low — because
@@ -372,6 +372,8 @@ dismissed, check whether it has been re-published rather than assuming it is the
 -   **Note for whoever picks it up:** the vite upgrade does **not** require moving off ESLint 8. The two are independent; check the coupling in your own tree before bundling a linter migration into it.
 -   **Revisit when:** the vite migration is scheduled.
 
+-   **Advisories against this component:** **seven** live against `vite@4.5.14`, all listed above. Fifteen others exist against `vite` and are patched at or below this version.
+
 ### `uuid@3.4.0` — GHSA-w5hq-g745-h8pq
 
 -   **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `request@2.88.2` → `uuid@^3.3.2`.
@@ -380,6 +382,8 @@ dismissed, check whether it has been re-published rather than assuming it is the
 -   **Revisit when:** `@dhis2/cli-helpers-engine` stops depending on `request` — or sooner, if the `@dhis2/cli-app-scripts` chain is replaced. That chain is a devDependency serving exactly two scripts, `extract-pot` and `localize`; dropping it closes this finding and the `request` one below without waiting for anyone upstream. See _Future improvements_.
 -   ⚠️ **A `yarn patch` would also work, and is deliberately not done.** Patching `request` to call `require('uuid').v4` instead of `require('uuid/v4')` would let `uuid` move to 11.1.1, since 11.x still ships a CJS entry point. That trades an open alert on a build-only path for a patch file against a package deprecated since 2020, which has to be re-checked on every install. Recorded so the option is a decision rather than an oversight.
 
+-   **Advisories against this component:** **one** live against `uuid@3.4.0` — the entry above. A second, GHSA-qmq6-f8pr-cx5x, also matches this version but was withdrawn on 2026-05-05 as a duplicate of it, so scanner output may show two where only one is real.
+
 ### `request@2.88.2` — GHSA-p8p7-x288-28g6
 
 -   **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `request@^2.88.0`.
@@ -387,16 +391,22 @@ dismissed, check whether it has been re-published rather than assuming it is the
 -   **Impact:** build/dev-tool chain only, never bundled.
 -   **Revisit when:** `@dhis2/cli-helpers-engine` drops `request`, or the `@dhis2/cli-app-scripts` chain is replaced. Same condition as the `uuid` finding above — either change closes both at once, and the second one does not depend on upstream.
 
+-   **Advisories against this component:** **one** live against `request@2.88.2` — the entry above. One other exists against the package and is patched below this version.
+
 ### `elliptic@6.6.1` — GHSA-848j-6mx2-7j84
 
 -   **Chain:** reached through the browser crypto polyfills, which exist because `md5.js` needs the `Buffer` shim.
 -   **Why it cannot be fixed:** the advisory covers **every published version** (`<= 6.6.1`), and 6.6.1 is the latest release. There is no version to move to and no range that avoids it — verified against the published version list rather than the patched-version field.
 -   **Revisit when:** a release above 6.6.1 is published, or `md5.js` is replaced and the polyfill chain leaves the tree entirely.
 
+-   **Advisories against this component:** **one** live — the entry above. Eight others exist against `elliptic` and are all patched at or below 6.6.1, including the critical GHSA-vjh7-7g9h-fjfh, which 6.6.1 is itself the fix for.
+
 ### `eslint@8.57.1` — GHSA-p5wg-g6qr-c7cg
 
 -   **This advisory was withdrawn on 2026-02-03.** It may still appear in scanner output, because different databases pick up withdrawals at different times. It does not describe a real defect and should be dismissed rather than remediated — **do not upgrade `eslint` on account of it.**
 -   It is reported at medium severity here, which is why it survived a first pass filtered to critical and high. Worth knowing that withdrawn advisories can sit below the gate's threshold and go unexamined for longer.
+
+-   **Advisories against this component:** **none** live against `eslint@8.57.1`. The one above is withdrawn, and one other exists against the package, patched below this version.
 
 ### `esbuild@0.18.20` — GHSA-67mh-4wv8-2f99
 
@@ -405,6 +415,7 @@ dismissed, check whether it has been re-published rather than assuming it is the
 -   **Why the sibling binds and this one does not — re-tested 2026-08-12.** It is not a quirk of esbuild. A versioned-parent path can only select inside the range the parent already declares. `^3.30.0` is inside vite 4's `rollup: ^3.27.1`, so that pin binds; `^0.25.0` is outside vite 4's `esbuild: ^0.18.10`, so this one cannot. The parent-name form `vite/esbuild: ^0.25.0` **does** bind and was measured — but it applies to every `vite` in the tree, and this tree has three. It pulled vite 6 and vite 7 onto 0.25.12 as well, below the `^0.25.0` and `^0.27.0 || ^0.28.0` they respectively declare. Trading a dev-only advisory on vite 4 for two consumers held under their declared ranges is not a good exchange, so the finding stands. Recorded as a rule in [Conventions](#conventions), because the same shape will come up again.
 -   **Impact:** the advisory describes esbuild's development server accepting cross-origin requests. It affects `esbuild serve`, which this project does not run — the application's dev server is vite's own.
 -   **Revisit when:** the application moves off vite 4, which replaces this esbuild entirely. Same migration as the `vite@4.5.14` findings above.
+-   **Advisories against this component:** **one** live against `esbuild@0.18.20` — this entry. A second, GHSA-gv7w-rqvm-qjhr, also matches this version but is withdrawn; it has its own entry above. One further advisory exists against `esbuild` and is patched below this version.
 
 ---
 
