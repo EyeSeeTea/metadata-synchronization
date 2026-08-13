@@ -20,7 +20,7 @@ This file documents every entry in the `resolutions` block of `package.json`. Ea
 -   Prefer **per-parent** paths (`parent/child`) over standalone descriptors. Yarn-berry only matches a standalone descriptor on exact text — `picomatch@npm:^4` will _not_ match a child request of `^4.0.2`. The reliable forms are `parent/child`, `parent@npm:<exact-version>/child`, or `parent@npm:^<major>/child`.
 -   **Versioned-parent pins go stale silently.** When `minimatch@10.2.4` becomes `10.2.5` in the tree, `minimatch@npm:10.2.4/brace-expansion` matches nothing and yarn does not warn. Mark any entry of that shape as a decay risk and re-check it at every audit.
 -   **The version in a versioned-parent path is the _descriptor_, not the resolved version.** `glob@npm:7.2.3/minimatch` looks right next to a lockfile entry reading `version: 7.2.3`, and matches nothing: the descriptors consumers actually request are `^7.1.1`, `^7.1.2`, `^7.1.3` and `^7.1.4`. Read the key off the descriptor line, never off the `version:` line below it. This one shipped as a no-op and was only caught by testing it — see [Removed](#removed).
--   **A versioned-parent path cannot select a version outside the range the parent declares; a parent-name path can.** This is the difference between the two `vite@npm:^4.0.0/…` attempts below, and it is not obvious. `vite@4.5.14` declares `rollup: ^3.27.1` and `esbuild: ^0.18.10`. The pin `vite@npm:^4.0.0/rollup: ^3.30.0` binds, because 3.30.0 is _inside_ `^3.27.1`. The pin `vite@npm:^4.0.0/esbuild: ^0.25.0` silently does nothing, because 0.25.0 is _outside_ `^0.18.10` — same parent, same matched descriptor, opposite outcome. A parent-name pin (`vite/esbuild`) does override the declared range, but applies to every `vite` in the tree, which here would drag vite 6 and 7 below the esbuild they declare. **So: to lift a child past what its parent declares, you need the parent-name form, and you must first check what else shares that parent name.**
+-   **A versioned-parent path cannot select a version outside the range the parent declares; a parent-name path can.** It was established with two sibling attempts on the same parent, and it is not obvious. `vite@4.5.14` declares `rollup: ^3.27.1` and `esbuild: ^0.18.10`. The pin `vite@npm:^4.0.0/rollup: ^3.30.0` binds, because 3.30.0 is _inside_ `^3.27.1`. The pin `vite@npm:^4.0.0/esbuild: ^0.25.0` silently does nothing, because 0.25.0 is _outside_ `^0.18.10` — same parent, same matched descriptor, opposite outcome. A parent-name pin (`vite/esbuild`) does override the declared range, but applies to every `vite` in the tree, which here would drag vite 6 and 7 below the esbuild they declare. **So: to lift a child past what its parent declares, you need the parent-name form, and you must first check what else shares that parent name.**
 -   **Test a constraint by removing it, re-installing and comparing the _resolved versions_** — not the lockfile bytes. A constraint can rewrite a descriptor, change the lockfile, and leave every installed version exactly where it was.
 -   **When a returning version looks alarming, check the advisory's range before keeping the pin.** An older version coming back is not by itself a reason to keep a constraint. If removing a `glob-parent` entry returns `3.1.0`, note that `GHSA-ww39-953v-wcq6` affects `>= 4.0.0, < 5.1.2`: the version that returned was never in range, so the entry was protecting nothing.
 -   **Validate the control before trusting a zero from the advisories API.** `gh api "advisories?ecosystem=npm&affects=<pkg>@<version>"` returns nothing both for a clean version and for one that was never published. `glob-parent@5.0.0` looks like a known-vulnerable control and returns nothing because it does not exist; `glob-parent@5.1.1` is a valid one.
@@ -154,17 +154,7 @@ Note that a local `yarn npm audit` and the Dependency-Track analysis score again
 
 _(The `minimatch@npm:10.2.4/brace-expansion` entry that used to sit here was removed on 2026-08-05 — see [Removed](#removed).)_
 
-#### `vite@npm:^4.0.0/rollup: ^3.30.0`
-
--   **Why:** The application's vite (`devDependencies.vite ^4.0.0` → `vite@4.5.14`) pulls rollup `^3.27.1`, which resolves to the vulnerable `3.29.5`. The vitest tree's vite 7 already gets `rollup@4.60.3` (past the v4 fix line of 4.59.0), so it does not need a pin. The `^4.0.0` parent path scopes this to vite 4.x only — without scoping, a global `rollup` resolution would also downgrade vite 7's rollup 4.
--   **Fixes:** GHSA-mw96-cpmx-2vgc (high 8.0).
--   **Drop when:** The application is upgraded to vite ≥ 5 (which pulls rollup 4 natively), at which point the pin becomes a no-op and should be removed. Tracked separately as the "vite 4 → 7 migration" PR.
-
-#### `vitest/vite`, `vite-node/vite`, `@vitest/ui/vite: ^7.3.2`
-
--   **Why:** vitest@3.2.4 (and friends) request vite via the range `^5.0.0 || ^6.0.0 || ^7.0.0-0`, which resolves to the vulnerable `vite@7.1.2` without these pins. We do **not** want a global vite resolution because the application's own vite is at v4.
--   **Fixes:** CVE-2026-39363, CVE-2026-39364, GHSA-v2wj-q39q-566r — all high 7.5–8.0, dev-server-only.
--   **Drop when:** vitest is upgraded past `^3.2.4` to a version whose vite peer range starts at `^7.3.2` or later. (Note: vitest@4 requires vite@6+, which the app does not yet have — see "vite 4 → 7 migration" PR.)
+_(The `vite@npm:^4.0.0/rollup` entry and the `vitest/vite`, `vite-node/vite`, `@vitest/ui/vite` trio that used to sit here were removed on 2026-08-13 with the vite upgrade — see [Removed](#removed).)_
 
 ### Security pins (added 2026-08-05)
 
@@ -253,6 +243,28 @@ All three cross a major inside the `@dhis2/cli-app-scripts` chain, which is buil
 ---
 
 ## Removed
+
+### `vite@npm:^4.0.0/rollup: ^3.30.0` and the `vitest/vite` trio — removed 2026-08-13
+
+All four went with the vite upgrade, and for two different reasons.
+
+`vite@npm:^4.0.0/rollup` **can no longer match anything**: the application declares `vite ^7.3.6`, so
+no `vite@npm:^4.0.0` descriptor exists in the lockfile. It was the one entry in this file that
+depended on the application staying on vite 4.
+
+`vitest/vite`, `vite-node/vite` and `@vitest/ui/vite: ^7.3.2` existed to lift the vitest tree onto a
+patched vite while the application sat on vite 4. Now that the application itself requests `^7.3.6`,
+those consumers resolve to 7.3.6 unaided. Tested by removing all four and re-installing: `vite` stays
+at 6.4.3 and 7.3.6, `esbuild` at 0.25.11, 0.25.12 and 0.28.1, and `vitest` and `vite-node` do not
+move. `rollup` and `postcss` pick up newer releases in the same re-resolution — 4.62.4 and 8.5.26 —
+and neither is in a live advisory range.
+
+⚠️ **`@dhis2/cli-app-scripts/vite: ^6.4.3` is not part of this and must stay.** Tested separately:
+removing it drops that chain's vite to 5.4.21 and its esbuild to **0.21.5**, which is inside
+`GHSA-67mh-4wv8-2f99`. It is the one vite entry still doing work.
+
+**Restore any of the four only if** the application moves back below vite 7, or a consumer appears
+that requests a vite the upgrade does not already satisfy.
 
 ### `glob@npm:7.2.3/minimatch: ^3.1.4` — removed 2026-08-12
 
@@ -349,30 +361,25 @@ alert count does not match the number of `esbuild` entries in the lockfile.
 **Revisit when:** never — a withdrawn advisory is dismissed, not fixed. If it reappears after being
 dismissed, check whether it has been re-published rather than assuming it is the same record.
 
-### `vite@4.5.14` — seven advisories
+### Resolved by the vite upgrade — eight advisories
 
--   **Chain:** `devDependencies.vite` at `^4.0.0` — the application's own build tool, not a transitive path.
--   **Why it cannot be fixed on this line:** every one of the seven is patched on 5.x or later, and **there is no patched release anywhere on the 4.x line**, so neither re-resolution nor a scoped resolution can reach one. The lowest release that clears all seven is 6.4.3. The only remediation is moving the application to vite 6 or later.
+`vite@4.5.14` carried GHSA-fx2h-pf6j-xcff and GHSA-c27g-q93r-2cwf (high), GHSA-v6wh-96g9-6wx3,
+GHSA-4w7w-66w2-5vf9 and GHSA-93m4-6634-74q7 (medium), and GHSA-g4jq-h2w9-997c and
+GHSA-jqfw-vq24-v9c3 (low). The `esbuild@0.18.20` it pulled carried GHSA-67mh-4wv8-2f99. All eight are
+closed by moving the application off vite 4.
 
-    | Advisory              | Severity | Range that catches 4.5.14 | First patch |
-    | --------------------- | -------- | ------------------------- | ----------- |
-    | `GHSA-fx2h-pf6j-xcff` | high     | `<= 6.4.2`                | 6.4.3       |
-    | `GHSA-c27g-q93r-2cwf` | high     | `<= 5.4.8`                | 5.4.9       |
-    | `GHSA-v6wh-96g9-6wx3` | medium   | `<= 6.4.2`                | 6.4.3       |
-    | `GHSA-4w7w-66w2-5vf9` | medium   | `<= 6.4.1`                | 6.4.2       |
-    | `GHSA-93m4-6634-74q7` | medium   | `>= 4.5.3, < 5.0.0`       | 5.4.21      |
-    | `GHSA-g4jq-h2w9-997c` | low      | `<= 5.4.19`               | 5.4.20      |
-    | `GHSA-jqfw-vq24-v9c3` | low      | `<= 5.4.19`               | 5.4.20      |
+The move is `vite ^4.0.0 → ^7.3.6`, `@vitejs/plugin-react ^4.0.0 → ^5.1.0`, and `vitest` and
+`@vitest/ui` to `^3.2.7`. It needed no change to the build configuration and no change to any test.
+The tree now holds vite 7.3.6 for the application and 6.4.3 for `@dhis2/cli-app-scripts`, with esbuild
+at 0.25.11, 0.25.12 and 0.28.1 — none of them in a live advisory range.
 
-    Note `GHSA-93m4-6634-74q7`: it carries a range specifically for the 4.x line (`>= 4.5.3, < 5.0.0`) whose first patched version is 5.4.21 — the advisory itself states there is no 4.x fix, rather than leaving it to be inferred.
+⚠️ **The `esbuild` entry that used to be here recorded a scoped resolution that had no effect.** That
+reasoning is preserved in the conventions as a rule, because the mechanism outlives this particular
+finding: a versioned-parent path cannot select a version outside the range the parent declares.
 
--   ⚠️ **Two of these name `launch-editor` as well as `vite`, and it cannot be pinned.** `GHSA-c27g-q93r-2cwf` (command injection, patched at `launch-editor@2.9.0`) and `GHSA-v6wh-96g9-6wx3` (NTLMv2 hash disclosure via UNC paths) both list `launch-editor <= 2.8.2` beside the vite ranges, which makes a scoped `vite/launch-editor` entry look like a cheap way out. There is nothing to scope to: `launch-editor` does not appear in `yarn.lock` at all, because vite 4 **vendors it into its own bundle** — `dist/node/chunks/dep-827b23df.js` carries `launchEditorMiddleware` inline and mounts it at `/__open-in-editor`. A resolution would install cleanly and change nothing, exactly like the `esbuild` attempt recorded below. Verified by unpacking the published `vite@4.5.14` tarball, not inferred from the dependency list.
--   **Impact:** build and dev-server tooling; none of the seven describes anything that reaches the production bundle. `server.fs.deny`, the `.map` and HTML serving paths, and the launch-editor endpoint are all dev-server surfaces.
--   **Why it is not done here:** a vite major upgrade changes the build configuration and needs its own testing, so bundling it into a dependency pass would turn that pass into a toolchain migration. Tracked separately as the "vite 4 → 7 migration" work, which also drops the `vite@npm:^4.0.0/rollup` entry above.
--   **Note for whoever picks it up:** the vite upgrade does **not** require moving off ESLint 8. The two are independent; check the coupling in your own tree before bundling a linter migration into it.
--   **Revisit when:** the vite migration is scheduled.
-
--   **Advisories against this component:** **seven** live against `vite@4.5.14`, all listed above. Fifteen others exist against `vite` and are patched at or below this version.
+⚠️ **`launch-editor` is named beside `vite` in GHSA-c27g-q93r-2cwf and GHSA-v6wh-96g9-6wx3.**
+Constraining it looked like a way to close both without upgrading, and it was not — under vite 4 it
+did not appear in the lockfile at all, because vite inlined it into `dist/node/chunks/`.
 
 ### `uuid@3.4.0` — GHSA-w5hq-g745-h8pq
 
@@ -432,7 +439,7 @@ When auditing, treat any of these as a signal that a constraint has gone stale:
 
 -   Make the existing `dependency-track-yarn4` GitHub workflow **block** on severity ≥ high so a regression doesn't reach `development`.
 -   Treat the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as an **eviction candidate** rather than a pin-forever item. It still pulls packages with no upstream fix path, and it is the reason the `isomorphic-fetch/node-fetch` entry exists.
--   **Upgrade the application off vite 4** — the highest-leverage item on this list. It clears eight open alerts (2 high, 4 medium, 2 low): the seven advisories against `vite@4.5.14` plus `GHSA-67mh-4wv8-2f99` against the esbuild that vite 4 pulls. It also drops the `vite@npm:^4.0.0/rollup` entry. 6.4.3 is the lowest release that clears the whole set.
+-   ~~**Upgrade the application off vite 4.**~~ Done on 2026-08-13 — see [Resolved by the vite upgrade](#resolved-by-the-vite-upgrade--eight-advisories). It went to 7.3.6 rather than the minimum 6.4.3, because `@dhis2/cli-app-scripts` already holds a vite 6 and keeping the application above it avoids a second constraint.
 -   **Treat `@dhis2/cli-app-scripts` as an eviction candidate.** It is a devDependency used by exactly two scripts (`extract-pot`, `localize`), yet it is the sole path to the `uuid` and `request` findings and the reason **seven** entries in this file exist: `request/form-data`, `request/tough-cookie`, `external-editor/tmp`, `i18next-conv/node-gettext`, `@dhis2/cli-app-scripts/vite`, `http-proxy-agent/@tootallnate/once` and `package-json/got`. Replacing it for i18n generation would close two alerts and retire all seven, without waiting on upstream. (`styled-jsx/loader-utils` is **not** in that list — `@dhis2/app-shell` pulls it too, so it would survive.)
 -   **Fix `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` upstream.** Between them they request `axios`, `qs`, `lodash` and `react-linkify` at exact versions, which is what forces four of the entries in this file into every application that uses them.
 -   **`cross-spawn@5.1.0`, reached through `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier` → `boxen` → `term-size` → `execa@0.7.0`.** A local `yarn npm audit` reports it against a ReDoS advisory affecting `< 6.0.6`; the Dependency-Track analysis does not report it at all, which is the scanner disagreement noted under _Audit cadence_. Left alone deliberately rather than overlooked — fixing it needs a versioned-parent entry against `execa@npm:0.7.0`, the shape with the highest decay risk, for a build-only path that the gate does not flag. Revisit if Dependency-Track starts reporting it, or if the `update-notifier` chain is removed.
