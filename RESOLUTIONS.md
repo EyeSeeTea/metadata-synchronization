@@ -353,10 +353,14 @@ Read in order of cost:
 different databases pick up withdrawals at different times. It does not describe a real defect, and
 the upgrade it appears to call for corrects nothing. It should be dismissed rather than remediated.
 
-It accounts for **three alerts on its own**, one per resolved version — 0.18.20, 0.25.11 and 0.25.12.
-The tree carries a fourth `esbuild` line, `^0.27.0 || ^0.28.0` → 0.28.1, which is not flagged because
-the withdrawn advisory's range stops at `< 0.28.1`. Nothing to do either way, but it explains why the
-alert count does not match the number of `esbuild` entries in the lockfile.
+It produces **one alert per resolved `esbuild` in range**, currently 0.25.11 and 0.25.12. The tree
+also carries `^0.27.0 || ^0.28.0` → 0.28.1, which is not flagged because the withdrawn advisory's
+range stops at `< 0.28.1`. Nothing to do either way, but it explains why the alert count does not
+match the number of `esbuild` entries in the lockfile.
+
+⚠️ **This is why an advisory count and an alert count are different numbers.** Before the vite
+upgrade it produced three alerts, the third against the `esbuild@0.18.20` that vite 4 pulled. That
+one went with the upgrade, so the same single advisory now shows two.
 
 **Revisit when:** never — a withdrawn advisory is dismissed, not fixed. If it reappears after being
 dismissed, check whether it has been re-published rather than assuming it is the same record.
@@ -414,15 +418,6 @@ did not appear in the lockfile at all, because vite inlined it into `dist/node/c
 -   It is reported at medium severity here, which is why it survived a first pass filtered to critical and high. Worth knowing that withdrawn advisories can sit below the gate's threshold and go unexamined for longer.
 
 -   **Advisories against this component:** **none** live against `eslint@8.57.1`. The one above is withdrawn, and one other exists against the package, patched below this version.
-
-### `esbuild@0.18.20` — GHSA-67mh-4wv8-2f99
-
--   **Chain:** `devDependencies.vite@^4.0.0` → `esbuild@^0.18.10`.
--   **Why it cannot be fixed on this line:** the advisory is patched at 0.25.0 and vite 4 requests `^0.18.10`, which cannot reach it. A scoped `vite@npm:^4.0.0/esbuild: ^0.25.0` was **tried and had no effect** — the lockfile came back byte-identical and `vite@4.5.14` still received 0.18.20, even though the sibling entry `vite@npm:^4.0.0/rollup` binds correctly. Recorded here so nobody re-attempts it.
--   **Why the sibling binds and this one does not — re-tested 2026-08-12.** It is not a quirk of esbuild. A versioned-parent path can only select inside the range the parent already declares. `^3.30.0` is inside vite 4's `rollup: ^3.27.1`, so that pin binds; `^0.25.0` is outside vite 4's `esbuild: ^0.18.10`, so this one cannot. The parent-name form `vite/esbuild: ^0.25.0` **does** bind and was measured — but it applies to every `vite` in the tree, and this tree has three. It pulled vite 6 and vite 7 onto 0.25.12 as well, below the `^0.25.0` and `^0.27.0 || ^0.28.0` they respectively declare. Trading a dev-only advisory on vite 4 for two consumers held under their declared ranges is not a good exchange, so the finding stands. Recorded as a rule in [Conventions](#conventions), because the same shape will come up again.
--   **Impact:** the advisory describes esbuild's development server accepting cross-origin requests. It affects `esbuild serve`, which this project does not run — the application's dev server is vite's own.
--   **Revisit when:** the application moves off vite 4, which replaces this esbuild entirely. Same migration as the `vite@4.5.14` findings above.
--   **Advisories against this component:** **one** live against `esbuild@0.18.20` — this entry. A second, GHSA-gv7w-rqvm-qjhr, also matches this version but is withdrawn; it has its own entry above. One further advisory exists against `esbuild` and is patched below this version.
 
 ---
 
