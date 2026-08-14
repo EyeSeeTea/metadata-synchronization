@@ -33,6 +33,8 @@ Re-audit the dependency tree monthly, and before every release. A constraint tha
 
 Note that a local `yarn npm audit` and the Dependency-Track analysis score against different advisory sources and will disagree. **The CI gate follows Dependency-Track**, so measure there before concluding the tree is clean.
 
+**Date the claims that decay; never write down a count.** An advisory ID, a withdrawal date and a structural reason ("`request` imports `uuid/v4`, and 11.1.1 does not export that subpath") stay true and belong here. A number of open alerts does not: it is re-derivable from the scanner in seconds, it goes stale on the next scan, and this file has no way to notice. Where a claim _is_ about a state that can change — "6.6.1 is still `latest`" — record the date it was checked, so the next reader knows how much of it to trust rather than having to re-derive all of it.
+
 ---
 
 ## Active resolutions
@@ -320,32 +322,45 @@ constraint; they are states of the upstream package, or of the line this reposit
 
 ### Status and what to do
 
-As of the Dependency-Track analysis of 2026-08-10 against `b19ab7ae`: **15 open alerts — 6 high, 7
-medium, 2 low.** They reduce to four groups, and only one of them has nothing that can be done.
+⚠️ **Do not read an alert count out of this file.** The [live query][open-alerts] is the authority on
+how many are open, and any number written here is a snapshot that stops being true at the next scan —
+this section carried a stale one for three days after the vite upgrade closed eight advisories. What
+follows is the part that does not move that fast: which groups the open findings fall into, and what
+each would cost to close.
 
-| Group                             | Alerts | Action                                                                  | Needs                    |
-| --------------------------------- | ------ | ----------------------------------------------------------------------- | ------------------------ |
-| Withdrawn advisories              | **4**  | Dismiss in code scanning as a false positive — nothing to remediate     | A dismissal, no code     |
-| The vite 4 line                   | **8**  | Upgrade the application to vite ≥ 6.4.3                                 | The vite migration       |
-| The `@dhis2/cli-app-scripts` chain | **2**  | Drop or replace the chain, or wait for upstream to drop `request`       | A dependency decision    |
-| `elliptic@6.6.1`                  | **1**  | Nothing — every published version is affected                           | An upstream release      |
+[open-alerts]: https://github.com/EyeSeeTea/metadata-synchronization/security/code-scanning?query=is%3Aopen+branch%3Afix%2Fdependency-vulnerabilities+tool%3A%22OWASP+Dependency-Track+%28yarn4%29%22
+
+Everything still open falls into three groups, and only one of them has nothing that can be done.
+
+| Group                              | Action                                                              | Needs                 |
+| ---------------------------------- | ------------------------------------------------------------------- | --------------------- |
+| Withdrawn advisories               | Dismiss in code scanning as a false positive — nothing to remediate | A dismissal, no code  |
+| The `@dhis2/cli-app-scripts` chain | Drop or replace the chain, or wait for upstream to drop `request`   | A dependency decision |
+| `elliptic@6.6.1`                   | Nothing — every published version is affected                       | An upstream release   |
+
+⚠️ **The scanner's severity badge can sit a notch away from the advisory's own rating, in both
+directions.** `uuid` shows high against a GHSA that GitHub rates medium (CVSS 6.3); `elliptic` shows
+medium against one rated low (CVSS 2.9). The alert body carries the upstream rating while the badge
+does not, so the two contradict each other inside the same alert. Read the badge as the gate's number,
+not as the advisory's, and do not size the work from it — every high-severity alert this branch reports
+is either the withdrawn `esbuild` advisory or that medium-rated `uuid` one.
 
 Read in order of cost:
 
-1. **Dismissing the withdrawn alerts is the cheapest item and needs no commit.** Three are
-   `GHSA-gv7w-rqvm-qjhr` against `esbuild` and one is `GHSA-p5wg-g6qr-c7cg` against `eslint`; both
-   advisories were withdrawn upstream. Dismiss them rather than acting on them — **do not upgrade
-   either package on their account.**
-2. **The vite migration clears more than half of everything open** — 2 high, 4 medium, 2 low — because
-   the application's vite 4, its bundled esbuild and the launch-editor endpoint are all the same
-   upgrade. That is the single highest-leverage piece of work left.
-3. **The `uuid` and `request` findings share one exit.** Both are reached only through
+1. **Dismissing the withdrawn alerts is the cheapest item and needs no commit.** They are
+   `GHSA-gv7w-rqvm-qjhr` against `esbuild` and `GHSA-p5wg-g6qr-c7cg` against `eslint`; both advisories
+   were withdrawn upstream. Dismiss them rather than acting on them — **do not upgrade either package
+   on their account.**
+2. **The `uuid` and `request` findings share one exit.** Both are reached only through
    `@dhis2/cli-app-scripts`, which this project uses for exactly two scripts (`extract-pot` and
-   `localize`). Replacing it for i18n would close both and retire several entries in this file; that is
+   `localize`). Replacing it for i18n would close both and retire seven entries in this file; that is
    a real option and does not depend on upstream, unlike the "wait for `@dhis2/cli-helpers-engine`"
    route the individual entries describe.
-4. **`elliptic` is the only genuine dead end.** Re-verified 2026-08-10: 6.6.1 is still `latest` and the
+3. **`elliptic` is the only genuine dead end.** Re-verified 2026-08-14: 6.6.1 is still `latest` and the
    advisory covers every published version.
+
+The vite 4 line was a fourth group and by far the largest. It is closed — see
+[Resolved by the vite upgrade](#resolved-by-the-vite-upgrade--eight-advisories).
 
 ### `esbuild` — GHSA-gv7w-rqvm-qjhr
 
@@ -388,10 +403,12 @@ did not appear in the lockfile at all, because vite inlined it into `dist/node/c
 ### `uuid@3.4.0` — GHSA-w5hq-g745-h8pq
 
 -   **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `request@2.88.2` → `uuid@^3.3.2`.
+-   **Not reachable in this tree.** The advisory is a missing bounds check in `v3()`, `v5()` and `v6()` **when the caller supplies an output buffer**. `request` imports only the `v4` subpath — `lib/auth.js`, `lib/multipart.js` and `lib/oauth.js` each do `require('uuid/v4')` — and all three call sites invoke it with no arguments. The vulnerable functions are never imported, and no caller-provided buffer exists anywhere on the path. Checked against the installed package rather than inferred from the advisory text.
+    ⚠️ **What makes this safe is the call sites, not the implementation.** 3.4.0's `v4` copies into `buf` with no bounds check either, so it does not carry the guard the advisory credits modern `v4` with. Anyone re-deriving this from the advisory alone would conclude `v4` is inherently safe here, and that is not what was verified.
 -   **Why it cannot be fixed:** the advisory patches the line `uuid` is on at 11.1.1, but `request` calls `require('uuid/v4')`, and that subpath was removed in uuid v7. **No published `uuid` release satisfies both the advisory and the subpath `request` imports**, so the finding cannot be re-resolved, scoped or upgraded away. Forcing the patched version fails at load time with `ERR_PACKAGE_PATH_NOT_EXPORTED`. `request` has been deprecated since 2020 and receives no releases, so the call site will not change upstream.
 -   **Impact:** build/dev-tool chain only. `request` is reached through the i18n commands and is never bundled into the application.
 -   **Revisit when:** `@dhis2/cli-helpers-engine` stops depending on `request` — or sooner, if the `@dhis2/cli-app-scripts` chain is replaced. That chain is a devDependency serving exactly two scripts, `extract-pot` and `localize`; dropping it closes this finding and the `request` one below without waiting for anyone upstream. See _Future improvements_.
--   ⚠️ **A `yarn patch` would also work, and is deliberately not done.** Patching `request` to call `require('uuid').v4` instead of `require('uuid/v4')` would let `uuid` move to 11.1.1, since 11.x still ships a CJS entry point. That trades an open alert on a build-only path for a patch file against a package deprecated since 2020, which has to be re-checked on every install. Recorded so the option is a decision rather than an oversight.
+-   ⚠️ **A `yarn patch` would also work, and is deliberately not done.** Patching `request` to call `require('uuid').v4` instead of `require('uuid/v4')` would let `uuid` move to 11.1.1, since 11.x still ships a CJS entry point. That trades an alert on an unreachable, build-only path for a patch file against a package deprecated since 2020, which has to be re-checked on every install. Recorded so the option is a decision rather than an oversight.
 
 -   **Advisories against this component:** **one** live against `uuid@3.4.0` — the entry above. A second, GHSA-qmq6-f8pr-cx5x, also matches this version but was withdrawn on 2026-05-05 as a duplicate of it, so scanner output may show two where only one is real.
 
@@ -407,7 +424,7 @@ did not appear in the lockfile at all, because vite inlined it into `dist/node/c
 ### `elliptic@6.6.1` — GHSA-848j-6mx2-7j84
 
 -   **Chain:** reached through the browser crypto polyfills, which exist because `md5.js` needs the `Buffer` shim.
--   **Why it cannot be fixed:** the advisory covers **every published version** (`<= 6.6.1`), and 6.6.1 is the latest release. There is no version to move to and no range that avoids it — verified against the published version list rather than the patched-version field.
+-   **Why it cannot be fixed:** the advisory covers **every published version** (`<= 6.6.1`), and 6.6.1 is the latest release. There is no version to move to and no range that avoids it — verified against the published version list rather than the patched-version field, re-checked 2026-08-14.
 -   **Revisit when:** a release above 6.6.1 is published, or `md5.js` is replaced and the polyfill chain leaves the tree entirely.
 
 -   **Advisories against this component:** **one** live — the entry above. Eight others exist against `elliptic` and are all patched at or below 6.6.1, including the critical GHSA-vjh7-7g9h-fjfh, which 6.6.1 is itself the fix for.
@@ -435,6 +452,6 @@ When auditing, treat any of these as a signal that a constraint has gone stale:
 -   Make the existing `dependency-track-yarn4` GitHub workflow **block** on severity ≥ high so a regression doesn't reach `development`.
 -   Treat the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as an **eviction candidate** rather than a pin-forever item. It still pulls packages with no upstream fix path, and it is the reason the `isomorphic-fetch/node-fetch` entry exists.
 -   ~~**Upgrade the application off vite 4.**~~ Done on 2026-08-13 — see [Resolved by the vite upgrade](#resolved-by-the-vite-upgrade--eight-advisories). It went to 7.3.6 rather than the minimum 6.4.3, because `@dhis2/cli-app-scripts` already holds a vite 6 and keeping the application above it avoids a second constraint.
--   **Treat `@dhis2/cli-app-scripts` as an eviction candidate.** It is a devDependency used by exactly two scripts (`extract-pot`, `localize`), yet it is the sole path to the `uuid` and `request` findings and the reason **seven** entries in this file exist: `request/form-data`, `request/tough-cookie`, `external-editor/tmp`, `i18next-conv/node-gettext`, `@dhis2/cli-app-scripts/vite`, `http-proxy-agent/@tootallnate/once` and `package-json/got`. Replacing it for i18n generation would close two alerts and retire all seven, without waiting on upstream. (`styled-jsx/loader-utils` is **not** in that list — `@dhis2/app-shell` pulls it too, so it would survive.)
+-   **Treat `@dhis2/cli-app-scripts` as an eviction candidate.** It is a devDependency used by exactly two scripts (`extract-pot`, `localize`), yet it is the sole path to the `uuid` and `request` findings and the reason **seven** entries in this file exist: `request/form-data`, `request/tough-cookie`, `external-editor/tmp`, `i18next-conv/node-gettext`, `@dhis2/cli-app-scripts/vite`, `http-proxy-agent/@tootallnate/once` and `package-json/got`. Replacing it for i18n generation would close both findings and retire all seven, without waiting on upstream. (`styled-jsx/loader-utils` is **not** in that list — `@dhis2/app-shell` pulls it too, so it would survive.)
 -   **Fix `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` upstream.** Between them they request `axios`, `qs`, `lodash` and `react-linkify` at exact versions, which is what forces four of the entries in this file into every application that uses them.
 -   **`cross-spawn@5.1.0`, reached through `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier` → `boxen` → `term-size` → `execa@0.7.0`.** A local `yarn npm audit` reports it against a ReDoS advisory affecting `< 6.0.6`; the Dependency-Track analysis does not report it at all, which is the scanner disagreement noted under _Audit cadence_. Left alone deliberately rather than overlooked — fixing it needs a versioned-parent entry against `execa@npm:0.7.0`, the shape with the highest decay risk, for a build-only path that the gate does not flag. Revisit if Dependency-Track starts reporting it, or if the `update-notifier` chain is removed.
