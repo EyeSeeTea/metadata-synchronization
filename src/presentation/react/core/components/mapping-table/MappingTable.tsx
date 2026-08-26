@@ -292,6 +292,7 @@ export default function MappingTable({
                             mappingPath,
                             mappingType,
                             firstElement,
+                            model: firstElement.model,
                         });
                     }
                 }
@@ -326,7 +327,13 @@ export default function MappingTable({
                 .value();
 
             if (types.length === 1) {
-                setMappingConfig({ elements, mappingPath, mappingType: types[0], firstElement });
+                setMappingConfig({
+                    elements,
+                    mappingPath,
+                    mappingType: types[0],
+                    firstElement,
+                    model: firstElement?.model,
+                });
                 setSelectedIds([]);
             } else if (types.length > 1) {
                 snackbar.error(i18n.t("You need to select all items from the same type"));
