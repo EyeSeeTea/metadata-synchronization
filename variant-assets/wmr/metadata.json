@@ -7349,9 +7349,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                1
-            ],
+            "aggregationLevels": [1],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "L7Zta9UTXUZ",
@@ -8374,9 +8372,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "t7br0MBJOhc",
@@ -13318,9 +13314,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "knF31iwgkhE",
@@ -15158,9 +15152,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "mEk7UxC3sdr",
@@ -18325,9 +18317,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": false,
             "optionSetValue": false,
             "dimensionItem": "rO4Rh5sAiDw",
@@ -18753,9 +18743,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "Q78NK5HBSvy",
@@ -19859,9 +19847,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "Z3e8m8Fmcu3",
@@ -25068,9 +25054,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "poaGvVahOKp",
@@ -28579,9 +28563,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "of4kxnWYPh2",
@@ -32246,9 +32228,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "VviE12zT1Lr",
@@ -32544,9 +32524,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "SN2llaNj7kp",
@@ -32828,9 +32806,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "CZvCwXQxZc1",
@@ -33544,9 +33520,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "hlwePfhzrmZ",
@@ -35998,9 +35972,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": false,
             "optionSetValue": false,
             "dimensionItem": "c9p5aky1SCy",
@@ -36066,9 +36038,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": false,
             "optionSetValue": false,
             "dimensionItem": "FgGZDgWgSzA",
@@ -36278,9 +36248,7 @@
                     }
                 }
             ],
-            "aggregationLevels": [
-                3
-            ],
+            "aggregationLevels": [3],
             "zeroIsSignificant": true,
             "optionSetValue": false,
             "dimensionItem": "nib8J9tFUkE",
@@ -38155,9 +38123,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Case Classification",
             "favorite": false,
             "id": "OYqkfyzJN33",
@@ -38196,9 +38162,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Case Investigation and Classification",
             "favorite": false,
             "id": "LvexxN2AmxU",
@@ -38237,9 +38201,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Comments",
             "favorite": false,
             "id": "uGA1COpEpI3",
@@ -38302,9 +38264,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Completeness of outpatient reporting",
             "favorite": false,
             "id": "W4aEjtDiEzm",
@@ -38343,9 +38303,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Completeness of outpatient reporting - remarks",
             "favorite": false,
             "id": "K6icZu94BdU",
@@ -38396,9 +38354,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Confirmed malaria cases by age and sex",
             "favorite": false,
             "id": "WKrXEZB5Kkl",
@@ -38513,9 +38469,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Contact Information",
             "favorite": false,
             "id": "G0AdoaHUUHU",
@@ -38559,9 +38513,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Malaria deaths (Remarks)",
             "favorite": false,
             "id": "EgtMI5RpRJZ",
@@ -38767,9 +38719,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Double counting of microscopy and RDT",
             "favorite": false,
             "id": "lCJJf7FsTC5",
@@ -38814,9 +38764,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Estimated reporting completeness",
             "favorite": false,
             "id": "d0eB4ZNHqwE",
@@ -39050,9 +38998,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Indoor Residual Spraying (IRS)",
             "favorite": false,
             "id": "GS6rwrLP47H",
@@ -39091,9 +39037,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Information on missing health facility reports",
             "favorite": false,
             "id": "VHUj8K8fa9K",
@@ -39147,9 +39091,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Initial diagnosis",
             "favorite": false,
             "id": "mOk7TwC2n0b",
@@ -39191,9 +39133,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Insecticide Treated Nets (ITNs)",
             "favorite": false,
             "id": "AyMN4KLBewj",
@@ -39259,9 +39199,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "IPT",
             "favorite": false,
             "id": "OOsjr0l6LqO",
@@ -39347,9 +39285,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "ITNs distribution summary (mass campaigns + routine)",
             "favorite": false,
             "id": "yul50luSAoF",
@@ -39400,9 +39336,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Malaria death classification",
             "favorite": false,
             "id": "UBoOKZqtyS3",
@@ -39453,9 +39387,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Malaria Deaths",
             "favorite": false,
             "id": "aKbpKy0Imk0",
@@ -39609,9 +39541,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Malaria inpatients by age and sex",
             "favorite": false,
             "id": "FDBN2EotAxI",
@@ -39723,9 +39653,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Mass Campaigns",
             "favorite": false,
             "id": "qSmJc5jeufa",
@@ -39764,9 +39692,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "P. knowlesi deaths",
             "favorite": false,
             "id": "t8xwqLXSVXQ",
@@ -39817,9 +39743,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Population at risk",
             "favorite": false,
             "id": "eJXZfHT179l",
@@ -39870,9 +39794,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Presumed malaria cases by age and sex",
             "favorite": false,
             "id": "xwqHPpFKpwZ",
@@ -39961,9 +39883,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Private sector participation rate",
             "favorite": false,
             "id": "rxxRfxLtQF8",
@@ -40002,9 +39922,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Rapid Diagnostic Test (RDTs)",
             "favorite": false,
             "id": "pDX2BHZu6cE",
@@ -40052,9 +39970,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "RDT product type",
             "favorite": false,
             "id": "mYawp5p8SuN",
@@ -40108,9 +40024,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Reporting by health sector",
             "favorite": false,
             "id": "KWIV7ZkFKXP",
@@ -40173,9 +40087,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Routine ITNs distribution",
             "favorite": false,
             "id": "QZEzI8qEPrV",
@@ -40214,9 +40126,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Sub-national data file",
             "favorite": false,
             "id": "uSqsZJ7I5sC",
@@ -40270,9 +40180,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Total malaria cases",
             "favorite": false,
             "id": "YcrYYeOwbtG",
@@ -40323,9 +40231,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Total malaria cases by age and sex",
             "favorite": false,
             "id": "fyts6Cx7Gi1",
@@ -40407,9 +40313,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Total malaria cases remarks",
             "favorite": false,
             "id": "uf95uy5roen",
@@ -40457,9 +40361,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Treatment and Distribution",
             "favorite": false,
             "id": "eo1xuObvK6G",
@@ -40498,9 +40400,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Treatment and Distribution remarks",
             "favorite": false,
             "id": "a0QPkj2UvD4",
@@ -40539,9 +40439,7 @@
             "showColumnTotals": true,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Treatment, RDTs and distribution",
             "favorite": false,
             "id": "Qh0lvozkrE7",
@@ -40620,9 +40518,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Remarks",
             "favorite": false,
             "id": "gewG8NKOBon",
@@ -40904,9 +40800,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "NSP",
             "favorite": false,
             "id": "MLodyTRnIgT",
@@ -40945,9 +40839,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Population at risk (remarks)",
             "favorite": false,
             "id": "TRXMRDJjdNA",
@@ -40981,9 +40873,7 @@
             "showColumnTotals": false,
             "disableDataElementAutoGroup": false,
             "displayOptions": "{\"afterSectionText\": \"\", \"beforeSectionText\": \"\"}",
-            "categoryCombos": [
-                {}
-            ],
+            "categoryCombos": [{}],
             "displayName": "Treatment Policy",
             "favorite": false,
             "id": "W5y86Qy7CQR",
