@@ -13,3 +13,20 @@ export function getJsonToFuture<T>(url: string, config?: AxiosRequestConfig<any>
         })
     ).map(response => response.data);
 }
+
+export function getBlobToFuture(url: string, config?: AxiosRequestConfig<any>): FutureData<Blob> {
+    return Future.fromComputation((resolve, reject) => {
+        axios
+            .get<Blob>(url, {
+                ...config,
+                responseType: "blob",
+                headers: {
+                    ...config?.headers,
+                    Accept: "*/*",
+                },
+            })
+            .then(response => resolve(response.data))
+            .catch(error => reject(error));
+        return () => {};
+    });
+}

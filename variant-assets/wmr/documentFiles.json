@@ -1,0 +1,220 @@
+{
+    "documents": [
+        {
+            "documentId": "Zt8EKSm2DaK",
+            "path": "documents/Zt8EKSm2DaK.png",
+            "filename": "case_Classification_diag.png",
+            "contentType": "image/png",
+            "size": 144766,
+            "sha256": "13cf08003d2030ccb19e9f231a71c6ad15fcc938121652bb33ec53b9b190b8fc"
+        },
+        {
+            "documentId": "tRMHwPQMqpm",
+            "path": "documents/tRMHwPQMqpm.png",
+            "filename": "case-classification-fr.png",
+            "contentType": "image/png",
+            "size": 540887,
+            "sha256": "a905f30adce2f30fa33bbd5f30ea9884fa679733736809f29b90259eef9d5c4d"
+        },
+        {
+            "documentId": "FYya6u7NXa0",
+            "path": "documents/FYya6u7NXa0.png",
+            "filename": "focus_Classification_diag.png",
+            "contentType": "image/png",
+            "size": 186147,
+            "sha256": "950c12a459029ad074c2b97d15bf79f59272c168bd6cb08352ba1bfef04011c6"
+        },
+        {
+            "documentId": "KXKIfxEfHtp",
+            "path": "documents/KXKIfxEfHtp.xlsx",
+            "filename": "imported_cases_data_en.xlsx",
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "size": 39839,
+            "sha256": "7803e793fff5e175aba4cdf2e3f9952afac214f29ad882e0a17296bbd0e21d39"
+        },
+        {
+            "documentId": "l23l4HoUoBP",
+            "path": "documents/l23l4HoUoBP.xlsx",
+            "filename": "imported_cases_data_fr.xlsx",
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "size": 39872,
+            "sha256": "3b124c1ff3c249981666c0ca9858d21fdfd5c76a09f2e3e5e5d04bb9410aec41"
+        },
+        {
+            "documentId": "g0HcbcckcP8",
+            "path": "documents/g0HcbcckcP8.xlsx",
+            "filename": "imported_cases_data_sp.xlsx",
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "size": 39967,
+            "sha256": "f294f02917a4b7790eb2c3355356573ca79d521694a5cf13b829350426ad9eae"
+        },
+        {
+            "documentId": "hbog4eNuKUW",
+            "path": "documents/hbog4eNuKUW.xlsx",
+            "filename": "Indigenous_introduced_case_details_en.xlsx",
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "size": 70256,
+            "sha256": "996c4c10dc44bbf6ed9a1a9f988d264d1eabf6963f8012477860380687a191a1"
+        },
+        {
+            "documentId": "DNVlA38mnTM",
+            "path": "documents/DNVlA38mnTM.xlsx",
+            "filename": "Indigenous_introduced_case_details_fr.xlsx",
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "size": 70280,
+            "sha256": "a3e5ad6cb0c402afe0a2b1872290c39f6ec1853c58861058f4b4767df5eaa506"
+        },
+        {
+            "documentId": "oMAvPOuA4Mx",
+            "path": "documents/oMAvPOuA4Mx.xlsx",
+            "filename": "Indigenous_introduced_case_details_sp.xlsx",
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "size": 69400,
+            "sha256": "4a3908a8a85fcb7beadb8545548d9ef28d646827c50af7f30af7a1682fedc5fb"
+        },
+        {
+            "documentId": "M9hIfPWx51N",
+            "path": "documents/M9hIfPWx51N.png",
+            "filename": "RepComp-Big-ES.png",
+            "contentType": "image/png",
+            "size": 385737,
+            "sha256": "18e9205434793f4f00e8ee53018f246f6279b51b458b745b3823e7a8a175ca25"
+        },
+        {
+            "documentId": "KpkEsceZnsH",
+            "path": "documents/KpkEsceZnsH.png",
+            "filename": "RepComp-small-ES.png",
+            "contentType": "image/png",
+            "size": 96741,
+            "sha256": "1ff668ab4431f42c1dc77c8f811d1cd47cf4ac5365bbba54f7d2152f4cf33cf5"
+        },
+        {
+            "documentId": "ZJAZZI06ToT",
+            "path": "documents/ZJAZZI06ToT.png",
+            "filename": "reporting completeness graphic_HIRES_FR.png",
+            "contentType": "image/png",
+            "size": 78032,
+            "sha256": "ce6dc88cddbe9a6676e14fa29ff1be8e17cdb52278d30248cd78ff936e53c4b4"
+        },
+        {
+            "documentId": "PuzrA9wkIUP",
+            "path": "documents/PuzrA9wkIUP.png",
+            "filename": "RepComp-Big-EN.png",
+            "contentType": "image/png",
+            "size": 335938,
+            "sha256": "69e64fd97e396aa23c59b9d36bfc3395709b490dc56d0410912736d18097a8ab"
+        },
+        {
+            "documentId": "CUZwrfVxZqF",
+            "path": "documents/CUZwrfVxZqF.png",
+            "filename": "RepComp-small-EN.png",
+            "contentType": "image/png",
+            "size": 76909,
+            "sha256": "201ad9392159b09ede7db423dd11c536324139d153dbfd4447e79c6c377adf24"
+        },
+        {
+            "documentId": "KNdIRjYOExM",
+            "path": "documents/KNdIRjYOExM.png",
+            "filename": "RepComp-small-FR.png",
+            "contentType": "image/png",
+            "size": 80333,
+            "sha256": "d4f059662ed7bc74c3b95b703dde474210dbc6ea5b76f8489efdf3a9e7c1595d"
+        },
+        {
+            "documentId": "oPFfkFEHlDS",
+            "path": "documents/oPFfkFEHlDS.png",
+            "filename": "progress_bar_10.png",
+            "contentType": "image/png",
+            "size": 3953,
+            "sha256": "f0aeb3acdfbb58903569be63f2fd6ebce29635a82890696580a3d823f3dc6543"
+        },
+        {
+            "documentId": "idd5x0ZZ769",
+            "path": "documents/idd5x0ZZ769.png",
+            "filename": "progress_bar_11.png",
+            "contentType": "image/png",
+            "size": 3955,
+            "sha256": "6ec78731226a1b82140e69d895bb61990c160f95aa6b65c7dd0b366d0271aa6a"
+        },
+        {
+            "documentId": "UhO9FuDX5RY",
+            "path": "documents/UhO9FuDX5RY.png",
+            "filename": "progress_bar_1.png",
+            "contentType": "image/png",
+            "size": 4049,
+            "sha256": "00625a62830808fbbbd75535da7cc2e593a89a0612dd0f73895956a22c5dade4"
+        },
+        {
+            "documentId": "zHSejVlZ5LO",
+            "path": "documents/zHSejVlZ5LO.png",
+            "filename": "progress_bar_12.png",
+            "contentType": "image/png",
+            "size": 3954,
+            "sha256": "257e4fca572267a8d6a0c762c460c7966f401d4d0a7270024c381368bcca26ac"
+        },
+        {
+            "documentId": "s7JesG9r717",
+            "path": "documents/s7JesG9r717.png",
+            "filename": "progress_bar_2.png",
+            "contentType": "image/png",
+            "size": 3983,
+            "sha256": "08ba21f437bd6bc15cefb06b9ecbcbbb0df33b4681d8fe6a547f0a809c386d36"
+        },
+        {
+            "documentId": "UpAZjFY5sv6",
+            "path": "documents/UpAZjFY5sv6.png",
+            "filename": "progress_bar_3.png",
+            "contentType": "image/png",
+            "size": 3942,
+            "sha256": "ca2081dbe5ebb37958dd6e2b0b647c6141f48fe4d93601e05254562bb02c72c3"
+        },
+        {
+            "documentId": "FMYoxbhNfZf",
+            "path": "documents/FMYoxbhNfZf.png",
+            "filename": "progress_bar_4.png",
+            "contentType": "image/png",
+            "size": 3945,
+            "sha256": "c73dca92a072881cd9baee008ea0b45b4a0b2626776f7152868bd77afe2cc726"
+        },
+        {
+            "documentId": "Gto1fziuJ1l",
+            "path": "documents/Gto1fziuJ1l.png",
+            "filename": "progress_bar_5.png",
+            "contentType": "image/png",
+            "size": 3957,
+            "sha256": "74fbda63ec675278e1c18e2328d475d1cc97df023a637dd0c7bebeeac830bca1"
+        },
+        {
+            "documentId": "pvUZhlKq7Lx",
+            "path": "documents/pvUZhlKq7Lx.png",
+            "filename": "progress_bar_6.png",
+            "contentType": "image/png",
+            "size": 3963,
+            "sha256": "84cadf35e0d2c349fff6dfebc7d5130c0bf70702fa10e8396ae02aa2c5b7c624"
+        },
+        {
+            "documentId": "qgriigH8M6T",
+            "path": "documents/qgriigH8M6T.png",
+            "filename": "progress_bar_7.png",
+            "contentType": "image/png",
+            "size": 3948,
+            "sha256": "28ecba0c9dea7dc77643e3e11358b70e2dac32f3872ac24a1c813004ecc1268d"
+        },
+        {
+            "documentId": "TsFtSj8JLAZ",
+            "path": "documents/TsFtSj8JLAZ.png",
+            "filename": "progress_bar_8.png",
+            "contentType": "image/png",
+            "size": 3948,
+            "sha256": "a22e37607f408d4a2b817ead0105bd37d15015e2c76cff904f0a0ded7c3e00f0"
+        },
+        {
+            "documentId": "SJuKLxfKhhS",
+            "path": "documents/SJuKLxfKhhS.png",
+            "filename": "progress_bar_9.png",
+            "contentType": "image/png",
+            "size": 3950,
+            "sha256": "4594acb220dc7c3e3024ed6f9eef8c3c648e4ae69c932bb3c92427613ef59ecb"
+        }
+    ]
+}
