@@ -351,9 +351,9 @@ Read in order of cost:
    `GHSA-gv7w-rqvm-qjhr` against `esbuild` and `GHSA-p5wg-g6qr-c7cg` against `eslint`; both advisories
    were withdrawn upstream. Dismiss them rather than acting on them — **do not upgrade either package
    on their account.**
-2. **The `uuid` and `request` findings share one exit.** Both are reached only through
-   `@dhis2/cli-app-scripts`, which this project uses for exactly two scripts (`extract-pot` and
-   `localize`). Replacing it for i18n would close both and retire seven entries in this file; that is
+2. **The `uuid`, `request` and `cross-spawn@5.1.0` findings share one exit.** All three are reached
+   only through `@dhis2/cli-app-scripts`, which this project uses for exactly two scripts (`extract-pot`
+   and `localize`). Replacing it for i18n would close all three and retire seven entries in this file; that is
    a real option and does not depend on upstream, unlike the "wait for `@dhis2/cli-helpers-engine`"
    route the individual entries describe.
 3. **`elliptic` is the only genuine dead end.** Re-verified 2026-08-14: 6.6.1 is still `latest` and the
@@ -420,6 +420,17 @@ did not appear in the lockfile at all, because vite inlined it into `dist/node/c
 -   **Revisit when:** `@dhis2/cli-helpers-engine` drops `request`, or the `@dhis2/cli-app-scripts` chain is replaced. Same condition as the `uuid` finding above — either change closes both at once, and the second one does not depend on upstream.
 
 -   **Advisories against this component:** **one** live against `request@2.88.2` — the entry above. One other exists against the package and is patched below this version.
+
+### `cross-spawn@5.1.0`: GHSA-3xgq-45jj-v275
+
+-   **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier@3.0.1` → `boxen@3.2.0` → `term-size@1.2.0` → `execa@0.7.0` → `cross-spawn@^5.0.1`.
+-   **Not reachable with untrusted input.** The advisory is a ReDoS in argument escaping. `term-size` only runs fixed commands through `execa`: its own vendored binaries, `resize -u`, and `tput cols` / `tput lines`. No argument reaches it from outside the package. Checked against the installed `term-size/index.js`.
+-   **Why it is not fixed:** the advisory patches two lines, `< 6.0.6` at 6.0.6 and `>= 7.0.0, < 7.0.5` at 7.0.5, and nothing on 5.x. `execa@0.7.0` declares `^5.0.1`, so re-resolution cannot reach a patch, and a versioned-parent resolution cannot select outside that range (see the conventions). A parent-name `execa/cross-spawn` entry would also bind `execa@5.1.1`, which declares `^7.0.3`, and pull it below its own range. Closing it would take overriding a parent further up the chain, a new constraint for a dev-only finding with no reachable input.
+-   **Status:** dismissed in both scanners. Dependabot auto-dismissed it under its development-scope rule, and it was dismissed in code scanning on 2026-06-03 ("Dev only - transitive dependency of @dhis2/cli-app-scripts").
+-   **Impact:** build/dev-tool chain only, never bundled.
+-   **Revisit when:** the `@dhis2/cli-app-scripts` chain is replaced, or `@dhis2/cli-helpers-engine` drops `update-notifier`. The first is the same exit as the `uuid` and `request` findings above.
+
+-   **Advisories against this component:** **one** live against `cross-spawn@5.1.0`, the entry above. The `cross-spawn@7.0.6` also in this tree is outside its range.
 
 ### `elliptic@6.6.1` — GHSA-848j-6mx2-7j84
 
