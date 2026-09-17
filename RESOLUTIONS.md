@@ -204,9 +204,7 @@ Tried, verified to break a consumer, and reverted. Recorded so nobody re-tries t
 
 ## Known findings with no fix available
 
-Recorded here rather than in `resolutions` because **no version resolves them**. Check the [live code-scanning alerts][open-alerts] for the current count rather than this file — a number written here goes stale on the next scan.
-
-[open-alerts]: https://github.com/EyeSeeTea/metadata-synchronization/security/code-scanning?query=is%3Aopen+branch%3Afix%2Fdependency-vulnerabilities+tool%3A%22OWASP+Dependency-Track+%28yarn4%29%22
+Recorded here rather than in `resolutions` because **no version resolves them**. Check code scanning, filtered to `OWASP Dependency-Track (yarn4)` and `is:open`, for the current count rather than this file — a number written here goes stale on the next scan.
 
 ⚠️ **The scanner's severity badge can sit a notch away from the advisory's own rating, in both directions.** `uuid` shows high against a GHSA that GitHub rates medium; `elliptic` shows medium against one rated low. Read the badge as the gate's number, not as the advisory's.
 
