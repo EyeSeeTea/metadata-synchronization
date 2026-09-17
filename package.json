@@ -105,7 +105,7 @@
         "@typescript-eslint/parser": "^6.0.0",
         "@vercel/ncc": "^0.38.3",
         "@vitejs/plugin-react": "^5.1.0",
-        "@vitest/ui": "^3.2.7",
+        "@vitest/ui": "^4.1.11",
         "@welldone-software/why-did-you-render": "6.2.1",
         "babel-preset-react-app": "^10.1.0",
         "d2-manifest": "1.0.0",
@@ -126,7 +126,7 @@
         "typescript": "4.9.5",
         "vite": "^7.3.6",
         "vite-plugin-node-polyfills": "^0.24.0",
-        "vitest": "^3.2.7",
+        "vitest": "^4.1.11",
         "yargs": "15.4.1"
     },
     "resolutions": {
