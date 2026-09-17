@@ -17,10 +17,10 @@ This file documents every entry in the `resolutions` block of `package.json`. Ea
     In practice: is there a higher version that would also work? Use `^`. Does something bind to this exact release? Pin it — **and write the condition for unpinning it.** If that condition cannot be stated, it should have been a range.
 
 -   **Removing a constraint is not the same as upgrading.** For a package no direct dependency requests, deleting the entry hands version selection back to the parents, and a parent may be the reason the old version was there. `axios`, `qs` and `lodash` all resolve _downwards_ if their entries are removed, because `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` request older exact versions. A floor is still a resolution; it just needs to be a range.
--   Prefer **per-parent** paths (`parent/child`) over standalone descriptors. Yarn-berry only matches a standalone descriptor on exact text — `picomatch@npm:^4` will _not_ match a child request of `^4.0.2`. The reliable forms are `parent/child`, `parent@npm:<exact-version>/child`, or `parent@npm:^<major>/child`.
--   **Versioned-parent pins go stale silently.** When `minimatch@10.2.4` becomes `10.2.5` in the tree, `minimatch@npm:10.2.4/brace-expansion` matches nothing and yarn does not warn. Mark any entry of that shape as a decay risk and re-check it at every audit.
--   **The version in a versioned-parent path is the _descriptor_, not the resolved version.** `glob@npm:7.2.3/minimatch` looks right next to a lockfile entry reading `version: 7.2.3`, and matches nothing: the descriptors consumers actually request are `^7.1.1`, `^7.1.2`, `^7.1.3` and `^7.1.4`. Read the key off the descriptor line, never off the `version:` line below it. This one shipped as a no-op and was only caught by testing it — see [Removed](#removed).
--   **A versioned-parent path cannot select a version outside the range the parent declares; a parent-name path can.** It was established with two sibling attempts on the same parent, and it is not obvious. `vite@4.5.14` declares `rollup: ^3.27.1` and `esbuild: ^0.18.10`. The pin `vite@npm:^4.0.0/rollup: ^3.30.0` binds, because 3.30.0 is _inside_ `^3.27.1`. The pin `vite@npm:^4.0.0/esbuild: ^0.25.0` silently does nothing, because 0.25.0 is _outside_ `^0.18.10` — same parent, same matched descriptor, opposite outcome. A parent-name pin (`vite/esbuild`) does override the declared range, but applies to every `vite` in the tree, which here would drag vite 6 and 7 below the esbuild they declare. **So: to lift a child past what its parent declares, you need the parent-name form, and you must first check what else shares that parent name.**
+-   Prefer **per-parent** paths (`parent/child`) over standalone descriptors. Yarn-berry only matches a standalone descriptor on exact text — `picomatch@npm:^4` will _not_ match a child request of `^4.0.2`. The reliable forms are `parent/child` and `parent@npm:<exact-version>/child`.
+-   **The version in a versioned-parent path is the _resolved_ version, not a descriptor.** ⚠️ Corrected 2026-09-17 — this section previously said the opposite and cited `glob@npm:7.2.3/minimatch` as proof; see the note on that entry in [Removed](#removed). `execa@npm:0.7.0/cross-spawn: ^6.0.6` below is the live counter-example: `execa@0.7.0` is the resolved version `yarn why execa -R` reports, and the key binds on it — confirmed by `yarn install` reporting `+ cross-spawn@npm:6.0.6 / - cross-spawn@npm:5.1.0`. Key it off what `yarn why <parent> -R` shows as installed, not off a descriptor a consumer happens to request.
+-   **A versioned-parent path *can* select a version outside the range the parent declares.** Also corrected 2026-09-17. `execa@npm:0.7.0/cross-spawn: ^6.0.6` resolves `cross-spawn` to 6.0.6 although `execa@0.7.0` itself declares `^5.0.1`. What decides between the two path forms is what else shares the parent's name: a parent-name path (`execa/cross-spawn`) would bind every `execa` in the tree, and this one also has `execa@5.1.1`, which declares `^7.0.3` and would be dragged below its own range by a global pin. The versioned-parent form keeps the lift scoped to the one copy that needs it — check what else shares the parent name before choosing between the two shapes.
+-   **Versioned-parent pins go stale silently.** When the parent moves to another version, `parent@npm:<exact>/child` matches nothing and yarn does not warn. `execa@npm:0.7.0/cross-spawn` is the one entry of that shape in this file; re-check it at every audit.
 -   **Test a constraint by removing it, re-installing and comparing the _resolved versions_** — not the lockfile bytes. A constraint can rewrite a descriptor, change the lockfile, and leave every installed version exactly where it was.
 -   **When a returning version looks alarming, check the advisory's range before keeping the pin.** An older version coming back is not by itself a reason to keep a constraint. If removing a `glob-parent` entry returns `3.1.0`, note that `GHSA-ww39-953v-wcq6` affects `>= 4.0.0, < 5.1.2`: the version that returned was never in range, so the entry was protecting nothing.
 -   **Validate the control before trusting a zero from the advisories API.** `gh api "advisories?ecosystem=npm&affects=<pkg>@<version>"` returns nothing both for a clean version and for one that was never published. `glob-parent@5.0.0` looks like a known-vulnerable control and returns nothing because it does not exist; `glob-parent@5.1.1` is a valid one.
@@ -82,10 +82,11 @@ Note that a local `yarn npm audit` and the Dependency-Track analysis score again
 -   **Fixes:** CVE-2022-37599 (high 7.5), CVE-2022-37601 (critical 9.8), CVE-2022-37603 (high 7.5), GHSA-76p3-8jx3-jpfq (critical 9.8, confirmed 1.x fixed at `1.4.1` per GitHub advisory API), GHSA-3rfm-jhwj-7488 (high 7.5), GHSA-hhq3-ff78-jv3g (high 7.5).
 -   **Drop when:** `styled-jsx` is upgraded to a version that either drops `loader-utils` or requests `^1.4.2` or later natively (or the DHIS2 app-shell chain migrates to a non-webpack CSS-in-JS approach). Verify with `yarn why loader-utils`.
 
-#### `request/form-data: ^2.5.4`
+#### `request/form-data: ^2.5.6`
 
--   **Why:** `request@2.88.2` (deprecated, pulled by `@dhis2/cli-helpers-engine` under `@dhis2/cli-app-scripts`) requests `form-data@~2.3.2`, which resolves to the vulnerable `2.3.3`. All other `form-data` consumers in the tree (`@dhis2/cli-app-scripts` → `3.0.4`, `axios` → `4.0.5`, `jsdom` → `3.0.4`) are already on patched versions and are unaffected by this scoped pin. Build/dev-tool chain only — no runtime surface.
--   **Fixes:** CVE-2025-7783 / GHSA-fjxv-7rqg-78g4 (critical 9.0) — unsafe boundary random in `form-data < 2.5.4`.
+-   **Why:** `request@2.88.2` (deprecated, pulled by `@dhis2/cli-helpers-engine` under `@dhis2/cli-app-scripts`) requests `form-data@~2.3.2`, which resolves to the vulnerable `2.3.3`. All other `form-data` consumers in the tree (`@dhis2/cli-app-scripts` → `3.0.5`, `axios` → `4.0.6`, `jsdom` → `3.0.5`) are already on patched versions and are unaffected by this scoped pin. Build/dev-tool chain only — no runtime surface.
+    ⚠️ **Raised from `^2.5.4` to `^2.5.6` on 2026-09-17**, matching the skeleton baseline: GHSA-hmw2-7cc7-3qxx (high) is fixed at 2.5.6 and `^2.5.4` would admit the vulnerable range below it. `request` has no later release, so its children are lifted directly — see [Conventions](#conventions).
+-   **Fixes:** CVE-2025-7783 / GHSA-fjxv-7rqg-78g4 (critical 9.0) — unsafe boundary random in `form-data < 2.5.4`. GHSA-hmw2-7cc7-3qxx (high) — a second advisory patched at 2.5.6.
 -   **Drop when:** The `request` chain is removed (i.e., `@dhis2/cli-helpers-engine` drops `request` as a dependency) or `@dhis2/cli-app-scripts` is upgraded to a version that no longer pulls `request`. Verify with `yarn why form-data`.
 
 ### Security pins (added 2026-05-08)
@@ -179,12 +180,13 @@ with `yarn install`.
 -   **Runtime.** `styled-components` is a direct dependency used throughout the presentation layer.
 -   **Drop when:** `styled-components` requests a `postcss` range admitting 8.5.18 or later.
 
-#### `external-editor/tmp: ^0.2.6`
+#### `external-editor/tmp: ^0.2.7`
 
 -   **Why:** `external-editor@3.1.0` requests `tmp@^0.0.33`, which cannot reach the fix on the 0.2.x line. Reached through `@dhis2/cli-app-scripts` → `inquirer` → `external-editor`. Scoped to the only consumer.
--   **Fixes:** GHSA-ph9p-34f9-6g65 (patched 0.2.6) — path traversal via unsanitized `prefix`/`postfix` allowing writes outside the temporary directory.
+    ⚠️ **Raised from `^0.2.6` to `^0.2.7` on 2026-09-17**, matching the skeleton baseline. GHSA-7c78-jf6q-g5cm affects exactly `>= 0.2.6, < 0.2.7`, so the floor that fixed the first advisory was itself inside the range of a later one — the same decay shape the `qs` entry above describes. The tree already resolved to 0.2.7 before this change (the `^` range on a `0.x` version already admits patches within `0.2.x`), so this is a documentation correction more than a functional one; recorded so the floor states the version it actually needs rather than the version that happened to work.
+-   **Fixes:** GHSA-ph9p-34f9-6g65 (patched 0.2.6) — path traversal via unsanitized `prefix`/`postfix` allowing writes outside the temporary directory. GHSA-7c78-jf6q-g5cm (high) — patched 0.2.7.
 -   **Build/dev-tool chain only** — `external-editor` provides interactive prompt editing and is never bundled.
--   **Drop when:** `external-editor` requests `tmp@^0.2.6` or later, or the `inquirer` chain leaves the tree.
+-   **Drop when:** `external-editor` requests `tmp@^0.2.7` or later, or the `inquirer` chain leaves the tree.
 
 #### `isomorphic-fetch/node-fetch: ^2.6.7`
 
@@ -234,13 +236,26 @@ All three cross a major inside the `@dhis2/cli-app-scripts` chain, which is buil
 -   **Build/dev-tool chain only** — `request` is reached through `@dhis2/cli-helpers-engine` and never bundled.
 -   **Drop when:** the `request` chain leaves the tree. That is the same condition as the `uuid` finding below, and it is the one thing that would remove several entries at once.
 
-#### `package-json/got: ^11.8.5`
+#### `latest-version/package-json: ^7.0.0`
 
--   **Why:** `package-json@6.5.0` requests `got@^9.6.0`, and the fix for that line is on 11.8.5, so the range cannot reach it. Reached through `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier` → `latest-version` → `package-json`. Scoped to the only consumer.
-    Verified by loading `package-json` and `update-notifier` against `got@11.8.6`.
+-   ⚠️ **Replaces the `package-json/got: ^11.8.5` pin, retired 2026-09-17.** That pin loaded cleanly — which is what the previous verification checked — but was never exercised end to end. See "Rejected pins" below.
+-   **Why:** `@dhis2/cli-helpers-engine` → `update-notifier@3.0.1` → `latest-version@5.1.0` requests `package-json@^6.3.0`, which requests `got@^9.6.0`; the fix for that line is on 11.8.5 and the range cannot reach it. `package-json@7.0.0` is still CommonJS and declares `got@^11.8.2` itself, so got 11 arrives through a parent written for it rather than a pin on its child. Reached through `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier` → `latest-version` → `package-json`. Scoped to the only consumer.
+    Verified by calling `latestVersion('is-number')` directly against the real registry — what `update-notifier` actually invokes — rather than only loading the module; it returned `7.0.0`.
 -   **Fixes:** GHSA-pfrx-2q88-qq97 (medium) — redirect to a UNIX socket.
 -   **Build/dev-tool chain only** — `update-notifier` checks for new releases of the CLI during i18n commands.
--   **Drop when:** `package-json` requests a `got` range admitting 11.8.5, or the `update-notifier` chain leaves the tree.
+-   **Drop when:** `latest-version` requests `package-json >= 7` natively, or the `update-notifier` chain leaves the tree.
+
+### High severity (added 2026-09-17)
+
+#### `execa@npm:0.7.0/cross-spawn: ^6.0.6`
+
+-   ⚠️ **Previously recorded as an accepted finding with no fix; that was wrong.** See the corrected conventions above — a versioned-parent path can select outside the range its parent declares, keyed on the parent's resolved version rather than a descriptor.
+-   **Why:** `@dhis2/cli-helpers-engine` → `update-notifier@3.0.1` → `boxen@3.2.0` → `term-size@1.2.0` requests `execa@^0.7.0`, which requests `cross-spawn@^5.0.1`. GHSA-3xgq-45jj-v275 is patched at 6.0.6 and 7.0.5, nothing on 5.x. The versioned-parent form is required: `execa@5.1.1` is also in the tree (via the bundled jest chain) and declares `^7.0.3`, so a parent-name `execa/cross-spawn` entry would drag it below its own range.
+    Verified with `yarn install` (`+ cross-spawn@npm:6.0.6 / - cross-spawn@npm:5.1.0`) and `yarn why cross-spawn -R`, which shows `execa@0.7.0` now resolving `cross-spawn` to 6.0.6 while the unrelated `cross-spawn@7.0.6` copies (eslint, jest's `execa@5.1.1`, `archiver`'s `glob`) are untouched.
+-   **Fixes:** GHSA-3xgq-45jj-v275 (high) — ReDoS in argument escaping.
+-   **Build/dev-tool chain only** — `term-size` runs only fixed commands (its own vendored binaries, `resize -u`, `tput cols`/`tput lines`); no external argument reaches `cross-spawn` on this path, so the fix closes the finding without there having been a reachable input to begin with.
+-   ⚠️ **Decay risk: keyed on the resolved version.** 0.7.0 is the only 0.7.x release `execa` ever published, so the key cannot go stale through a parent patch bump the way most versioned-parent pins can — but re-check it at every audit regardless.
+-   **Drop when:** `term-size@1.x` leaves the tree, which happens when `@dhis2/cli-helpers-engine` moves off `update-notifier@3`. Same exit as the `uuid` and `request` findings above.
 
 ---
 
@@ -270,7 +285,15 @@ that requests a vite the upgrade does not already satisfy.
 
 ### `glob@npm:7.2.3/minimatch: ^3.1.4` — removed 2026-08-12
 
-**It never matched anything.** The key names the descriptor `glob@npm:7.2.3`, and no consumer
+⚠️ **The reasoning below is superseded.** It concluded the key "never matched anything" because a
+versioned-parent path was believed to key on the descriptor. That convention was corrected on
+2026-09-17 — see the entry in [Conventions](#conventions) — and `7.2.3` is in fact the resolved
+version, so this key likely did bind. The removal decision itself still holds, for the independent
+reason given below: `glob@7.2.3`'s own `^3.1.1` already reaches the same patched `minimatch`, so the
+entry changed nothing whether or not it matched. Left unmeasured rather than re-derived, because the
+entry is already gone and nothing currently depends on which explanation is correct.
+
+**Superseded reasoning, kept for context:** the key names the descriptor `glob@npm:7.2.3`, and no consumer
 requests that. The only glob 7 entry in the lockfile is:
 
 ```
@@ -292,7 +315,7 @@ and a parent-name `glob/minimatch` pin would have dragged v13 down seven majors.
 holds; it simply was not needed, because v7 reaches its own patch unaided.
 
 **Restore it only if** a glob 7 consumer appears whose declared range cannot reach a patched
-`minimatch` 3.x — and if so, key it on the descriptor, not on the resolved version.
+`minimatch` 3.x — and if so, key it on the resolved version `yarn why glob -R` reports.
 
 ### `minimatch@npm:10.2.4/brace-expansion: ^5.0.5` — removed 2026-08-05
 
@@ -312,6 +335,16 @@ the job unaided.
 
 **Restore it only if** a future advisory affects a `brace-expansion` release that `^5.0.2` can still
 select — that is, if re-resolution stops reaching a patched version on its own.
+
+---
+
+## Rejected pins
+
+Tried, verified to break a consumer, and reverted. Recorded so nobody re-tries them.
+
+| Pin attempted               | What broke                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package-json/got: ^11.8.5` | Loads cleanly, then every lookup fails: `package-json@6.5.0` calls `got` with `{ json: true }`, which got 9 (what `package-json@6.5.0` was written against) reads as "parse the response" and got 11 reads as "send a JSON body" — `RequestError: The GET method cannot be used with a body`. **Loading the module is not enough to catch this**; it takes calling the code path that uses the package. Verified on the skeleton baseline against this exact `package-json@6.5.0` + `got@11.8.6` combination (2026-09-17); the failure is a library-version mismatch inside `package-json`, not something specific to either tree. Use `latest-version/package-json: ^7.0.0` instead, which lifts the parent to a release written for got 11. |
 
 ---
 
@@ -351,11 +384,13 @@ Read in order of cost:
    `GHSA-gv7w-rqvm-qjhr` against `esbuild` and `GHSA-p5wg-g6qr-c7cg` against `eslint`; both advisories
    were withdrawn upstream. Dismiss them rather than acting on them — **do not upgrade either package
    on their account.**
-2. **The `uuid`, `request` and `cross-spawn@5.1.0` findings share one exit.** All three are reached
-   only through `@dhis2/cli-app-scripts`, which this project uses for exactly two scripts (`extract-pot`
-   and `localize`). Replacing it for i18n would close all three and retire seven entries in this file; that is
-   a real option and does not depend on upstream, unlike the "wait for `@dhis2/cli-helpers-engine`"
-   route the individual entries describe.
+2. **The `uuid` and `request` findings share one exit.** Both are reached only through
+   `@dhis2/cli-app-scripts`, which this project uses for exactly two scripts (`extract-pot` and
+   `localize`). Replacing it for i18n would close both and retire eight resolutions in this file; that
+   is a real option and does not depend on upstream, unlike the "wait for `@dhis2/cli-helpers-engine`"
+   route the individual entries describe. `cross-spawn@5.1.0` used to be a third finding on this same
+   exit — closed 2026-09-17 by a versioned-parent resolution instead; see
+   `execa@npm:0.7.0/cross-spawn` in [Active resolutions](#active-resolutions).
 3. **`elliptic` is the only genuine dead end.** Re-verified 2026-08-14: 6.6.1 is still `latest` and the
    advisory covers every published version.
 
@@ -421,17 +456,6 @@ did not appear in the lockfile at all, because vite inlined it into `dist/node/c
 
 -   **Advisories against this component:** **one** live against `request@2.88.2` — the entry above. One other exists against the package and is patched below this version.
 
-### `cross-spawn@5.1.0`: GHSA-3xgq-45jj-v275
-
--   **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier@3.0.1` → `boxen@3.2.0` → `term-size@1.2.0` → `execa@0.7.0` → `cross-spawn@^5.0.1`.
--   **Not reachable with untrusted input.** The advisory is a ReDoS in argument escaping. `term-size` only runs fixed commands through `execa`: its own vendored binaries, `resize -u`, and `tput cols` / `tput lines`. No argument reaches it from outside the package. Checked against the installed `term-size/index.js`.
--   **Why it is not fixed:** the advisory patches two lines, `< 6.0.6` at 6.0.6 and `>= 7.0.0, < 7.0.5` at 7.0.5, and nothing on 5.x. `execa@0.7.0` declares `^5.0.1`, so re-resolution cannot reach a patch, and a versioned-parent resolution cannot select outside that range (see the conventions). A parent-name `execa/cross-spawn` entry would also bind `execa@5.1.1`, which declares `^7.0.3`, and pull it below its own range. Closing it would take overriding a parent further up the chain, a new constraint for a dev-only finding with no reachable input.
--   **Status:** dismissed in both scanners. Dependabot auto-dismissed it under its development-scope rule, and it was dismissed in code scanning on 2026-06-03 ("Dev only - transitive dependency of @dhis2/cli-app-scripts").
--   **Impact:** build/dev-tool chain only, never bundled.
--   **Revisit when:** the `@dhis2/cli-app-scripts` chain is replaced, or `@dhis2/cli-helpers-engine` drops `update-notifier`. The first is the same exit as the `uuid` and `request` findings above.
-
--   **Advisories against this component:** **one** live against `cross-spawn@5.1.0`, the entry above. The `cross-spawn@7.0.6` also in this tree is outside its range.
-
 ### `elliptic@6.6.1` — GHSA-848j-6mx2-7j84
 
 -   **Chain:** reached through the browser crypto polyfills, which exist because `md5.js` needs the `Buffer` shim.
@@ -463,6 +487,5 @@ When auditing, treat any of these as a signal that a constraint has gone stale:
 -   Make the existing `dependency-track-yarn4` GitHub workflow **block** on severity ≥ high so a regression doesn't reach `development`.
 -   Treat the `d2@31.7.0` chain (via `@dhis2/d2-ui-core`) as an **eviction candidate** rather than a pin-forever item. It still pulls packages with no upstream fix path, and it is the reason the `isomorphic-fetch/node-fetch` entry exists.
 -   ~~**Upgrade the application off vite 4.**~~ Done on 2026-08-13 — see [Resolved by the vite upgrade](#resolved-by-the-vite-upgrade--eight-advisories). It went to 7.3.6 rather than the minimum 6.4.3, because `@dhis2/cli-app-scripts` already holds a vite 6 and keeping the application above it avoids a second constraint.
--   **Treat `@dhis2/cli-app-scripts` as an eviction candidate.** It is a devDependency used by exactly two scripts (`extract-pot`, `localize`), yet it is the sole path to the `uuid` and `request` findings and the reason **seven** entries in this file exist: `request/form-data`, `request/tough-cookie`, `external-editor/tmp`, `i18next-conv/node-gettext`, `@dhis2/cli-app-scripts/vite`, `http-proxy-agent/@tootallnate/once` and `package-json/got`. Replacing it for i18n generation would close both findings and retire all seven, without waiting on upstream. (`styled-jsx/loader-utils` is **not** in that list — `@dhis2/app-shell` pulls it too, so it would survive.)
+-   **Treat `@dhis2/cli-app-scripts` as an eviction candidate.** It is a devDependency used by exactly two scripts (`extract-pot`, `localize`), yet it is the sole path to the `uuid` and `request` findings and the reason **eight** entries in this file exist: `request/form-data`, `request/tough-cookie`, `external-editor/tmp`, `i18next-conv/node-gettext`, `@dhis2/cli-app-scripts/vite`, `http-proxy-agent/@tootallnate/once`, `latest-version/package-json` and `execa@npm:0.7.0/cross-spawn`. Replacing it for i18n generation would close both findings and retire all eight, without waiting on upstream. (`styled-jsx/loader-utils` is **not** in that list — `@dhis2/app-shell` pulls it too, so it would survive.)
 -   **Fix `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` upstream.** Between them they request `axios`, `qs`, `lodash` and `react-linkify` at exact versions, which is what forces four of the entries in this file into every application that uses them.
--   **`cross-spawn@5.1.0`, reached through `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine` → `update-notifier` → `boxen` → `term-size` → `execa@0.7.0`.** A local `yarn npm audit` reports it against a ReDoS advisory affecting `< 6.0.6`; the Dependency-Track analysis does not report it at all, which is the scanner disagreement noted under _Audit cadence_. Left alone deliberately rather than overlooked — fixing it needs a versioned-parent entry against `execa@npm:0.7.0`, the shape with the highest decay risk, for a build-only path that the gate does not flag. Revisit if Dependency-Track starts reporting it, or if the `update-notifier` chain is removed.
