@@ -29,6 +29,8 @@ export function useSyncLocalWmr() {
 
         const syncRuleUpdated = syncRule.rule
             .updateBuilder({ metadataIds: dataElementsToMigrate })
+            .updateDataSyncEnableAggregation(true)
+            .updateDataSyncAggregationType("YEARLY")
             // TODO: This is a shortcut to get the root org unit, which is the same as the country WMR dataset.
             .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.path));
 
