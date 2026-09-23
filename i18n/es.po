@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-07-06T15:09:17.686Z\n"
+"POT-Creation-Date: 2026-09-23T02:18:21.147Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2526,8 +2526,14 @@ msgstr ""
 msgid "Failed to synchronize WMR data"
 msgstr ""
 
-msgid "WMR data synchronized successfully."
-msgstr ""
+msgid "WMR data synchronized successfully. {{count}} values transferred."
+msgid_plural ""
+"WMR data synchronized successfully. {{count}} values transferred."
+msgstr[0] "WMR data synchronized successfully. {{count}} values transferred."
+msgstr[1] "WMR data synchronized successfully. {{count}} values transferred."
+
+msgid "You can still complete the WMR form manually."
+msgstr "You can still complete the WMR form manually."
 
 msgid "Please complete the prerequisites before proceeding."
 msgstr ""
@@ -2569,6 +2575,9 @@ msgstr ""
 
 msgid "Create New Target Instance"
 msgstr ""
+
+msgid "No mapped data elements found for the selected data set."
+msgstr "No mapped data elements found for the selected data set."
 
 msgid "Instance or target organisation unit ID is not provided."
 msgstr ""

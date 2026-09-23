@@ -68,15 +68,30 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                     />
                 )}
                 {wmrLocalSyncResult?.type === "success" && (
-                    <NoticeBox type="success" message={i18n.t("WMR data synchronized successfully.")} />
-                )}
-                {settings.countryDataSetId && wmrLocalSyncResult?.type === "success" && path && (
-                    <DataEntry
-                        dataSetId={settings.countryDataSetId}
-                        orgUnitId={_(path).split("/").last() || ""}
-                        period={(new Date().getFullYear() - 1).toString()}
+                    <NoticeBox
+                        type="success"
+                        message={i18n.t("WMR data synchronized successfully. {{count}} values transferred.", {
+                            count: wmrLocalSyncResult.transferred,
+                        })}
                     />
                 )}
+                {wmrLocalSyncResult?.type === "warning" && (
+                    <NoticeBox
+                        type="warning"
+                        message={`${i18n.t(wmrLocalSyncResult.message)} ${i18n.t(
+                            "You can still complete the WMR form manually."
+                        )}`}
+                    />
+                )}
+                {settings.countryDataSetId &&
+                    (wmrLocalSyncResult?.type === "success" || wmrLocalSyncResult?.type === "warning") &&
+                    path && (
+                        <DataEntry
+                            dataSetId={settings.countryDataSetId}
+                            orgUnitId={_(path).split("/").last() || ""}
+                            period={(new Date().getFullYear() - 1).toString()}
+                        />
+                    )}
             </Grid>
         </Grid>
     );
@@ -94,22 +109,24 @@ export function DataEntry(props: DataEntryProps) {
         const currentWindow = iframeRef.current?.contentWindow;
 
         function onLoad() {
-            if (currentWindow?.document) {
-                mutateDom(currentWindow.document, "#currentSelection", el => el.remove());
-                mutateDom(currentWindow.document, "#header", el => el.remove());
-                mutateDom(currentWindow.document, "#leftBar", el => (el.style.display = "none"));
-                mutateDom(currentWindow.document, "#selectionBox", el => (el.style.display = "none"));
-                mutateDom(currentWindow.document, "body", el => (el.style.marginTop = "-55px"));
-                mutateDom(currentWindow.document, "#mainPage", el => (el.style.margin = "65px 10px 10px 10px"));
-                mutateDom(currentWindow.document, "#completenessDiv", el => el.remove());
-                mutateDom(currentWindow.document, "#moduleHeader", el => el.remove());
-                mutateDom(currentWindow.document, "#actions", el => el.remove());
-                setStatus("loaded");
-            }
+            const document = currentWindow?.document;
+            if (!document) return;
+
+            mutateDom(document, "#currentSelection", el => el.remove());
+            mutateDom(document, "#header", el => el.remove());
+            mutateDom(document, "#leftBar", el => (el.style.display = "none"));
+            mutateDom(document, "#selectionBox", el => (el.style.display = "none"));
+            mutateDom(document, "body", el => (el.style.marginTop = "-55px"));
+            mutateDom(document, "#mainPage", el => (el.style.margin = "65px 10px 10px 10px"));
+            mutateDom(document, "#completenessDiv", el => el.remove());
+            mutateDom(document, "#moduleHeader", el => el.remove());
+            mutateDom(document, "#actions", el => el.remove());
+            setStatus("loaded");
         }
 
         if (currentWindow) {
             currentWindow.addEventListener("load", onLoad);
+            if (currentWindow.document?.readyState === "complete") onLoad();
         }
 
         return () => {

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-07-07T09:14:53.473Z\n"
-"PO-Revision-Date: 2026-07-07T09:14:53.473Z\n"
+"POT-Creation-Date: 2026-09-23T02:30:14.527Z\n"
+"PO-Revision-Date: 2026-09-23T02:30:14.527Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2644,8 +2644,13 @@ msgstr "Download DataValues"
 msgid "Failed to synchronize WMR data"
 msgstr "Failed to synchronize WMR data"
 
-msgid "WMR data synchronized successfully."
-msgstr "WMR data synchronized successfully."
+msgid "WMR data synchronized successfully. {{count}} values transferred."
+msgid_plural "WMR data synchronized successfully. {{count}} values transferred."
+msgstr[0] "WMR data synchronized successfully. {{count}} values transferred."
+msgstr[1] "WMR data synchronized successfully. {{count}} values transferred."
+
+msgid "You can still complete the WMR form manually."
+msgstr "You can still complete the WMR form manually."
 
 msgid "Please complete the prerequisites before proceeding."
 msgstr "Please complete the prerequisites before proceeding."
@@ -2690,6 +2695,9 @@ msgstr "Validate Organisation Unit"
 
 msgid "Create New Target Instance"
 msgstr "Create New Target Instance"
+
+msgid "No mapped data elements found for the selected data set."
+msgstr "No mapped data elements found for the selected data set."
 
 msgid "Instance or target organisation unit ID is not provided."
 msgstr "Instance or target organisation unit ID is not provided."
