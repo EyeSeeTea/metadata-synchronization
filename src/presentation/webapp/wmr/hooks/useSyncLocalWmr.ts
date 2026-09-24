@@ -5,22 +5,13 @@ import { SynchronizationResult } from "../../../../domain/reports/entities/Synch
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 import i18n from "../../../../utils/i18n";
+import { getWmrAggregationSettings } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { filterMappedDataElementIds, useGetDataSetOrgUnits, useMappingDataElements } from "./useMappingDataElements";
 
-export type WmrLocalSyncResult =
-    | {
-          type: "success";
-          transferred: number;
-      }
-    | {
-          type: "warning";
-          message: string;
-          transferred: number;
-      }
-    | {
-          type: "error";
-          message: string;
-      };
+export type WmrLocalSyncResult = Readonly<{
+    type: "success" | "info" | "warning" | "error";
+    message: string;
+}>;
 
 export function summarizeWmrLocalSync(report?: SynchronizationReport): WmrLocalSyncResult {
     if (!report) {
@@ -39,19 +30,32 @@ export function summarizeWmrLocalSync(report?: SynchronizationReport): WmrLocalS
         };
     }
 
-    const transferred = results.reduce(
-        (total, result) => total + (result.stats?.imported ?? 0) + (result.stats?.updated ?? 0),
-        0
+    const { imported, updated, ignored } = results.reduce(
+        (totals, { stats }) => ({
+            imported: totals.imported + (stats?.imported ?? 0),
+            updated: totals.updated + (stats?.updated ?? 0),
+            ignored: totals.ignored + (stats?.ignored ?? 0),
+        }),
+        { imported: 0, updated: 0, ignored: 0 }
     );
-    if (!transferred) {
+
+    if (imported + updated > 0) {
         return {
-            type: "warning",
-            message: i18n.t("Synchronization completed, but no data values were transferred."),
-            transferred,
+            type: "success",
+            message: i18n.t("{{imported}} created, {{updated}} updated, {{ignored}} unchanged", {
+                imported,
+                updated,
+                ignored,
+            }),
         };
     }
-
-    return { type: "success", transferred };
+    if (ignored > 0) {
+        return { type: "info", message: i18n.t("The {{ignored}} values were already up to date", { ignored }) };
+    }
+    return {
+        type: "warning",
+        message: i18n.t("There are no values for the mapped data elements in the period"),
+    };
 }
 
 export function useSyncLocalWmr() {
@@ -59,13 +63,13 @@ export function useSyncLocalWmr() {
     const { settings, syncRule } = useWmrContext();
     const { dataElementsToMigrate } = useMappingDataElements("LOCAL");
     const loading = useLoading();
-    const { dataSet: countryDataSet } = useGetDataSetOrgUnits({ id: settings?.countryDataSetId || "" });
+    const { dataSet: countryDataSet } = useGetDataSetOrgUnits({ id: syncRule?.destination?.id || "" });
 
     const [wmrLocalSyncResult, setWmrLocalSyncResult] = React.useState<WmrLocalSyncResult | null>(null);
 
     const syncLocalWmr = React.useCallback(async () => {
-        if (!settings || !syncRule || !countryDataSet) {
-            throw new Error("WMR settings or sync rule not found");
+        if (!settings || !syncRule?.destination || !countryDataSet) {
+            throw new Error("WMR settings, sync rule or destination not found");
         }
 
         const selectedDataSetDataElementIds = settings.getDataElementsIds(syncRule.localDataSetId);
@@ -81,10 +85,11 @@ export function useSyncLocalWmr() {
             return;
         }
 
+        const { enableAggregation, aggregationType } = getWmrAggregationSettings(syncRule.destination.periodType);
         const syncRuleUpdated = syncRule.rule
             .updateBuilder({ metadataIds: selectedDataSetMappedDataElementIds })
-            .updateDataSyncEnableAggregation(true)
-            .updateDataSyncAggregationType("YEARLY")
+            .updateDataSyncEnableAggregation(enableAggregation)
+            .updateDataSyncAggregationType(aggregationType)
             // TODO: This is a shortcut to get the root org unit, which is the same as the country WMR dataset.
             .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.path));
 

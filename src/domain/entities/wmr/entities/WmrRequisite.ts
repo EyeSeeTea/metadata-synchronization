@@ -38,3 +38,7 @@ export function checkWmrRequisiteDataSet(dataSet: WmrRequisiteDataSet | undefine
     }
     return { type: "installed" };
 }
+
+export const wmrDestinationCodes: ReadonlyArray<string> = Object.values(wmrRequisites)
+    .filter(requisite => requisite.kind === "metadata")
+    .map(requisite => requisite.code);

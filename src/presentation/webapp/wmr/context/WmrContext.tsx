@@ -1,10 +1,15 @@
 import React from "react";
 import { Id } from "../../../../domain/common/entities/Schemas";
-import { WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
+import { WmrDestination, WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
 import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
 import { Maybe } from "../../../../types/utils";
 
-export type WmrSyncRule = { localDataSetId: Maybe<Id>; rule: SynchronizationRule; targetOrgUnitId: Maybe<Id> };
+export type WmrSyncRule = {
+    localDataSetId: Maybe<Id>;
+    destination: Maybe<WmrDestination>;
+    rule: SynchronizationRule;
+    targetOrgUnitId: Maybe<Id>;
+};
 
 export interface WmrContextState {
     loadSettings: () => void;

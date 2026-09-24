@@ -1,15 +1,16 @@
 import React from "react";
 import _ from "lodash";
-import { useLoading } from "@eyeseetea/d2-ui-components";
-import { Grid, Button, LinearProgress } from "@material-ui/core";
+import { Dropdown, useLoading } from "@eyeseetea/d2-ui-components";
+import { Grid, Button, LinearProgress, Typography } from "@material-ui/core";
 import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
 
 import { Id } from "../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
-import moment from "moment-timezone";
+import { formatDateLong } from "../../../utils/date";
+import { buildMonthlyPeriodIds, getWmrSyncedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { useWmrContext } from "./context/WmrContext";
-import { useSyncLocalWmr } from "./hooks/useSyncLocalWmr";
+import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
 import { AnalyticsFreshness, useAnalyticsFreshness } from "./hooks/useAnalyticsFreshness";
 import { NoticeBox, NoticeBoxProps } from "./components/NoticeBox";
 
@@ -20,9 +21,14 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const { syncRule, settings } = useWmrContext();
     const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult } = useSyncLocalWmr();
     const loading = useLoading();
-    if (!syncRule || !settings) {
+    const syncedYear = getWmrSyncedYear(new Date());
+    const monthlyPeriodIds = buildMonthlyPeriodIds(syncedYear);
+    const [monthlyPeriodId, setMonthlyPeriodId] = React.useState(monthlyPeriodIds[0]);
+    if (!syncRule?.destination || !settings) {
         throw new Error("WMR Context should be initialized");
     }
+    const { destination } = syncRule;
+    const isMonthly = destination.periodType === "Monthly";
     const path = _(syncRule.rule.dataParams.orgUnitPaths).first() || "";
 
     const onDownload = async () => {
@@ -36,8 +42,18 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
 
     return (
         <Grid container spacing={1} style={{ height: "70vh" }}>
+            {isMonthly && (
+                <Grid item xs={12}>
+                    <AnalyticsFreshnessNotice />
+                </Grid>
+            )}
             <Grid item xs={12}>
-                <AnalyticsFreshnessNotice />
+                <Typography variant="subtitle1">
+                    {i18n.t("DataSet: {{name}} ({{periodType}})", {
+                        name: destination.name,
+                        periodType: destination.periodType,
+                    })}
+                </Typography>
             </Grid>
             {!wmrLocalSyncResult && (
                 <Grid item xs={12}>
@@ -66,40 +82,42 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                 {wmrLocalSyncIsLoading && (
                     <LinearProgress color="primary" style={{ position: "absolute", width: "100%" }} />
                 )}
-                {wmrLocalSyncResult?.type === "error" && (
-                    <NoticeBox
-                        type="error"
-                        message={`${i18n.t("Failed to synchronize WMR data")} ${wmrLocalSyncResult.message}`}
-                    />
+                {wmrLocalSyncResult && (
+                    <NoticeBox type={wmrLocalSyncResult.type} message={describeWmrLocalSync(wmrLocalSyncResult)} />
                 )}
-                {wmrLocalSyncResult?.type === "success" && (
-                    <NoticeBox
-                        type="success"
-                        message={i18n.t("WMR data synchronized successfully. {{count}} values transferred.", {
-                            count: wmrLocalSyncResult.transferred,
-                        })}
-                    />
-                )}
-                {wmrLocalSyncResult?.type === "warning" && (
-                    <NoticeBox
-                        type="warning"
-                        message={`${wmrLocalSyncResult.message} ${i18n.t(
-                            "You can still complete the WMR form manually."
-                        )}`}
-                    />
-                )}
-                {settings.countryDataSetId &&
-                    (wmrLocalSyncResult?.type === "success" || wmrLocalSyncResult?.type === "warning") &&
-                    path && (
+                {wmrLocalSyncResult && wmrLocalSyncResult.type !== "error" && path && (
+                    <>
+                        {isMonthly && (
+                            <Dropdown
+                                items={monthlyPeriodIds.map(periodId => ({ value: periodId, text: periodId }))}
+                                label={i18n.t("Month")}
+                                onChange={periodId => setMonthlyPeriodId(periodId ?? monthlyPeriodIds[0])}
+                                value={monthlyPeriodId}
+                                hideEmpty
+                            />
+                        )}
                         <DataEntry
-                            dataSetId={settings.countryDataSetId}
+                            dataSetId={destination.id}
                             orgUnitId={_(path).split("/").last() || ""}
-                            period={(new Date().getFullYear() - 1).toString()}
+                            period={isMonthly ? monthlyPeriodId : syncedYear.toString()}
                         />
-                    )}
+                    </>
+                )}
             </Grid>
         </Grid>
     );
+}
+
+function describeWmrLocalSync(result: WmrLocalSyncResult): string {
+    switch (result.type) {
+        case "error":
+            return `${i18n.t("Failed to synchronize WMR data")} ${result.message}`;
+        case "warning":
+            return `${result.message} ${i18n.t("You can still complete the WMR form manually.")}`;
+        case "success":
+        case "info":
+            return result.message;
+    }
 }
 
 function AnalyticsFreshnessNotice() {
@@ -107,10 +125,6 @@ function AnalyticsFreshnessNotice() {
     const { type, message } = describeAnalyticsFreshness(analyticsFreshness);
 
     return <NoticeBox type={type} message={message} />;
-}
-
-function formatAnalyticsDate(date: Date): string {
-    return moment(date).tz(moment.tz.guess()).format("YYYY-MM-DD HH:mm:ss z");
 }
 
 function describeAnalyticsFreshness(freshness: AnalyticsFreshness): {
@@ -125,7 +139,7 @@ function describeAnalyticsFreshness(freshness: AnalyticsFreshness): {
                 type: "info",
                 message: i18n.t(
                     "Analytics tables were last generated on {{date}}. This sync reads those tables, so data captured after that moment is not included.",
-                    { date: formatAnalyticsDate(freshness.date) }
+                    { date: formatDateLong(freshness.date) }
                 ),
             };
         case "neverRun":

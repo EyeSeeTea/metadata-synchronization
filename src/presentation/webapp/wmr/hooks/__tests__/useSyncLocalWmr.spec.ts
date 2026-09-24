@@ -25,31 +25,35 @@ const buildReport = (result: Record<string, unknown>, status = "DONE") => {
     return report;
 };
 
+const buildStatsReport = (imported: number, updated: number, ignored: number) =>
+    buildReport({ status: "SUCCESS", stats: { imported, updated, ignored, deleted: 0 } });
+
 describe("summarizeWmrLocalSync", () => {
-    it("reports a warning when the sync transfers no values", () => {
-        expect(
-            summarizeWmrLocalSync(
-                buildReport({ status: "SUCCESS", stats: { imported: 0, updated: 0, ignored: 0, deleted: 0 } })
-            )
-        ).toEqual({
-            type: "warning",
-            message: "Synchronization completed, but no data values were transferred.",
-            transferred: 0,
-        });
-    });
-
-    it("reports the number of imported and updated values", () => {
-        expect(
-            summarizeWmrLocalSync(
-                buildReport({ status: "SUCCESS", stats: { imported: 2, updated: 3, ignored: 1, deleted: 0 } })
-            )
-        ).toEqual({ type: "success", transferred: 5 });
-    });
-
     it("reports a failed result as an error", () => {
         expect(summarizeWmrLocalSync(buildReport({ status: "ERROR", message: "Source unavailable" }))).toEqual({
             type: "error",
             message: "Source unavailable",
+        });
+    });
+
+    it("reports created, updated and unchanged values when any value was written", () => {
+        expect(summarizeWmrLocalSync(buildStatsReport(2, 3, 1))).toEqual({
+            type: "success",
+            message: "2 created, 3 updated, 1 unchanged",
+        });
+    });
+
+    it("reports an info when every value was already up to date", () => {
+        expect(summarizeWmrLocalSync(buildStatsReport(0, 0, 4))).toEqual({
+            type: "info",
+            message: "The 4 values were already up to date",
+        });
+    });
+
+    it("reports a warning when the period has no values for the mapped data elements", () => {
+        expect(summarizeWmrLocalSync(buildStatsReport(0, 0, 0))).toEqual({
+            type: "warning",
+            message: "There are no values for the mapped data elements in the period",
         });
     });
 });
