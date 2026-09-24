@@ -1,1 +1,40 @@
-export type WmrRequisiteType = "metadata" | "dataStore";
+export const wmrRequisiteTypes = ["metadata", "dataStore", "metadataMonthly", "dataStoreMonthly"] as const;
+export type WmrRequisiteType = typeof wmrRequisiteTypes[number];
+
+export type WmrRequisite = Readonly<{
+    kind: "metadata" | "dataStore";
+    code: string;
+    assetPath: string;
+    requires?: WmrRequisiteType;
+}>;
+
+export const wmrRequisites: Readonly<Record<WmrRequisiteType, WmrRequisite>> = {
+    metadata: { kind: "metadata", code: "MAL_WMR_COUNTRY_SYNC", assetPath: "wmr/metadata.json" },
+    dataStore: { kind: "dataStore", code: "MAL_WMR_COUNTRY_SYNC", assetPath: "wmr/dataStore.json" },
+    metadataMonthly: {
+        kind: "metadata",
+        code: "MAL_WMR_COUNTRY_SYNC_MONTHLY",
+        assetPath: "wmr/metadata-monthly.json",
+        requires: "metadata",
+    },
+    dataStoreMonthly: {
+        kind: "dataStore",
+        code: "MAL_WMR_COUNTRY_SYNC_MONTHLY",
+        assetPath: "wmr/dataStore-monthly.json",
+    },
+};
+
+export type WmrRequisiteCheck =
+    | Readonly<{ type: "installed" }>
+    | Readonly<{ type: "missing" }>
+    | Readonly<{ type: "misassigned"; dataSetName: string; orgUnitsCount: number }>;
+
+export type WmrRequisiteDataSet = Readonly<{ name: string; orgUnitsCount: number }>;
+
+export function checkWmrRequisiteDataSet(dataSet: WmrRequisiteDataSet | undefined): WmrRequisiteCheck {
+    if (!dataSet) return { type: "missing" };
+    if (dataSet.orgUnitsCount > 1) {
+        return { type: "misassigned", dataSetName: dataSet.name, orgUnitsCount: dataSet.orgUnitsCount };
+    }
+    return { type: "installed" };
+}

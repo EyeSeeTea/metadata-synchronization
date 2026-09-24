@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-09-23T02:18:21.147Z\n"
+"POT-Creation-Date: 2026-09-24T16:45:35.424Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13,6 +13,9 @@ msgid ""
 "TO WORK PROPERLY, YOU WILL HAVE TO SET THE SHARING SETTINGS FOR EACH "
 "INSTANCE (Menu 'Instance Settings' > Contextual action 'Sharing settings')"
 msgstr ""
+
+msgid "The user has no capture organisation unit assigned"
+msgstr "The user has no capture organisation unit assigned"
 
 msgid "Field {{field}} cannot be blank"
 msgstr ""
@@ -2446,6 +2449,50 @@ msgstr ""
 msgid "Patients (Tracked Entity Instances)"
 msgstr ""
 
+msgid "Metadata package"
+msgstr ""
+
+msgid "This package contains the WMR dataset and its dependencies"
+msgstr ""
+
+msgid "metadata package"
+msgstr "metadata package"
+
+msgid "Autogenform configuration"
+msgstr ""
+
+msgid "Contains the dataStore configurations required by the autogenforms tool"
+msgstr ""
+
+msgid "Monthly metadata package"
+msgstr "Monthly metadata package"
+
+msgid "This package contains the monthly WMR dataset and its dependencies"
+msgstr "This package contains the monthly WMR dataset and its dependencies"
+
+msgid "monthly metadata package"
+msgstr "monthly metadata package"
+
+msgid ""
+"Install the metadata package first. The monthly package does not include the "
+"constants used by the form labels, the annual package installs them."
+msgstr ""
+"Install the metadata package first. The monthly package does not include the "
+"constants used by the form labels, the annual package installs them."
+
+msgid "Monthly Autogenform configuration"
+msgstr "Monthly Autogenform configuration"
+
+msgid ""
+"Contains the dataStore configurations of the monthly WMR dataset required by "
+"the autogenforms tool"
+msgstr ""
+"Contains the dataStore configurations of the monthly WMR dataset required by "
+"the autogenforms tool"
+
+msgid "monthly Autogenform configuration"
+msgstr "monthly Autogenform configuration"
+
 msgid "Checking {{itemName}}..."
 msgstr ""
 
@@ -2464,19 +2511,26 @@ msgid ""
 "The {{itemName}} is not installed yet. Use the button below to install it."
 msgstr ""
 
+msgid ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
+"assigned only to the country"
+msgid_plural ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
+"assigned only to the country"
+msgstr[0] ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
+"assigned only to the country"
+msgstr[1] ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
+"assigned only to the country"
+
+msgid "Setup {{itemName}}"
+msgstr "Setup {{itemName}}"
+
+msgid "Download {{itemName}}"
+msgstr "Download {{itemName}}"
+
 msgid "Setup WMR prerequisites"
-msgstr ""
-
-msgid "Metadata package"
-msgstr ""
-
-msgid "This package contains the WMR dataset and its dependencies"
-msgstr ""
-
-msgid "Autogenform configuration"
-msgstr ""
-
-msgid "Contains the dataStore configurations required by the autogenforms tool"
 msgstr ""
 
 msgid "Loading settings..."
@@ -2535,6 +2589,32 @@ msgstr[1] "WMR data synchronized successfully. {{count}} values transferred."
 msgid "You can still complete the WMR form manually."
 msgstr "You can still complete the WMR form manually."
 
+msgid "Checking when analytics tables were last generated..."
+msgstr "Checking when analytics tables were last generated..."
+
+msgid ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
+msgstr ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
+
+msgid ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+msgstr ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+
+msgid ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
+msgstr ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
+
 msgid "Please complete the prerequisites before proceeding."
 msgstr ""
 
@@ -2576,8 +2656,20 @@ msgstr ""
 msgid "Create New Target Instance"
 msgstr ""
 
+msgid "Synchronization did not return a report."
+msgstr "Synchronization did not return a report."
+
+msgid "Synchronization failed."
+msgstr "Synchronization failed."
+
+msgid "Synchronization completed, but no data values were transferred."
+msgstr "Synchronization completed, but no data values were transferred."
+
 msgid "No mapped data elements found for the selected data set."
 msgstr "No mapped data elements found for the selected data set."
+
+msgid "Failed to prepare synchronization rule"
+msgstr "Failed to prepare synchronization rule"
 
 msgid "Instance or target organisation unit ID is not provided."
 msgstr ""

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-09-23T03:29:14.373Z\n"
-"PO-Revision-Date: 2026-09-23T03:29:14.373Z\n"
+"POT-Creation-Date: 2026-09-24T16:45:35.424Z\n"
+"PO-Revision-Date: 2026-09-24T16:45:35.425Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -16,6 +16,9 @@ msgstr ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
 "TO WORK PROPERLY, YOU WILL HAVE TO SET THE SHARING SETTINGS FOR EACH "
 "INSTANCE (Menu 'Instance Settings' > Contextual action 'Sharing settings')"
+
+msgid "The user has no capture organisation unit assigned"
+msgstr "The user has no capture organisation unit assigned"
 
 msgid "Field {{field}} cannot be blank"
 msgstr "Field {{field}} cannot be blank"
@@ -2561,6 +2564,50 @@ msgstr "Consultations and Surgery (Events)"
 msgid "Patients (Tracked Entity Instances)"
 msgstr "Patients (Tracked Entity Instances)"
 
+msgid "Metadata package"
+msgstr "Metadata package"
+
+msgid "This package contains the WMR dataset and its dependencies"
+msgstr "This package contains the WMR dataset and its dependencies"
+
+msgid "metadata package"
+msgstr "metadata package"
+
+msgid "Autogenform configuration"
+msgstr "Autogenform configuration"
+
+msgid "Contains the dataStore configurations required by the autogenforms tool"
+msgstr "Contains the dataStore configurations required by the autogenforms tool"
+
+msgid "Monthly metadata package"
+msgstr "Monthly metadata package"
+
+msgid "This package contains the monthly WMR dataset and its dependencies"
+msgstr "This package contains the monthly WMR dataset and its dependencies"
+
+msgid "monthly metadata package"
+msgstr "monthly metadata package"
+
+msgid ""
+"Install the metadata package first. The monthly package does not include "
+"the constants used by the form labels, the annual package installs them."
+msgstr ""
+"Install the metadata package first. The monthly package does not include "
+"the constants used by the form labels, the annual package installs them."
+
+msgid "Monthly Autogenform configuration"
+msgstr "Monthly Autogenform configuration"
+
+msgid ""
+"Contains the dataStore configurations of the monthly WMR dataset required "
+"by the autogenforms tool"
+msgstr ""
+"Contains the dataStore configurations of the monthly WMR dataset required "
+"by the autogenforms tool"
+
+msgid "monthly Autogenform configuration"
+msgstr "monthly Autogenform configuration"
+
 msgid "Checking {{itemName}}..."
 msgstr "Checking {{itemName}}..."
 
@@ -2580,20 +2627,27 @@ msgstr ""
 msgid "The {{itemName}} is not installed yet. Use the button below to install it."
 msgstr "The {{itemName}} is not installed yet. Use the button below to install it."
 
+msgid ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+msgid_plural ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+msgstr[0] ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+msgstr[1] ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+
+msgid "Setup {{itemName}}"
+msgstr "Setup {{itemName}}"
+
+msgid "Download {{itemName}}"
+msgstr "Download {{itemName}}"
+
 msgid "Setup WMR prerequisites"
 msgstr "Setup WMR prerequisites"
-
-msgid "Metadata package"
-msgstr "Metadata package"
-
-msgid "This package contains the WMR dataset and its dependencies"
-msgstr "This package contains the WMR dataset and its dependencies"
-
-msgid "Autogenform configuration"
-msgstr "Autogenform configuration"
-
-msgid "Contains the dataStore configurations required by the autogenforms tool"
-msgstr "Contains the dataStore configurations required by the autogenforms tool"
 
 msgid "Loading settings..."
 msgstr "Loading settings..."
