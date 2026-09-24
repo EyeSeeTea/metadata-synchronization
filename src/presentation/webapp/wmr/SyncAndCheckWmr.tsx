@@ -7,9 +7,11 @@ import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
+import moment from "moment-timezone";
 import { useWmrContext } from "./context/WmrContext";
 import { useSyncLocalWmr } from "./hooks/useSyncLocalWmr";
-import { NoticeBox } from "./components/NoticeBox";
+import { AnalyticsFreshness, useAnalyticsFreshness } from "./hooks/useAnalyticsFreshness";
+import { NoticeBox, NoticeBoxProps } from "./components/NoticeBox";
 
 type SyncAndCheckWmrProps = {};
 
@@ -34,6 +36,9 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
 
     return (
         <Grid container spacing={1} style={{ height: "70vh" }}>
+            <Grid item xs={12}>
+                <AnalyticsFreshnessNotice />
+            </Grid>
             {!wmrLocalSyncResult && (
                 <Grid item xs={12}>
                     <Button
@@ -78,7 +83,7 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                 {wmrLocalSyncResult?.type === "warning" && (
                     <NoticeBox
                         type="warning"
-                        message={`${i18n.t(wmrLocalSyncResult.message)} ${i18n.t(
+                        message={`${wmrLocalSyncResult.message} ${i18n.t(
                             "You can still complete the WMR form manually."
                         )}`}
                     />
@@ -95,6 +100,49 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
             </Grid>
         </Grid>
     );
+}
+
+function AnalyticsFreshnessNotice() {
+    const analyticsFreshness = useAnalyticsFreshness();
+    const { type, message } = describeAnalyticsFreshness(analyticsFreshness);
+
+    return <NoticeBox type={type} message={message} />;
+}
+
+function formatAnalyticsDate(date: Date): string {
+    return moment(date).tz(moment.tz.guess()).format("YYYY-MM-DD HH:mm:ss z");
+}
+
+function describeAnalyticsFreshness(freshness: AnalyticsFreshness): {
+    type: NoticeBoxProps["type"];
+    message: string;
+} {
+    switch (freshness.type) {
+        case "loading":
+            return { type: "loading", message: i18n.t("Checking when analytics tables were last generated...") };
+        case "lastRun":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Analytics tables were last generated on {{date}}. This sync reads those tables, so data captured after that moment is not included.",
+                    { date: formatAnalyticsDate(freshness.date) }
+                ),
+            };
+        case "neverRun":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Analytics tables have never been generated on this server. This sync reads those tables, so it will not find any data until analytics runs."
+                ),
+            };
+        case "unknown":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Could not determine when analytics tables were last generated. This sync reads those tables, so data captured after the last analytics run is not included."
+                ),
+            };
+    }
 }
 
 type DataEntryProps = { dataSetId: Id; orgUnitId: Id; period: string };

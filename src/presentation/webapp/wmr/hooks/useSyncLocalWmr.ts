@@ -24,7 +24,7 @@ export type WmrLocalSyncResult =
 
 export function summarizeWmrLocalSync(report?: SynchronizationReport): WmrLocalSyncResult {
     if (!report) {
-        return { type: "error", message: "Synchronization did not return a report." };
+        return { type: "error", message: i18n.t("Synchronization did not return a report.") };
     }
 
     const results = report.getResults();
@@ -35,7 +35,7 @@ export function summarizeWmrLocalSync(report?: SynchronizationReport): WmrLocalS
     if (report.status === "FAILURE" || failedResult) {
         return {
             type: "error",
-            message: failedResult?.message ?? "Synchronization failed.",
+            message: failedResult?.message ?? i18n.t("Synchronization failed."),
         };
     }
 
@@ -46,7 +46,7 @@ export function summarizeWmrLocalSync(report?: SynchronizationReport): WmrLocalS
     if (!transferred) {
         return {
             type: "warning",
-            message: "Synchronization completed, but no data values were transferred.",
+            message: i18n.t("Synchronization completed, but no data values were transferred."),
             transferred,
         };
     }
@@ -83,6 +83,8 @@ export function useSyncLocalWmr() {
 
         const syncRuleUpdated = syncRule.rule
             .updateBuilder({ metadataIds: selectedDataSetMappedDataElementIds })
+            .updateDataSyncEnableAggregation(true)
+            .updateDataSyncAggregationType("YEARLY")
             // TODO: This is a shortcut to get the root org unit, which is the same as the country WMR dataset.
             .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.path));
 
@@ -118,7 +120,7 @@ export function useSyncLocalWmr() {
                 loading.hide();
                 setWmrLocalSyncResult({
                     type: "error",
-                    message: `Failed to prepare synchronization rule: ${code}`,
+                    message: `${i18n.t("Failed to prepare synchronization rule")}: ${code}`,
                 });
             },
         });

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-09-23T02:30:14.527Z\n"
-"PO-Revision-Date: 2026-09-23T02:30:14.527Z\n"
+"POT-Creation-Date: 2026-09-23T03:29:14.373Z\n"
+"PO-Revision-Date: 2026-09-23T03:29:14.373Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2652,6 +2652,32 @@ msgstr[1] "WMR data synchronized successfully. {{count}} values transferred."
 msgid "You can still complete the WMR form manually."
 msgstr "You can still complete the WMR form manually."
 
+msgid "Checking when analytics tables were last generated..."
+msgstr "Checking when analytics tables were last generated..."
+
+msgid ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
+msgstr ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
+
+msgid ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+msgstr ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+
+msgid ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
+msgstr ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
+
 msgid "Please complete the prerequisites before proceeding."
 msgstr "Please complete the prerequisites before proceeding."
 
@@ -2696,8 +2722,20 @@ msgstr "Validate Organisation Unit"
 msgid "Create New Target Instance"
 msgstr "Create New Target Instance"
 
+msgid "Synchronization did not return a report."
+msgstr "Synchronization did not return a report."
+
+msgid "Synchronization failed."
+msgstr "Synchronization failed."
+
+msgid "Synchronization completed, but no data values were transferred."
+msgstr "Synchronization completed, but no data values were transferred."
+
 msgid "No mapped data elements found for the selected data set."
 msgstr "No mapped data elements found for the selected data set."
+
+msgid "Failed to prepare synchronization rule"
+msgstr "Failed to prepare synchronization rule"
 
 msgid "Instance or target organisation unit ID is not provided."
 msgstr "Instance or target organisation unit ID is not provided."

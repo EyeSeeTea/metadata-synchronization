@@ -17,6 +17,7 @@ export interface AggregatedRepository {
         dimensionIds: string[];
         filter?: string[];
         includeCategories: boolean;
+        includeCategoryOptionCombos?: boolean;
     }): Promise<AggregatedPackage>;
 
     getOptions(
