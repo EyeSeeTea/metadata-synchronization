@@ -1,6 +1,7 @@
 import { Maybe } from "../../../../types/utils";
 import { NamedRef } from "../../../common/entities/Ref";
 import { Id } from "../../../common/entities/Schemas";
+import { isWmrSourcePeriodType, WmrSourcePeriodType } from "./WmrSyncFlow";
 
 export const dataSetPeriodTypes = [
     "Daily",
@@ -45,19 +46,26 @@ export type WmrDestination = Readonly<{
     dataElementsIds: ReadonlyArray<Id>;
 }>;
 
+export type WmrFlowSource = DataSetAttrs & Readonly<{ periodType: WmrSourcePeriodType }>;
+
+export type WmrFlow = Readonly<{
+    source: WmrFlowSource;
+    destination: WmrDestination;
+}>;
+
 export type WmrSettingsAttrs = Readonly<{
     dataSets: ReadonlyArray<DataSetAttrs>;
-    destinations: ReadonlyArray<WmrDestination>;
+    destination: Maybe<WmrDestination>;
 }>;
 
 export class WmrSettings {
     public readonly dataSets: ReadonlyArray<DataSetAttrs>;
-    public readonly destinations: ReadonlyArray<WmrDestination>;
+    public readonly destination: Maybe<WmrDestination>;
     public static readonly LOCAL_INSTANCE_ID = "LOCAL";
 
     constructor(attrs: WmrSettingsAttrs) {
         this.dataSets = attrs.dataSets;
-        this.destinations = attrs.destinations;
+        this.destination = attrs.destination;
     }
 
     public getDataElementsIds(dataSetId: Maybe<Id>): Id[] {
@@ -65,15 +73,18 @@ export class WmrSettings {
         return dataSet ? dataSet.dataElements.map(dataElement => dataElement.id) : [];
     }
 
-    public getDestinationFor(sourceDataSetId: Maybe<Id>): Maybe<WmrDestination> {
-        const isDestination = this.destinations.some(destination => destination.id === sourceDataSetId);
-        const source = this.dataSets.find(dataSet => dataSet.id === sourceDataSetId);
-        if (isDestination || !source) return undefined;
-
-        return this.destinations.find(destination => destination.periodType === source.periodType);
+    public getFlowFor(sourceDataSetId: Maybe<Id>): Maybe<WmrFlow> {
+        const { destination } = this;
+        const source = this.getSelectableSources().find(dataSet => dataSet.id === sourceDataSetId);
+        return destination && source ? { source, destination } : undefined;
     }
 
-    public getSelectableSources(): ReadonlyArray<DataSetAttrs> {
-        return this.dataSets.filter(dataSet => this.getDestinationFor(dataSet.id) !== undefined);
+    public getSelectableSources(): ReadonlyArray<WmrFlowSource> {
+        const destinationId = this.destination?.id;
+        return this.dataSets.flatMap(dataSet =>
+            dataSet.id !== destinationId && isWmrSourcePeriodType(dataSet.periodType)
+                ? [{ ...dataSet, periodType: dataSet.periodType }]
+                : []
+        );
     }
 }

@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { useLoading } from "@eyeseetea/d2-ui-components";
 import React from "react";
 import { SynchronizationReport } from "../../../../domain/reports/entities/SynchronizationReport";
@@ -5,7 +6,7 @@ import { SynchronizationResult } from "../../../../domain/reports/entities/Synch
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 import i18n from "../../../../utils/i18n";
-import { getWmrAggregationSettings } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { getWmrReportedYear, getWmrSourceReading } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { filterMappedDataElementIds, useGetDataSetOrgUnits, useMappingDataElements } from "./useMappingDataElements";
 
 export type WmrLocalSyncResult = Readonly<{
@@ -24,9 +25,11 @@ export function summarizeWmrLocalSync(report?: SynchronizationReport): WmrLocalS
             result.status === "ERROR" || result.status === "NETWORK ERROR" || !!result.errors?.length
     );
     if (report.status === "FAILURE" || failedResult) {
+        const conflicts = _.uniq(failedResult?.errors?.map(({ message }) => message));
         return {
             type: "error",
-            message: failedResult?.message ?? i18n.t("Synchronization failed."),
+            message:
+                conflicts.length > 0 ? conflicts.join(" ") : failedResult?.message ?? i18n.t("Synchronization failed."),
         };
     }
 
@@ -63,13 +66,13 @@ export function useSyncLocalWmr() {
     const { settings, syncRule } = useWmrContext();
     const { dataElementsToMigrate } = useMappingDataElements("LOCAL");
     const loading = useLoading();
-    const { dataSet: countryDataSet } = useGetDataSetOrgUnits({ id: syncRule?.destination?.id || "" });
+    const { dataSet: countryDataSet } = useGetDataSetOrgUnits({ id: syncRule?.flow?.destination.id || "" });
 
     const [wmrLocalSyncResult, setWmrLocalSyncResult] = React.useState<WmrLocalSyncResult | null>(null);
 
     const syncLocalWmr = React.useCallback(async () => {
-        if (!settings || !syncRule?.destination || !countryDataSet) {
-            throw new Error("WMR settings, sync rule or destination not found");
+        if (!settings || !syncRule?.flow || !countryDataSet) {
+            throw new Error("WMR settings, sync rule or flow not found");
         }
 
         const selectedDataSetDataElementIds = settings.getDataElementsIds(syncRule.localDataSetId);
@@ -85,7 +88,8 @@ export function useSyncLocalWmr() {
             return;
         }
 
-        const { enableAggregation, aggregationType } = getWmrAggregationSettings(syncRule.destination.periodType);
+        const { source, destination } = syncRule.flow;
+        const { enableAggregation, aggregationType, sumIntoYear } = getWmrSourceReading(source.periodType);
         const syncRuleUpdated = syncRule.rule
             .updateBuilder({ metadataIds: selectedDataSetMappedDataElementIds })
             .updateDataSyncEnableAggregation(enableAggregation)
@@ -93,12 +97,18 @@ export function useSyncLocalWmr() {
             // TODO: This is a shortcut to get the root org unit, which is the same as the country WMR dataset.
             .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.path));
 
+        const year = getWmrReportedYear(syncRuleUpdated.dataParams);
+
         loading.show();
         const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
         const sync = compositionRoot.wmr.syncDataset(syncRuleUpdated.toBuilder());
 
         const synchronize = async () => {
-            for await (const { message, syncReport, done } of sync.execute()) {
+            for await (const { message, syncReport, done } of sync.execute({
+                periods: [year],
+                targetPeriod: sumIntoYear ? year : undefined,
+                targetDataSetId: destination.id,
+            })) {
                 if (message) loading.show(true, message);
                 if (syncReport) await compositionRoot.reports.save(syncReport);
                 if (done) {

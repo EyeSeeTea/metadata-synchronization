@@ -30,7 +30,8 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
     public async getAggregated(
         params: DataSynchronizationParams,
         dataSet: string[],
-        dataElementGroup: string[]
+        dataElementGroup: string[],
+        periods?: ReadonlyArray<string>
     ): Promise<AggregatedPackage> {
         const { orgUnitPaths = [], allAttributeCategoryOptions, attributeCategoryOptions, lastUpdated } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
@@ -41,6 +42,10 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
         const attributeOptionCombo = !allAttributeCategoryOptions ? attributeCategoryOptions : undefined;
 
         const [defaultCategoryOptionCombo] = await this.getDefaultIds("categoryOptionCombos");
+        const periodFilter =
+            periods && periods.length > 0
+                ? { period: [...periods] }
+                : { startDate: startDate.format("YYYY-MM-DD"), endDate: endDate.format("YYYY-MM-DD") };
 
         const dimensions = _.uniqBy(
             [
@@ -65,8 +70,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                             orgUnitIdScheme: "UID",
                             categoryOptionComboIdScheme: "UID",
                             includeDeleted: false,
-                            startDate: startDate.format("YYYY-MM-DD"),
-                            endDate: endDate.format("YYYY-MM-DD"),
+                            ...periodFilter,
                             attributeOptionCombo,
                             dataSet: [dataSet.join(",")],
                             dataElementGroup: [dataElementGroup.join(",")],

@@ -31,7 +31,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
     const onChangeDataSet = (value: Id | undefined) => {
         setDataSetId(value);
         syncRule.localDataSetId = value;
-        syncRule.destination = settings.getDestinationFor(value);
+        syncRule.flow = settings.getFlowFor(value);
     };
 
     const allowedLocalDataElementsIds = settings.getDataElementsIds(dataSetId);
@@ -59,7 +59,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
                         section="aggregated"
                         showHeader={false}
                         filterRows={allowedLocalDataElementsIds}
-                        filterMappingIds={[...(syncRule.destination?.dataElementsIds ?? [])]}
+                        filterMappingIds={[...(syncRule.flow?.destination.dataElementsIds ?? [])]}
                         applyFilterMappingIdsToAutoMap
                     />
                 </Grid>

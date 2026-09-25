@@ -2,7 +2,6 @@ import React from "react";
 import {
     WmrRequisiteCheck,
     WmrRequisiteType,
-    wmrRequisites,
     wmrRequisiteTypes,
 } from "../../../../domain/entities/wmr/entities/WmrRequisite";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
@@ -19,8 +18,6 @@ export type WmrSetupStatuses = Readonly<Record<WmrRequisiteType, WmrSetupStatus>
 const initialStatuses: WmrSetupStatuses = {
     metadata: { status: "loading" },
     dataStore: { status: "loading" },
-    metadataMonthly: { status: "loading" },
-    dataStoreMonthly: { status: "loading" },
 };
 
 export function toWmrSetupStatus(check: WmrRequisiteCheck): WmrSetupStatus {
@@ -36,11 +33,6 @@ export function toWmrSetupStatus(check: WmrRequisiteCheck): WmrSetupStatus {
 
 export function isWmrSetupReady(statuses: WmrSetupStatuses): boolean {
     return wmrRequisiteTypes.every(type => statuses[type].status === "done");
-}
-
-export function isWmrSetupBlocked(type: WmrRequisiteType, statuses: WmrSetupStatuses): boolean {
-    const { requires } = wmrRequisites[type];
-    return requires !== undefined && statuses[requires].status !== "done";
 }
 
 export function useWmrSetup() {

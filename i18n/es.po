@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-09-24T16:45:35.424Z\n"
+"POT-Creation-Date: 2026-09-25T02:28:42.766Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2464,35 +2464,6 @@ msgstr ""
 msgid "Contains the dataStore configurations required by the autogenforms tool"
 msgstr ""
 
-msgid "Monthly metadata package"
-msgstr "Monthly metadata package"
-
-msgid "This package contains the monthly WMR dataset and its dependencies"
-msgstr "This package contains the monthly WMR dataset and its dependencies"
-
-msgid "monthly metadata package"
-msgstr "monthly metadata package"
-
-msgid ""
-"Install the metadata package first. The monthly package does not include the "
-"constants used by the form labels, the annual package installs them."
-msgstr ""
-"Install the metadata package first. The monthly package does not include the "
-"constants used by the form labels, the annual package installs them."
-
-msgid "Monthly Autogenform configuration"
-msgstr "Monthly Autogenform configuration"
-
-msgid ""
-"Contains the dataStore configurations of the monthly WMR dataset required by "
-"the autogenforms tool"
-msgstr ""
-"Contains the dataStore configurations of the monthly WMR dataset required by "
-"the autogenforms tool"
-
-msgid "monthly Autogenform configuration"
-msgstr "monthly Autogenform configuration"
-
 msgid "Checking {{itemName}}..."
 msgstr ""
 
@@ -2580,12 +2551,6 @@ msgstr ""
 msgid "Failed to synchronize WMR data"
 msgstr ""
 
-msgid "WMR data synchronized successfully. {{count}} values transferred."
-msgid_plural ""
-"WMR data synchronized successfully. {{count}} values transferred."
-msgstr[0] "WMR data synchronized successfully. {{count}} values transferred."
-msgstr[1] "WMR data synchronized successfully. {{count}} values transferred."
-
 msgid "You can still complete the WMR form manually."
 msgstr "You can still complete the WMR form manually."
 
@@ -2656,14 +2621,27 @@ msgstr ""
 msgid "Create New Target Instance"
 msgstr ""
 
+msgid ""
+"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"({{destinationPeriodType}})"
+msgstr ""
+"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"({{destinationPeriodType}})"
+
 msgid "Synchronization did not return a report."
 msgstr "Synchronization did not return a report."
 
 msgid "Synchronization failed."
 msgstr "Synchronization failed."
 
-msgid "Synchronization completed, but no data values were transferred."
-msgstr "Synchronization completed, but no data values were transferred."
+msgid "{{imported}} created, {{updated}} updated, {{ignored}} unchanged"
+msgstr "{{imported}} created, {{updated}} updated, {{ignored}} unchanged"
+
+msgid "The {{ignored}} values were already up to date"
+msgstr "The {{ignored}} values were already up to date"
+
+msgid "There are no values for the mapped data elements in the period"
+msgstr "There are no values for the mapped data elements in the period"
 
 msgid "No mapped data elements found for the selected data set."
 msgstr "No mapped data elements found for the selected data set."
@@ -2780,3 +2758,49 @@ msgctxt ""
 "repo' or 'repo' scopes depending if the repository is public or private"
 msgid "The personal access token requires either 'public"
 msgstr ""
+
+#~ msgid "Monthly metadata package"
+#~ msgstr "Monthly metadata package"
+
+#~ msgid "This package contains the monthly WMR dataset and its dependencies"
+#~ msgstr "This package contains the monthly WMR dataset and its dependencies"
+
+#~ msgid "monthly metadata package"
+#~ msgstr "monthly metadata package"
+
+#~ msgid ""
+#~ "Install the metadata package first. The monthly package does not include "
+#~ "the constants used by the form labels, the annual package installs them."
+#~ msgstr ""
+#~ "Install the metadata package first. The monthly package does not include "
+#~ "the constants used by the form labels, the annual package installs them."
+
+#~ msgid "Monthly Autogenform configuration"
+#~ msgstr "Monthly Autogenform configuration"
+
+#~ msgid ""
+#~ "Contains the dataStore configurations of the monthly WMR dataset required "
+#~ "by the autogenforms tool"
+#~ msgstr ""
+#~ "Contains the dataStore configurations of the monthly WMR dataset required "
+#~ "by the autogenforms tool"
+
+#~ msgid "monthly Autogenform configuration"
+#~ msgstr "monthly Autogenform configuration"
+
+#~ msgid "Month"
+#~ msgstr "Month"
+
+#~ msgid "DataSet: {{name}} ({{periodType}})"
+#~ msgstr "DataSet: {{name}} ({{periodType}})"
+
+#~ msgid "WMR data synchronized successfully. {{count}} values transferred."
+#~ msgid_plural ""
+#~ "WMR data synchronized successfully. {{count}} values transferred."
+#~ msgstr[0] ""
+#~ "WMR data synchronized successfully. {{count}} values transferred."
+#~ msgstr[1] ""
+#~ "WMR data synchronized successfully. {{count}} values transferred."
+
+#~ msgid "Synchronization completed, but no data values were transferred."
+#~ msgstr "Synchronization completed, but no data values were transferred."

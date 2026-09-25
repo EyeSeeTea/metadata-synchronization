@@ -1,18 +1,19 @@
 import React from "react";
 import _ from "lodash";
-import { Dropdown, useLoading } from "@eyeseetea/d2-ui-components";
-import { Grid, Button, LinearProgress, Typography } from "@material-ui/core";
+import { useLoading } from "@eyeseetea/d2-ui-components";
+import { Grid, Button, LinearProgress } from "@material-ui/core";
 import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
 
 import { Id } from "../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
 import { formatDateLong } from "../../../utils/date";
-import { buildMonthlyPeriodIds, getWmrSyncedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { getWmrSyncedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { useWmrContext } from "./context/WmrContext";
 import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
 import { AnalyticsFreshness, useAnalyticsFreshness } from "./hooks/useAnalyticsFreshness";
 import { NoticeBox, NoticeBoxProps } from "./components/NoticeBox";
+import { WmrFlowLabel } from "./components/WmrFlowLabel";
 
 type SyncAndCheckWmrProps = {};
 
@@ -22,13 +23,11 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult } = useSyncLocalWmr();
     const loading = useLoading();
     const syncedYear = getWmrSyncedYear(new Date());
-    const monthlyPeriodIds = buildMonthlyPeriodIds(syncedYear);
-    const [monthlyPeriodId, setMonthlyPeriodId] = React.useState(monthlyPeriodIds[0]);
-    if (!syncRule?.destination || !settings) {
+    if (!syncRule?.flow || !settings) {
         throw new Error("WMR Context should be initialized");
     }
-    const { destination } = syncRule;
-    const isMonthly = destination.periodType === "Monthly";
+    const { flow } = syncRule;
+    const readsAnalytics = flow.source.periodType === "Monthly";
     const path = _(syncRule.rule.dataParams.orgUnitPaths).first() || "";
 
     const onDownload = async () => {
@@ -42,18 +41,13 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
 
     return (
         <Grid container spacing={1} style={{ height: "70vh" }}>
-            {isMonthly && (
+            {readsAnalytics && (
                 <Grid item xs={12}>
                     <AnalyticsFreshnessNotice />
                 </Grid>
             )}
             <Grid item xs={12}>
-                <Typography variant="subtitle1">
-                    {i18n.t("DataSet: {{name}} ({{periodType}})", {
-                        name: destination.name,
-                        periodType: destination.periodType,
-                    })}
-                </Typography>
+                <WmrFlowLabel flow={flow} />
             </Grid>
             {!wmrLocalSyncResult && (
                 <Grid item xs={12}>
@@ -86,22 +80,11 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                     <NoticeBox type={wmrLocalSyncResult.type} message={describeWmrLocalSync(wmrLocalSyncResult)} />
                 )}
                 {wmrLocalSyncResult && wmrLocalSyncResult.type !== "error" && path && (
-                    <>
-                        {isMonthly && (
-                            <Dropdown
-                                items={monthlyPeriodIds.map(periodId => ({ value: periodId, text: periodId }))}
-                                label={i18n.t("Month")}
-                                onChange={periodId => setMonthlyPeriodId(periodId ?? monthlyPeriodIds[0])}
-                                value={monthlyPeriodId}
-                                hideEmpty
-                            />
-                        )}
-                        <DataEntry
-                            dataSetId={destination.id}
-                            orgUnitId={_(path).split("/").last() || ""}
-                            period={isMonthly ? monthlyPeriodId : syncedYear.toString()}
-                        />
-                    </>
+                    <DataEntry
+                        dataSetId={flow.destination.id}
+                        orgUnitId={_(path).split("/").last() || ""}
+                        period={syncedYear.toString()}
+                    />
                 )}
             </Grid>
         </Grid>

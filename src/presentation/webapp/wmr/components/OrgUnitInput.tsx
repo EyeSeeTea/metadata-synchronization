@@ -6,43 +6,60 @@ import { Instance } from "../../../../domain/instance/entities/Instance";
 import i18n from "../../../../utils/i18n";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { muiTheme } from "../../../react/core/themes/dhis2.theme";
-type OrgUnitInputProps = { instance: Instance; onChange: (orgUnitId: Id) => void };
+import { Maybe } from "../../../../types/utils";
+
+type OrgUnitInputProps = { instance: Instance; initialValue: Maybe<Id>; onChange: (orgUnitId: Id) => void };
 
 export function OrgUnitInput(props: OrgUnitInputProps) {
-    const { instance, onChange } = props;
+    const { instance, initialValue, onChange } = props;
     const { compositionRoot } = useAppContext();
-    const [value, setValue] = React.useState<string>("");
+    const [value, setValue] = React.useState<string>(initialValue ?? "");
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<string | null>(null);
     const [isValidated, setIsValidated] = React.useState<boolean>(false);
 
-    const onValidate = React.useCallback(() => {
-        setIsLoading(true);
-        compositionRoot.wmr.validateOrgUnit(instance, value).run(
-            isValid => {
-                if (isValid) {
-                    setError(null);
-                    onChange(value as Id);
-                } else {
-                    setError(i18n.t("The Organisation Unit ID is not valid or does not exist in the target instance."));
+    const validate = React.useCallback(
+        (orgUnitId: Id) => {
+            setIsLoading(true);
+            compositionRoot.wmr.validateOrgUnit(instance, orgUnitId).run(
+                isValid => {
+                    if (isValid) {
+                        setError(null);
+                        onChange(orgUnitId);
+                    } else {
+                        setError(
+                            i18n.t("The Organisation Unit ID is not valid or does not exist in the target instance.")
+                        );
+                    }
+                    setIsValidated(true);
+                    setIsLoading(false);
+                },
+                error => {
+                    console.error(error);
+                    setError(
+                        i18n.t(
+                            "There was a problem communicating with the instance. Please review the Instance settings."
+                        )
+                    );
+                    setIsLoading(false);
+                    setIsValidated(true);
                 }
-                setIsValidated(true);
-                setIsLoading(false);
-            },
-            error => {
-                console.error(error);
-                setError(
-                    i18n.t("There was a problem communicating with the instance. Please review the Instance settings.")
-                );
-                setIsLoading(false);
-                setIsValidated(true);
-            }
-        );
-    }, [compositionRoot.wmr, instance, onChange, value]);
+            );
+        },
+        [compositionRoot.wmr, instance, onChange]
+    );
+
+    const onValidate = React.useCallback(() => validate(value), [validate, value]);
 
     React.useEffect(() => {
         setIsValidated(false);
     }, [value]);
+
+    React.useEffect(() => {
+        if (initialValue) validate(initialValue);
+        // Validate the saved value once, when the input mounts for an instance
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <Box>

@@ -1,27 +1,15 @@
-export const wmrRequisiteTypes = ["metadata", "dataStore", "metadataMonthly", "dataStoreMonthly"] as const;
+export const wmrRequisiteTypes = ["metadata", "dataStore"] as const;
 export type WmrRequisiteType = typeof wmrRequisiteTypes[number];
 
 export type WmrRequisite = Readonly<{
     kind: "metadata" | "dataStore";
     code: string;
     assetPath: string;
-    requires?: WmrRequisiteType;
 }>;
 
 export const wmrRequisites: Readonly<Record<WmrRequisiteType, WmrRequisite>> = {
     metadata: { kind: "metadata", code: "MAL_WMR_COUNTRY_SYNC", assetPath: "wmr/metadata.json" },
     dataStore: { kind: "dataStore", code: "MAL_WMR_COUNTRY_SYNC", assetPath: "wmr/dataStore.json" },
-    metadataMonthly: {
-        kind: "metadata",
-        code: "MAL_WMR_COUNTRY_SYNC_MONTHLY",
-        assetPath: "wmr/metadata-monthly.json",
-        requires: "metadata",
-    },
-    dataStoreMonthly: {
-        kind: "dataStore",
-        code: "MAL_WMR_COUNTRY_SYNC_MONTHLY",
-        assetPath: "wmr/dataStore-monthly.json",
-    },
 };
 
 export type WmrRequisiteCheck =
@@ -39,6 +27,4 @@ export function checkWmrRequisiteDataSet(dataSet: WmrRequisiteDataSet | undefine
     return { type: "installed" };
 }
 
-export const wmrDestinationCodes: ReadonlyArray<string> = Object.values(wmrRequisites)
-    .filter(requisite => requisite.kind === "metadata")
-    .map(requisite => requisite.code);
+export const wmrDestinationCode = wmrRequisites.metadata.code;

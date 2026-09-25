@@ -4,9 +4,9 @@ import React from "react";
 import { WmrRequisiteType, wmrRequisites, wmrRequisiteTypes } from "../../../domain/entities/wmr/entities/WmrRequisite";
 import i18n from "../../../utils/i18n";
 import { NoticeBox } from "./components/NoticeBox";
-import { isWmrSetupBlocked, useWmrSetup, WmrSetupStatus, WmrSetupStatusType } from "./hooks/useWmrSetup";
+import { useWmrSetup, WmrSetupStatus, WmrSetupStatusType } from "./hooks/useWmrSetup";
 
-type RequisiteTexts = Readonly<{ title: string; caption: string; itemName: string; blockedHint?: string }>;
+type RequisiteTexts = Readonly<{ title: string; caption: string; itemName: string }>;
 
 function getRequisiteTexts(type: WmrRequisiteType): RequisiteTexts {
     switch (type) {
@@ -21,23 +21,6 @@ function getRequisiteTexts(type: WmrRequisiteType): RequisiteTexts {
                 title: i18n.t("Autogenform configuration"),
                 caption: i18n.t("Contains the dataStore configurations required by the autogenforms tool"),
                 itemName: i18n.t("Autogenform configuration"),
-            };
-        case "metadataMonthly":
-            return {
-                title: i18n.t("Monthly metadata package"),
-                caption: i18n.t("This package contains the monthly WMR dataset and its dependencies"),
-                itemName: i18n.t("monthly metadata package"),
-                blockedHint: i18n.t(
-                    "Install the metadata package first. The monthly package does not include the constants used by the form labels, the annual package installs them."
-                ),
-            };
-        case "dataStoreMonthly":
-            return {
-                title: i18n.t("Monthly Autogenform configuration"),
-                caption: i18n.t(
-                    "Contains the dataStore configurations of the monthly WMR dataset required by the autogenforms tool"
-                ),
-                itemName: i18n.t("monthly Autogenform configuration"),
             };
     }
 }
@@ -77,15 +60,13 @@ function getStatusMessage(setupStatus: WmrSetupStatus, itemName: string): string
 function PrerequisiteItem({
     type,
     setupStatus,
-    blocked,
     importFunction,
 }: {
     type: WmrRequisiteType;
     setupStatus: WmrSetupStatus;
-    blocked: boolean;
     importFunction: (type: WmrRequisiteType) => void;
 }) {
-    const { title, caption, itemName, blockedHint } = getRequisiteTexts(type);
+    const { title, caption, itemName } = getRequisiteTexts(type);
     const { assetPath } = wmrRequisites[type];
 
     return (
@@ -101,18 +82,12 @@ function PrerequisiteItem({
                     <Box py={2}>
                         <Button
                             onClick={() => importFunction(type)}
-                            disabled={blocked}
                             variant="contained"
                             color="primary"
                             endIcon={<CloudUploadIcon />}
                         >
                             {i18n.t("Setup {{itemName}}", { itemName })}
                         </Button>
-                        {blocked && blockedHint ? (
-                            <Typography variant="body2" color="textSecondary">
-                                {blockedHint}
-                            </Typography>
-                        ) : null}
                     </Box>
                 ) : setupStatus.status === "error" ? (
                     <Box py={2}>
@@ -151,7 +126,6 @@ export function InstallMetadataPackage() {
                     key={type}
                     type={type}
                     setupStatus={setupStatuses[type]}
-                    blocked={isWmrSetupBlocked(type, setupStatuses)}
                     importFunction={setupRequisite}
                 />
             ))}

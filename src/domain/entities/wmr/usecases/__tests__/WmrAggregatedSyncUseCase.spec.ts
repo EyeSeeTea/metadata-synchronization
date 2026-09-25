@@ -81,6 +81,26 @@ describe("WmrAggregatedSyncUseCase", () => {
         expect(aggregatedRepository.getAnalytics).not.toHaveBeenCalled();
     });
 
+    it("sums the monthly analytics values into the target period", async () => {
+        const builder = givenBuilder({ enableAggregation: true, aggregationType: "MONTHLY" });
+        const { useCase, aggregatedRepository } = givenUseCase(builder);
+        const monthlyValue = (period: string, value: string) => ({
+            dataElement: dataElement.id,
+            period,
+            orgUnit,
+            categoryOptionCombo: defaultCategoryOptionCombo,
+            attributeOptionCombo: defaultCategoryOptionCombo,
+            value,
+        });
+        useCase.targetPeriod = "2025";
+
+        vi.mocked(aggregatedRepository.getAnalytics).mockResolvedValue({
+            dataValues: [monthlyValue("202505", "7"), monthlyValue("202512", "1")],
+        });
+
+        await expect(useCase.buildPayload()).resolves.toEqual({ dataValues: [monthlyValue("2025", "8")] });
+    });
+
     function givenBuilder(dataParams: NonNullable<SynchronizationBuilder["dataParams"]>): SynchronizationBuilder {
         return {
             originInstance: localInstance.id,

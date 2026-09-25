@@ -21,14 +21,20 @@ const dataParams: DataSynchronizationParams = {
 describe("AggregatedD2ApiRepository", () => {
     let server: Server;
     let requestedUrls: string[];
+    let requestedDataValueSetUrls: string[];
 
     beforeEach(() => {
         requestedUrls = [];
+        requestedDataValueSetUrls = [];
         server = startDhis({ urlPrefix: baseUrl });
 
         server.get("/metadata", async () => ({ categoryOptionCombos: [{ id: "defaultCoc" }] }));
         server.get("/analytics/dataValueSet.json", async (_schema, request) => {
             requestedUrls.push(request.url);
+            return { dataValues: [] };
+        });
+        server.get("/dataValueSets", async (_schema, request) => {
+            requestedDataValueSetUrls.push(request.url);
             return { dataValues: [] };
         });
     });
@@ -63,6 +69,39 @@ describe("AggregatedD2ApiRepository", () => {
             expect(requestedDimensions()).toEqual([[`dx:${dataElementId}`, "pe:2025", `ou:${orgUnitId}`]]);
         });
     });
+
+    describe("getAggregated", () => {
+        const dataSetId = "dataSet1";
+
+        it("filters by the given periods instead of the date range", async () => {
+            const repository = new AggregatedD2ApiRepository(localInstance, localInstance);
+
+            await repository.getAggregated(dataParams, [dataSetId], [], ["202501", "202502"]);
+
+            expect(requestedPeriodFilters()).toEqual([
+                { period: ["202501", "202502"], startDate: null, endDate: null },
+            ]);
+        });
+
+        it("filters by the date range when no periods are given", async () => {
+            const repository = new AggregatedD2ApiRepository(localInstance, localInstance);
+
+            await repository.getAggregated(dataParams, [dataSetId], []);
+
+            expect(requestedPeriodFilters()).toEqual([{ period: [], startDate: "2025-01-01", endDate: "2025-12-31" }]);
+        });
+    });
+
+    function requestedPeriodFilters() {
+        return requestedDataValueSetUrls.map(url => {
+            const { searchParams } = new URL(url, baseUrl);
+            return {
+                period: searchParams.getAll("period"),
+                startDate: searchParams.get("startDate"),
+                endDate: searchParams.get("endDate"),
+            };
+        });
+    }
 
     function requestedDimensions(): string[][] {
         return requestedUrls.map(url => new URL(url, baseUrl).searchParams.getAll("dimension"));

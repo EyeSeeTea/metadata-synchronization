@@ -9,7 +9,8 @@ export interface AggregatedRepository {
     getAggregated(
         params: DataSynchronizationParams,
         dataSet: string[],
-        dataElementGroup: string[]
+        dataElementGroup: string[],
+        periods?: ReadonlyArray<string>
     ): Promise<AggregatedPackage>;
 
     getAnalytics(params: {

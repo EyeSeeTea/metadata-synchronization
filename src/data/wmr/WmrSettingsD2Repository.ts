@@ -5,7 +5,7 @@ import {
     WmrDestination,
     WmrSettings,
 } from "../../domain/entities/wmr/entities/WmrSettings";
-import { wmrDestinationCodes } from "../../domain/entities/wmr/entities/WmrRequisite";
+import { wmrDestinationCode } from "../../domain/entities/wmr/entities/WmrRequisite";
 import { WmrSettingsRepository } from "../../domain/entities/wmr/repositories/WmrSettingsRepository";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
@@ -40,13 +40,13 @@ export class WmrSettingsD2Repository implements WmrSettingsRepository {
                 order: "displayName:asc",
             })
             .getData();
-        const destinationsResponse = await this.api.models.dataSets
-            .get({ fields: dataSetFields, filter: { code: { in: [...wmrDestinationCodes] } }, paging: false })
+        const destinationResponse = await this.api.models.dataSets
+            .get({ fields: dataSetFields, filter: { code: { eq: wmrDestinationCode } }, paging: false })
             .getData();
 
         return new WmrSettings({
             dataSets: dataSetsResponse.objects.flatMap(toDataSetAttrs),
-            destinations: destinationsResponse.objects.flatMap(toDestination),
+            destination: destinationResponse.objects.flatMap(toDestination)[0],
         });
     }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { isWmrSetupBlocked, isWmrSetupReady, toWmrSetupStatus, WmrSetupStatuses } from "../useWmrSetup";
+import { isWmrSetupReady, toWmrSetupStatus, WmrSetupStatuses } from "../useWmrSetup";
 
 vi.hoisted(() => {
     Object.defineProperty(globalThis, "localStorage", {
@@ -11,8 +11,6 @@ vi.hoisted(() => {
 const allDone: WmrSetupStatuses = {
     metadata: { status: "done" },
     dataStore: { status: "done" },
-    metadataMonthly: { status: "done" },
-    dataStoreMonthly: { status: "done" },
 };
 
 const buildStatuses = (overrides: Partial<WmrSetupStatuses>): WmrSetupStatuses => ({ ...allDone, ...overrides });
@@ -32,7 +30,7 @@ describe("toWmrSetupStatus", () => {
 });
 
 describe("isWmrSetupReady", () => {
-    it("is ready when the four requisites are done", () => {
+    it("is ready when both requisites are done", () => {
         expect(isWmrSetupReady(allDone)).toBe(true);
     });
 
@@ -40,33 +38,7 @@ describe("isWmrSetupReady", () => {
         expect([
             isWmrSetupReady(buildStatuses({ metadata: { status: "pending" } })),
             isWmrSetupReady(buildStatuses({ dataStore: { status: "loading" } })),
-            isWmrSetupReady(buildStatuses({ metadataMonthly: { status: "error" } })),
-            isWmrSetupReady(
-                buildStatuses({ dataStoreMonthly: { status: "misassigned", dataSetName: "x", orgUnitsCount: 2 } })
-            ),
-        ]).toEqual([false, false, false, false]);
-    });
-});
-
-describe("isWmrSetupBlocked", () => {
-    it("blocks the monthly metadata until the annual metadata is done", () => {
-        expect([
-            isWmrSetupBlocked("metadataMonthly", buildStatuses({ metadata: { status: "pending" } })),
-            isWmrSetupBlocked("metadataMonthly", allDone),
-        ]).toEqual([true, false]);
-    });
-
-    it("never blocks requisites without a prerequisite", () => {
-        const nothingDone = buildStatuses({
-            metadata: { status: "pending" },
-            dataStore: { status: "pending" },
-            metadataMonthly: { status: "pending" },
-        });
-
-        expect([
-            isWmrSetupBlocked("metadata", nothingDone),
-            isWmrSetupBlocked("dataStore", nothingDone),
-            isWmrSetupBlocked("dataStoreMonthly", nothingDone),
+            isWmrSetupReady(buildStatuses({ metadata: { status: "misassigned", dataSetName: "x", orgUnitsCount: 2 } })),
         ]).toEqual([false, false, false]);
     });
 });

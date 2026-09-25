@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkWmrRequisiteDataSet, wmrDestinationCodes } from "../WmrRequisite";
+import { checkWmrRequisiteDataSet } from "../WmrRequisite";
 
 const dataSetName = "MAL - WMR Form - Country Sync";
 
@@ -18,11 +18,5 @@ describe("checkWmrRequisiteDataSet", () => {
             dataSetName,
             orgUnitsCount: 3,
         });
-    });
-});
-
-describe("wmrDestinationCodes", () => {
-    it("lists the codes of the metadata requisites", () => {
-        expect(wmrDestinationCodes).toEqual(["MAL_WMR_COUNTRY_SYNC", "MAL_WMR_COUNTRY_SYNC_MONTHLY"]);
     });
 });

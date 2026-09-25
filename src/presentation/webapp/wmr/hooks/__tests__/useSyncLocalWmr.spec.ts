@@ -36,6 +36,21 @@ describe("summarizeWmrLocalSync", () => {
         });
     });
 
+    it("reports the import conflicts instead of the import description", () => {
+        const periodNotOpen = "Period: `202505` is not open for this data set at this time: `CWuqJ3dtQC4`";
+        const report = buildReport({
+            status: "WARNING",
+            message: "Import process completed successfully",
+            stats: { imported: 0, updated: 0, ignored: 10, deleted: 0 },
+            errors: [
+                { id: "202505", message: periodNotOpen },
+                { id: "202505", message: periodNotOpen },
+            ],
+        });
+
+        expect(summarizeWmrLocalSync(report)).toEqual({ type: "error", message: periodNotOpen });
+    });
+
     it("reports created, updated and unchanged values when any value was written", () => {
         expect(summarizeWmrLocalSync(buildStatsReport(2, 3, 1))).toEqual({
             type: "success",
