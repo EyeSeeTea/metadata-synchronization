@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-07-07T09:14:53.473Z\n"
-"PO-Revision-Date: 2026-07-07T09:14:53.473Z\n"
+"POT-Creation-Date: 2026-09-25T02:28:42.766Z\n"
+"PO-Revision-Date: 2026-09-25T02:28:42.767Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -16,6 +16,9 @@ msgstr ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
 "TO WORK PROPERLY, YOU WILL HAVE TO SET THE SHARING SETTINGS FOR EACH "
 "INSTANCE (Menu 'Instance Settings' > Contextual action 'Sharing settings')"
+
+msgid "The user has no capture organisation unit assigned"
+msgstr "The user has no capture organisation unit assigned"
 
 msgid "Field {{field}} cannot be blank"
 msgstr "Field {{field}} cannot be blank"
@@ -2561,6 +2564,21 @@ msgstr "Consultations and Surgery (Events)"
 msgid "Patients (Tracked Entity Instances)"
 msgstr "Patients (Tracked Entity Instances)"
 
+msgid "Metadata package"
+msgstr "Metadata package"
+
+msgid "This package contains the WMR dataset and its dependencies"
+msgstr "This package contains the WMR dataset and its dependencies"
+
+msgid "metadata package"
+msgstr "metadata package"
+
+msgid "Autogenform configuration"
+msgstr "Autogenform configuration"
+
+msgid "Contains the dataStore configurations required by the autogenforms tool"
+msgstr "Contains the dataStore configurations required by the autogenforms tool"
+
 msgid "Checking {{itemName}}..."
 msgstr "Checking {{itemName}}..."
 
@@ -2580,20 +2598,27 @@ msgstr ""
 msgid "The {{itemName}} is not installed yet. Use the button below to install it."
 msgstr "The {{itemName}} is not installed yet. Use the button below to install it."
 
+msgid ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+msgid_plural ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+msgstr[0] ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+msgstr[1] ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must "
+"be assigned only to the country"
+
+msgid "Setup {{itemName}}"
+msgstr "Setup {{itemName}}"
+
+msgid "Download {{itemName}}"
+msgstr "Download {{itemName}}"
+
 msgid "Setup WMR prerequisites"
 msgstr "Setup WMR prerequisites"
-
-msgid "Metadata package"
-msgstr "Metadata package"
-
-msgid "This package contains the WMR dataset and its dependencies"
-msgstr "This package contains the WMR dataset and its dependencies"
-
-msgid "Autogenform configuration"
-msgstr "Autogenform configuration"
-
-msgid "Contains the dataStore configurations required by the autogenforms tool"
-msgstr "Contains the dataStore configurations required by the autogenforms tool"
 
 msgid "Loading settings..."
 msgstr "Loading settings..."
@@ -2644,8 +2669,34 @@ msgstr "Download DataValues"
 msgid "Failed to synchronize WMR data"
 msgstr "Failed to synchronize WMR data"
 
-msgid "WMR data synchronized successfully."
-msgstr "WMR data synchronized successfully."
+msgid "You can still complete the WMR form manually."
+msgstr "You can still complete the WMR form manually."
+
+msgid "Checking when analytics tables were last generated..."
+msgstr "Checking when analytics tables were last generated..."
+
+msgid ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
+msgstr ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
+
+msgid ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+msgstr ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+
+msgid ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
+msgstr ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
 
 msgid "Please complete the prerequisites before proceeding."
 msgstr "Please complete the prerequisites before proceeding."
@@ -2690,6 +2741,34 @@ msgstr "Validate Organisation Unit"
 
 msgid "Create New Target Instance"
 msgstr "Create New Target Instance"
+
+msgid ""
+"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"({{destinationPeriodType}})"
+msgstr ""
+"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"({{destinationPeriodType}})"
+
+msgid "Synchronization did not return a report."
+msgstr "Synchronization did not return a report."
+
+msgid "Synchronization failed."
+msgstr "Synchronization failed."
+
+msgid "{{imported}} created, {{updated}} updated, {{ignored}} unchanged"
+msgstr "{{imported}} created, {{updated}} updated, {{ignored}} unchanged"
+
+msgid "The {{ignored}} values were already up to date"
+msgstr "The {{ignored}} values were already up to date"
+
+msgid "There are no values for the mapped data elements in the period"
+msgstr "There are no values for the mapped data elements in the period"
+
+msgid "No mapped data elements found for the selected data set."
+msgstr "No mapped data elements found for the selected data set."
+
+msgid "Failed to prepare synchronization rule"
+msgstr "Failed to prepare synchronization rule"
 
 msgid "Instance or target organisation unit ID is not provided."
 msgstr "Instance or target organisation unit ID is not provided."

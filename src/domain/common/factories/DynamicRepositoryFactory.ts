@@ -22,6 +22,7 @@ import { VisualizationRepository } from "../../visualization/repositories/Visual
 import { WmrSettingsRepository } from "../../entities/wmr/repositories/WmrSettingsRepository";
 import { WmrDataSetRepository } from "../../entities/wmr/repositories/WmrDataSetRepository";
 import { WmrRequisitesRepository } from "../../entities/wmr/repositories/WmrRequisitesRepository";
+import { WmrUserSettingsRepository } from "../../entities/wmr/repositories/WmrUserSettingsRepository";
 
 export type RepositoryByInstanceCreator<T> = (instance: Instance) => T;
 export type RepositoryByJsonSourceCreator<T> = (instance: JSONDataSource) => T;
@@ -130,6 +131,10 @@ export class DynamicRepositoryFactory {
         return this.getbyInstance(Repositories.WmrRequisitesRepository, instance);
     }
 
+    public wmrUserSettingsRepository(instance: Instance): WmrUserSettingsRepository {
+        return this.getbyInstance(Repositories.WmrUserSettingsRepository, instance);
+    }
+
     private getbyInstance<T>(key: RepositoryKeys, instance: Instance, tag = "default"): T {
         const creator = this.repositoryCreators.get(`${key}-${tag}`);
 
@@ -189,4 +194,5 @@ export const Repositories = {
     WmrSettingsRepository: "wmrSettingsRepository",
     WmrDataSetRepository: "wmrDataSetRepository",
     WmrRequisitesRepository: "wmrRequisitesRepository",
+    WmrUserSettingsRepository: "wmrUserSettingsRepository",
 } as const;

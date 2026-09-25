@@ -8,6 +8,7 @@ import i18n from "../../../../utils/i18n";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 import { useMappingDataElements } from "./useMappingDataElements";
+import { getWmrReportedYear } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
 
 type WmrRemoteSyncResult = { stats?: SynchronizationStats } & (
     | {
@@ -44,23 +45,29 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
     }, [syncRule, targetOrgUnitId]);
 
     const syncRemoteWmr = React.useCallback(async () => {
-        if (!instance || !targetOrgUnitId || !syncRule) {
+        if (!instance || !targetOrgUnitId || !syncRule?.flow) {
             setWmrRemoteSyncResult({
                 type: "error",
                 message: i18n.t("Instance or target organisation unit ID is not provided."),
             });
             return;
         }
-        const syncRuleUpdated = syncRule?.rule.updateTargetInstances([instance.id]).updateBuilder({
-            metadataIds: dataElementsToMigrate,
-        });
+        const syncRuleUpdated = syncRule.rule
+            .updateTargetInstances([instance.id])
+            .updateBuilder({ metadataIds: dataElementsToMigrate })
+            .updateDataSyncEnableAggregation(false)
+            .updateDataSyncAggregationType(undefined);
+        const periods = [getWmrReportedYear(syncRuleUpdated.dataParams)];
         loading.show();
 
         const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
         const sync = compositionRoot.wmr.syncDataset(syncRuleUpdated.toBuilder());
 
         const synchronize = async () => {
-            for await (const { message, syncReport, done } of sync.execute(targetOrgUnitId)) {
+            for await (const { message, syncReport, done } of sync.execute({
+                orgUnitIdOverride: targetOrgUnitId,
+                periods,
+            })) {
                 if (message) loading.show(true, message);
                 if (syncReport) await compositionRoot.reports.save(syncReport);
                 if (done) {

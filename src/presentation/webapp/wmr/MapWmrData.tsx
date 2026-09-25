@@ -23,13 +23,15 @@ export function MapWmrData(_props: MapWmrDataProps) {
         return <NoticeBox type="loading" message={i18n.t("Loading settings...")} />;
     }
 
-    const dataSets = settings.dataSets.map(dataSet => {
-        return { text: dataSet.name, value: dataSet.id };
-    });
+    const dataSets = settings.getSelectableSources().map(dataSet => ({
+        text: `${dataSet.name} (${dataSet.periodType})`,
+        value: dataSet.id,
+    }));
 
     const onChangeDataSet = (value: Id | undefined) => {
         setDataSetId(value);
         syncRule.localDataSetId = value;
+        syncRule.flow = settings.getFlowFor(value);
     };
 
     const allowedLocalDataElementsIds = settings.getDataElementsIds(dataSetId);
@@ -57,7 +59,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
                         section="aggregated"
                         showHeader={false}
                         filterRows={allowedLocalDataElementsIds}
-                        filterMappingIds={settings.countryDataElementsIds}
+                        filterMappingIds={[...(syncRule.flow?.destination.dataElementsIds ?? [])]}
                         applyFilterMappingIdsToAutoMap
                     />
                 </Grid>

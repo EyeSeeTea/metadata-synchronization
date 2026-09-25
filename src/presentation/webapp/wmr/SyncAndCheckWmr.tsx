@@ -7,9 +7,13 @@ import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
+import { formatDateLong } from "../../../utils/date";
+import { getWmrSyncedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { useWmrContext } from "./context/WmrContext";
-import { useSyncLocalWmr } from "./hooks/useSyncLocalWmr";
-import { NoticeBox } from "./components/NoticeBox";
+import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
+import { AnalyticsFreshness, useAnalyticsFreshness } from "./hooks/useAnalyticsFreshness";
+import { NoticeBox, NoticeBoxProps } from "./components/NoticeBox";
+import { WmrFlowLabel } from "./components/WmrFlowLabel";
 
 type SyncAndCheckWmrProps = {};
 
@@ -18,9 +22,12 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const { syncRule, settings } = useWmrContext();
     const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult } = useSyncLocalWmr();
     const loading = useLoading();
-    if (!syncRule || !settings) {
+    const syncedYear = getWmrSyncedYear(new Date());
+    if (!syncRule?.flow || !settings) {
         throw new Error("WMR Context should be initialized");
     }
+    const { flow } = syncRule;
+    const readsAnalytics = flow.source.periodType === "Monthly";
     const path = _(syncRule.rule.dataParams.orgUnitPaths).first() || "";
 
     const onDownload = async () => {
@@ -34,6 +41,14 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
 
     return (
         <Grid container spacing={1} style={{ height: "70vh" }}>
+            {readsAnalytics && (
+                <Grid item xs={12}>
+                    <AnalyticsFreshnessNotice />
+                </Grid>
+            )}
+            <Grid item xs={12}>
+                <WmrFlowLabel flow={flow} />
+            </Grid>
             {!wmrLocalSyncResult && (
                 <Grid item xs={12}>
                     <Button
@@ -61,25 +76,70 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                 {wmrLocalSyncIsLoading && (
                     <LinearProgress color="primary" style={{ position: "absolute", width: "100%" }} />
                 )}
-                {wmrLocalSyncResult?.type === "error" && (
-                    <NoticeBox
-                        type="error"
-                        message={`${i18n.t("Failed to synchronize WMR data")} ${wmrLocalSyncResult.message}`}
-                    />
+                {wmrLocalSyncResult && (
+                    <NoticeBox type={wmrLocalSyncResult.type} message={describeWmrLocalSync(wmrLocalSyncResult)} />
                 )}
-                {wmrLocalSyncResult?.type === "success" && (
-                    <NoticeBox type="success" message={i18n.t("WMR data synchronized successfully.")} />
-                )}
-                {settings.countryDataSetId && wmrLocalSyncResult?.type === "success" && path && (
+                {wmrLocalSyncResult && wmrLocalSyncResult.type !== "error" && path && (
                     <DataEntry
-                        dataSetId={settings.countryDataSetId}
+                        dataSetId={flow.destination.id}
                         orgUnitId={_(path).split("/").last() || ""}
-                        period={(new Date().getFullYear() - 1).toString()}
+                        period={syncedYear.toString()}
                     />
                 )}
             </Grid>
         </Grid>
     );
+}
+
+function describeWmrLocalSync(result: WmrLocalSyncResult): string {
+    switch (result.type) {
+        case "error":
+            return `${i18n.t("Failed to synchronize WMR data")} ${result.message}`;
+        case "warning":
+            return `${result.message} ${i18n.t("You can still complete the WMR form manually.")}`;
+        case "success":
+        case "info":
+            return result.message;
+    }
+}
+
+function AnalyticsFreshnessNotice() {
+    const analyticsFreshness = useAnalyticsFreshness();
+    const { type, message } = describeAnalyticsFreshness(analyticsFreshness);
+
+    return <NoticeBox type={type} message={message} />;
+}
+
+function describeAnalyticsFreshness(freshness: AnalyticsFreshness): {
+    type: NoticeBoxProps["type"];
+    message: string;
+} {
+    switch (freshness.type) {
+        case "loading":
+            return { type: "loading", message: i18n.t("Checking when analytics tables were last generated...") };
+        case "lastRun":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Analytics tables were last generated on {{date}}. This sync reads those tables, so data captured after that moment is not included.",
+                    { date: formatDateLong(freshness.date) }
+                ),
+            };
+        case "neverRun":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Analytics tables have never been generated on this server. This sync reads those tables, so it will not find any data until analytics runs."
+                ),
+            };
+        case "unknown":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Could not determine when analytics tables were last generated. This sync reads those tables, so data captured after the last analytics run is not included."
+                ),
+            };
+    }
 }
 
 type DataEntryProps = { dataSetId: Id; orgUnitId: Id; period: string };
@@ -94,22 +154,24 @@ export function DataEntry(props: DataEntryProps) {
         const currentWindow = iframeRef.current?.contentWindow;
 
         function onLoad() {
-            if (currentWindow?.document) {
-                mutateDom(currentWindow.document, "#currentSelection", el => el.remove());
-                mutateDom(currentWindow.document, "#header", el => el.remove());
-                mutateDom(currentWindow.document, "#leftBar", el => (el.style.display = "none"));
-                mutateDom(currentWindow.document, "#selectionBox", el => (el.style.display = "none"));
-                mutateDom(currentWindow.document, "body", el => (el.style.marginTop = "-55px"));
-                mutateDom(currentWindow.document, "#mainPage", el => (el.style.margin = "65px 10px 10px 10px"));
-                mutateDom(currentWindow.document, "#completenessDiv", el => el.remove());
-                mutateDom(currentWindow.document, "#moduleHeader", el => el.remove());
-                mutateDom(currentWindow.document, "#actions", el => el.remove());
-                setStatus("loaded");
-            }
+            const document = currentWindow?.document;
+            if (!document) return;
+
+            mutateDom(document, "#currentSelection", el => el.remove());
+            mutateDom(document, "#header", el => el.remove());
+            mutateDom(document, "#leftBar", el => (el.style.display = "none"));
+            mutateDom(document, "#selectionBox", el => (el.style.display = "none"));
+            mutateDom(document, "body", el => (el.style.marginTop = "-55px"));
+            mutateDom(document, "#mainPage", el => (el.style.margin = "65px 10px 10px 10px"));
+            mutateDom(document, "#completenessDiv", el => el.remove());
+            mutateDom(document, "#moduleHeader", el => el.remove());
+            mutateDom(document, "#actions", el => el.remove());
+            setStatus("loaded");
         }
 
         if (currentWindow) {
             currentWindow.addEventListener("load", onLoad);
+            if (currentWindow.document?.readyState === "complete") onLoad();
         }
 
         return () => {

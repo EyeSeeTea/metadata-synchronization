@@ -14,6 +14,7 @@ export const Namespace = {
     SCHEDULER_EXECUTIONS: "scheduler-executions",
     EVENTS_USER_COLUMNS: "events-user-columns",
     INSTANCES: "instances",
+    WMR_SETTINGS: "wmr-settings",
 };
 
 export const NamespaceProperties: Record<string, string[]> = {

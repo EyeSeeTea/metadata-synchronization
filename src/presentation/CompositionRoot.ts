@@ -24,6 +24,7 @@ import { UserD2ApiRepository } from "../data/user/UserD2ApiRepository";
 import { WmrDataSetD2Repository } from "../data/wmr/WmrDataSetD2Repository";
 import { WmrRequisitesD2Repository } from "../data/wmr/WmrRequisitesD2Repository";
 import { WmrSettingsD2Repository } from "../data/wmr/WmrSettingsD2Repository";
+import { WmrUserSettingsD2Repository } from "../data/wmr/WmrUserSettingsD2Repository";
 import { AggregatedSyncUseCase } from "../domain/aggregated/usecases/AggregatedSyncUseCase";
 import { DeleteAggregatedUseCase } from "../domain/aggregated/usecases/DeleteAggregatedUseCase";
 import { ListAggregatedUseCase } from "../domain/aggregated/usecases/ListAggregatedUseCase";
@@ -33,6 +34,8 @@ import { GetCustomDataUseCase } from "../domain/custom-data/usecases/GetCustomDa
 import { SaveCustomDataUseCase } from "../domain/custom-data/usecases/SaveCustomDataUseCase";
 import { GetDataSetByIdUseCase } from "../domain/entities/wmr/usecases/GetDataSetByIdUseCase";
 import { GetWmrSettingsUseCase } from "../domain/entities/wmr/usecases/GetWmrSettingsUseCase";
+import { GetWmrTargetOrgUnitUseCase } from "../domain/entities/wmr/usecases/GetWmrTargetOrgUnitUseCase";
+import { SaveWmrTargetOrgUnitUseCase } from "../domain/entities/wmr/usecases/SaveWmrTargetOrgUnitUseCase";
 import { CheckWmrRequisitesByTypeUseCase } from "../domain/entities/wmr/usecases/CheckWmrRequisitesByTypeUseCase";
 import { EventsSyncUseCase } from "../domain/events/usecases/EventsSyncUseCase";
 import { ListEventsUseCase } from "../domain/events/usecases/ListEventsUseCase";
@@ -530,6 +533,8 @@ export class CompositionRoot {
                 checkRequisites: new CheckWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
                 setupRequisites: new SetupWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
                 validateOrgUnit: new ValidateOrgUnitUseCase(this.repositoryFactory),
+                getTargetOrgUnit: new GetWmrTargetOrgUnitUseCase(this.repositoryFactory, this.localInstance),
+                saveTargetOrgUnit: new SaveWmrTargetOrgUnitUseCase(this.repositoryFactory, this.localInstance),
             }),
             syncDataset: (builder: SynchronizationBuilder) =>
                 new WmrAggregatedSyncUseCase(builder, this.repositoryFactory, this.localInstance),
@@ -681,5 +686,10 @@ export function registerDynamicRepositoriesInFactory(
     repositoryFactory.bindByInstance(
         Repositories.WmrRequisitesRepository,
         (instance: Instance) => new WmrRequisitesD2Repository(localInstance, instance)
+    );
+
+    repositoryFactory.bindByInstance(
+        Repositories.WmrUserSettingsRepository,
+        (instance: Instance) => new WmrUserSettingsD2Repository(instance)
     );
 }

@@ -11,15 +11,28 @@ import { NoticeBox } from "./components/NoticeBox";
 import { useSyncRemoteWmr } from "./hooks/useSyncRemoteWmr";
 import { RemoteInstanceSelector } from "./components/RemoteInstanceSelector";
 import { SummaryTable } from "../../react/core/components/sync-summary/SummaryTable";
+import { useWmrContext } from "./context/WmrContext";
+import { WmrFlowLabel } from "./components/WmrFlowLabel";
+import { useWmrTargetOrgUnit } from "./hooks/useWmrTargetOrgUnit";
 
 export function SubmitWmr() {
     const loading = useLoading();
+    const { syncRule } = useWmrContext();
     const [selectedTargetInstance, setSelectedTargetInstance] = React.useState<Instance | null>(null);
     const [targetOrgUnitId, setTargetOrgUnitId] = React.useState<Maybe<Id>>();
     const { syncRemoteWmr, wmrRemoteSyncResult } = useSyncRemoteWmr({
         instance: selectedTargetInstance,
         targetOrgUnitId,
     });
+    const { savedTargetOrgUnit, saveTargetOrgUnit } = useWmrTargetOrgUnit(selectedTargetInstance);
+
+    const onOrgUnitValidated = React.useCallback(
+        (orgUnitId: Id) => {
+            setTargetOrgUnitId(orgUnitId);
+            saveTargetOrgUnit(orgUnitId);
+        },
+        [saveTargetOrgUnit]
+    );
 
     const sendIsDisabled = !selectedTargetInstance?.url || !targetOrgUnitId || loading.isLoading;
     if (wmrRemoteSyncResult) {
@@ -55,6 +68,7 @@ export function SubmitWmr() {
                     )}
                 />
             </Box>
+            {syncRule?.flow && <WmrFlowLabel flow={syncRule.flow} />}
             <RemoteInstanceSelector
                 value={selectedTargetInstance}
                 onChange={instance => {
@@ -62,9 +76,14 @@ export function SubmitWmr() {
                     setSelectedTargetInstance(instance);
                 }}
             />
-            {selectedTargetInstance?.url && (
+            {selectedTargetInstance?.url && savedTargetOrgUnit.type === "loaded" && (
                 <Box p={2}>
-                    <OrgUnitInput instance={selectedTargetInstance} onChange={setTargetOrgUnitId} />
+                    <OrgUnitInput
+                        key={selectedTargetInstance.id}
+                        instance={selectedTargetInstance}
+                        initialValue={savedTargetOrgUnit.orgUnitId}
+                        onChange={onOrgUnitValidated}
+                    />
                 </Box>
             )}
             <Box p={2}>
