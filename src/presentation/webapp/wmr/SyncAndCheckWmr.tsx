@@ -8,6 +8,7 @@ import { Id } from "../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
 import { formatDateLong } from "../../../utils/date";
+import { removeTrailingSlash } from "../../../utils/d2-utils";
 import { getWmrSyncedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { useWmrContext } from "./context/WmrContext";
 import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
@@ -219,7 +220,7 @@ export function DataEntry(props: DataEntryProps) {
                 height="100%"
                 width="100%"
                 ref={iframeRef}
-                src={`${api.baseUrl}/dhis-web-dataentry/index.action`}
+                src={`${removeTrailingSlash(api.baseUrl)}/dhis-web-dataentry/index.action`}
                 title="WMR - Data Entry"
             />
         </>
