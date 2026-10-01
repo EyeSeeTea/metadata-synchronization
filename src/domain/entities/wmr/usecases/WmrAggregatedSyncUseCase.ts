@@ -44,8 +44,27 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
     }
 
     public buildPayload = memoize(async (remoteInstance?: Instance) => {
-        return this.buildNormalPayload(remoteInstance);
+        const { enableAggregation = false } = this.builder.dataParams ?? {};
+
+        return enableAggregation ? this.buildAnalyticsPayload(remoteInstance) : this.buildNormalPayload(remoteInstance);
     });
+
+    private buildAnalyticsPayload = async (remoteInstance?: Instance) => {
+        const { dataParams = {}, excludedIds = [] } = this.builder;
+        const aggregatedRepository = await this.getAggregatedRepository(remoteInstance);
+        const { dataElements = [] } = await this.extractMetadata<DataElement>(remoteInstance);
+        const dimensionIds = dataElements.map(({ id }) => id);
+
+        const { dataValues = [] } = await aggregatedRepository.getAnalytics({
+            dataParams,
+            dimensionIds,
+            includeCategories: true,
+        });
+
+        return {
+            dataValues: dataValues.filter(({ dataElement }) => !excludedIds.includes(dataElement)),
+        };
+    };
 
     private buildNormalPayload = async (remoteInstance?: Instance) => {
         const { dataParams = {}, excludedIds = [] } = this.builder;

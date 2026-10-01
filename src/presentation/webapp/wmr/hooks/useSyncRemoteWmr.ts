@@ -51,9 +51,11 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
             });
             return;
         }
-        const syncRuleUpdated = syncRule?.rule.updateTargetInstances([instance.id]).updateBuilder({
-            metadataIds: dataElementsToMigrate,
-        });
+        const syncRuleUpdated = syncRule?.rule
+            .updateTargetInstances([instance.id])
+            .updateBuilder({ metadataIds: dataElementsToMigrate })
+            .updateDataSyncEnableAggregation(false)
+            .updateDataSyncAggregationType(undefined);
         loading.show();
 
         const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
