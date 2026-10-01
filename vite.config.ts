@@ -59,6 +59,7 @@ export default defineConfig(({ mode }) => {
         envPrefix: "VITE_",
         resolve: {
             alias: [{ find: "@peculiar/webcrypto", replacement: "/src/utils/shims/webcrypto-browser.js" }],
+            dedupe: ["@dhis2/prop-types"],
         },
     };
 });
