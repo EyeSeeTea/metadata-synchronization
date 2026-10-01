@@ -8,6 +8,7 @@ import {
 import { buildPeriodFromParams } from "../../domain/aggregated/utils";
 import { EventsPackage } from "../../domain/events/entities/EventsPackage";
 import { ProgramEvent } from "../../domain/events/entities/ProgramEvent";
+import { ProgramStageRef } from "../../domain/events/mapper/Models";
 import { EventsRepository } from "../../domain/events/repositories/EventsRepository";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { SynchronizationResult } from "../../domain/reports/entities/SynchronizationResult";
@@ -34,10 +35,10 @@ export class EventsD2ApiRepository implements EventsRepository {
 
     public async getEvents(
         params: DataSynchronizationParams,
-        programStageIds: string[] = [],
+        programStages: ProgramStageRef[] = [],
         defaults: string[] = []
     ): Promise<ProgramEvent[]> {
-        const events = await this.getEventsByStrategy(params, programStageIds, defaults);
+        const events = await this.getEventsByStrategy(params, programStages, defaults);
 
         // Temporal fix for notes:
         // If a note already exist and sync again the event the sync fail
@@ -49,17 +50,17 @@ export class EventsD2ApiRepository implements EventsRepository {
 
     private async getEventsByStrategy(
         params: DataSynchronizationParams,
-        programStageIds: string[] = [],
+        programStages: ProgramStageRef[] = [],
         defaults: string[] = []
     ): Promise<ProgramEvent[]> {
         const { allEvents = false, orgUnitPaths = [] } = params;
 
         if (!allEvents) {
-            return this.getSpecificEvents(params, programStageIds, defaults);
+            return this.getSpecificEvents(params, programStages, defaults);
         } else if (allEvents && orgUnitPaths.length < 25) {
-            return this.getEventsByOrgUnit(params, programStageIds, defaults);
+            return this.getEventsByOrgUnit(params, programStages, defaults);
         } else {
-            return this.getAllEvents(params, programStageIds, defaults);
+            return this.getAllEvents(params, programStages, defaults);
         }
     }
 
@@ -77,10 +78,12 @@ export class EventsD2ApiRepository implements EventsRepository {
      */
     private async getAllEvents(
         params: DataSynchronizationParams,
-        programStageIds: string[] = [],
+        programStages: ProgramStageRef[] = [],
         defaults: string[] = []
     ): Promise<ProgramEvent[]> {
-        if (programStageIds.length === 0) return [];
+        if (programStages.length === 0) return [];
+
+        const programStageIds = programStages.map(({ id }) => id);
 
         const { period, orgUnitPaths = [], lastUpdated, eventsSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
@@ -149,10 +152,10 @@ export class EventsD2ApiRepository implements EventsRepository {
 
     private async getEventsByOrgUnit(
         params: DataSynchronizationParams,
-        programStageIds: string[] = [],
+        programStages: ProgramStageRef[] = [],
         defaults: string[] = []
     ): Promise<ProgramEvent[]> {
-        if (programStageIds.length === 0) return [];
+        if (programStages.length === 0) return [];
 
         const { period, orgUnitPaths = [], lastUpdated, eventsSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
@@ -174,12 +177,13 @@ export class EventsD2ApiRepository implements EventsRepository {
                       updatedAfter: lastUpdated ? moment(lastUpdated).toISOString() : undefined,
                   };
 
-        const fetchApi = async (programStage: string, orgUnit: string, page: number) => {
+        const fetchApi = async (program: string, programStage: string, orgUnit: string, page: number) => {
             return this.api.tracker.events
                 .get({
                     pageSize: 250,
                     totalPages: true,
                     page,
+                    program,
                     programStage,
                     orgUnit,
                     ...periodFilter,
@@ -188,14 +192,14 @@ export class EventsD2ApiRepository implements EventsRepository {
                 .getData();
         };
 
-        const result = await promiseMap(programStageIds, async programStage => {
+        const result = await promiseMap(programStages, async ({ id: programStage, program }) => {
             const filteredEvents = await promiseMap(orgUnits, async orgUnit => {
-                const firstResponse = await fetchApi(programStage, orgUnit, 1);
+                const firstResponse = await fetchApi(program.id, programStage, orgUnit, 1);
 
                 const remainingPages = getRemainingPages(firstResponse);
 
                 const paginatedEvents = await promiseMap(remainingPages, async page => {
-                    const response = await fetchApi(programStage, orgUnit, page);
+                    const response = await fetchApi(program.id, programStage, orgUnit, page);
 
                     const events = this.extractEvents(response);
 
@@ -227,19 +231,20 @@ export class EventsD2ApiRepository implements EventsRepository {
 
     private async getSpecificEvents(
         params: DataSynchronizationParams,
-        programStageIds: string[] = [],
+        programStages: ProgramStageRef[] = [],
         defaults: string[] = []
     ): Promise<ProgramEvent[]> {
         const { orgUnitPaths = [], events: filter = [] } = params;
-        if (programStageIds.length === 0 || filter.length === 0) return [];
+        if (programStages.length === 0 || filter.length === 0) return [];
 
         const orgUnits = cleanOrgUnitPaths(orgUnitPaths);
         const result = [];
 
-        for (const programStage of programStageIds) {
+        for (const { id: programStage, program } of programStages) {
             for (const ids of _.chunk(filter, 300)) {
                 const response = await this.api.tracker.events
                     .get({
+                        program: program.id,
                         programStage,
                         event: ids.join(";"),
                         fields: { $all: true },

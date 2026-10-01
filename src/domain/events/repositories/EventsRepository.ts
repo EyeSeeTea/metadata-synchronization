@@ -2,11 +2,12 @@ import { DataImportParams, DataSynchronizationParams } from "../../aggregated/en
 import { SynchronizationResult } from "../../reports/entities/SynchronizationResult";
 import { EventsPackage } from "../entities/EventsPackage";
 import { ProgramEvent } from "../entities/ProgramEvent";
+import { ProgramStageRef } from "../mapper/Models";
 
 export interface EventsRepository {
     getEvents(
         params: DataSynchronizationParams,
-        programStageIds?: string[],
+        programStages?: ProgramStageRef[],
         defaults?: string[]
     ): Promise<ProgramEvent[]>;
 
