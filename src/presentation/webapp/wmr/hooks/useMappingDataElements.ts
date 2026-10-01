@@ -6,6 +6,18 @@ import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
 import { WmrDataSet } from "../../../../domain/entities/wmr/entities/WmrDataSet";
 
+/**
+ * Keep the global mapping store intact, but scope the IDs used by a WMR sync
+ * to the data elements that belong to the selected source data set.
+ */
+export function filterMappedDataElementIds(
+    mappedDataElementIds: ReadonlyArray<Id>,
+    dataSetDataElementIds: ReadonlyArray<Id>
+): Id[] {
+    const dataSetDataElementIdsSet = new Set(dataSetDataElementIds);
+    return mappedDataElementIds.filter(dataElementId => dataSetDataElementIdsSet.has(dataElementId));
+}
+
 export function useGetDataSetOrgUnits(props: { id: Id }) {
     const { compositionRoot } = useAppContext();
     const [dataSet, setDataSet] = React.useState<WmrDataSet>();
