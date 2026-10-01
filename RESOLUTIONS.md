@@ -8,7 +8,7 @@ This file documents every entry in the `resolutions` block of `package.json`. Ea
 
 -   **`^` range or exact version? Ask what the number is asserting.**
 
-    A **floor** ("never below this") takes a `^` range. Almost every security pin is a floor: it does not matter whether `axios` resolves to 1.18.1 or 1.19.0, only that it is not below 1.18.0. Newer is strictly better, so let it land.
+    A **floor** ("never below this") takes a `^` range. Almost every security pin is a floor: it does not matter whether `axios` resolves to 1.20.0 or 1.21.0, only that it is not below 1.20.0. Newer is strictly better, so let it land.
 
     A **fixture** ("exactly this") takes an exact version, and only when something genuinely binds to that release. These are compatibility constraints, not security ones. `@types/react`, `@types/react-dom` and `i18next` are the fixtures in this file.
 
@@ -60,12 +60,12 @@ Note that `yarn npm audit` and the Dependency-Track analysis score against diffe
 
 Each pin below was verified against the tool or component that actually consumes the package, not only with `yarn install` — the ones reached through the build-only `@dhis2/cli-app-scripts` chain cross a major and were checked by loading and exercising their consumer.
 
-#### `axios: ^1.18.0`
+#### `axios: ^1.20.0`
 
--   **Why:** Direct dependency; the resolution overrides transitive requests for an older axios and mirrors `dependencies.axios`. A range rather than an exact version, so patches land whenever the lockfile is re-resolved; it resolves to 1.18.1.
--   **Fixes:** CVE-2025-62718, CVE-2026-42033/-42035/-42038/-42039/-42043/-42044, GHSA-gcfj-64vw-6mp9 (high, Node HTTP adapter reusing an inherited proxy after interceptor changes) — and transitively clears `follow-redirects@1.15.11` (CVE-2026-40895).
--   **Runtime, not build-only.** Verified with the test suite and a production build.
--   **Drop when:** no transitive consumer requests `axios < 1.18.0`. `@eyeseetea/d2-api` requests an older exact version, so removing this entry resolves axios _downwards_. Verify with `yarn why axios`.
+-   **Why:** Direct dependency; the resolution overrides transitive requests for an older axios and mirrors `dependencies.axios`. A range rather than an exact version, so patches land whenever the lockfile is re-resolved; it resolves to 1.20.0.
+-   **Fixes:** CVE-2025-62718, CVE-2026-42033/-42035/-42038/-42039/-42043/-42044, GHSA-gcfj-64vw-6mp9 (high, Node HTTP adapter reusing an inherited proxy after interceptor changes) — and transitively clears `follow-redirects@1.15.11` (CVE-2026-40895). The floor is 1.20.0 because every advisory published against 1.x up to 1.19 is patched there: GHSA-c29m-xwm3-cm6r, GHSA-mghh-pgcx-3jjj, GHSA-x97p-jq2g-jp4f, GHSA-3pq3-5fj3-cg6v, GHSA-542g-h47m-68v8, GHSA-m8m8-qj5v-23w3, GHSA-r4gj-5m52-g5wh (high), GHSA-vh66-26gq-q6x8, GHSA-9fr6-4gfg-395g, GHSA-j8rh-479h-cp32, GHSA-4hqw-qxg8-jxx2, GHSA-44g4-m2mj-wpvx (medium).
+-   **Runtime, not build-only.** Verified with the test suite, a production build, and a GET with query params and a JSON POST against a local server.
+-   **Drop when:** no transitive consumer requests `axios < 1.20.0`. `@eyeseetea/d2-api` requests an older exact version, so removing this entry resolves axios _downwards_. Verify with `yarn why axios`.
 
 #### `qs: ^6.15.3`
 
@@ -84,6 +84,13 @@ Each pin below was verified against the tool or component that actually consumes
 -   **Why:** `lodash` is a direct dependency, and the resolution forces every transitive consumer (DHIS2 libs, depcheck, ts-mockito, eslint-plugin-flowtype, i18next-scanner, etc.) onto the same line — without it, several parents stay on `4.17.21`, because `@eyeseetea/d2-api` and `@eyeseetea/d2-ui-components` request that exact version.
 -   **Fixes:** CVE-2026-4800 (critical) and CVE-2021-23337 (high) — template-injection in `_.template`. Fix landed in lodash 4.18.0, the first lodash minor in over five years, cut to address these.
 -   **Drop when:** Either every transitive parent natively requests `lodash@^4.18.0` or higher (verify with `yarn why lodash`), or the project removes the direct `lodash` dependency.
+
+#### `@eyeseetea/d2-ui-components/moment: ^2.31.0`
+
+-   **Why:** `@eyeseetea/d2-ui-components@2.12.0` requests `moment` at exactly `2.29.4`, inside the affected range, so without this entry it keeps its own vulnerable copy next to the 2.31.0 every other consumer resolves to. A per-parent path rather than a global `moment` entry, because this is the only consumer whose range cannot reach the fix; the direct dependency is a `^2.31.0` floor and the other parents (`@dhis2/d2-i18n`, `@dhis2-ui/header-bar`, `moment-timezone`) already request `^2.x` ranges that re-resolve to it.
+-   **Fixes:** GHSA-4p3w-j4w9-5jqw (medium, path traversal via a crafted non-string locale name), affecting `>= 2.29.2, < 2.31.0`.
+-   **Runtime, not build-only.** Verified with the test suite, a production build, and `format`, `es`/`fr`/`pt` locale formatting and `moment-timezone` conversion against the installed 2.31.0. `yarn why moment -R` shows a single `moment@2.31.0`.
+-   **Drop when:** `@eyeseetea/d2-ui-components` requests `moment >= 2.31.0` or a `^2.x` range. Verify with `yarn why moment -R`.
 
 #### `flatted: ^3.4.2`
 
@@ -196,8 +203,8 @@ All five above exist only because this project uses `@dhis2/cli-app-scripts` for
 
 Tried, verified to break a consumer, and reverted. Recorded so nobody re-tries them.
 
-| Pin attempted               | What broke |
-| ---------------------------- | ---------- |
+| Pin attempted               | What broke                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `package-json/got: ^11.8.5` | Loads cleanly, then every lookup fails: `package-json@6.5.0` calls `got` with `{ json: true }`, which got 9 (what `package-json@6.5.0` was written against) reads as "parse the response" and got 11 reads as "send a JSON body" — `RequestError: The GET method cannot be used with a body`. Loading the module is not enough to catch this; it takes calling the code path that uses the package. Use `latest-version/package-json: ^7.0.0` instead, which lifts the parent to a release written for got 11. |
 
 ---
