@@ -71,7 +71,6 @@ export const MSFSettingsDialog: React.FC<MSFSettingsDialogProps> = ({ onClose, o
                 <Panels>
                     <AnalyticsPanel
                         title={i18n.t("Before sync · Individual data")}
-                        kind="individual"
                         runSetting={settings.runAnalyticsBefore}
                         onRunSettingChange={setRunAnalyticsBefore}
                         options={settings.analyticsBefore}
@@ -79,7 +78,6 @@ export const MSFSettingsDialog: React.FC<MSFSettingsDialogProps> = ({ onClose, o
                     />
                     <AnalyticsPanel
                         title={i18n.t("After sync · Aggregate data")}
-                        kind="aggregate"
                         runSetting={settings.runAnalyticsAfter}
                         onRunSettingChange={setRunAnalyticsAfter}
                         options={settings.analyticsAfter}

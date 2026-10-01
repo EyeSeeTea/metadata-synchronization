@@ -14,26 +14,11 @@ export type AnalyticsOptions = {
     skipOutliers?: boolean;
 };
 
-export type AnalyticsPanelKind = "individual" | "aggregate";
-
-const analyticsFlagsByKind: Record<AnalyticsPanelKind, (keyof Omit<AnalyticsOptions, "lastYears">)[]> = {
-    individual: ["skipResourceTables", "skipEvents", "skipEnrollment", "skipOrgUnitOwnership", "skipTrackedEntities"],
-    aggregate: ["skipResourceTables", "skipAggregate", "skipOutliers"],
-};
-
-export function toAnalyticsRequest(options: AnalyticsOptions, kind: AnalyticsPanelKind): AnalyticsOptions {
-    const request: AnalyticsOptions = { lastYears: options.lastYears };
-    for (const key of analyticsFlagsByKind[kind]) {
-        if (options[key] !== undefined) request[key] = options[key];
-    }
-    return request;
-}
-
 export type MSFSettings = {
     runAnalyticsBefore: RunAnalyticsSettings;
     runAnalyticsAfter: RunAnalyticsSettings;
-    analyticsBefore?: AnalyticsOptions;
-    analyticsAfter?: AnalyticsOptions;
+    analyticsBefore: AnalyticsOptions;
+    analyticsAfter: AnalyticsOptions;
     projectMinimumDates: Record<string, NamedDate>;
     deleteDataValuesBeforeSync?: boolean;
     checkInPreviousPeriods?: boolean;
@@ -46,13 +31,27 @@ export type AdvancedSettings = {
 
 export const MSFStorageKey = "msf-storage";
 
-export const defaultAnalyticsOptions: AnalyticsOptions = {
-    lastYears: 2,
+const defaultLastYears = 2;
+
+export const defaultAnalyticsBefore: AnalyticsOptions = {
+    lastYears: defaultLastYears,
+    skipAggregate: true,
+    skipOutliers: true,
+};
+
+export const defaultAnalyticsAfter: AnalyticsOptions = {
+    lastYears: defaultLastYears,
+    skipEvents: true,
+    skipEnrollment: true,
+    skipOrgUnitOwnership: true,
+    skipTrackedEntities: true,
 };
 
 export const defaultMSFSettings: MSFSettings = {
     runAnalyticsBefore: "by-sync-rule-settings",
     runAnalyticsAfter: "by-sync-rule-settings",
+    analyticsBefore: defaultAnalyticsBefore,
+    analyticsAfter: defaultAnalyticsAfter,
     projectMinimumDates: {},
     deleteDataValuesBeforeSync: false,
     checkInPreviousPeriods: false,
@@ -63,13 +62,12 @@ export type StoredMSFSettings = Partial<MSFSettings> & { analyticsYears?: number
 
 export function buildMSFSettings(raw: StoredMSFSettings | undefined | null): MSFSettings {
     const { analyticsYears, analyticsBefore, analyticsAfter, ...rest } = raw ?? {};
-    const legacyPanel: AnalyticsOptions | undefined =
-        analyticsYears !== undefined ? { ...defaultAnalyticsOptions, lastYears: analyticsYears } : undefined;
+    const legacyLastYears = analyticsYears !== undefined ? { lastYears: analyticsYears } : {};
 
     return {
         ...defaultMSFSettings,
         ...rest,
-        analyticsBefore: analyticsBefore ?? legacyPanel,
-        analyticsAfter: analyticsAfter ?? legacyPanel,
+        analyticsBefore: { ...defaultAnalyticsBefore, ...legacyLastYears, ...analyticsBefore },
+        analyticsAfter: { ...defaultAnalyticsAfter, ...legacyLastYears, ...analyticsAfter },
     };
 }

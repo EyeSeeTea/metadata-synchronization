@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-07-06T15:09:17.686Z\n"
+"POT-Creation-Date: 2026-09-28T09:33:47.810Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1626,6 +1626,9 @@ msgstr ""
 msgid "Use sync rules periods"
 msgstr ""
 
+msgid "Skip generation of aggregate data and completeness data"
+msgstr ""
+
 msgid "Skip generation of resource tables"
 msgstr ""
 
@@ -1639,9 +1642,6 @@ msgid "Skip generation of organisation unit ownership data"
 msgstr ""
 
 msgid "Skip generation of tracked entity data"
-msgstr ""
-
-msgid "Skip generation of aggregate data and completeness data"
 msgstr ""
 
 msgid "Skip generation of outlier data"
