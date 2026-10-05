@@ -92,6 +92,10 @@ export abstract class GenericMappingUseCase {
             .metadataRepository(destinationInstance)
             .getDefaultIds("categoryOptionCombos");
 
+        const defaultDestinationCategoryOption = await this.repositoryFactory
+            .metadataRepository(destinationInstance)
+            .getDefaultIds("categoryOptions");
+
         const mappedElement = {
             mappedId: destinationItem.path ?? destinationItem.id,
             mappedName: destinationItem.name,
@@ -102,10 +106,14 @@ export abstract class GenericMappingUseCase {
 
         const categoryCombos = this.autoMapCategoryCombo(originMetadata, destinationItem);
 
+        // A destination with a real category combo (e.g. Gender) doesn't offer "default" as a
+        // candidate, so the origin's default category option never matches. Fall back to the
+        // destination default (not EXCLUDED_KEY) to avoid a false mapping conflict.
         const categoryOptions = await this.autoMapCollection(
             destinationInstance,
             this.getCategoryOptions(originMetadata),
-            this.getCategoryOptions(destinationItem)
+            this.getCategoryOptions(destinationItem),
+            defaultDestinationCategoryOption[0]
         );
 
         // The "default" combo has a different UID per instance, so it never matches by UID/code/name.
@@ -368,6 +376,15 @@ export abstract class GenericMappingUseCase {
                         aggregateExportCategoryOptionCombo: _.last(aggregateExportCategoryOptionCombo.split(".")),
                     },
                 ];
+            }
+            case "dataElements": {
+                return (
+                    object.categoryCombo?.categoryOptionCombos.map(({ id, name }) => ({
+                        id,
+                        name,
+                        model: "categoryOptionCombos",
+                    })) ?? []
+                );
             }
             default: {
                 return [];
