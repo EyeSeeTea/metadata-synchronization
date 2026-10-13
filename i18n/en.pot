@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-07-07T09:14:53.473Z\n"
-"PO-Revision-Date: 2026-07-07T09:14:53.473Z\n"
+"POT-Creation-Date: 2026-09-28T10:23:21.966Z\n"
+"PO-Revision-Date: 2026-09-28T10:23:21.966Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -1678,6 +1678,9 @@ msgstr "Include references and objects"
 msgid "Use sync rules periods"
 msgstr "Use sync rules periods"
 
+msgid "Skip generation of aggregate data and completeness data"
+msgstr "Skip generation of aggregate data and completeness data"
+
 msgid "Skip generation of resource tables"
 msgstr "Skip generation of resource tables"
 
@@ -1692,9 +1695,6 @@ msgstr "Skip generation of organisation unit ownership data"
 
 msgid "Skip generation of tracked entity data"
 msgstr "Skip generation of tracked entity data"
-
-msgid "Skip generation of aggregate data and completeness data"
-msgstr "Skip generation of aggregate data and completeness data"
 
 msgid "Skip generation of outlier data"
 msgstr "Skip generation of outlier data"
