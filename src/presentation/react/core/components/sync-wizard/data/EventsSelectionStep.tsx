@@ -9,6 +9,7 @@ import { Typography } from "@material-ui/core";
 import _ from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ProgramEvent } from "../../../../../../domain/events/entities/ProgramEvent";
+import { toProgramStageRefs } from "../../../../../../domain/events/mapper/Models";
 import { DataElement, Program } from "../../../../../../domain/metadata/entities/MetadataEntities";
 import { SynchronizationRule } from "../../../../../../domain/rules/entities/SynchronizationRule";
 import i18n from "../../../../../../utils/i18n";
@@ -57,6 +58,8 @@ export default function EventsSelectionStep({ syncRule, onChange }: SyncWizardSt
             result.match({
                 error: () => snackbar.error(i18n.t("Invalid origin instance")),
                 success: instance => {
+                    const programStages = toProgramStageRefs(programs);
+
                     compositionRoot.events
                         .list(
                             instance,
@@ -64,7 +67,7 @@ export default function EventsSelectionStep({ syncRule, onChange }: SyncWizardSt
                                 ...memoizedSyncRule.dataParams,
                                 allEvents: true,
                             },
-                            programs.map(program => program.programStages.map(({ id }) => id)).flat()
+                            programStages
                         )
                         .then(setObjects)
                         .catch(setError);

@@ -3,6 +3,7 @@ import moment from "moment";
 import { DataSyncAggregation } from "../../../../domain/aggregated/entities/DataSyncAggregation";
 import { DataSyncPeriod } from "../../../../domain/aggregated/entities/DataSyncPeriod";
 import { buildPeriodFromParams } from "../../../../domain/aggregated/utils";
+import { ProgramStageRef, toProgramStageRefs } from "../../../../domain/events/mapper/Models";
 import { Instance } from "../../../../domain/instance/entities/Instance";
 import { SynchronizationReport } from "../../../../domain/reports/entities/SynchronizationReport";
 import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
@@ -169,7 +170,7 @@ async function validatePreviousDataValues(
             if (!rule.dataParams || !rule.dataParams.period) return undefined;
             const { startDate } = buildPeriodFromParams(rule.dataParams);
 
-            const programStageIds = await getRuleProgramStageIds(compositionRoot, rule, instance);
+            const programStages = await getRuleProgramStageIds(compositionRoot, rule, instance);
 
             const events = await promiseMap(rule.dataSyncOrgUnitPaths, async orgUnit => {
                 const executionKey = `${rule.id}-${cleanOrgUnitPath(orgUnit)}`;
@@ -185,7 +186,7 @@ async function validatePreviousDataValues(
                         orgUnitPaths: [orgUnit],
                         allEvents: true,
                     },
-                    programStageIds
+                    programStages
                 );
             });
 
@@ -513,7 +514,7 @@ async function getRuleProgramStageIds(
     compositionRoot: CompositionRoot,
     rule: SynchronizationRule,
     instance: Instance
-): Promise<string[]> {
+): Promise<ProgramStageRef[]> {
     const { objects } = await compositionRoot.metadata.list(
         {
             type: "programIndicators",
@@ -524,12 +525,13 @@ async function getRuleProgramStageIds(
         instance
     );
 
-    return _(objects as Partial<{ id: string; program: { id: string; programStages: Ref[] } }>[])
-        .map(({ program }) => program?.programStages.map(({ id }) => id))
-        .flatten()
+    const programs = _(objects as Partial<{ id: string; program: { id: string; programStages: Ref[] } }>[])
+        .map(({ program }) => program)
         .compact()
-        .uniq()
+        .uniqBy("id")
         .value();
+
+    return toProgramStageRefs(programs);
 }
 
 const aggregationTimeUnits = {
