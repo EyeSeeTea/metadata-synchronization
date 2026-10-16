@@ -86,7 +86,11 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                                 }) => ({
                                     dataElement,
                                     period,
-                                    orgUnit,
+                                    // DHIS2 2.43 omits orgUnit on each dataValue when the request filters by a
+                                    // single orgUnit (it's only set once at the response root in that case);
+                                    // <=2.42 and 2.43 with multiple orgUnits always include it per dataValue.
+                                    // Empirically verified against play.im.dhis2.org 2.41/2.42/2.43.
+                                    orgUnit: orgUnit ?? data.orgUnit,
                                     value,
                                     comment,
                                     categoryOptionCombo: categoryOptionCombo ?? defaultCategoryOptionCombo,
