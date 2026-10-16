@@ -357,6 +357,9 @@ msgstr ""
 msgid "Successfully deleted {{total}} history notifications"
 msgstr ""
 
+msgid "Failed to delete history notifications"
+msgstr "Failed to delete history notifications"
+
 msgid "Synchronization status"
 msgstr ""
 
@@ -1346,6 +1349,9 @@ msgstr ""
 msgid "Set Credentials"
 msgstr ""
 
+msgid "Could not load metadata types"
+msgstr "Could not load metadata types"
+
 msgid "Every day"
 msgstr ""
 
@@ -1689,6 +1695,9 @@ msgstr ""
 msgid "Minimum date"
 msgstr ""
 
+msgid "An error occurred while checking pending migrations"
+msgstr "An error occurred while checking pending migrations"
+
 msgid "Distributed under GNU GLPv3"
 msgstr ""
 
@@ -1892,6 +1901,9 @@ msgstr ""
 msgid "Connected successfully to instance"
 msgstr ""
 
+msgid "Failed to save instance"
+msgstr "Failed to save instance"
+
 msgid "Server name (*)"
 msgstr ""
 
@@ -1930,6 +1942,9 @@ msgstr ""
 
 msgid "Successfully deleted {{total}} instances"
 msgstr ""
+
+msgid "Failed to delete instances"
+msgstr "Failed to delete instances"
 
 msgid "Server name"
 msgstr ""
@@ -1999,6 +2014,9 @@ msgstr ""
 
 msgid "Global mapping"
 msgstr ""
+
+msgid "Couldn't load instance mapping"
+msgstr "Couldn't load instance mapping"
 
 msgid "Metadata Synchronization"
 msgstr ""
@@ -2246,11 +2264,17 @@ msgstr ""
 msgid "Successfully deleted {{total}} rules"
 msgstr ""
 
+msgid "Failed to delete sync rules"
+msgstr "Failed to delete sync rules"
+
 msgid "Synchronizing {{name}}"
 msgstr ""
 
 msgid "Successfully updated sync rule"
 msgstr ""
+
+msgid "Failed to update sync rule"
+msgstr "Failed to update sync rule"
 
 msgid "Couldn't read the file because it's not valid"
 msgstr ""
@@ -2267,6 +2291,9 @@ msgstr ""
 msgid "Imported {{n}} rules"
 msgstr ""
 
+msgid "Failed to import sync rules"
+msgstr "Failed to import sync rules"
+
 msgid "Execute"
 msgstr ""
 
@@ -2278,6 +2305,9 @@ msgstr ""
 
 msgid "Import sync rules"
 msgstr ""
+
+msgid "Failed to update sharing settings"
+msgstr "Failed to update sharing settings"
 
 msgid "Last executed date"
 msgstr ""

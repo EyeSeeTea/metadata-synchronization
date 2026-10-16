@@ -95,13 +95,9 @@ export class StorageConstantClient extends StorageClient {
     }
 
     public async clearStorage(): Promise<void> {
-        try {
-            const objects = await this.getConstants({ id: true, code: true, name: true });
+        const objects = await this.getConstants({ id: true, code: true, name: true });
 
-            await this.api.metadata.post({ constants: objects }, { importStrategy: "DELETE" }).getData();
-        } catch (error: any) {
-            console.error(error);
-        }
+        await this.api.metadata.post({ constants: objects }, { importStrategy: "DELETE" }).getData();
     }
 
     public async clone(): Promise<Dictionary<unknown>> {
