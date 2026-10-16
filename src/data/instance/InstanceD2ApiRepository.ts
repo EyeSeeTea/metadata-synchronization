@@ -155,6 +155,15 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     }
 
     private async getInstances(): Promise<Instance[]> {
+        try {
+            return await this.getInstancesOrFail();
+        } catch (error: any) {
+            console.error(error);
+            return [this.instance];
+        }
+    }
+
+    private async getInstancesOrFail(): Promise<Instance[]> {
         const instances = await this.cache.getOrPromise("instances", async () => {
             const storageClient = await this.getStorageClient();
             const dataStoreInstances = await storageClient.listObjectsInCollection<InstanceDataStoreData>(

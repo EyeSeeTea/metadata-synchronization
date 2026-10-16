@@ -40,6 +40,9 @@ config.json
 .idea/*
 .vscode/*
 
+# Claude Code
+.claude/
+
 # Configuration
 /**/app-config.json
 
