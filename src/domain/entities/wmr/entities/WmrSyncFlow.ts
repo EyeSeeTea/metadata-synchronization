@@ -1,31 +1,10 @@
 import _ from "lodash";
-import { DataSyncAggregation } from "../../../aggregated/entities/DataSyncAggregation";
 import { DataSynchronizationParams } from "../../../aggregated/entities/DataSynchronizationParams";
 import { DataValue } from "../../../aggregated/entities/DataValue";
 import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../../aggregated/utils";
-import { DataSetPeriodType } from "./WmrSettings";
 
 export const wmrSourcePeriodTypes = ["Yearly", "Monthly"] as const;
 export type WmrSourcePeriodType = typeof wmrSourcePeriodTypes[number];
-
-export type WmrSourceReading = Readonly<{
-    enableAggregation: boolean;
-    aggregationType: DataSyncAggregation | undefined;
-    sumIntoYear: boolean;
-}>;
-
-const readingBySourcePeriodType: Readonly<Record<WmrSourcePeriodType, WmrSourceReading>> = {
-    Yearly: { enableAggregation: false, aggregationType: undefined, sumIntoYear: false },
-    Monthly: { enableAggregation: true, aggregationType: "MONTHLY", sumIntoYear: true },
-};
-
-export function isWmrSourcePeriodType(periodType: DataSetPeriodType): periodType is WmrSourcePeriodType {
-    return wmrSourcePeriodTypes.some(sourcePeriodType => sourcePeriodType === periodType);
-}
-
-export function getWmrSourceReading(sourcePeriodType: WmrSourcePeriodType): WmrSourceReading {
-    return readingBySourcePeriodType[sourcePeriodType];
-}
 
 export function getWmrReportedYear(params: DataSynchronizationParams): string {
     const { startDate, endDate } = buildPeriodFromParams(params);

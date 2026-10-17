@@ -4,6 +4,7 @@ import { Dropdown } from "@eyeseetea/d2-ui-components";
 import i18n from "../../../utils/i18n";
 import InstanceMappingPage from "../core/pages/instance-mapping/InstanceMappingPage";
 import { WmrSettings } from "../../../domain/entities/wmr/entities/WmrSettings";
+import { wmrFlowDefinitions, wmrFlowKinds } from "../../../domain/entities/wmr/entities/WmrFlowKind";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { useWmrContext } from "./context/WmrContext";
 import { Maybe } from "../../../types/utils";
@@ -23,7 +24,8 @@ export function MapWmrData(_props: MapWmrDataProps) {
         return <NoticeBox type="loading" message={i18n.t("Loading settings...")} />;
     }
 
-    const dataSets = settings.getSelectableSources().map(dataSet => ({
+    const sources = wmrFlowKinds.flatMap(kind => settings.getSelectableSources(kind));
+    const dataSets = sources.map(dataSet => ({
         text: `${dataSet.name} (${dataSet.periodType})`,
         value: dataSet.id,
     }));
@@ -31,7 +33,9 @@ export function MapWmrData(_props: MapWmrDataProps) {
     const onChangeDataSet = (value: Id | undefined) => {
         setDataSetId(value);
         syncRule.localDataSetId = value;
-        syncRule.flow = settings.getFlowFor(value);
+        const source = sources.find(dataSet => dataSet.id === value);
+        const kind = wmrFlowKinds.find(kind => wmrFlowDefinitions[kind].sourcePeriodType === source?.periodType);
+        syncRule.flow = kind && settings.getFlowFor(value, kind);
     };
 
     const allowedLocalDataElementsIds = settings.getDataElementsIds(dataSetId);

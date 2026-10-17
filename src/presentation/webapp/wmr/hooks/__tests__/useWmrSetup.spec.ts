@@ -11,6 +11,7 @@ vi.hoisted(() => {
 const allDone: WmrSetupStatuses = {
     metadata: { status: "done" },
     dataStore: { status: "done" },
+    countryFormMonthly: { status: "done" },
 };
 
 const buildStatuses = (overrides: Partial<WmrSetupStatuses>): WmrSetupStatuses => ({ ...allDone, ...overrides });
@@ -20,12 +21,8 @@ describe("toWmrSetupStatus", () => {
         expect([
             toWmrSetupStatus({ type: "installed" }),
             toWmrSetupStatus({ type: "missing" }),
-            toWmrSetupStatus({ type: "misassigned", dataSetName: "Country Sync", orgUnitsCount: 4 }),
-        ]).toEqual([
-            { status: "done" },
-            { status: "pending" },
-            { status: "misassigned", dataSetName: "Country Sync", orgUnitsCount: 4 },
-        ]);
+            toWmrSetupStatus({ type: "misassigned", dataSetName: "Country Sync" }),
+        ]).toEqual([{ status: "done" }, { status: "pending" }, { status: "misassigned", dataSetName: "Country Sync" }]);
     });
 });
 
@@ -34,11 +31,15 @@ describe("isWmrSetupReady", () => {
         expect(isWmrSetupReady(allDone)).toBe(true);
     });
 
+    it("does not wait for the monthly form package, which the global flow does not require", () => {
+        expect(isWmrSetupReady(buildStatuses({ countryFormMonthly: { status: "pending" } }))).toBe(true);
+    });
+
     it("is not ready while any single requisite is not done", () => {
         expect([
             isWmrSetupReady(buildStatuses({ metadata: { status: "pending" } })),
             isWmrSetupReady(buildStatuses({ dataStore: { status: "loading" } })),
-            isWmrSetupReady(buildStatuses({ metadata: { status: "misassigned", dataSetName: "x", orgUnitsCount: 2 } })),
+            isWmrSetupReady(buildStatuses({ metadata: { status: "misassigned", dataSetName: "x" } })),
         ]).toEqual([false, false, false]);
     });
 });

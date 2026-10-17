@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-09-25T02:28:42.766Z\n"
+"POT-Creation-Date: 2026-10-15T17:51:21.010Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2464,6 +2464,19 @@ msgstr ""
 msgid "Contains the dataStore configurations required by the autogenforms tool"
 msgstr ""
 
+#, fuzzy
+msgid "Monthly form package"
+msgstr "Monthly metadata package"
+
+msgid ""
+"MAL - WMR Country Form MONTHLY, the form where the regional data is entered"
+msgstr ""
+"MAL - WMR Country Form MONTHLY, the form where the regional data is entered"
+
+#, fuzzy
+msgid "monthly form package"
+msgstr "monthly metadata package"
+
 msgid "Checking {{itemName}}..."
 msgstr ""
 
@@ -2482,16 +2495,9 @@ msgid ""
 "The {{itemName}} is not installed yet. Use the button below to install it."
 msgstr ""
 
-msgid ""
-"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
-"assigned only to the country"
-msgid_plural ""
-"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
-"assigned only to the country"
-msgstr[0] ""
-"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
-"assigned only to the country"
-msgstr[1] ""
+#, fuzzy
+msgid "The dataSet {{name}} must be assigned to the country organisation unit"
+msgstr ""
 "The dataSet {{name}} is assigned to {{count}} organisation units and must be "
 "assigned only to the country"
 
@@ -2759,14 +2765,8 @@ msgctxt ""
 msgid "The personal access token requires either 'public"
 msgstr ""
 
-#~ msgid "Monthly metadata package"
-#~ msgstr "Monthly metadata package"
-
 #~ msgid "This package contains the monthly WMR dataset and its dependencies"
 #~ msgstr "This package contains the monthly WMR dataset and its dependencies"
-
-#~ msgid "monthly metadata package"
-#~ msgstr "monthly metadata package"
 
 #~ msgid ""
 #~ "Install the metadata package first. The monthly package does not include "

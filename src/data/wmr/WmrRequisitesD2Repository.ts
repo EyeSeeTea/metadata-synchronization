@@ -1,6 +1,7 @@
 import { Future, FutureData } from "../../domain/common/entities/Future";
 import {
     checkWmrRequisiteDataSet,
+    WmrRequisite,
     WmrRequisiteCheck,
     WmrRequisiteType,
     wmrRequisites,
@@ -25,24 +26,32 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
     }
 
     checkWmrRequisites(requisiteType: WmrRequisiteType): FutureData<WmrRequisiteCheck> {
-        const { kind, code } = wmrRequisites[requisiteType];
-        switch (kind) {
+        const requisite = wmrRequisites[requisiteType];
+        switch (requisite.kind) {
             case "metadata":
-                return this.checkDataSet(code);
+                return this.checkDataSet(requisite);
             case "dataStore":
-                return this.checkDataStoreValue(code);
+                return this.checkDataStoreValue(requisite.code);
         }
     }
 
-    private checkDataSet(code: string): FutureData<WmrRequisiteCheck> {
-        return apiToFuture(
-            this.api.models.dataSets.get({
-                filter: { code: { eq: code } },
-                fields: { id: true, name: true, organisationUnits: { id: true } },
-            })
-        ).map(({ objects: [dataSet] }) =>
-            checkWmrRequisiteDataSet(dataSet && { name: dataSet.name, orgUnitsCount: dataSet.organisationUnits.length })
-        );
+    private checkDataSet({ code, assignToCountry }: WmrRequisite): FutureData<WmrRequisiteCheck> {
+        return Future.joinObj({
+            dataSets: apiToFuture(
+                this.api.models.dataSets.get({
+                    filter: { code: { eq: code } },
+                    fields: { id: true, name: true, organisationUnits: { id: true } },
+                })
+            ),
+            countryOrgUnit: getCountryOrgUnit(this.api),
+        }).map(({ dataSets, countryOrgUnit }) => {
+            const [dataSet] = dataSets.objects;
+            return checkWmrRequisiteDataSet(
+                dataSet && { name: dataSet.name, orgUnitIds: dataSet.organisationUnits.map(({ id }) => id) },
+                countryOrgUnit.id,
+                assignToCountry
+            );
+        });
     }
 
     private checkDataStoreValue(key: string): FutureData<WmrRequisiteCheck> {
@@ -52,16 +61,16 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
     }
 
     setupRequisite(requisiteType: WmrRequisiteType): FutureData<void> {
-        const { kind, code, assetPath } = wmrRequisites[requisiteType];
-        switch (kind) {
+        const requisite = wmrRequisites[requisiteType];
+        switch (requisite.kind) {
             case "metadata":
-                return this.setupMetadataPackage(assetPath);
+                return this.setupMetadataPackage(requisite);
             case "dataStore":
-                return this.setupDataStoreValue(code, assetPath);
+                return this.setupDataStoreValue(requisite.code, requisite.assetPath);
         }
     }
 
-    private setupMetadataPackage(assetPath: string): FutureData<void> {
+    private setupMetadataPackage({ assetPath, assignToCountry }: WmrRequisite): FutureData<void> {
         return Future.joinObj({
             metadataPackageData: getJsonToFuture<unknown>(assetPath),
             countryOrgUnit: getCountryOrgUnit(this.api),
@@ -71,10 +80,9 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
             }
             const assignedPackage = {
                 ...metadataPackageData,
-                dataSets: metadataPackageData.dataSets.map(dataSet => ({
-                    ...dataSet,
-                    organisationUnits: [{ id: countryOrgUnit.id }],
-                })),
+                dataSets: metadataPackageData.dataSets.map(dataSet =>
+                    assignToCountry ? { ...dataSet, organisationUnits: [{ id: countryOrgUnit.id }] } : dataSet
+                ),
             };
             return apiToFuture(
                 this.api.metadata.post(assignedPackage, {

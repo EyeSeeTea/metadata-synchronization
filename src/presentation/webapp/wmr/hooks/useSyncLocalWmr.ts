@@ -6,7 +6,8 @@ import { SynchronizationResult } from "../../../../domain/reports/entities/Synch
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 import i18n from "../../../../utils/i18n";
-import { getWmrReportedYear, getWmrSourceReading } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { getWmrReportedYear } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { isWmrAggregationEnabled, wmrFlowDefinitions } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
 import { filterMappedDataElementIds, useGetDataSetOrgUnits, useMappingDataElements } from "./useMappingDataElements";
 
 export type WmrLocalSyncResult = Readonly<{
@@ -88,12 +89,13 @@ export function useSyncLocalWmr() {
             return;
         }
 
-        const { source, destination } = syncRule.flow;
-        const { enableAggregation, aggregationType, sumIntoYear } = getWmrSourceReading(source.periodType);
+        const { kind, destination } = syncRule.flow;
+        const definition = wmrFlowDefinitions[kind];
+        const enableAggregation = isWmrAggregationEnabled(definition, []);
         const syncRuleUpdated = syncRule.rule
             .updateBuilder({ metadataIds: selectedDataSetMappedDataElementIds })
             .updateDataSyncEnableAggregation(enableAggregation)
-            .updateDataSyncAggregationType(aggregationType)
+            .updateDataSyncAggregationType(enableAggregation ? definition.aggregationType : undefined)
             // TODO: This is a shortcut to get the root org unit, which is the same as the country WMR dataset.
             .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.path));
 
@@ -106,7 +108,7 @@ export function useSyncLocalWmr() {
         const synchronize = async () => {
             for await (const { message, syncReport, done } of sync.execute({
                 periods: [year],
-                targetPeriod: sumIntoYear ? year : undefined,
+                targetPeriod: definition.sumIntoYear ? year : undefined,
                 targetDataSetId: destination.id,
             })) {
                 if (message) loading.show(true, message);

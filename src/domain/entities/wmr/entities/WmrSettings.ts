@@ -1,7 +1,8 @@
 import { Maybe } from "../../../../types/utils";
 import { NamedRef } from "../../../common/entities/Ref";
 import { Id } from "../../../common/entities/Schemas";
-import { isWmrSourcePeriodType, WmrSourcePeriodType } from "./WmrSyncFlow";
+import { WmrFlowKind, wmrFlowDefinitions } from "./WmrFlowKind";
+import { WmrSourcePeriodType } from "./WmrSyncFlow";
 
 export const dataSetPeriodTypes = [
     "Daily",
@@ -49,6 +50,7 @@ export type WmrDestination = Readonly<{
 export type WmrFlowSource = DataSetAttrs & Readonly<{ periodType: WmrSourcePeriodType }>;
 
 export type WmrFlow = Readonly<{
+    kind: WmrFlowKind;
     source: WmrFlowSource;
     destination: WmrDestination;
 }>;
@@ -73,17 +75,18 @@ export class WmrSettings {
         return dataSet ? dataSet.dataElements.map(dataElement => dataElement.id) : [];
     }
 
-    public getFlowFor(sourceDataSetId: Maybe<Id>): Maybe<WmrFlow> {
+    public getFlowFor(sourceDataSetId: Maybe<Id>, kind: WmrFlowKind): Maybe<WmrFlow> {
         const { destination } = this;
-        const source = this.getSelectableSources().find(dataSet => dataSet.id === sourceDataSetId);
-        return destination && source ? { source, destination } : undefined;
+        const source = this.getSelectableSources(kind).find(dataSet => dataSet.id === sourceDataSetId);
+        return destination && source ? { kind, source, destination } : undefined;
     }
 
-    public getSelectableSources(): ReadonlyArray<WmrFlowSource> {
+    public getSelectableSources(kind: WmrFlowKind): ReadonlyArray<WmrFlowSource> {
         const destinationId = this.destination?.id;
+        const { sourcePeriodType } = wmrFlowDefinitions[kind];
         return this.dataSets.flatMap(dataSet =>
-            dataSet.id !== destinationId && isWmrSourcePeriodType(dataSet.periodType)
-                ? [{ ...dataSet, periodType: dataSet.periodType }]
+            dataSet.id !== destinationId && dataSet.periodType === sourcePeriodType
+                ? [{ ...dataSet, periodType: sourcePeriodType }]
                 : []
         );
     }

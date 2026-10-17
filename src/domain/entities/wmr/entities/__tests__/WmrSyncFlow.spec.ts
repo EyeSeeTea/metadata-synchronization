@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DataValue } from "../../../../aggregated/entities/DataValue";
-import {
-    getWmrReportedYear,
-    getWmrSourceReading,
-    getWmrSyncedYear,
-    isWmrSourcePeriodType,
-    sumIntoPeriod,
-} from "../WmrSyncFlow";
+import { getWmrReportedYear, getWmrSyncedYear, sumIntoPeriod } from "../WmrSyncFlow";
 
 const deaths = "bjyXcVn0Slk";
 const cases = "Th6srmdoaxC";
@@ -28,30 +22,6 @@ function dataValue(dataElement: string, period: string, categoryOptionCombo: str
 }
 
 describe("WmrSyncFlow", () => {
-    describe("getWmrSourceReading", () => {
-        it("copies yearly sources raw, without aggregation", () => {
-            expect(getWmrSourceReading("Yearly")).toEqual({
-                enableAggregation: false,
-                aggregationType: undefined,
-                sumIntoYear: false,
-            });
-        });
-
-        it("reads monthly sources from monthly analytics and sums them into the year", () => {
-            expect(getWmrSourceReading("Monthly")).toEqual({
-                enableAggregation: true,
-                aggregationType: "MONTHLY",
-                sumIntoYear: true,
-            });
-        });
-    });
-
-    describe("isWmrSourcePeriodType", () => {
-        it("accepts only yearly and monthly sources", () => {
-            expect((["Yearly", "Monthly", "Weekly"] as const).map(isWmrSourcePeriodType)).toEqual([true, true, false]);
-        });
-    });
-
     describe("getWmrReportedYear", () => {
         it("returns the year covered by the sync period", () => {
             const params = {

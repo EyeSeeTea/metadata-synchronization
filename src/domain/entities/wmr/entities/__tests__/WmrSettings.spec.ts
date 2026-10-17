@@ -21,42 +21,62 @@ const settings = new WmrSettings({
 
 describe("WmrSettings", () => {
     describe("getFlowFor", () => {
-        it("sends a yearly source to the yearly destination", () => {
-            expect(settings.getFlowFor(yearlySource.id)).toEqual({
+        it("sends a yearly source to the destination in the global flow", () => {
+            expect(settings.getFlowFor(yearlySource.id, "global")).toEqual({
+                kind: "global",
                 source: yearlySource,
                 destination: yearlyDestination,
             });
         });
 
-        it("sends a monthly source to the yearly destination", () => {
-            expect(settings.getFlowFor(monthlySource.id)).toEqual({
+        it("has no regional flow for a yearly source", () => {
+            expect(settings.getFlowFor(yearlySource.id, "regional")).toBeUndefined();
+        });
+
+        it("sends a monthly source to the destination in the regional flow", () => {
+            expect(settings.getFlowFor(monthlySource.id, "regional")).toEqual({
+                kind: "regional",
                 source: monthlySource,
                 destination: yearlyDestination,
             });
         });
 
+        it("has no global flow for a monthly source", () => {
+            expect(settings.getFlowFor(monthlySource.id, "global")).toBeUndefined();
+        });
+
         it("has no flow for a source that is neither yearly nor monthly", () => {
-            expect(settings.getFlowFor(weeklySource.id)).toBeUndefined();
+            expect([
+                settings.getFlowFor(weeklySource.id, "global"),
+                settings.getFlowFor(weeklySource.id, "regional"),
+            ]).toEqual([undefined, undefined]);
         });
 
         it("has no flow for the destination picked as source", () => {
-            expect(settings.getFlowFor(yearlyDestination.id)).toBeUndefined();
+            expect(settings.getFlowFor(yearlyDestination.id, "global")).toBeUndefined();
         });
 
         it("has no flow for an unknown or empty source", () => {
-            expect([settings.getFlowFor("unknown"), settings.getFlowFor(undefined)]).toEqual([undefined, undefined]);
+            expect([settings.getFlowFor("unknown", "global"), settings.getFlowFor(undefined, "global")]).toEqual([
+                undefined,
+                undefined,
+            ]);
         });
 
         it("has no flow while the destination is not installed", () => {
             const withoutDestination = new WmrSettings({ dataSets: [yearlySource], destination: undefined });
 
-            expect(withoutDestination.getFlowFor(yearlySource.id)).toBeUndefined();
+            expect(withoutDestination.getFlowFor(yearlySource.id, "global")).toBeUndefined();
         });
     });
 
     describe("getSelectableSources", () => {
-        it("lists yearly and monthly sources, excluding the destination", () => {
-            expect(settings.getSelectableSources()).toEqual([yearlySource, monthlySource]);
+        it("lists the yearly sources for the global flow, excluding the destination", () => {
+            expect(settings.getSelectableSources("global")).toEqual([yearlySource]);
+        });
+
+        it("lists the monthly sources for the regional flow", () => {
+            expect(settings.getSelectableSources("regional")).toEqual([monthlySource]);
         });
     });
 });

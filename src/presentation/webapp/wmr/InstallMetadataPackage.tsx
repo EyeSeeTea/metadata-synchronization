@@ -1,7 +1,8 @@
 import { Box, Button, Grid, Typography } from "@material-ui/core";
 import { CloudDownload as CloudDownloadIcon, CloudUpload as CloudUploadIcon } from "@material-ui/icons";
 import React from "react";
-import { WmrRequisiteType, wmrRequisites, wmrRequisiteTypes } from "../../../domain/entities/wmr/entities/WmrRequisite";
+import { wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
+import { WmrRequisiteType, wmrRequisites } from "../../../domain/entities/wmr/entities/WmrRequisite";
 import i18n from "../../../utils/i18n";
 import { NoticeBox } from "./components/NoticeBox";
 import { useWmrSetup, WmrSetupStatus, WmrSetupStatusType } from "./hooks/useWmrSetup";
@@ -21,6 +22,12 @@ function getRequisiteTexts(type: WmrRequisiteType): RequisiteTexts {
                 title: i18n.t("Autogenform configuration"),
                 caption: i18n.t("Contains the dataStore configurations required by the autogenforms tool"),
                 itemName: i18n.t("Autogenform configuration"),
+            };
+        case "countryFormMonthly":
+            return {
+                title: i18n.t("Monthly form package"),
+                caption: i18n.t("MAL - WMR Country Form MONTHLY, the form where the regional data is entered"),
+                itemName: i18n.t("monthly form package"),
             };
     }
 }
@@ -50,10 +57,9 @@ function getStatusMessage(setupStatus: WmrSetupStatus, itemName: string): string
         case "pending":
             return i18n.t("The {{itemName}} is not installed yet. Use the button below to install it.", { itemName });
         case "misassigned":
-            return i18n.t(
-                "The dataSet {{name}} is assigned to {{count}} organisation units and must be assigned only to the country",
-                { name: setupStatus.dataSetName, count: setupStatus.orgUnitsCount }
-            );
+            return i18n.t("The dataSet {{name}} must be assigned to the country organisation unit", {
+                name: setupStatus.dataSetName,
+            });
     }
 }
 
@@ -111,7 +117,7 @@ export function InstallMetadataPackage() {
     const { setupStatuses, setupRequisite, verifyRequisite } = useWmrSetup();
 
     React.useEffect(() => {
-        wmrRequisiteTypes.forEach(type => verifyRequisite(type));
+        wmrFlowDefinitions.global.requisites.forEach(type => verifyRequisite(type));
     }, [verifyRequisite]);
 
     return (
@@ -121,7 +127,7 @@ export function InstallMetadataPackage() {
                     {i18n.t("Setup WMR prerequisites")}
                 </Typography>
             </Grid>
-            {wmrRequisiteTypes.map(type => (
+            {wmrFlowDefinitions.global.requisites.map(type => (
                 <PrerequisiteItem
                     key={type}
                     type={type}

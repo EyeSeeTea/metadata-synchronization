@@ -1,15 +1,12 @@
 import React from "react";
-import {
-    WmrRequisiteCheck,
-    WmrRequisiteType,
-    wmrRequisiteTypes,
-} from "../../../../domain/entities/wmr/entities/WmrRequisite";
+import { wmrFlowDefinitions } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
+import { WmrRequisiteCheck, WmrRequisiteType } from "../../../../domain/entities/wmr/entities/WmrRequisite";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 
 export type WmrSetupStatus =
     | Readonly<{ status: "loading" | "pending" | "done" | "error" | "uploading" }>
-    | Readonly<{ status: "misassigned"; dataSetName: string; orgUnitsCount: number }>;
+    | Readonly<{ status: "misassigned"; dataSetName: string }>;
 
 export type WmrSetupStatusType = WmrSetupStatus["status"];
 
@@ -18,6 +15,7 @@ export type WmrSetupStatuses = Readonly<Record<WmrRequisiteType, WmrSetupStatus>
 const initialStatuses: WmrSetupStatuses = {
     metadata: { status: "loading" },
     dataStore: { status: "loading" },
+    countryFormMonthly: { status: "loading" },
 };
 
 export function toWmrSetupStatus(check: WmrRequisiteCheck): WmrSetupStatus {
@@ -27,12 +25,12 @@ export function toWmrSetupStatus(check: WmrRequisiteCheck): WmrSetupStatus {
         case "missing":
             return { status: "pending" };
         case "misassigned":
-            return { status: "misassigned", dataSetName: check.dataSetName, orgUnitsCount: check.orgUnitsCount };
+            return { status: "misassigned", dataSetName: check.dataSetName };
     }
 }
 
 export function isWmrSetupReady(statuses: WmrSetupStatuses): boolean {
-    return wmrRequisiteTypes.every(type => statuses[type].status === "done");
+    return wmrFlowDefinitions.global.requisites.every(type => statuses[type].status === "done");
 }
 
 export function useWmrSetup() {
