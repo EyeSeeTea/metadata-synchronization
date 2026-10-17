@@ -1,7 +1,6 @@
 import { Box, Button, Grid, Typography } from "@material-ui/core";
 import { CloudDownload as CloudDownloadIcon, CloudUpload as CloudUploadIcon } from "@material-ui/icons";
 import React from "react";
-import { wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
 import { WmrRequisiteType, wmrRequisites } from "../../../domain/entities/wmr/entities/WmrRequisite";
 import i18n from "../../../utils/i18n";
 import { NoticeBox } from "./components/NoticeBox";
@@ -77,7 +76,7 @@ function PrerequisiteItem({
 
     return (
         <Grid item xs={12}>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="subtitle1" component="h3">
                 {title}
             </Typography>
             <Typography variant="caption" gutterBottom>
@@ -113,21 +112,18 @@ function PrerequisiteItem({
     );
 }
 
-export function InstallMetadataPackage() {
-    const { setupStatuses, setupRequisite, verifyRequisite } = useWmrSetup();
+export type InstallMetadataPackageProps = Readonly<{ requisites: ReadonlyArray<WmrRequisiteType> }>;
+
+export function InstallMetadataPackage({ requisites }: InstallMetadataPackageProps) {
+    const { setupStatuses, setupRequisite, verifyRequisite } = useWmrSetup(requisites);
 
     React.useEffect(() => {
-        wmrFlowDefinitions.global.requisites.forEach(type => verifyRequisite(type));
-    }, [verifyRequisite]);
+        requisites.forEach(type => verifyRequisite(type));
+    }, [requisites, verifyRequisite]);
 
     return (
         <Grid container spacing={3}>
-            <Grid item xs={12}>
-                <Typography variant="h4" gutterBottom>
-                    {i18n.t("Setup WMR prerequisites")}
-                </Typography>
-            </Grid>
-            {wmrFlowDefinitions.global.requisites.map(type => (
+            {requisites.map(type => (
                 <PrerequisiteItem
                     key={type}
                     type={type}

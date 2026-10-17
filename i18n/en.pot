@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-10-15T18:00:17.781Z\n"
-"PO-Revision-Date: 2026-10-15T18:00:17.781Z\n"
+"POT-Creation-Date: 2026-10-17T19:07:47.123Z\n"
+"PO-Revision-Date: 2026-10-17T19:07:47.123Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -16,6 +16,16 @@ msgstr ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
 "TO WORK PROPERLY, YOU WILL HAVE TO SET THE SHARING SETTINGS FOR EACH "
 "INSTANCE (Menu 'Instance Settings' > Contextual action 'Sharing settings')"
+
+msgid "The data set {{code}} is not installed"
+msgstr "The data set {{code}} is not installed"
+
+msgid ""
+"The organisation units could not be assigned: {{reason}}. Your user needs "
+"permission to edit the data sets {{dataSets}}."
+msgstr ""
+"The organisation units could not be assigned: {{reason}}. Your user needs "
+"permission to edit the data sets {{dataSets}}."
 
 msgid "The user has no capture organisation unit assigned"
 msgstr "The user has no capture organisation unit assigned"
@@ -2616,9 +2626,6 @@ msgstr "Setup {{itemName}}"
 msgid "Download {{itemName}}"
 msgstr "Download {{itemName}}"
 
-msgid "Setup WMR prerequisites"
-msgstr "Setup WMR prerequisites"
-
 msgid "Loading settings..."
 msgstr "Loading settings..."
 
@@ -2644,8 +2651,15 @@ msgstr "Data submitted with warnings."
 msgid "Data submission failed."
 msgstr "Data submission failed."
 
-msgid "Target Instance "
-msgstr "Target Instance "
+msgid ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+msgstr ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+
+msgid "Target instance: {{name}} ({{url}})"
+msgstr "Target instance: {{name}} ({{url}})"
 
 msgid "Please select a target instance to submit the data"
 msgstr "Please select a target instance to submit the data"
@@ -2697,14 +2711,99 @@ msgstr ""
 "reads those tables, so data captured after the last analytics run is not "
 "included."
 
-msgid "Please complete the prerequisites before proceeding."
-msgstr "Please complete the prerequisites before proceeding."
+msgid "Setup WMR"
+msgstr "Setup WMR"
+
+msgid ""
+"Choose how you report, install what the flow needs and connect the target "
+"instance."
+msgstr ""
+"Choose how you report, install what the flow needs and connect the target "
+"instance."
+
+msgid "Reporting flow"
+msgstr "Reporting flow"
+
+msgid ""
+"The flow decides which forms are installed and how data reaches the target "
+"instance."
+msgstr ""
+"The flow decides which forms are installed and how data reaches the target "
+"instance."
+
+msgid ""
+"The Regional flow uses the Country Sync of the Global flow plus the monthly "
+"form."
+msgstr ""
+"The Regional flow uses the Country Sync of the Global flow plus the monthly "
+"form."
+
+msgid "Two packages for the Global flow."
+msgstr "Two packages for the Global flow."
+
+msgid "Target instance"
+msgstr "Target instance"
+
+msgid "Where step 4 submits the data."
+msgstr "Where step 4 submits the data."
+
+msgid "Available once the metadata of the flow is installed."
+msgstr "Available once the metadata of the flow is installed."
+
+msgid "Organisation units of the monthly form"
+msgstr "Organisation units of the monthly form"
+
+msgid ""
+"MAL - WMR Country Form MONTHLY is assigned to every organisation unit of "
+"the chosen level in the country. Their values are summed into their parents."
+msgstr ""
+"MAL - WMR Country Form MONTHLY is assigned to every organisation unit of "
+"the chosen level in the country. Their values are summed into their parents."
+
+msgid "Available once the target instance is selected."
+msgstr "Available once the target instance is selected."
+
+msgid ""
+"Map each parent organisation unit that receives values to its organisation "
+"unit in {{instance}}."
+msgstr ""
+"Map each parent organisation unit that receives values to its organisation "
+"unit in {{instance}}."
+
+msgid "the target instance"
+msgstr "the target instance"
+
+msgid "Available once the monthly form is assigned to a level."
+msgstr "Available once the monthly form is assigned to a level."
+
+msgid "Choose a reporting flow before proceeding."
+msgstr "Choose a reporting flow before proceeding."
+
+msgid "Install the metadata of the flow before proceeding."
+msgstr "Install the metadata of the flow before proceeding."
+
+msgid "Select the target instance before proceeding."
+msgstr "Select the target instance before proceeding."
+
+msgid "Assign the monthly form to an organisation unit level before proceeding."
+msgstr "Assign the monthly form to an organisation unit level before proceeding."
+
+msgid "Map the {{count}} parent organisation units left before proceeding."
+msgid_plural "Map the {{count}} parent organisation units left before proceeding."
+msgstr[0] "Map the {{count}} parent organisation units left before proceeding."
+msgstr[1] "Map the {{count}} parent organisation units left before proceeding."
+
+msgid "{{names}} are mapped to the same target organisation unit."
+msgstr "{{names}} are mapped to the same target organisation unit."
 
 msgid "Please select a source data set before proceeding."
 msgstr "Please select a source data set before proceeding."
 
 msgid "Please Sync your server data to the WMR Country Sync form before proceeding."
 msgstr "Please Sync your server data to the WMR Country Sync form before proceeding."
+
+msgid "Setup"
+msgstr "Setup"
 
 msgid "Map Server data"
 msgstr "Map Server data"
@@ -2747,6 +2846,64 @@ msgid ""
 msgstr ""
 "{{source}} ({{sourcePeriodType}}) → {{destination}} "
 "({{destinationPeriodType}})"
+
+msgid "Data is entered yearly at the country"
+msgstr "Data is entered yearly at the country"
+
+msgid "Copied as is to MAL - WMR Form - Country Sync"
+msgstr "Copied as is to MAL - WMR Form - Country Sync"
+
+msgid "Sent to one organisation unit of the target instance"
+msgstr "Sent to one organisation unit of the target instance"
+
+msgid "Regional"
+msgstr "Regional"
+
+msgid "Monthly → Yearly"
+msgstr "Monthly → Yearly"
+
+msgid "Data is entered monthly at the organisation units of a level"
+msgstr "Data is entered monthly at the organisation units of a level"
+
+msgid "Summed per year into their parent organisation unit"
+msgstr "Summed per year into their parent organisation unit"
+
+msgid "Sent with organisation unit mapping"
+msgstr "Sent with organisation unit mapping"
+
+msgid "Loading organisation units..."
+msgstr "Loading organisation units..."
+
+msgid ""
+"{{assigned}} org units will be assigned. Their values will be summed into "
+"{{parents}} parents, the organisation units you map below."
+msgstr ""
+"{{assigned}} org units will be assigned. Their values will be summed into "
+"{{parents}} parents, the organisation units you map below."
+
+msgid ""
+"{{assigned}} org units are assigned. Their values are summed into "
+"{{parents}} parents, the organisation units you map below."
+msgstr ""
+"{{assigned}} org units are assigned. Their values are summed into "
+"{{parents}} parents, the organisation units you map below."
+
+msgid "Loading organisation unit levels..."
+msgstr "Loading organisation unit levels..."
+
+msgid "{{name}} (level {{level}}) · {{count}} org units"
+msgid_plural "{{name}} (level {{level}}) · {{count}} org units"
+msgstr[0] "{{name}} (level {{level}}) · {{count}} org units"
+msgstr[1] "{{name}} (level {{level}}) · {{count}} org units"
+
+msgid "Organisation unit level"
+msgstr "Organisation unit level"
+
+msgid "Assign"
+msgstr "Assign"
+
+msgid "{{mapped}} of {{total}} mapped"
+msgstr "{{mapped}} of {{total}} mapped"
 
 msgid "Synchronization did not return a report."
 msgstr "Synchronization did not return a report."

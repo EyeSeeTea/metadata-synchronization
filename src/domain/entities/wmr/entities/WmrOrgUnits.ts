@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { Id } from "../../../common/entities/Schemas";
 import { MetadataMappingDictionary } from "../../../mapping/entities/MetadataMapping";
+import { Maybe } from "../../../../types/utils";
 
 export type WmrOrgUnit = Readonly<{ id: Id; path: string }>;
 
@@ -16,7 +17,7 @@ export function getParentOrgUnits(orgUnits: ReadonlyArray<WmrOrgUnit>): Readonly
 }
 
 export function findDuplicatedTargets(
-    mapping: MetadataMappingDictionary["organisationUnits"] | undefined,
+    mapping: Maybe<MetadataMappingDictionary["organisationUnits"]>,
     orgUnitIds: ReadonlyArray<Id>
 ): ReadonlyArray<WmrDuplicatedTarget> {
     const mappedOrgUnits = orgUnitIds.flatMap(orgUnitId => {
@@ -29,4 +30,46 @@ export function findDuplicatedTargets(
         .filter(([, sources]) => sources.length > 1)
         .map(([targetId, sources]) => ({ targetId, orgUnitIds: sources.map(({ orgUnitId }) => orgUnitId) }))
         .value();
+}
+
+export type WmrLevelOrgUnit = WmrOrgUnit & Readonly<{ name: string; level: number }>;
+
+export type WmrOrgUnitLevel = Readonly<{ level: number; name: string; count: number }>;
+
+export type WmrLevelAssignment = Readonly<{
+    level: number;
+    orgUnits: ReadonlyArray<WmrLevelOrgUnit>;
+    parents: ReadonlyArray<WmrLevelOrgUnit>;
+}>;
+
+export const wmrMinAssignableLevel = 3;
+
+export function getAssignableLevels(levels: ReadonlyArray<WmrOrgUnitLevel>): ReadonlyArray<WmrOrgUnitLevel> {
+    return levels.filter(({ level }) => level >= wmrMinAssignableLevel);
+}
+
+export function getSingleLevel(orgUnits: ReadonlyArray<WmrLevelOrgUnit>): number | undefined {
+    const levels = _.uniq(orgUnits.map(({ level }) => level));
+    return levels.length === 1 ? levels[0] : undefined;
+}
+
+export function buildWmrLevelAssignment(
+    level: number,
+    orgUnits: ReadonlyArray<WmrLevelOrgUnit>,
+    parentLevelOrgUnits: ReadonlyArray<WmrLevelOrgUnit>
+): WmrLevelAssignment {
+    const parentsById = _.keyBy(parentLevelOrgUnits, ({ id }) => id);
+    const parents = getParentOrgUnits(orgUnits).flatMap(({ id }) => {
+        const parent = parentsById[id];
+        return parent ? [parent] : [];
+    });
+    return { level, orgUnits, parents };
+}
+
+export function isOrgUnitMapped(
+    mapping: Maybe<MetadataMappingDictionary["organisationUnits"]>,
+    orgUnitId: Id
+): boolean {
+    const mappedId = mapping?.[orgUnitId]?.mappedId;
+    return Boolean(mappedId) && mappedId !== "DISABLED";
 }

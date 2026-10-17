@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { wmrFlowDefinitions } from "../../../../../domain/entities/wmr/entities/WmrFlowKind";
 import { isWmrSetupReady, toWmrSetupStatus, WmrSetupStatuses } from "../useWmrSetup";
 
 vi.hoisted(() => {
@@ -27,19 +28,30 @@ describe("toWmrSetupStatus", () => {
 });
 
 describe("isWmrSetupReady", () => {
-    it("is ready when both requisites are done", () => {
-        expect(isWmrSetupReady(allDone)).toBe(true);
+    const globalRequisites = wmrFlowDefinitions.global.requisites;
+    const regionalRequisites = wmrFlowDefinitions.regional.requisites;
+
+    it("is ready when every requisite of the flow is done", () => {
+        expect([isWmrSetupReady(allDone, globalRequisites), isWmrSetupReady(allDone, regionalRequisites)]).toEqual([
+            true,
+            true,
+        ]);
     });
 
-    it("does not wait for the monthly form package, which the global flow does not require", () => {
-        expect(isWmrSetupReady(buildStatuses({ countryFormMonthly: { status: "pending" } }))).toBe(true);
+    it("only waits for the monthly form package in the flow that requires it", () => {
+        const statuses = buildStatuses({ countryFormMonthly: { status: "pending" } });
+
+        expect([isWmrSetupReady(statuses, globalRequisites), isWmrSetupReady(statuses, regionalRequisites)]).toEqual([
+            true,
+            false,
+        ]);
     });
 
     it("is not ready while any single requisite is not done", () => {
         expect([
-            isWmrSetupReady(buildStatuses({ metadata: { status: "pending" } })),
-            isWmrSetupReady(buildStatuses({ dataStore: { status: "loading" } })),
-            isWmrSetupReady(buildStatuses({ metadata: { status: "misassigned", dataSetName: "x" } })),
+            isWmrSetupReady(buildStatuses({ metadata: { status: "pending" } }), globalRequisites),
+            isWmrSetupReady(buildStatuses({ dataStore: { status: "loading" } }), globalRequisites),
+            isWmrSetupReady(buildStatuses({ metadata: { status: "misassigned", dataSetName: "x" } }), globalRequisites),
         ]).toEqual([false, false, false]);
     });
 });

@@ -1,5 +1,4 @@
 import React from "react";
-import { wmrFlowDefinitions } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
 import { WmrRequisiteCheck, WmrRequisiteType } from "../../../../domain/entities/wmr/entities/WmrRequisite";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
@@ -29,11 +28,11 @@ export function toWmrSetupStatus(check: WmrRequisiteCheck): WmrSetupStatus {
     }
 }
 
-export function isWmrSetupReady(statuses: WmrSetupStatuses): boolean {
-    return wmrFlowDefinitions.global.requisites.every(type => statuses[type].status === "done");
+export function isWmrSetupReady(statuses: WmrSetupStatuses, requisites: ReadonlyArray<WmrRequisiteType>): boolean {
+    return requisites.every(type => statuses[type].status === "done");
 }
 
-export function useWmrSetup() {
+export function useWmrSetup(requisites: ReadonlyArray<WmrRequisiteType>) {
     const { compositionRoot } = useAppContext();
     const { setRequisitesReady } = useWmrContext();
     const [setupStatuses, setSetupStatuses] = React.useState<WmrSetupStatuses>(initialStatuses);
@@ -65,8 +64,8 @@ export function useWmrSetup() {
     );
 
     React.useEffect(() => {
-        setRequisitesReady(isWmrSetupReady(setupStatuses));
-    }, [setupStatuses, setRequisitesReady]);
+        setRequisitesReady(isWmrSetupReady(setupStatuses, requisites));
+    }, [setupStatuses, requisites, setRequisitesReady]);
 
     return {
         setupStatuses,

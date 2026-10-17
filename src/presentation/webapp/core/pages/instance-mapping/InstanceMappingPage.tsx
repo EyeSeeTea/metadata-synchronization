@@ -83,6 +83,7 @@ export type InstanceMappingProps = {
      * If true, only Ids from filterMappingIds will be allowed to be auto-mapped.
      */
     applyFilterMappingIdsToAutoMap?: boolean;
+    onChange?: (mapping: MetadataMappingDictionary) => void;
 };
 
 export function useDefaultParams(props: InstanceMappingProps): InstanceMappingParams {
@@ -94,7 +95,7 @@ export function useDefaultParams(props: InstanceMappingProps): InstanceMappingPa
 }
 
 export default function InstanceMappingPage(props: InstanceMappingProps) {
-    const { showHeader = true } = props;
+    const { showHeader = true, onChange } = props;
     const { compositionRoot } = useAppContext();
     const history = useHistory();
 
@@ -136,14 +137,17 @@ export default function InstanceMappingPage(props: InstanceMappingProps) {
         const newDataSourceMapping = dataSourceMapping.updateMappingDictionary(metadataMapping);
         await compositionRoot.mapping.save(newDataSourceMapping);
         setDataSourceMapping(newDataSourceMapping);
+        onChange?.(newDataSourceMapping.mappingDictionary);
     };
 
     const onApplyGlobalMapping = async (type: string, id: string, subMapping: MetadataMapping) => {
         if (!dataSourceMapping) return;
 
-        const newMapping = _.clone(dataSourceMapping.mappingDictionary);
-        _.set(newMapping, [type, id], { ...subMapping, global: true });
-        await onChangeMapping(newMapping);
+        const { mappingDictionary } = dataSourceMapping;
+        await onChangeMapping({
+            ...mappingDictionary,
+            [type]: { ...mappingDictionary[type], [id]: { ...subMapping, global: true } },
+        });
     };
 
     const instanceTitle = instance

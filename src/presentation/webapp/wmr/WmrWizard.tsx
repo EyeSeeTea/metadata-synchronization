@@ -1,21 +1,54 @@
 import React from "react";
 import { Wizard, WizardStep } from "@eyeseetea/d2-ui-components";
 import i18n from "../../../utils/i18n";
-import { InstallMetadataPackage } from "./InstallMetadataPackage";
+import { getWmrSetupBlocker, WmrSetupBlocker } from "../../../domain/entities/wmr/entities/WmrSetup";
+import { WmrSetup } from "./WmrSetup";
 import { MapWmrData } from "./MapWmrData";
 import { SyncAndCheckWmr } from "./SyncAndCheckWmr";
 import { SubmitWmr } from "./SubmitWmr";
 import { useWmrContext } from "./context/WmrContext";
 
-export type WmrWizardProps = {};
+function getSetupBlockerMessage(blocker: WmrSetupBlocker): string {
+    switch (blocker.type) {
+        case "noFlow":
+            return i18n.t("Choose a reporting flow before proceeding.");
+        case "requisites":
+            return i18n.t("Install the metadata of the flow before proceeding.");
+        case "targetInstance":
+            return i18n.t("Select the target instance before proceeding.");
+        case "level":
+            return i18n.t("Assign the monthly form to an organisation unit level before proceeding.");
+        case "unmapped":
+            return i18n.t("Map the {{count}} parent organisation units left before proceeding.", {
+                count: blocker.count,
+            });
+        case "duplicated":
+            return i18n.t("{{names}} are mapped to the same target organisation unit.", {
+                names: blocker.orgUnitNames.join(", "),
+                interpolation: { escapeValue: false },
+            });
+    }
+}
 
 export function WmrWizard() {
-    const { requisitesReady, syncRule } = useWmrContext();
+    const { requisitesReady, syncRule, flowKind, targetInstance, regionalParents, orgUnitMapping } = useWmrContext();
+
+    const setupBlocker = React.useMemo(
+        () =>
+            getWmrSetupBlocker({
+                flowKind,
+                requisitesReady,
+                hasTargetInstance: Boolean(targetInstance),
+                regionalParents,
+                orgUnitMapping,
+            }),
+        [flowKind, requisitesReady, targetInstance, regionalParents, orgUnitMapping]
+    );
 
     const onStepChangeRequest = React.useCallback(
         async (currentStep: WizardStep) => {
-            if (currentStep.key === "metadata-package" && !requisitesReady) {
-                return [i18n.t("Please complete the prerequisites before proceeding.")];
+            if (currentStep.key === "metadata-package" && setupBlocker) {
+                return [getSetupBlockerMessage(setupBlocker)];
             } else if (currentStep.key === "map-server-data" && (!syncRule?.localDataSetId || !syncRule.flow)) {
                 return [i18n.t("Please select a source data set before proceeding.")];
             } else if (currentStep.key === "check-data" && !syncRule?.rule.metadataIds.length) {
@@ -23,15 +56,15 @@ export function WmrWizard() {
             }
             return undefined;
         },
-        [requisitesReady, syncRule?.localDataSetId, syncRule?.flow, syncRule?.rule.metadataIds.length]
+        [setupBlocker, syncRule?.localDataSetId, syncRule?.flow, syncRule?.rule.metadataIds.length]
     );
 
     const steps = React.useMemo((): WizardStep[] => {
         return [
             {
-                component: () => <InstallMetadataPackage />,
+                component: () => <WmrSetup />,
                 key: "metadata-package",
-                label: i18n.t("Metadata package"),
+                label: i18n.t("Setup"),
             },
             {
                 component: () => <MapWmrData />,

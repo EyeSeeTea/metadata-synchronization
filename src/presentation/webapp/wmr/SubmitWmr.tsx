@@ -3,13 +3,11 @@ import { useLoading } from "@eyeseetea/d2-ui-components";
 import { Button, Typography, Box } from "@material-ui/core";
 import { CloudUpload as SyncIcon } from "@material-ui/icons";
 import i18n from "../../../utils/i18n";
-import { Instance } from "../../../domain/instance/entities/Instance";
 import { Maybe } from "../../../types/utils";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { OrgUnitInput } from "./components/OrgUnitInput";
 import { NoticeBox } from "./components/NoticeBox";
 import { useSyncRemoteWmr } from "./hooks/useSyncRemoteWmr";
-import { RemoteInstanceSelector } from "./components/RemoteInstanceSelector";
 import { SummaryTable } from "../../react/core/components/sync-summary/SummaryTable";
 import { useWmrContext } from "./context/WmrContext";
 import { WmrFlowLabel } from "./components/WmrFlowLabel";
@@ -17,14 +15,13 @@ import { useWmrTargetOrgUnit } from "./hooks/useWmrTargetOrgUnit";
 
 export function SubmitWmr() {
     const loading = useLoading();
-    const { syncRule } = useWmrContext();
-    const [selectedTargetInstance, setSelectedTargetInstance] = React.useState<Instance | null>(null);
+    const { syncRule, targetInstance } = useWmrContext();
     const [targetOrgUnitId, setTargetOrgUnitId] = React.useState<Maybe<Id>>();
     const { syncRemoteWmr, wmrRemoteSyncResult } = useSyncRemoteWmr({
-        instance: selectedTargetInstance,
+        instance: targetInstance,
         targetOrgUnitId,
     });
-    const { savedTargetOrgUnit, saveTargetOrgUnit } = useWmrTargetOrgUnit(selectedTargetInstance);
+    const { savedTargetOrgUnit, saveTargetOrgUnit } = useWmrTargetOrgUnit(targetInstance);
 
     const onOrgUnitValidated = React.useCallback(
         (orgUnitId: Id) => {
@@ -34,7 +31,7 @@ export function SubmitWmr() {
         [saveTargetOrgUnit]
     );
 
-    const sendIsDisabled = !selectedTargetInstance?.url || !targetOrgUnitId || loading.isLoading;
+    const sendIsDisabled = !targetInstance?.url || !targetOrgUnitId || loading.isLoading;
     if (wmrRemoteSyncResult) {
         return (
             <Box>
@@ -64,23 +61,16 @@ export function SubmitWmr() {
                 <NoticeBox
                     type="info"
                     message={i18n.t(
-                        "Your data is ready for submission. Please select a target DHIS2 Instance and Organisation Unit:"
+                        "Your data is ready for submission. Provide the target organisation unit and send the data."
                     )}
                 />
             </Box>
             {syncRule?.flow && <WmrFlowLabel flow={syncRule.flow} />}
-            <RemoteInstanceSelector
-                value={selectedTargetInstance}
-                onChange={instance => {
-                    setTargetOrgUnitId(null);
-                    setSelectedTargetInstance(instance);
-                }}
-            />
-            {selectedTargetInstance?.url && savedTargetOrgUnit.type === "loaded" && (
+            {targetInstance?.url && savedTargetOrgUnit.type === "loaded" && (
                 <Box p={2}>
                     <OrgUnitInput
-                        key={selectedTargetInstance.id}
-                        instance={selectedTargetInstance}
+                        key={targetInstance.id}
+                        instance={targetInstance}
                         initialValue={savedTargetOrgUnit.orgUnitId}
                         onChange={onOrgUnitValidated}
                     />
@@ -88,10 +78,15 @@ export function SubmitWmr() {
             )}
             <Box p={2}>
                 <NoticeBox
-                    type={selectedTargetInstance?.url ? "success" : "error"}
+                    type={targetInstance?.url ? "success" : "error"}
                     message={
-                        selectedTargetInstance?.url
-                            ? `${i18n.t("Target Instance ")}: ${selectedTargetInstance.url}`
+                        targetInstance?.url
+                            ? i18n.t("Target instance: {{name}} ({{url}})", {
+                                  name: targetInstance.name,
+                                  url: targetInstance.url,
+                                  nsSeparator: false,
+                                  interpolation: { escapeValue: false },
+                              })
                             : i18n.t("Please select a target instance to submit the data")
                     }
                 />

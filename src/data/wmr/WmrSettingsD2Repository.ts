@@ -32,10 +32,7 @@ export class WmrSettingsD2Repository implements WmrSettingsRepository {
         const dataSetsResponse = await this.api.models.dataSets
             .get({
                 fields: dataSetFields,
-                // we filter by the country orgUnit. If other dataSets are needed, we need to implement ou mapping at a local level.
-                // very unlikely to have hundreds of dataSets in an instance
-                // if it happens, we can get all dataSets page by page
-                filter: { "organisationUnits.id": { eq: countryOrgUnit.id } },
+                filter: { "organisationUnits.path": { like: countryOrgUnit.id } },
                 paging: false,
                 order: "displayName:asc",
             })
