@@ -14,6 +14,7 @@ export function paginate<T>(objects: T[], options: { page: number; pageSize: num
 }
 
 type PartialPager = Omit<PartialBy<Pager, "total" | "pageCount">, "page">;
+type PagedResponse = PartialPager & { pager?: PartialPager };
 
 /**
  * Calculates the total number of pages based on the total number of items and the page size.
@@ -22,7 +23,9 @@ type PartialPager = Omit<PartialBy<Pager, "total" | "pageCount">, "page">;
  * Use only when needed - `pageCount` is already returned by the DHIS2 API in paginated responses
  * but not reflected in current d2-api version typings for all endpoints
  *  */
-export function getPageCount({ pageSize, total, pageCount }: PartialPager): number {
+export function getPageCount(response: PagedResponse): number {
+    // DHIS2 >= 2.42 tracker endpoints return paging info only inside `pager`
+    const { pageSize, total, pageCount } = response.pager ?? response;
     if (typeof pageCount === "number") {
         return pageCount;
     }
@@ -35,8 +38,8 @@ export function getPageCount({ pageSize, total, pageCount }: PartialPager): numb
 /**
  * Returns an array of page indexes, omitting the first page
  */
-export function getRemainingPages(pager: PartialPager): number[] {
-    const pageCount = getPageCount(pager);
+export function getRemainingPages(response: PagedResponse): number[] {
+    const pageCount = getPageCount(response);
     if (pageCount < 2) {
         return [];
     }

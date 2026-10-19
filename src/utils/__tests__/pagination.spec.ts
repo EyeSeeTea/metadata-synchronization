@@ -33,6 +33,11 @@ describe("getPageCount", () => {
         expect(getPageCount({ pageSize: 50, pageCount: 10 })).toBe(10);
         expect(getPageCount({ pageSize: 50, total: 1012, pageCount: 0 })).toBe(0);
     });
+
+    it("should read paging info nested under pager (DHIS2 >= 2.42 tracker responses)", () => {
+        expect(getPageCount({ pageSize: 250, pager: { pageSize: 250, total: 942, pageCount: 4 } })).toBe(4);
+        expect(getPageCount({ pageSize: 250, pager: { pageSize: 250, total: 942 } })).toBe(4);
+    });
 });
 
 describe("getRemainingPages", () => {
