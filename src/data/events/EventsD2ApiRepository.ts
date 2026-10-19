@@ -75,6 +75,8 @@ export class EventsD2ApiRepository implements EventsRepository {
      *    with paging=false makes the instance to eventually go offline
      *  - Instead of disabling paging we traverse all the events by paginating all
      *    the available pages so that we can filter them afterwards
+     *  - Queries are still scoped by program stage (over all accessible orgUnits)
+     *    so only events of the selected programs are downloaded
      */
     private async getAllEvents(
         params: DataSynchronizationParams,
@@ -82,8 +84,6 @@ export class EventsD2ApiRepository implements EventsRepository {
         defaults: string[] = []
     ): Promise<ProgramEvent[]> {
         if (programStages.length === 0) return [];
-
-        const programStageIds = programStages.map(({ id }) => id);
 
         const { period, orgUnitPaths = [], lastUpdated, eventsSyncPeriodField } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
@@ -105,40 +105,45 @@ export class EventsD2ApiRepository implements EventsRepository {
                       updatedAfter: lastUpdated ? moment(lastUpdated).format("YYYY-MM-DD") : undefined,
                   };
 
-        const fetchApi = async (orgUnit: string, page: number) => {
+        const fetchApi = async (program: string, programStage: string, page: number) => {
             return this.api.tracker.events
                 .get({
                     pageSize: 250,
                     totalPages: true,
                     page,
-                    orgUnit,
+                    program,
+                    programStage,
+                    ouMode: "ACCESSIBLE",
                     ...periodFilter,
                     fields: { $all: true },
                 })
                 .getData();
         };
 
-        const result = await promiseMap(orgUnits, async (orgUnit): Promise<D2TrackerEvent[]> => {
-            const firstResponse = await fetchApi(orgUnit, 1);
+        const result = await promiseMap(
+            programStages,
+            async ({ id: programStage, program }): Promise<D2TrackerEvent[]> => {
+                const firstResponse = await fetchApi(program.id, programStage, 1);
 
-            const remainingPages = getRemainingPages(firstResponse);
+                const remainingPages = getRemainingPages(firstResponse);
 
-            const paginatedEvents = await promiseMap(remainingPages, async page => {
-                const response = await fetchApi(orgUnit, page);
+                const paginatedEvents = await promiseMap(remainingPages, async page => {
+                    const response = await fetchApi(program.id, programStage, page);
 
-                return this.extractEvents(response);
-            });
+                    return this.extractEvents(response);
+                });
 
-            const events = this.extractEvents(firstResponse);
+                const events = this.extractEvents(firstResponse);
 
-            return [...events, ..._.flatten(paginatedEvents)];
-        });
+                return [...events, ..._.flatten(paginatedEvents)];
+            }
+        );
 
         const systemInfo = await this.api.system.info.getData();
         const serverTimeZoneId = systemInfo.serverTimeZoneId;
         return _(result)
             .flatten()
-            .filter(({ programStage }) => (programStage ? programStageIds.includes(programStage) : false))
+            .filter(({ orgUnit }) => orgUnits.includes(orgUnit))
             .map(object => {
                 const event = { ...object, id: object.event };
 

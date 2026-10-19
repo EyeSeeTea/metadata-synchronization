@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { Request, Server } from "miragejs";
 import { AnyRegistry } from "miragejs/-types";
 import Schema from "miragejs/orm/schema";
@@ -367,6 +368,25 @@ describe("Sync events", () => {
         const response = local.db.eventsLocal.find(1);
         expect(response.events[0].id).toEqual("test-event-2");
         expect(local.db.eventsDestination.find(1)).toBeNull();
+    });
+
+    it("Filters by program when many org units are selected", async () => {
+        const manyOrgUnitPaths = ["/Global", ..._.range(1, 30).map(index => `/Global/orgUnit${index}`)];
+        const builder: SynchronizationBuilder = {
+            originInstance: "LOCAL",
+            targetInstances: ["DESTINATION"],
+            metadataIds: ["program1"],
+            excludedIds: [],
+            dataParams: {
+                allEvents: true,
+                orgUnitPaths: manyOrgUnitPaths,
+            },
+        };
+
+        const eventsPayloadBuilder = new EventsPayloadBuilder(repositoryFactory, localInstance);
+        const payload = await eventsPayloadBuilder.build(builder);
+
+        expect(payload.events?.map(({ id }) => id)).toEqual(["test-event-1"]);
     });
 });
 
