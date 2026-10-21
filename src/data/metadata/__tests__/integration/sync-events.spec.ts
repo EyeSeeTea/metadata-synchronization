@@ -435,6 +435,16 @@ describe("Sync events", () => {
                 "program1/EGA9fqLFtxM",
             ]);
         });
+
+        it("skips fetching a program stage without events", async () => {
+            stageTotal = 0;
+
+            const payload = await buildPayload();
+
+            expect(payload.events).toEqual([]);
+            expect(countRequests()).toHaveLength(1);
+            expect(dataRequests()).toEqual([]);
+        });
     });
 
     describe("Specific events selected", () => {

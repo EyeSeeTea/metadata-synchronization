@@ -96,7 +96,7 @@ export class TEID2ApiRepository implements TEIRepository {
         const result = await this.getTrackedEntities({
             program,
             ...buildTEIOrgUnitParams(this.targetInstance.apiVersion, orgUnits),
-            totalPages: true,
+            ...(page === 1 ? { totalPages: true } : {}),
             page,
             pageSize,
             ...periodFilter,

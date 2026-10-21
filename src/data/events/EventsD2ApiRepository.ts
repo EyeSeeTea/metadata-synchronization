@@ -66,6 +66,7 @@ export class EventsD2ApiRepository implements EventsRepository {
         const result = await promiseMap(programStages, async ({ id: programStage, program }) => {
             const query = { program: program.id, programStage, ...periodFilter };
             const stageTotal = await this.countStageEvents(query);
+            if (stageTotal === 0) return [];
 
             return shouldScanStage(stageTotal, orgUnits.length)
                 ? this.getAllEvents(query, orgUnits)
