@@ -45,3 +45,7 @@ export function getRemainingPages(response: PagedResponse): number[] {
     }
     return _.range(2, pageCount + 1);
 }
+
+export function getTotal(response: PagedResponse): number {
+    return response.pager?.total ?? response.total ?? 0;
+}

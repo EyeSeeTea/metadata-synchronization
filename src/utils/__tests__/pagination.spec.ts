@@ -1,4 +1,4 @@
-import { getPageCount, getRemainingPages } from "../pagination";
+import { getPageCount, getRemainingPages, getTotal } from "../pagination";
 
 describe("getPageCount", () => {
     it("should return 0 when total is 0, null or undefined", () => {
@@ -60,5 +60,19 @@ describe("getRemainingPages", () => {
         expect(getRemainingPages({ pageSize: 250, total: 501 })).toEqual([2, 3]);
         expect(getRemainingPages({ pageSize: 250, total: 750 })).toEqual([2, 3]);
         expect(getRemainingPages({ pageSize: 250, total: 999 })).toEqual([2, 3, 4]);
+    });
+});
+
+describe("getTotal", () => {
+    it("reads the total from the pager first", () => {
+        expect(getTotal({ pageSize: 1, total: 5, pager: { pageSize: 1, total: 7 } })).toBe(7);
+    });
+
+    it("falls back to the top-level total", () => {
+        expect(getTotal({ pageSize: 1, total: 5 })).toBe(5);
+    });
+
+    it("returns 0 when there is no total", () => {
+        expect(getTotal({ pageSize: 1 })).toBe(0);
     });
 });
