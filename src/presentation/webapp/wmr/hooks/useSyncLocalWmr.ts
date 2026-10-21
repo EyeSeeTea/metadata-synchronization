@@ -7,8 +7,12 @@ import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 import i18n from "../../../../utils/i18n";
 import { getWmrReportedYear } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
-import { isWmrAggregationEnabled, wmrFlowDefinitions } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
-import { filterMappedDataElementIds, useGetDataSetOrgUnits, useMappingDataElements } from "./useMappingDataElements";
+import {
+    getWmrDestinationOrgUnits,
+    isWmrAggregationEnabled,
+    wmrFlowDefinitions,
+} from "../../../../domain/entities/wmr/entities/WmrFlowKind";
+import { getWmrSyncIds, useMappingDataElements } from "./useMappingDataElements";
 
 export type WmrLocalSyncResult = Readonly<{
     type: "success" | "info" | "warning" | "error";
@@ -62,26 +66,48 @@ export function summarizeWmrLocalSync(report?: SynchronizationReport): WmrLocalS
     };
 }
 
+export async function syncWithDryRun(
+    synchronize: (dryRun: boolean) => Promise<SynchronizationReport | undefined>
+): Promise<WmrLocalSyncResult> {
+    const dryRunResult = summarizeWmrLocalSync(await synchronize(true));
+    return dryRunResult.type === "error" ? dryRunResult : summarizeWmrLocalSync(await synchronize(false));
+}
+
 export function useSyncLocalWmr() {
     const { compositionRoot } = useAppContext();
-    const { settings, syncRule } = useWmrContext();
+    const { settings, syncRule, regionalParents } = useWmrContext();
     const { dataElementsToMigrate } = useMappingDataElements("LOCAL");
     const loading = useLoading();
-    const { dataSet: countryDataSet } = useGetDataSetOrgUnits({ id: syncRule?.flow?.destination.id || "" });
-
     const [wmrLocalSyncResult, setWmrLocalSyncResult] = React.useState<WmrLocalSyncResult | null>(null);
 
+    const flowKind = syncRule?.flow?.kind;
+    const definition = flowKind ? wmrFlowDefinitions[flowKind] : undefined;
+    const localDataSetId = syncRule?.localDataSetId;
+
+    const syncIds = React.useMemo(
+        () => (settings ? getWmrSyncIds(settings, localDataSetId, dataElementsToMigrate) : undefined),
+        [settings, localDataSetId, dataElementsToMigrate]
+    );
+
+    const destinationOrgUnits = React.useMemo(
+        () =>
+            settings && definition
+                ? getWmrDestinationOrgUnits(definition, settings.countryOrgUnit, regionalParents)
+                : [],
+        [settings, definition, regionalParents]
+    );
+
+    const readsAnalytics = Boolean(
+        definition && syncIds && isWmrAggregationEnabled(definition, syncIds.mappedIndicatorIds)
+    );
+
     const syncLocalWmr = React.useCallback(async () => {
-        if (!settings || !syncRule?.flow || !countryDataSet) {
+        if (!syncIds || !definition || !syncRule?.flow) {
             throw new Error("WMR settings, sync rule or flow not found");
         }
 
-        const selectedDataSetDataElementIds = settings.getDataElementsIds(syncRule.localDataSetId);
-        const selectedDataSetMappedDataElementIds = filterMappedDataElementIds(
-            dataElementsToMigrate,
-            selectedDataSetDataElementIds
-        );
-        if (!selectedDataSetMappedDataElementIds.length) {
+        const { metadataIds, mappedIndicatorIds } = syncIds;
+        if (!metadataIds.length) {
             setWmrLocalSyncResult({
                 type: "error",
                 message: i18n.t("No mapped data elements found for the selected data set."),
@@ -89,48 +115,39 @@ export function useSyncLocalWmr() {
             return;
         }
 
-        const { kind, destination } = syncRule.flow;
-        const definition = wmrFlowDefinitions[kind];
-        const enableAggregation = isWmrAggregationEnabled(definition, []);
+        const { destination } = syncRule.flow;
+        const enableAggregation = isWmrAggregationEnabled(definition, mappedIndicatorIds);
         const syncRuleUpdated = syncRule.rule
-            .updateBuilder({ metadataIds: selectedDataSetMappedDataElementIds })
+            .updateBuilder({ metadataIds })
             .updateDataSyncEnableAggregation(enableAggregation)
             .updateDataSyncAggregationType(enableAggregation ? definition.aggregationType : undefined)
-            // TODO: This is a shortcut to get the root org unit, which is the same as the country WMR dataset.
-            .updateDataSyncOrgUnitPaths(countryDataSet.orgUnits.map(ou => ou.path));
+            .updateDataSyncOrgUnitPaths(destinationOrgUnits.map(({ path }) => path));
 
         const year = getWmrReportedYear(syncRuleUpdated.dataParams);
 
         loading.show();
         const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
-        const sync = compositionRoot.wmr.syncDataset(syncRuleUpdated.toBuilder());
 
-        const synchronize = async () => {
+        const synchronize = async (dryRun: boolean) => {
+            const sync = compositionRoot.wmr.syncDataset(
+                syncRuleUpdated.updateBuilderDataParams({ dryRun }).toBuilder()
+            );
             for await (const { message, syncReport, done } of sync.execute({
                 periods: [year],
                 targetPeriod: definition.sumIntoYear ? year : undefined,
                 targetDataSetId: destination.id,
             })) {
                 if (message) loading.show(true, message);
-                if (syncReport) await compositionRoot.reports.save(syncReport);
-                if (done) {
-                    loading.hide();
-                    return syncReport;
-                }
+                if (syncReport && !dryRun) await compositionRoot.reports.save(syncReport);
+                if (done) return syncReport;
             }
         };
 
         await result.match({
             success: async () => {
-                // TODO: Error handling here?
-                const report = await synchronize();
-                const localSyncResult = summarizeWmrLocalSync(report);
-                if (localSyncResult.type === "error") {
-                    loading.hide();
-                    setWmrLocalSyncResult(localSyncResult);
-                    return;
-                }
-                syncRule.rule = syncRuleUpdated;
+                const localSyncResult = await syncWithDryRun(synchronize);
+                loading.hide();
+                if (localSyncResult.type !== "error") syncRule.rule = syncRuleUpdated;
                 setWmrLocalSyncResult(localSyncResult);
             },
             error: async code => {
@@ -145,10 +162,10 @@ export function useSyncLocalWmr() {
         compositionRoot.reports,
         compositionRoot.sync,
         compositionRoot.wmr,
-        countryDataSet,
-        dataElementsToMigrate,
+        definition,
+        destinationOrgUnits,
         loading,
-        settings,
+        syncIds,
         syncRule,
     ]);
 
@@ -156,5 +173,7 @@ export function useSyncLocalWmr() {
         syncLocalWmr,
         wmrLocalSyncIsLoading: loading.isLoading,
         wmrLocalSyncResult,
+        readsAnalytics,
+        destinationOrgUnits,
     };
 }

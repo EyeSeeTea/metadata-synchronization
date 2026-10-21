@@ -11,12 +11,13 @@ import { Instance } from "../../domain/instance/entities/Instance";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
 import { getCountryOrgUnit } from "./getCountryOrgUnit";
 
-export const dataSetFields = {
+const dataSetFields = {
     id: true,
     code: true,
     displayName: true,
     periodType: true,
     dataSetElements: { dataElement: { id: true, displayName: true } },
+    indicators: { id: true, displayName: true },
 };
 
 type D2DataSet = SelectedPick<D2DataSetSchema, typeof dataSetFields>;
@@ -44,6 +45,7 @@ export class WmrSettingsD2Repository implements WmrSettingsRepository {
         return new WmrSettings({
             dataSets: dataSetsResponse.objects.flatMap(toDataSetAttrs),
             destination: destinationResponse.objects.flatMap(toDestination)[0],
+            countryOrgUnit: { id: countryOrgUnit.id, name: countryOrgUnit.name, path: countryOrgUnit.path },
         });
     }
 }
@@ -61,6 +63,7 @@ function toDataSetAttrs(dataSet: D2DataSet): DataSetAttrs[] {
                 id: dataElement.id,
                 name: dataElement.displayName,
             })),
+            indicators: dataSet.indicators.map(indicator => ({ id: indicator.id, name: indicator.displayName })),
             orgUnits: [],
         },
     ];

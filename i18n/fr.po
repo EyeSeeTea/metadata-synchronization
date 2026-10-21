@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-10-17T18:57:10.581Z\n"
+"POT-Creation-Date: 2026-10-17T23:22:43.963Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2569,6 +2569,9 @@ msgstr ""
 msgid "Download DataValues"
 msgstr ""
 
+msgid "Checking your data entry access..."
+msgstr "Checking your data entry access..."
+
 msgid "Failed to synchronize WMR data"
 msgstr ""
 
@@ -2733,8 +2736,12 @@ msgstr ""
 msgid "Create New Target Instance"
 msgstr ""
 
+msgid "Regional"
+msgstr "Regional"
+
+#, fuzzy
 msgid ""
-"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"{{flow}}: {{source}} ({{sourcePeriodType}}) → {{destination}} "
 "({{destinationPeriodType}})"
 msgstr ""
 "{{source}} ({{sourcePeriodType}}) → {{destination}} "
@@ -2748,9 +2755,6 @@ msgstr "Copied as is to MAL - WMR Form - Country Sync"
 
 msgid "Sent to one organisation unit of the target instance"
 msgstr "Sent to one organisation unit of the target instance"
-
-msgid "Regional"
-msgstr "Regional"
 
 msgid "Monthly → Yearly"
 msgstr "Monthly → Yearly"
@@ -2823,6 +2827,19 @@ msgstr "Failed to prepare synchronization rule"
 
 msgid "Instance or target organisation unit ID is not provided."
 msgstr ""
+
+msgid ""
+"You cannot enter data in {{dataSet}}. Ask an administrator for data write "
+"sharing."
+msgstr ""
+"You cannot enter data in {{dataSet}}. Ask an administrator for data write "
+"sharing."
+
+#, fuzzy
+msgid "{{orgUnits}} are outside your data capture organisation units."
+msgstr ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
+"assigned only to the country"
 
 msgid "Widget cannot be used until an administrator opens the application"
 msgstr ""

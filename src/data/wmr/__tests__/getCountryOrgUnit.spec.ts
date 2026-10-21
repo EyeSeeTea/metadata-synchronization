@@ -7,10 +7,15 @@ import { CountryOrgUnit, getCountryOrgUnit, pickCountryOrgUnit } from "../getCou
 const baseUrl = "http://origin.test";
 const noCaptureOrgUnitError = new Error("The user has no capture organisation unit assigned");
 
-const sierraLeone: CountryOrgUnit = { id: "ImspTQPwCqd", name: "Sierra Leone", level: 1 };
-const bo: CountryOrgUnit = { id: "O6uvpzGd5pu", name: "Bo", level: 2 };
-const bombali: CountryOrgUnit = { id: "fdc6uOvgoji", name: "Bombali", level: 2 };
-const badjia: CountryOrgUnit = { id: "YuQRtpLP10I", name: "Badjia", level: 3 };
+const sierraLeone: CountryOrgUnit = { id: "ImspTQPwCqd", name: "Sierra Leone", level: 1, path: "/ImspTQPwCqd" };
+const bo: CountryOrgUnit = { id: "O6uvpzGd5pu", name: "Bo", level: 2, path: "/ImspTQPwCqd/O6uvpzGd5pu" };
+const bombali: CountryOrgUnit = { id: "fdc6uOvgoji", name: "Bombali", level: 2, path: "/ImspTQPwCqd/fdc6uOvgoji" };
+const badjia: CountryOrgUnit = {
+    id: "YuQRtpLP10I",
+    name: "Badjia",
+    level: 3,
+    path: "/ImspTQPwCqd/O6uvpzGd5pu/YuQRtpLP10I",
+};
 
 describe("pickCountryOrgUnit", () => {
     it("returns the only capture org unit", async () => {
@@ -54,7 +59,7 @@ describe("getCountryOrgUnit", () => {
 
         expect({ countryOrgUnit, requestedFields }).toEqual({
             countryOrgUnit: bo,
-            requestedFields: ["organisationUnits[id,level,name]"],
+            requestedFields: ["organisationUnits[id,level,name,path]"],
         });
     });
 });

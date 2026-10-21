@@ -4,11 +4,11 @@ import { useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Id } from "../../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
-import { WmrDataSet } from "../../../../domain/entities/wmr/entities/WmrDataSet";
+import { Maybe } from "../../../../types/utils";
 
 /**
  * Keep the global mapping store intact, but scope the IDs used by a WMR sync
- * to the data elements that belong to the selected source data set.
+ * to the data elements and indicators that belong to the selected source data set.
  */
 export function filterMappedDataElementIds(
     mappedDataElementIds: ReadonlyArray<Id>,
@@ -18,24 +18,19 @@ export function filterMappedDataElementIds(
     return mappedDataElementIds.filter(dataElementId => dataSetDataElementIdsSet.has(dataElementId));
 }
 
-export function useGetDataSetOrgUnits(props: { id: Id }) {
-    const { compositionRoot } = useAppContext();
-    const [dataSet, setDataSet] = React.useState<WmrDataSet>();
-    const loading = useLoading();
-    const snackbar = useSnackbar();
+export type WmrSyncIds = Readonly<{
+    metadataIds: Id[];
+    mappedIndicatorIds: Id[];
+}>;
 
-    React.useEffect(() => {
-        async function getInstance() {
-            loading.show();
-            const dataSet = await compositionRoot.wmr.getDataSetById(props.id);
-            setDataSet(dataSet);
-            loading.hide();
-        }
-
-        getInstance();
-    }, [compositionRoot, loading, snackbar, props.id]);
-
-    return { dataSet };
+export function getWmrSyncIds(
+    settings: WmrSettings,
+    sourceDataSetId: Maybe<Id>,
+    mappedIds: ReadonlyArray<Id>
+): WmrSyncIds {
+    const indicatorIds = settings.getIndicatorsIds(sourceDataSetId);
+    const metadataIds = filterMappedDataElementIds(mappedIds, settings.getSourceMetadataIds(sourceDataSetId));
+    return { metadataIds, mappedIndicatorIds: filterMappedDataElementIds(metadataIds, indicatorIds) };
 }
 
 export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {

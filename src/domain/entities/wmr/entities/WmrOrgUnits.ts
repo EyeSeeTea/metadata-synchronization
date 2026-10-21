@@ -5,6 +5,8 @@ import { Maybe } from "../../../../types/utils";
 
 export type WmrOrgUnit = Readonly<{ id: Id; path: string }>;
 
+export type WmrNamedOrgUnit = WmrOrgUnit & Readonly<{ name: string }>;
+
 export type WmrDuplicatedTarget = Readonly<{ targetId: Id; orgUnitIds: ReadonlyArray<Id> }>;
 
 export function getParentOrgUnits(orgUnits: ReadonlyArray<WmrOrgUnit>): ReadonlyArray<WmrOrgUnit> {
@@ -32,7 +34,7 @@ export function findDuplicatedTargets(
         .value();
 }
 
-export type WmrLevelOrgUnit = WmrOrgUnit & Readonly<{ name: string; level: number }>;
+export type WmrLevelOrgUnit = WmrNamedOrgUnit & Readonly<{ level: number }>;
 
 export type WmrOrgUnitLevel = Readonly<{ level: number; name: string; count: number }>;
 

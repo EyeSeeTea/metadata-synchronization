@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { SynchronizationReport } from "../../../../../domain/reports/entities/SynchronizationReport";
-import { summarizeWmrLocalSync } from "../useSyncLocalWmr";
+import { summarizeWmrLocalSync, syncWithDryRun } from "../useSyncLocalWmr";
 
 vi.hoisted(() => {
     Object.defineProperty(globalThis, "localStorage", {
@@ -70,5 +70,33 @@ describe("summarizeWmrLocalSync", () => {
             type: "warning",
             message: "There are no values for the mapped data elements in the period",
         });
+    });
+});
+
+describe("syncWithDryRun", () => {
+    const periodAfterLatestOpen = "Period: `2026` is after latest open future period: `2025`";
+
+    it("does not write when the dry run has conflicts", async () => {
+        const conflictsReport = buildReport({
+            status: "WARNING",
+            stats: { imported: 0, updated: 0, ignored: 1, deleted: 0 },
+            errors: [{ id: "2026", message: periodAfterLatestOpen }],
+        });
+        const synchronize = vi.fn(async (_dryRun: boolean) => conflictsReport);
+
+        await expect(syncWithDryRun(synchronize)).resolves.toEqual({ type: "error", message: periodAfterLatestOpen });
+        expect(synchronize.mock.calls).toEqual([[true]]);
+    });
+
+    it("writes after a dry run without conflicts and reports the real import", async () => {
+        const synchronize = vi.fn(async (dryRun: boolean) =>
+            dryRun ? buildStatsReport(5, 0, 0) : buildStatsReport(2, 3, 0)
+        );
+
+        await expect(syncWithDryRun(synchronize)).resolves.toEqual({
+            type: "success",
+            message: "2 created, 3 updated, 0 unchanged",
+        });
+        expect(synchronize.mock.calls).toEqual([[true], [false]]);
     });
 });

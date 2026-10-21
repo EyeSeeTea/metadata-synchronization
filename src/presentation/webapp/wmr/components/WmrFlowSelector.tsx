@@ -5,6 +5,7 @@ import { WmrFlowKind, wmrFlowKinds } from "../../../../domain/entities/wmr/entit
 import { Maybe } from "../../../../types/utils";
 import i18n from "../../../../utils/i18n";
 import { muiTheme } from "../../../react/core/themes/dhis2.theme";
+import { getWmrFlowName } from "./WmrFlowLabel";
 
 type WmrFlowTexts = Readonly<{ title: string; chip: string; route: ReadonlyArray<string> }>;
 
@@ -12,7 +13,7 @@ function getFlowTexts(kind: WmrFlowKind): WmrFlowTexts {
     switch (kind) {
         case "global":
             return {
-                title: i18n.t("Global"),
+                title: getWmrFlowName(kind),
                 chip: i18n.t("Yearly"),
                 route: [
                     i18n.t("Data is entered yearly at the country"),
@@ -22,7 +23,7 @@ function getFlowTexts(kind: WmrFlowKind): WmrFlowTexts {
             };
         case "regional":
             return {
-                title: i18n.t("Regional"),
+                title: getWmrFlowName(kind),
                 chip: i18n.t("Monthly → Yearly"),
                 route: [
                     i18n.t("Data is entered monthly at the organisation units of a level"),

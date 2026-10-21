@@ -1,5 +1,4 @@
 import React from "react";
-import _ from "lodash";
 import { useLoading } from "@eyeseetea/d2-ui-components";
 import { Grid, Button, LinearProgress } from "@material-ui/core";
 import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
@@ -8,27 +7,32 @@ import { Id } from "../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
 import { formatDateLong } from "../../../utils/date";
-import { getWmrSyncedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { getWmrReportedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
 import { useWmrContext } from "./context/WmrContext";
 import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
 import { AnalyticsFreshness, useAnalyticsFreshness } from "./hooks/useAnalyticsFreshness";
 import { NoticeBox, NoticeBoxProps } from "./components/NoticeBox";
 import { WmrFlowLabel } from "./components/WmrFlowLabel";
+import { WmrSyncPeriod } from "./components/WmrSyncPeriod";
+import { useWmrSyncAccess, WmrSyncAccessState } from "./hooks/useWmrSyncAccess";
 
 type SyncAndCheckWmrProps = {};
 
 export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const { compositionRoot } = useAppContext();
     const { syncRule, settings } = useWmrContext();
-    const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult } = useSyncLocalWmr();
+    const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult, readsAnalytics, destinationOrgUnits } =
+        useSyncLocalWmr();
+    const syncAccess = useWmrSyncAccess(destinationOrgUnits);
     const loading = useLoading();
-    const syncedYear = getWmrSyncedYear(new Date());
     if (!syncRule?.flow || !settings) {
         throw new Error("WMR Context should be initialized");
     }
     const { flow } = syncRule;
-    const readsAnalytics = flow.source.periodType === "Monthly";
-    const path = _(syncRule.rule.dataParams.orgUnitPaths).first() || "";
+    const definition = wmrFlowDefinitions[flow.kind];
+    const year = getWmrReportedYear(syncRule.rule.dataParams);
+    const showsDataEntry = definition.destinationOrgUnits === "country";
 
     const onDownload = async () => {
         loading.show();
@@ -48,7 +52,13 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
             )}
             <Grid item xs={12}>
                 <WmrFlowLabel flow={flow} />
+                <WmrSyncPeriod year={year} sumsMonths={definition.sumIntoYear} />
             </Grid>
+            {syncAccess.type !== "ok" && (
+                <Grid item xs={12}>
+                    <WmrSyncAccessNotice access={syncAccess} />
+                </Grid>
+            )}
             {!wmrLocalSyncResult && (
                 <Grid item xs={12}>
                     <Button
@@ -56,7 +66,7 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                         color="primary"
                         onClick={syncLocalWmr}
                         endIcon={<SyncAltIcon />}
-                        disabled={wmrLocalSyncIsLoading}
+                        disabled={wmrLocalSyncIsLoading || syncAccess.type !== "ok"}
                     >
                         {i18n.t("Sync WMR Country Dataset")}
                     </Button>
@@ -79,16 +89,21 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                 {wmrLocalSyncResult && (
                     <NoticeBox type={wmrLocalSyncResult.type} message={describeWmrLocalSync(wmrLocalSyncResult)} />
                 )}
-                {wmrLocalSyncResult && wmrLocalSyncResult.type !== "error" && path && (
-                    <DataEntry
-                        dataSetId={flow.destination.id}
-                        orgUnitId={_(path).split("/").last() || ""}
-                        period={syncedYear.toString()}
-                    />
+                {showsDataEntry && wmrLocalSyncResult && wmrLocalSyncResult.type !== "error" && (
+                    <DataEntry dataSetId={flow.destination.id} orgUnitId={settings.countryOrgUnit.id} period={year} />
                 )}
             </Grid>
         </Grid>
     );
+}
+
+function WmrSyncAccessNotice({ access }: { access: Exclude<WmrSyncAccessState, { type: "ok" }> }) {
+    switch (access.type) {
+        case "checking":
+            return <NoticeBox type="loading" message={i18n.t("Checking your data entry access...")} />;
+        case "error":
+            return <NoticeBox type="error" message={access.message} />;
+    }
 }
 
 function describeWmrLocalSync(result: WmrLocalSyncResult): string {

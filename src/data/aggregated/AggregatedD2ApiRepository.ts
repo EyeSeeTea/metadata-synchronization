@@ -146,28 +146,32 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
         if (dimensionIds.length === 0 || orgUnits.length === 0) {
             return { dataValues: [] };
         } else if (aggregationType) {
-            const result = await promiseMap(_.chunk(periods, 5), period =>
-                promiseMap(_.chunk(dimensionIds, Math.max(10, 100 - period.length)), ids => {
-                    return this.api
-                        .get<AggregatedPackage>("/analytics/dataValueSet.json", {
-                            dimension: _.compact([
-                                `dx:${ids.join(";")}`,
-                                `pe:${period.join(";")}`,
-                                `ou:${orgUnits.join(";")}`,
-                                // Opt-in: without `co` analytics collapses the disaggregation onto the default
-                                // categoryOptionCombo, which the core and MSF aggregated syncs depend on.
-                                includeCategoryOptionCombos ? "co" : undefined,
-                                attributeOptionCombo ? `ao:${attributeOptionCombo.join(";")}` : undefined,
-                            ]),
-                            filter,
-                        })
-                        .getData();
-                })
+            // Chunked request by orgUnits, periods and dimensions to avoid 414
+            const result = await promiseMap(_.chunk(orgUnits, 100), orgUnitsChunk =>
+                promiseMap(_.chunk(periods, 5), period =>
+                    promiseMap(_.chunk(dimensionIds, Math.max(10, 100 - period.length)), ids => {
+                        return this.api
+                            .get<AggregatedPackage>("/analytics/dataValueSet.json", {
+                                dimension: _.compact([
+                                    `dx:${ids.join(";")}`,
+                                    `pe:${period.join(";")}`,
+                                    `ou:${orgUnitsChunk.join(";")}`,
+                                    // Opt-in: without `co` analytics collapses the disaggregation onto the default
+                                    // categoryOptionCombo, which the core and MSF aggregated syncs depend on.
+                                    includeCategoryOptionCombos ? "co" : undefined,
+                                    attributeOptionCombo ? `ao:${attributeOptionCombo.join(";")}` : undefined,
+                                ]),
+                                filter,
+                            })
+                            .getData();
+                    })
+                )
             );
 
             const [defaultCategoryOptionCombo] = await this.getDefaultIds("categoryOptionCombos");
 
             const analyticsValues = _(result)
+                .flatten()
                 .flatten()
                 .map(({ dataValues = [] }: AggregatedPackage): DataValue[] =>
                     dataValues.map(

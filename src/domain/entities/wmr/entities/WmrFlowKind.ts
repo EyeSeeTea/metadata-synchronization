@@ -1,5 +1,6 @@
 import { Id } from "../../../common/entities/Schemas";
 import { DataSyncAggregation } from "../../../aggregated/entities/DataSyncAggregation";
+import { WmrNamedOrgUnit } from "./WmrOrgUnits";
 import { WmrRequisiteType } from "./WmrRequisite";
 import { WmrSourcePeriodType } from "./WmrSyncFlow";
 
@@ -43,5 +44,18 @@ export function isWmrAggregationEnabled(definition: WmrFlowDefinition, mappedInd
             return true;
         case "withIndicators":
             return mappedIndicatorIds.length > 0;
+    }
+}
+
+export function getWmrDestinationOrgUnits(
+    definition: WmrFlowDefinition,
+    country: WmrNamedOrgUnit,
+    parents: ReadonlyArray<WmrNamedOrgUnit>
+): ReadonlyArray<WmrNamedOrgUnit> {
+    switch (definition.destinationOrgUnits) {
+        case "country":
+            return [country];
+        case "parents":
+            return parents;
     }
 }

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-10-17T19:07:47.123Z\n"
-"PO-Revision-Date: 2026-10-17T19:07:47.123Z\n"
+"POT-Creation-Date: 2026-10-17T23:22:43.963Z\n"
+"PO-Revision-Date: 2026-10-17T23:22:43.963Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2679,6 +2679,9 @@ msgstr "Sync WMR Country Dataset"
 msgid "Download DataValues"
 msgstr "Download DataValues"
 
+msgid "Checking your data entry access..."
+msgstr "Checking your data entry access..."
+
 msgid "Failed to synchronize WMR data"
 msgstr "Failed to synchronize WMR data"
 
@@ -2840,11 +2843,14 @@ msgstr "Validate Organisation Unit"
 msgid "Create New Target Instance"
 msgstr "Create New Target Instance"
 
+msgid "Regional"
+msgstr "Regional"
+
 msgid ""
-"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"{{flow}}: {{source}} ({{sourcePeriodType}}) → {{destination}} "
 "({{destinationPeriodType}})"
 msgstr ""
-"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"{{flow}}: {{source}} ({{sourcePeriodType}}) → {{destination}} "
 "({{destinationPeriodType}})"
 
 msgid "Data is entered yearly at the country"
@@ -2855,9 +2861,6 @@ msgstr "Copied as is to MAL - WMR Form - Country Sync"
 
 msgid "Sent to one organisation unit of the target instance"
 msgstr "Sent to one organisation unit of the target instance"
-
-msgid "Regional"
-msgstr "Regional"
 
 msgid "Monthly → Yearly"
 msgstr "Monthly → Yearly"
@@ -2928,6 +2931,16 @@ msgstr "Failed to prepare synchronization rule"
 
 msgid "Instance or target organisation unit ID is not provided."
 msgstr "Instance or target organisation unit ID is not provided."
+
+msgid ""
+"You cannot enter data in {{dataSet}}. Ask an administrator for data write "
+"sharing."
+msgstr ""
+"You cannot enter data in {{dataSet}}. Ask an administrator for data write "
+"sharing."
+
+msgid "{{orgUnits}} are outside your data capture organisation units."
+msgstr "{{orgUnits}} are outside your data capture organisation units."
 
 msgid "Widget cannot be used until an administrator opens the application"
 msgstr "Widget cannot be used until an administrator opens the application"

@@ -24,7 +24,7 @@ export function WmrProvider({ children }: { children: React.ReactNode }) {
         targetOrgUnitId: undefined,
         rule: SynchronizationRule.createOnDemand("aggregated")
             .updateBuilder({ metadataIds: [] })
-            .updateMetadataTypes(["dataElements"])
+            .updateMetadataTypes(["dataElements", "indicators"])
             .updateDataSyncOrgUnitPaths([])
             .updateDataSyncPeriod("LAST_YEAR")
             .updateTargetInstances([WmrSettings.LOCAL_INSTANCE_ID]),

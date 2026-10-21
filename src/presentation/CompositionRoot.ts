@@ -21,11 +21,12 @@ import { SystemInfoD2ApiRepository } from "../data/system-info/SystemInfoD2ApiRe
 import { TEID2ApiRepository } from "../data/tracked-entity-instances/TEID2ApiRepository";
 import { TransformationD2ApiRepository } from "../data/transformations/TransformationD2ApiRepository";
 import { UserD2ApiRepository } from "../data/user/UserD2ApiRepository";
-import { WmrDataSetD2Repository } from "../data/wmr/WmrDataSetD2Repository";
 import { WmrRequisitesD2Repository } from "../data/wmr/WmrRequisitesD2Repository";
 import { WmrSettingsD2Repository } from "../data/wmr/WmrSettingsD2Repository";
 import { WmrUserSettingsD2Repository } from "../data/wmr/WmrUserSettingsD2Repository";
 import { WmrOrgUnitsD2Repository } from "../data/wmr/WmrOrgUnitsD2Repository";
+import { WmrSyncAccessD2Repository } from "../data/wmr/WmrSyncAccessD2Repository";
+import { CheckWmrSyncAccessUseCase } from "../domain/entities/wmr/usecases/CheckWmrSyncAccessUseCase";
 import { GetWmrOrgUnitLevelsUseCase } from "../domain/entities/wmr/usecases/GetWmrOrgUnitLevelsUseCase";
 import { GetWmrLevelOrgUnitsUseCase } from "../domain/entities/wmr/usecases/GetWmrLevelOrgUnitsUseCase";
 import { GetWmrAssignedOrgUnitsUseCase } from "../domain/entities/wmr/usecases/GetWmrAssignedOrgUnitsUseCase";
@@ -37,7 +38,6 @@ import { UseCase } from "../domain/common/entities/UseCase";
 import { Repositories, DynamicRepositoryFactory } from "../domain/common/factories/DynamicRepositoryFactory";
 import { GetCustomDataUseCase } from "../domain/custom-data/usecases/GetCustomDataUseCase";
 import { SaveCustomDataUseCase } from "../domain/custom-data/usecases/SaveCustomDataUseCase";
-import { GetDataSetByIdUseCase } from "../domain/entities/wmr/usecases/GetDataSetByIdUseCase";
 import { GetWmrSettingsUseCase } from "../domain/entities/wmr/usecases/GetWmrSettingsUseCase";
 import { GetWmrTargetOrgUnitUseCase } from "../domain/entities/wmr/usecases/GetWmrTargetOrgUnitUseCase";
 import { SaveWmrTargetOrgUnitUseCase } from "../domain/entities/wmr/usecases/SaveWmrTargetOrgUnitUseCase";
@@ -534,7 +534,6 @@ export class CompositionRoot {
         return {
             ...getExecute({
                 settings: new GetWmrSettingsUseCase(this.repositoryFactory, this.localInstance),
-                getDataSetById: new GetDataSetByIdUseCase(this.repositoryFactory, this.localInstance),
                 checkRequisites: new CheckWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
                 setupRequisites: new SetupWmrRequisitesByTypeUseCase(this.repositoryFactory, this.localInstance),
                 validateOrgUnit: new ValidateOrgUnitUseCase(this.repositoryFactory),
@@ -544,6 +543,7 @@ export class CompositionRoot {
                 getLevelOrgUnits: new GetWmrLevelOrgUnitsUseCase(this.repositoryFactory, this.localInstance),
                 getAssignedOrgUnits: new GetWmrAssignedOrgUnitsUseCase(this.repositoryFactory, this.localInstance),
                 assignOrgUnitLevel: new AssignWmrOrgUnitLevelUseCase(this.repositoryFactory, this.localInstance),
+                checkSyncAccess: new CheckWmrSyncAccessUseCase(this.repositoryFactory, this.localInstance),
             }),
             syncDataset: (builder: SynchronizationBuilder) =>
                 new WmrAggregatedSyncUseCase(builder, this.repositoryFactory, this.localInstance),
@@ -688,11 +688,6 @@ export function registerDynamicRepositoriesInFactory(
     );
 
     repositoryFactory.bindByInstance(
-        Repositories.WmrDataSetRepository,
-        (instance: Instance) => new WmrDataSetD2Repository(instance)
-    );
-
-    repositoryFactory.bindByInstance(
         Repositories.WmrRequisitesRepository,
         (instance: Instance) => new WmrRequisitesD2Repository(localInstance, instance)
     );
@@ -705,5 +700,10 @@ export function registerDynamicRepositoriesInFactory(
     repositoryFactory.bindByInstance(
         Repositories.WmrOrgUnitsRepository,
         (instance: Instance) => new WmrOrgUnitsD2Repository(instance)
+    );
+
+    repositoryFactory.bindByInstance(
+        Repositories.WmrSyncAccessRepository,
+        (instance: Instance) => new WmrSyncAccessD2Repository(instance)
     );
 }

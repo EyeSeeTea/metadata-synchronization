@@ -2,19 +2,15 @@ import _ from "lodash";
 import memoize from "nano-memoize";
 import { debug } from "../../../../utils/debug";
 import { Instance } from "../../../instance/entities/Instance";
-import {
-    DataElement,
-    DataElementGroup,
-    DataElementGroupSet,
-    DataSet,
-} from "../../../metadata/entities/MetadataEntities";
+import { DataElement } from "../../../metadata/entities/MetadataEntities";
 import { SynchronizationResult } from "../../../reports/entities/SynchronizationResult";
 import { GenericSyncUseCase } from "../../../synchronization/usecases/GenericSyncUseCase";
 import { buildMetadataDictionary } from "../../../synchronization/utils";
 import { AggregatedPackage } from "../../../aggregated/entities/AggregatedPackage";
 import { DataValue } from "../../../aggregated/entities/DataValue";
 import { createAggregatedPayloadMapper } from "../../../aggregated/mapper/AggregatedPayloadMapperFactory";
-import { getMinimumParents } from "../../../aggregated/utils";
+import { AggregatedPayloadBuilder } from "../../../aggregated/builders/AggregatedPayloadBuilder";
+import { AggregatedMetadatafields } from "../../../aggregated/usecases/AggregatedSyncUseCase";
 import { promiseMap } from "../../../../utils/common";
 import { SynchronizationReport } from "../../../reports/entities/SynchronizationReport";
 import { Maybe } from "../../../../types/utils";
@@ -31,8 +27,7 @@ export type WmrAggregatedSyncOptions = Readonly<{
 // This is a WMR PoC, cloned from AggregatedSyncUseCase, supporting org unit mapping with orgUnitIdOverride
 export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
     public readonly type = "aggregated";
-    public readonly fields =
-        "id,dataElements[id,name,valueType],dataSetElements[:all,dataElement[id,name,valueType]],dataElementGroups[id,dataElements[id,name,valueType]],name";
+    public readonly fields = AggregatedMetadatafields;
 
     public orgUnitIdOverride: Maybe<Id>;
     public periods: ReadonlyArray<string> | undefined;
@@ -57,86 +52,15 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
         return undefined as unknown as SynchronizationReport;
     }
 
-    public buildPayload = memoize(async (remoteInstance?: Instance) => {
-        const { enableAggregation = false } = this.builder.dataParams ?? {};
+    private readonly payloadBuilder = new AggregatedPayloadBuilder(this.repositoryFactory, this.localInstance);
 
-        return enableAggregation ? this.buildAnalyticsPayload(remoteInstance) : this.buildNormalPayload(remoteInstance);
-    });
-
-    private buildAnalyticsPayload = async (remoteInstance?: Instance) => {
-        const { dataParams = {}, excludedIds = [] } = this.builder;
-        const aggregatedRepository = await this.getAggregatedRepository(remoteInstance);
-        const { dataElements = [] } = await this.extractMetadata<DataElement>(remoteInstance);
-        const dimensionIds = dataElements.map(({ id }) => id);
-
-        const { dataValues = [] } = await aggregatedRepository.getAnalytics({
-            dataParams,
-            dimensionIds,
-            includeCategories: true,
+    public buildPayload = memoize(async (remoteInstance?: Instance): Promise<{ dataValues: DataValue[] }> => {
+        const { dataValues = [] } = await this.payloadBuilder.build(this.builder, remoteInstance, {
             includeCategoryOptionCombos: true,
+            periods: this.periods,
         });
-
-        const includedDataValues = dataValues.filter(({ dataElement }) => !excludedIds.includes(dataElement));
-
-        return {
-            dataValues: this.targetPeriod ? sumIntoPeriod(includedDataValues, this.targetPeriod) : includedDataValues,
-        };
-    };
-
-    private buildNormalPayload = async (remoteInstance?: Instance) => {
-        const { dataParams = {}, excludedIds = [] } = this.builder;
-        const aggregatedRepository = await this.getAggregatedRepository(remoteInstance);
-
-        const { dataSets = [] } = await this.extractMetadata<DataSet>(remoteInstance);
-        const { dataElementGroups = [] } = await this.extractMetadata<DataElementGroup>(remoteInstance);
-        const { dataElementGroupSets = [] } = await this.extractMetadata<DataElementGroupSet>(remoteInstance);
-        const { dataElements = [] } = await this.extractMetadata<DataElement>(remoteInstance);
-
-        const dataSetIds = dataSets.map(({ id }) => id);
-        const dataElementGroupIds = dataElementGroups.map(({ id }) => id);
-        const dataElementGroupSetIds = dataElementGroupSets.map(({ dataElementGroups }) =>
-            dataElementGroups.map(({ id }) => id)
-        );
-
-        // Retrieve direct data values from dataSets and dataElementGroups
-        const { dataValues: directDataValues = [] } = await aggregatedRepository.getAggregated(
-            dataParams,
-            dataSetIds,
-            _([...dataElementGroupIds, ...dataElementGroupSetIds])
-                .flatten()
-                .uniq()
-                .value(),
-            this.periods
-        );
-
-        // Retrieve candidate data values from dataElements
-        const dataSetIdsFromDataElements = getMinimumParents(
-            new Map(dataElements.map(de => [de.id, de.dataSetElements.map(dse => dse.dataSet.id)]))
-        );
-
-        const dataElementGroupIdsFromDataElements = getMinimumParents(
-            new Map(dataElements.map(de => [de.id, de.dataElementGroups.map(deg => deg.id)]))
-        );
-
-        const { dataValues: candidateDataValues = [] } = await aggregatedRepository.getAggregated(
-            dataParams,
-            dataSetIdsFromDataElements,
-            dataElementGroupIdsFromDataElements,
-            this.periods
-        );
-
-        // Retrieve indirect data values from dataElements
-        const indirectDataValues = _.filter(
-            candidateDataValues,
-            ({ dataElement }) => !!_.find(dataElements, { id: dataElement })
-        );
-
-        const dataValues = [...directDataValues, ...indirectDataValues].filter(
-            ({ dataElement }) => !excludedIds.includes(dataElement)
-        );
-
-        return { dataValues };
-    };
+        return { dataValues: this.targetPeriod ? sumIntoPeriod(dataValues, this.targetPeriod) : dataValues };
+    });
 
     public async postPayload(instance: Instance): Promise<SynchronizationResult[]> {
         const { dataParams = {} } = this.builder;

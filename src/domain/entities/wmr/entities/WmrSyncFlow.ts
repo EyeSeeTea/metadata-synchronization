@@ -16,10 +16,6 @@ export function getWmrReportedYear(params: DataSynchronizationParams): string {
     return year;
 }
 
-export function getWmrSyncedYear(today: Date): number {
-    return today.getFullYear() - 1;
-}
-
 export function sumIntoPeriod(dataValues: ReadonlyArray<DataValue>, period: string): DataValue[] {
     return _(dataValues)
         .groupBy(({ dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo }) =>

@@ -1,22 +1,37 @@
 import { describe, expect, it } from "vitest";
 import { DataSetAttrs, DataSetPeriodType, parseDataSetPeriodType, WmrDestination, WmrSettings } from "../WmrSettings";
 
-function dataSet(id: string, periodType: DataSetPeriodType): DataSetAttrs {
-    return { id, name: `Data set ${id}`, periodType, dataElements: [], orgUnits: [] };
+function dataSet(id: string, periodType: DataSetPeriodType, indicators: DataSetAttrs["indicators"] = []): DataSetAttrs {
+    return { id, name: `Data set ${id}`, periodType, dataElements: [], indicators, orgUnits: [] };
 }
 
 function destination(id: string, periodType: DataSetPeriodType): WmrDestination {
     return { id, code: `CODE_${id}`, name: `Destination ${id}`, periodType, dataElementsIds: [`${id}-de`] };
 }
 
-const yearlySource = dataSet("yearlySource", "Yearly");
+const malariaDeathsIndicator = { id: "malariaDeathsIndicator", name: "MAL - Malaria deaths (female + male)" };
+const malariaCasesIndicator = { id: "malariaCasesIndicator", name: "MAL - Malaria cases" };
+
+const yearlySource = dataSet("yearlySource", "Yearly", [malariaDeathsIndicator, malariaCasesIndicator]);
 const monthlySource = dataSet("monthlySource", "Monthly");
+const sourceWithDataElements: DataSetAttrs = {
+    ...dataSet("sourceWithDataElements", "Yearly", [malariaDeathsIndicator]),
+    dataElements: [{ id: "malariaDeathsDataElement", name: "MAL - Malaria deaths" }],
+};
 const weeklySource = dataSet("weeklySource", "Weekly");
 const yearlyDestination = destination("yearlyDestination", "Yearly");
+const countryOrgUnit = { id: "ImspTQPwCqd", name: "Sierra Leone", path: "/ImspTQPwCqd" };
 
 const settings = new WmrSettings({
-    dataSets: [yearlySource, monthlySource, weeklySource, dataSet(yearlyDestination.id, "Yearly")],
+    dataSets: [
+        yearlySource,
+        monthlySource,
+        weeklySource,
+        sourceWithDataElements,
+        dataSet(yearlyDestination.id, "Yearly"),
+    ],
     destination: yearlyDestination,
+    countryOrgUnit,
 });
 
 describe("WmrSettings", () => {
@@ -64,15 +79,49 @@ describe("WmrSettings", () => {
         });
 
         it("has no flow while the destination is not installed", () => {
-            const withoutDestination = new WmrSettings({ dataSets: [yearlySource], destination: undefined });
+            const withoutDestination = new WmrSettings({
+                dataSets: [yearlySource],
+                destination: undefined,
+                countryOrgUnit,
+            });
 
             expect(withoutDestination.getFlowFor(yearlySource.id, "global")).toBeUndefined();
         });
     });
 
+    describe("getIndicatorsIds", () => {
+        it("returns the ids of the indicators assigned to the source", () => {
+            expect(settings.getIndicatorsIds(yearlySource.id)).toEqual([
+                malariaDeathsIndicator.id,
+                malariaCasesIndicator.id,
+            ]);
+        });
+
+        it("returns no ids for a source without indicators", () => {
+            expect(settings.getIndicatorsIds(monthlySource.id)).toEqual([]);
+        });
+
+        it("returns no ids for an unknown or empty source", () => {
+            expect([settings.getIndicatorsIds("unknown"), settings.getIndicatorsIds(undefined)]).toEqual([[], []]);
+        });
+    });
+
+    describe("getSourceMetadataIds", () => {
+        it("returns the data elements and then the indicators of the source", () => {
+            expect(settings.getSourceMetadataIds(sourceWithDataElements.id)).toEqual([
+                "malariaDeathsDataElement",
+                malariaDeathsIndicator.id,
+            ]);
+        });
+
+        it("returns no ids for an unknown source", () => {
+            expect(settings.getSourceMetadataIds("unknown")).toEqual([]);
+        });
+    });
+
     describe("getSelectableSources", () => {
         it("lists the yearly sources for the global flow, excluding the destination", () => {
-            expect(settings.getSelectableSources("global")).toEqual([yearlySource]);
+            expect(settings.getSelectableSources("global")).toEqual([yearlySource, sourceWithDataElements]);
         });
 
         it("lists the monthly sources for the regional flow", () => {

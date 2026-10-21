@@ -35,7 +35,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
         syncRule.flow = flowKind && settings.getFlowFor(value, flowKind);
     };
 
-    const allowedLocalDataElementsIds = settings.getDataElementsIds(dataSetId);
+    const allowedLocalIds = settings.getSourceMetadataIds(dataSetId);
 
     return (
         <Grid container spacing={3}>
@@ -59,7 +59,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
                         instanceId={WmrSettings.LOCAL_INSTANCE_ID}
                         section="aggregated"
                         showHeader={false}
-                        filterRows={allowedLocalDataElementsIds}
+                        filterRows={allowedLocalIds}
                         filterMappingIds={[...(syncRule.flow?.destination.dataElementsIds ?? [])]}
                         applyFilterMappingIdsToAutoMap
                     />

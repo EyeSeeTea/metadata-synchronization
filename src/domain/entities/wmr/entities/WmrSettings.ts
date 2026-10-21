@@ -2,6 +2,7 @@ import { Maybe } from "../../../../types/utils";
 import { NamedRef } from "../../../common/entities/Ref";
 import { Id } from "../../../common/entities/Schemas";
 import { WmrFlowKind, wmrFlowDefinitions } from "./WmrFlowKind";
+import { WmrNamedOrgUnit } from "./WmrOrgUnits";
 import { WmrSourcePeriodType } from "./WmrSyncFlow";
 
 export const dataSetPeriodTypes = [
@@ -35,6 +36,7 @@ export type DataSetAttrs = Readonly<
     NamedRef & {
         periodType: DataSetPeriodType;
         dataElements: ReadonlyArray<NamedRef>;
+        indicators: ReadonlyArray<NamedRef>;
         orgUnits: ReadonlyArray<NamedRef>;
     }
 >;
@@ -58,21 +60,31 @@ export type WmrFlow = Readonly<{
 export type WmrSettingsAttrs = Readonly<{
     dataSets: ReadonlyArray<DataSetAttrs>;
     destination: Maybe<WmrDestination>;
+    countryOrgUnit: WmrNamedOrgUnit;
 }>;
 
 export class WmrSettings {
     public readonly dataSets: ReadonlyArray<DataSetAttrs>;
     public readonly destination: Maybe<WmrDestination>;
+    public readonly countryOrgUnit: WmrNamedOrgUnit;
     public static readonly LOCAL_INSTANCE_ID = "LOCAL";
 
     constructor(attrs: WmrSettingsAttrs) {
         this.dataSets = attrs.dataSets;
         this.destination = attrs.destination;
+        this.countryOrgUnit = attrs.countryOrgUnit;
     }
 
     public getDataElementsIds(dataSetId: Maybe<Id>): Id[] {
-        const dataSet = this.dataSets.find(dataSet => dataSet.id === dataSetId);
-        return dataSet ? dataSet.dataElements.map(dataElement => dataElement.id) : [];
+        return this.getDataSet(dataSetId)?.dataElements.map(dataElement => dataElement.id) ?? [];
+    }
+
+    public getIndicatorsIds(dataSetId: Maybe<Id>): Id[] {
+        return this.getDataSet(dataSetId)?.indicators.map(indicator => indicator.id) ?? [];
+    }
+
+    public getSourceMetadataIds(dataSetId: Maybe<Id>): Id[] {
+        return [...this.getDataElementsIds(dataSetId), ...this.getIndicatorsIds(dataSetId)];
     }
 
     public getFlowFor(sourceDataSetId: Maybe<Id>, kind: WmrFlowKind): Maybe<WmrFlow> {
@@ -89,5 +101,9 @@ export class WmrSettings {
                 ? [{ ...dataSet, periodType: sourcePeriodType }]
                 : []
         );
+    }
+
+    private getDataSet(dataSetId: Maybe<Id>): Maybe<DataSetAttrs> {
+        return this.dataSets.find(dataSet => dataSet.id === dataSetId);
     }
 }

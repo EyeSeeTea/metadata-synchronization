@@ -5,11 +5,11 @@ import { D2Api } from "../../types/d2-api";
 import i18n from "../../utils/i18n";
 import { apiToFuture } from "../common/utils/api-futures";
 
-export type CountryOrgUnit = Readonly<NamedRef & { level: number }>;
+export type CountryOrgUnit = Readonly<NamedRef & { level: number; path: string }>;
 
 export function getCountryOrgUnit(api: D2Api): FutureData<CountryOrgUnit> {
     return apiToFuture(
-        api.currentUser.get({ fields: { organisationUnits: { id: true, name: true, level: true } } })
+        api.currentUser.get({ fields: { organisationUnits: { id: true, name: true, level: true, path: true } } })
     ).flatMap(({ organisationUnits }) => pickCountryOrgUnit(organisationUnits));
 }
 

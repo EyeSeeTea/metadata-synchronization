@@ -68,6 +68,22 @@ describe("AggregatedD2ApiRepository", () => {
 
             expect(requestedDimensions()).toEqual([[`dx:${dataElementId}`, "pe:2025", `ou:${orgUnitId}`]]);
         });
+
+        it("splits the organisation units in chunks of 100", async () => {
+            const repository = new AggregatedD2ApiRepository(localInstance, localInstance);
+            const orgUnitIds = Array.from({ length: 150 }, (_value, index) => `orgUnit${index}`);
+
+            await repository.getAnalytics({
+                dataParams: { ...dataParams, orgUnitPaths: orgUnitIds.map(id => `/${id}`) },
+                dimensionIds: [dataElementId],
+                includeCategories: true,
+            });
+
+            expect(requestedDimensions()).toEqual([
+                [`dx:${dataElementId}`, "pe:2025", `ou:${orgUnitIds.slice(0, 100).join(";")}`],
+                [`dx:${dataElementId}`, "pe:2025", `ou:${orgUnitIds.slice(100).join(";")}`],
+            ]);
+        });
     });
 
     describe("getAggregated", () => {

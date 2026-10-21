@@ -20,10 +20,10 @@ import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRe
 import { JSONDataSource } from "../../instance/entities/JSONDataSource";
 import { VisualizationRepository } from "../../visualization/repositories/VisualizationRepository";
 import { WmrSettingsRepository } from "../../entities/wmr/repositories/WmrSettingsRepository";
-import { WmrDataSetRepository } from "../../entities/wmr/repositories/WmrDataSetRepository";
 import { WmrRequisitesRepository } from "../../entities/wmr/repositories/WmrRequisitesRepository";
 import { WmrUserSettingsRepository } from "../../entities/wmr/repositories/WmrUserSettingsRepository";
 import { WmrOrgUnitsRepository } from "../../entities/wmr/repositories/WmrOrgUnitsRepository";
+import { WmrSyncAccessRepository } from "../../entities/wmr/repositories/WmrSyncAccessRepository";
 
 export type RepositoryByInstanceCreator<T> = (instance: Instance) => T;
 export type RepositoryByJsonSourceCreator<T> = (instance: JSONDataSource) => T;
@@ -124,10 +124,6 @@ export class DynamicRepositoryFactory {
         return this.getbyInstance(Repositories.WmrSettingsRepository, instance);
     }
 
-    public wmrDataSetRepository(instance: Instance): WmrDataSetRepository {
-        return this.getbyInstance(Repositories.WmrDataSetRepository, instance);
-    }
-
     public wmrRequisitesRepository(instance: Instance): WmrRequisitesRepository {
         return this.getbyInstance(Repositories.WmrRequisitesRepository, instance);
     }
@@ -138,6 +134,10 @@ export class DynamicRepositoryFactory {
 
     public wmrOrgUnitsRepository(instance: Instance): WmrOrgUnitsRepository {
         return this.getbyInstance(Repositories.WmrOrgUnitsRepository, instance);
+    }
+
+    public wmrSyncAccessRepository(instance: Instance): WmrSyncAccessRepository {
+        return this.getbyInstance(Repositories.WmrSyncAccessRepository, instance);
     }
 
     private getbyInstance<T>(key: RepositoryKeys, instance: Instance, tag = "default"): T {
@@ -197,8 +197,8 @@ export const Repositories = {
     TableColumnsRepository: "tableColumnsRepository",
     VisualizationRepository: "visualizationRepository",
     WmrSettingsRepository: "wmrSettingsRepository",
-    WmrDataSetRepository: "wmrDataSetRepository",
     WmrRequisitesRepository: "wmrRequisitesRepository",
     WmrUserSettingsRepository: "wmrUserSettingsRepository",
     WmrOrgUnitsRepository: "wmrOrgUnitsRepository",
+    WmrSyncAccessRepository: "wmrSyncAccessRepository",
 } as const;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DataValue } from "../../../../aggregated/entities/DataValue";
-import { getWmrReportedYear, getWmrSyncedYear, sumIntoPeriod } from "../WmrSyncFlow";
+import { getWmrReportedYear, sumIntoPeriod } from "../WmrSyncFlow";
 
 const deaths = "bjyXcVn0Slk";
 const cases = "Th6srmdoaxC";
@@ -41,12 +41,6 @@ describe("WmrSyncFlow", () => {
             };
 
             expect(() => getWmrReportedYear(params)).toThrow("WMR reports a single year, got the periods 2024, 2025");
-        });
-    });
-
-    describe("getWmrSyncedYear", () => {
-        it("returns the year before the given date", () => {
-            expect(getWmrSyncedYear(new Date(2026, 0, 1))).toBe(2025);
         });
     });
 
