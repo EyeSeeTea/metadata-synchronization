@@ -1,7 +1,10 @@
+import { vi } from "vitest";
 import { givenAggregatedRepositoryFactory } from "../../../../aggregated/builders/__tests__/mocks/givenAggregatedRepositoryFactory";
 import { DataSynchronizationParams } from "../../../../aggregated/entities/DataSynchronizationParams";
 import { DataValue } from "../../../../aggregated/entities/DataValue";
+import { DynamicRepositoryFactory } from "../../../../common/factories/DynamicRepositoryFactory";
 import { Instance } from "../../../../instance/entities/Instance";
+import { MetadataMappingDictionary } from "../../../../mapping/entities/MetadataMapping";
 import { DataElement, Indicator, MetadataPackage } from "../../../../metadata/entities/MetadataEntities";
 import { WmrAggregatedSyncOptions, WmrAggregatedSyncUseCase } from "../WmrAggregatedSyncUseCase";
 
@@ -20,6 +23,14 @@ const baoma = "vWbkYPRmKyS";
 const defaultCategoryOptionCombo = "HllvX50cXC0";
 const publicCategoryOptionCombo = "XS0jDrjreLW";
 const privateCategoryOptionCombo = "Y0HU7KNK0qH";
+const targetBadjia = "TargetBadj1";
+
+const targetInstance = Instance.build({
+    id: "TARGET",
+    name: "Target instance",
+    type: "dhis",
+    url: "http://target.example.org",
+});
 
 const sourceDataElement = givenDataElement("sourceDataElement", sourceDataSetId);
 const countrySyncDataElement = givenDataElement("countrySyncDataElement", countrySyncDataSetId);
@@ -149,6 +160,43 @@ describe("WmrAggregatedSyncUseCase", () => {
                 ["2025"]
             );
         });
+
+        it("sends a value of a parent to its mapped org unit keeping the data element and category option combo", async () => {
+            const dataParams: DataSynchronizationParams = {
+                orgUnitPaths: [`/${country}/${badjia}`],
+                period: "LAST_YEAR",
+                dryRun: true,
+            };
+            const countrySyncValue = {
+                ...givenValue({ orgUnit: badjia, period: "2025", value: "23" }, publicCategoryOptionCombo),
+                dataElement: countrySyncDataElement.id,
+            };
+            const { useCase, aggregatedRepository } = givenUseCase({
+                dataParams,
+                metadata: { dataElements: [countrySyncDataElement] },
+                options: { periods: ["2025"] },
+                targetMapping: { organisationUnits: { [badjia]: { mappedId: targetBadjia } } },
+            });
+            aggregatedRepository.getAggregated.mockResolvedValueOnce({ dataValues: [] });
+            aggregatedRepository.getAggregated.mockResolvedValueOnce({ dataValues: [countrySyncValue] });
+
+            await useCase.postPayload(targetInstance);
+
+            expect(aggregatedRepository.save).toHaveBeenCalledWith(
+                {
+                    dataValues: [
+                        {
+                            orgUnit: targetBadjia,
+                            dataElement: countrySyncDataElement.id,
+                            categoryOptionCombo: publicCategoryOptionCombo,
+                            period: "2025",
+                            value: "23",
+                        },
+                    ],
+                },
+                dataParams
+            );
+        });
     });
 });
 
@@ -188,8 +236,26 @@ function givenUseCase(attrs: {
     dataParams: DataSynchronizationParams;
     metadata: MetadataPackage;
     options: WmrAggregatedSyncOptions;
+    targetMapping?: MetadataMappingDictionary;
 }) {
-    const { repositoryFactory, aggregatedRepository } = givenAggregatedRepositoryFactory(localInstance, attrs.metadata);
+    const { repositoryFactory: baseRepositoryFactory, aggregatedRepository: baseAggregatedRepository } =
+        givenAggregatedRepositoryFactory(localInstance, attrs.metadata);
+    const aggregatedRepository = {
+        ...baseAggregatedRepository,
+        save: vi.fn().mockResolvedValue({ status: "SUCCESS" }),
+    };
+    const repositoryFactory = {
+        ...baseRepositoryFactory,
+        aggregatedRepository: () => aggregatedRepository,
+        metadataRepository: () => ({
+            getMetadataByIds: async () => attrs.metadata,
+            getCategoryOptionCombos: async () => [],
+            getDefaultIds: async () => [defaultCategoryOptionCombo],
+        }),
+        mappingRepository: () => ({
+            getByOwner: async () => ({ mappingDictionary: attrs.targetMapping ?? {} }),
+        }),
+    } as unknown as DynamicRepositoryFactory;
     const metadataIds = [
         ...(attrs.metadata.dataElements ?? []).map(({ id }) => id),
         ...(attrs.metadata.indicators ?? []).map(({ id }) => id),

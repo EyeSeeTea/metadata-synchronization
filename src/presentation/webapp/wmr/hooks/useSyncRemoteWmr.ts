@@ -9,54 +9,58 @@ import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 import { useMappingDataElements } from "./useMappingDataElements";
 import { getWmrReportedYear } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
+import {
+    getWmrSubmitTarget,
+    WmrSubmitTarget,
+    wmrFlowDefinitions,
+} from "../../../../domain/entities/wmr/entities/WmrFlowKind";
 
-type WmrRemoteSyncResult = { stats?: SynchronizationStats } & (
-    | {
-          type: "success";
-      }
-    | {
-          type: "error";
-          message: string;
-      }
-    | {
-          type: "warning";
-      }
-);
+export type WmrRemoteSyncResult = Readonly<
+    { stats?: SynchronizationStats } & ({ type: "success" } | { type: "error"; message: string } | { type: "warning" })
+>;
 
-type UseSyncRemoteWmrOptions = {
+type UseSyncRemoteWmrOptions = Readonly<{
     instance: Maybe<Instance>;
-    targetOrgUnitId: Maybe<Id>;
-};
+    targetOrgUnitId?: Id;
+}>;
 
 export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
     const { instance, targetOrgUnitId } = options;
     const { compositionRoot } = useAppContext();
-    const { syncRule } = useWmrContext();
+    const { settings, syncRule, regionalParents } = useWmrContext();
     const loading = useLoading();
     const [wmrRemoteSyncResult, setWmrRemoteSyncResult] = React.useState<WmrRemoteSyncResult | null>(null);
     const { dataElementsToMigrate } = useMappingDataElements("REMOTE");
 
-    React.useEffect(() => {
-        if (!syncRule) {
-            return;
-        }
-        // TODO: use this property on sync-rule or remove it?
-        syncRule.targetOrgUnitId = targetOrgUnitId;
-    }, [syncRule, targetOrgUnitId]);
+    const flowKind = syncRule?.flow?.kind;
+    const submitTarget = React.useMemo<Maybe<WmrSubmitTarget>>(
+        () =>
+            settings && flowKind
+                ? getWmrSubmitTarget(
+                      wmrFlowDefinitions[flowKind],
+                      settings.countryOrgUnit,
+                      regionalParents,
+                      targetOrgUnitId
+                  )
+                : undefined,
+        [settings, flowKind, regionalParents, targetOrgUnitId]
+    );
 
     const syncRemoteWmr = React.useCallback(async () => {
-        if (!instance || !targetOrgUnitId || !syncRule?.flow) {
+        if (!instance || !syncRule || submitTarget?.type !== "ready") {
             setWmrRemoteSyncResult({
                 type: "error",
                 message: i18n.t("Instance or target organisation unit ID is not provided."),
             });
             return;
         }
+        const { orgUnitPaths, orgUnitIdOverride } = submitTarget;
         const syncRuleUpdated = syncRule.rule
             .updateTargetInstances([instance.id])
             .updateBuilder({ metadataIds: dataElementsToMigrate })
             .updateDataSyncEnableAggregation(false)
-            .updateDataSyncAggregationType(undefined);
+            .updateDataSyncAggregationType(undefined)
+            .updateDataSyncOrgUnitPaths([...orgUnitPaths]);
         const periods = [getWmrReportedYear(syncRuleUpdated.dataParams)];
         loading.show();
 
@@ -65,7 +69,7 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
 
         const synchronize = async () => {
             for await (const { message, syncReport, done } of sync.execute({
-                orgUnitIdOverride: targetOrgUnitId,
+                orgUnitIdOverride,
                 periods,
             })) {
                 if (message) loading.show(true, message);
@@ -107,7 +111,7 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
         });
     }, [
         instance,
-        targetOrgUnitId,
+        submitTarget,
         syncRule,
         loading,
         compositionRoot.sync,
@@ -119,5 +123,6 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
     return {
         syncRemoteWmr,
         wmrRemoteSyncResult,
+        submitTarget,
     };
 }

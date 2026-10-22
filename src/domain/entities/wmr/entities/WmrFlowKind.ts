@@ -1,5 +1,6 @@
 import { Id } from "../../../common/entities/Schemas";
 import { DataSyncAggregation } from "../../../aggregated/entities/DataSyncAggregation";
+import { Maybe } from "../../../../types/utils";
 import { WmrNamedOrgUnit } from "./WmrOrgUnits";
 import { WmrRequisiteType } from "./WmrRequisite";
 import { WmrSourcePeriodType } from "./WmrSyncFlow";
@@ -57,5 +58,26 @@ export function getWmrDestinationOrgUnits(
             return [country];
         case "parents":
             return parents;
+    }
+}
+
+export type WmrSubmitTarget = Readonly<
+    { type: "ready"; orgUnitPaths: ReadonlyArray<string>; orgUnitIdOverride: Maybe<Id> } | { type: "missingOrgUnit" }
+>;
+
+export function getWmrSubmitTarget(
+    definition: WmrFlowDefinition,
+    country: WmrNamedOrgUnit,
+    parents: ReadonlyArray<WmrNamedOrgUnit>,
+    targetOrgUnitId: Maybe<Id>
+): WmrSubmitTarget {
+    const orgUnitPaths = getWmrDestinationOrgUnits(definition, country, parents).map(({ path }) => path);
+    switch (definition.targetOrgUnit) {
+        case "override":
+            return targetOrgUnitId
+                ? { type: "ready", orgUnitPaths, orgUnitIdOverride: targetOrgUnitId }
+                : { type: "missingOrgUnit" };
+        case "mapping":
+            return { type: "ready", orgUnitPaths, orgUnitIdOverride: undefined };
     }
 }

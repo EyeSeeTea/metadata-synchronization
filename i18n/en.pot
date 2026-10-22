@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-10-17T23:22:43.963Z\n"
-"PO-Revision-Date: 2026-10-17T23:22:43.963Z\n"
+"POT-Creation-Date: 2026-10-21T18:06:16.212Z\n"
+"PO-Revision-Date: 2026-10-21T18:06:16.213Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2639,8 +2639,38 @@ msgstr ""
 msgid "Select a DataSet"
 msgstr "Select a DataSet"
 
+msgid "Target instance: {{name}} ({{url}})"
+msgstr "Target instance: {{name}} ({{url}})"
+
+msgid "Please select a target instance to submit the data"
+msgstr "Please select a target instance to submit the data"
+
+msgid "Values are sent to the {{count}} organisation units mapped in step 1."
+msgid_plural "Values are sent to the {{count}} organisation units mapped in step 1."
+msgstr[0] "Values are sent to the {{count}} organisation units mapped in step 1."
+msgstr[1] "Values are sent to the {{count}} organisation units mapped in step 1."
+
+msgid "Send DataValues to target instance"
+msgstr "Send DataValues to target instance"
+
 msgid "Submit WMR Data"
 msgstr "Submit WMR Data"
+
+msgid ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+msgstr ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+
+msgid "Your data is ready for submission. Send the data to the target instance."
+msgstr "Your data is ready for submission. Send the data to the target instance."
+
+msgid "Target Organisation Unit Id"
+msgstr "Target Organisation Unit Id"
+
+msgid "Please provide a target organisation unit ID and Validate it"
+msgstr "Please provide a target organisation unit ID and Validate it"
 
 msgid "Data successfully submitted to the target instance."
 msgstr "Data successfully submitted to the target instance."
@@ -2650,28 +2680,6 @@ msgstr "Data submitted with warnings."
 
 msgid "Data submission failed."
 msgstr "Data submission failed."
-
-msgid ""
-"Your data is ready for submission. Provide the target organisation unit and "
-"send the data."
-msgstr ""
-"Your data is ready for submission. Provide the target organisation unit and "
-"send the data."
-
-msgid "Target instance: {{name}} ({{url}})"
-msgstr "Target instance: {{name}} ({{url}})"
-
-msgid "Please select a target instance to submit the data"
-msgstr "Please select a target instance to submit the data"
-
-msgid "Target Organisation Unit Id"
-msgstr "Target Organisation Unit Id"
-
-msgid "Please provide a target organisation unit ID and Validate it"
-msgstr "Please provide a target organisation unit ID and Validate it"
-
-msgid "Send DataValues to target instance"
-msgstr "Send DataValues to target instance"
 
 msgid "Sync WMR Country Dataset"
 msgstr "Sync WMR Country Dataset"

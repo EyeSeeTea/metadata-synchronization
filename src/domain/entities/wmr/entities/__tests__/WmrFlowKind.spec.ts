@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { getWmrDestinationOrgUnits, isWmrAggregationEnabled, wmrFlowDefinitions } from "../WmrFlowKind";
+import {
+    getWmrDestinationOrgUnits,
+    getWmrSubmitTarget,
+    isWmrAggregationEnabled,
+    wmrFlowDefinitions,
+} from "../WmrFlowKind";
 
 const sierraLeone = { id: "ImspTQPwCqd", name: "Sierra Leone", path: "/ImspTQPwCqd" };
 const badjia = { id: "YuQRtpLP10I", name: "Badjia", path: "/ImspTQPwCqd/O6uvpzGd5pu/YuQRtpLP10I" };
 const baoma = { id: "vWbkYPRmKyS", name: "Baoma", path: "/ImspTQPwCqd/O6uvpzGd5pu/vWbkYPRmKyS" };
+const targetOrgUnitId = "TargetSL001";
 
 describe("WmrFlowKind", () => {
     describe("wmrFlowDefinitions", () => {
@@ -58,6 +64,26 @@ describe("WmrFlowKind", () => {
                 badjia,
                 baoma,
             ]);
+        });
+    });
+
+    describe("getWmrSubmitTarget", () => {
+        it("sends the global flow from the country, overriding the org unit with the target one", () => {
+            expect(
+                getWmrSubmitTarget(wmrFlowDefinitions.global, sierraLeone, [badjia, baoma], targetOrgUnitId)
+            ).toEqual({ type: "ready", orgUnitPaths: [sierraLeone.path], orgUnitIdOverride: targetOrgUnitId });
+        });
+
+        it("cannot send the global flow without a target org unit", () => {
+            expect(getWmrSubmitTarget(wmrFlowDefinitions.global, sierraLeone, [badjia, baoma], undefined)).toEqual({
+                type: "missingOrgUnit",
+            });
+        });
+
+        it("sends the regional flow from the parents without override, leaving the org units to the mapping", () => {
+            expect(
+                getWmrSubmitTarget(wmrFlowDefinitions.regional, sierraLeone, [badjia, baoma], targetOrgUnitId)
+            ).toEqual({ type: "ready", orgUnitPaths: [badjia.path, baoma.path], orgUnitIdOverride: undefined });
         });
     });
 });

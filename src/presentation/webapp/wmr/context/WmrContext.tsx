@@ -12,7 +12,6 @@ export type WmrSyncRule = {
     localDataSetId: Maybe<Id>;
     flow: Maybe<WmrFlow>;
     rule: SynchronizationRule;
-    targetOrgUnitId: Maybe<Id>;
 };
 
 export type WmrOrgUnitMapping = MetadataMappingDictionary["organisationUnits"];

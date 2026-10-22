@@ -5,77 +5,51 @@ import { CloudUpload as SyncIcon } from "@material-ui/icons";
 import i18n from "../../../utils/i18n";
 import { Maybe } from "../../../types/utils";
 import { Id } from "../../../domain/common/entities/Schemas";
+import { Instance } from "../../../domain/instance/entities/Instance";
+import { WmrFlow } from "../../../domain/entities/wmr/entities/WmrSettings";
+import { WmrFlowDefinition, wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
+import { getWmrReportedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { OrgUnitInput } from "./components/OrgUnitInput";
 import { NoticeBox } from "./components/NoticeBox";
-import { useSyncRemoteWmr } from "./hooks/useSyncRemoteWmr";
+import { useSyncRemoteWmr, WmrRemoteSyncResult } from "./hooks/useSyncRemoteWmr";
 import { SummaryTable } from "../../react/core/components/sync-summary/SummaryTable";
 import { useWmrContext } from "./context/WmrContext";
 import { WmrFlowLabel } from "./components/WmrFlowLabel";
+import { WmrSyncPeriod } from "./components/WmrSyncPeriod";
 import { useWmrTargetOrgUnit } from "./hooks/useWmrTargetOrgUnit";
 
 export function SubmitWmr() {
     const loading = useLoading();
-    const { syncRule, targetInstance } = useWmrContext();
-    const [targetOrgUnitId, setTargetOrgUnitId] = React.useState<Maybe<Id>>();
-    const { syncRemoteWmr, wmrRemoteSyncResult } = useSyncRemoteWmr({
+    const { syncRule, targetInstance, regionalParents } = useWmrContext();
+    const [targetOrgUnitId, setTargetOrgUnitId] = React.useState<Id>();
+    const { syncRemoteWmr, wmrRemoteSyncResult, submitTarget } = useSyncRemoteWmr({
         instance: targetInstance,
         targetOrgUnitId,
     });
-    const { savedTargetOrgUnit, saveTargetOrgUnit } = useWmrTargetOrgUnit(targetInstance);
+    if (!syncRule?.flow) {
+        throw new Error("WMR Context should be initialized");
+    }
+    const { flow } = syncRule;
+    const definition = wmrFlowDefinitions[flow.kind];
+    const year = getWmrReportedYear(syncRule.rule.dataParams);
+    const header = <WmrSubmitHeader flow={flow} year={year} definition={definition} />;
 
-    const onOrgUnitValidated = React.useCallback(
-        (orgUnitId: Id) => {
-            setTargetOrgUnitId(orgUnitId);
-            saveTargetOrgUnit(orgUnitId);
-        },
-        [saveTargetOrgUnit]
-    );
-
-    const sendIsDisabled = !targetInstance?.url || !targetOrgUnitId || loading.isLoading;
     if (wmrRemoteSyncResult) {
         return (
             <Box>
-                <Typography variant="h4" gutterBottom>
-                    {i18n.t("Submit WMR Data")}
-                </Typography>
-                {wmrRemoteSyncResult?.type === "success" ? (
-                    <NoticeBox type="success" message={i18n.t("Data successfully submitted to the target instance.")} />
-                ) : wmrRemoteSyncResult?.type === "warning" ? (
-                    <NoticeBox type="warning" message={i18n.t("Data submitted with warnings.")} />
-                ) : (
-                    <NoticeBox
-                        type="error"
-                        message={wmrRemoteSyncResult.message || i18n.t("Data submission failed.")}
-                    />
-                )}
+                {header}
+                <WmrRemoteSyncResultNotice result={wmrRemoteSyncResult} />
                 {wmrRemoteSyncResult.stats && <SummaryTable stats={[wmrRemoteSyncResult.stats]} />}
             </Box>
         );
     }
+
+    const sendIsDisabled = !targetInstance?.url || submitTarget?.type !== "ready" || loading.isLoading;
+
     return (
         <Box>
-            <Typography variant="h4" gutterBottom>
-                {i18n.t("Submit WMR Data")}
-            </Typography>
-            <Box>
-                <NoticeBox
-                    type="info"
-                    message={i18n.t(
-                        "Your data is ready for submission. Provide the target organisation unit and send the data."
-                    )}
-                />
-            </Box>
-            {syncRule?.flow && <WmrFlowLabel flow={syncRule.flow} />}
-            {targetInstance?.url && savedTargetOrgUnit.type === "loaded" && (
-                <Box p={2}>
-                    <OrgUnitInput
-                        key={targetInstance.id}
-                        instance={targetInstance}
-                        initialValue={savedTargetOrgUnit.orgUnitId}
-                        onChange={onOrgUnitValidated}
-                    />
-                </Box>
-            )}
+            {header}
+            <NoticeBox type="info" message={describeWmrSubmitIntro(definition)} />
             <Box p={2}>
                 <NoticeBox
                     type={targetInstance?.url ? "success" : "error"}
@@ -90,14 +64,22 @@ export function SubmitWmr() {
                             : i18n.t("Please select a target instance to submit the data")
                     }
                 />
-                <NoticeBox
-                    type={targetOrgUnitId ? "success" : "error"}
-                    message={
-                        targetOrgUnitId
-                            ? `${i18n.t("Target Organisation Unit Id")}: ${targetOrgUnitId}`
-                            : i18n.t("Please provide a target organisation unit ID and Validate it")
-                    }
-                />
+                {definition.targetOrgUnit === "override" ? (
+                    targetInstance?.url && (
+                        <WmrTargetOrgUnitOverride
+                            instance={targetInstance}
+                            targetOrgUnitId={targetOrgUnitId}
+                            onChange={setTargetOrgUnitId}
+                        />
+                    )
+                ) : (
+                    <NoticeBox
+                        type="info"
+                        message={i18n.t("Values are sent to the {{count}} organisation units mapped in step 1.", {
+                            count: regionalParents.length,
+                        })}
+                    />
+                )}
                 <Button
                     variant="contained"
                     color="primary"
@@ -111,4 +93,79 @@ export function SubmitWmr() {
             </Box>
         </Box>
     );
+}
+
+type WmrSubmitHeaderProps = Readonly<{ flow: WmrFlow; year: string; definition: WmrFlowDefinition }>;
+
+function WmrSubmitHeader({ flow, year, definition }: WmrSubmitHeaderProps) {
+    return (
+        <Box mb={2}>
+            <Typography variant="h4" gutterBottom>
+                {i18n.t("Submit WMR Data")}
+            </Typography>
+            <WmrFlowLabel flow={flow} />
+            <WmrSyncPeriod year={year} sumsMonths={definition.sumIntoYear} />
+        </Box>
+    );
+}
+
+function describeWmrSubmitIntro(definition: WmrFlowDefinition): string {
+    switch (definition.targetOrgUnit) {
+        case "override":
+            return i18n.t("Your data is ready for submission. Provide the target organisation unit and send the data.");
+        case "mapping":
+            return i18n.t("Your data is ready for submission. Send the data to the target instance.");
+    }
+}
+
+type WmrTargetOrgUnitOverrideProps = Readonly<{
+    instance: Instance;
+    targetOrgUnitId: Maybe<Id>;
+    onChange: (orgUnitId: Id) => void;
+}>;
+
+function WmrTargetOrgUnitOverride({ instance, targetOrgUnitId, onChange }: WmrTargetOrgUnitOverrideProps) {
+    const { savedTargetOrgUnit, saveTargetOrgUnit } = useWmrTargetOrgUnit(instance);
+
+    const onOrgUnitValidated = React.useCallback(
+        (orgUnitId: Id) => {
+            onChange(orgUnitId);
+            saveTargetOrgUnit(orgUnitId);
+        },
+        [onChange, saveTargetOrgUnit]
+    );
+
+    return (
+        <>
+            {savedTargetOrgUnit.type === "loaded" && (
+                <Box py={2}>
+                    <OrgUnitInput
+                        key={instance.id}
+                        instance={instance}
+                        initialValue={savedTargetOrgUnit.orgUnitId}
+                        onChange={onOrgUnitValidated}
+                    />
+                </Box>
+            )}
+            <NoticeBox
+                type={targetOrgUnitId ? "success" : "error"}
+                message={
+                    targetOrgUnitId
+                        ? `${i18n.t("Target Organisation Unit Id")}: ${targetOrgUnitId}`
+                        : i18n.t("Please provide a target organisation unit ID and Validate it")
+                }
+            />
+        </>
+    );
+}
+
+function WmrRemoteSyncResultNotice({ result }: Readonly<{ result: WmrRemoteSyncResult }>) {
+    switch (result.type) {
+        case "success":
+            return <NoticeBox type="success" message={i18n.t("Data successfully submitted to the target instance.")} />;
+        case "warning":
+            return <NoticeBox type="warning" message={i18n.t("Data submitted with warnings.")} />;
+        case "error":
+            return <NoticeBox type="error" message={result.message || i18n.t("Data submission failed.")} />;
+    }
 }
