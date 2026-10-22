@@ -1,7 +1,7 @@
 import { Maybe } from "../../../../types/utils";
 import { MetadataMappingDictionary } from "../../../mapping/entities/MetadataMapping";
 import { WmrFlowKind, wmrFlowDefinitions } from "./WmrFlowKind";
-import { findDuplicatedTargets, isOrgUnitMapped, WmrLevelOrgUnit } from "./WmrOrgUnits";
+import { findDuplicatedTargets, WmrLevelOrgUnit } from "./WmrOrgUnits";
 
 export type WmrSetupState = Readonly<{
     flowKind: Maybe<WmrFlowKind>;
@@ -16,7 +16,6 @@ export type WmrSetupBlocker =
     | Readonly<{ type: "requisites" }>
     | Readonly<{ type: "targetInstance" }>
     | Readonly<{ type: "level" }>
-    | Readonly<{ type: "unmapped"; count: number }>
     | Readonly<{ type: "duplicated"; orgUnitNames: ReadonlyArray<string> }>;
 
 export function getWmrSetupBlocker(state: WmrSetupState): Maybe<WmrSetupBlocker> {
@@ -28,9 +27,6 @@ export function getWmrSetupBlocker(state: WmrSetupState): Maybe<WmrSetupBlocker>
     const definition = wmrFlowDefinitions[flowKind];
     if (definition.destinationOrgUnits === "parents" && regionalParents.length === 0) return { type: "level" };
     if (definition.targetOrgUnit === "override") return undefined;
-
-    const unmappedCount = regionalParents.filter(({ id }) => !isOrgUnitMapped(orgUnitMapping, id)).length;
-    if (unmappedCount > 0) return { type: "unmapped", count: unmappedCount };
 
     const [duplicated] = findDuplicatedTargets(
         orgUnitMapping,

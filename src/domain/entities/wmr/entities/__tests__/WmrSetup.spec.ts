@@ -56,10 +56,11 @@ describe("getWmrSetupBlocker", () => {
             });
         });
 
-        it("counts the parents left to map, disabled ones included", () => {
-            expect(
-                getWmrSetupBlocker({ ...readyRegional, orgUnitMapping: { [badjia.id]: { mappedId: "DISABLED" } } })
-            ).toEqual({ type: "unmapped", count: 2 });
+        it("lets the user proceed with parents left unmapped or disabled", () => {
+            expect([
+                getWmrSetupBlocker({ ...readyRegional, orgUnitMapping: undefined }),
+                getWmrSetupBlocker({ ...readyRegional, orgUnitMapping: { [badjia.id]: { mappedId: "DISABLED" } } }),
+            ]).toEqual([undefined, undefined]);
         });
 
         it("names the parents mapped to the same target", () => {

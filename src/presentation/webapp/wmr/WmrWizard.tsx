@@ -18,10 +18,6 @@ function getSetupBlockerMessage(blocker: WmrSetupBlocker): string {
             return i18n.t("Select the target instance before proceeding.");
         case "level":
             return i18n.t("Assign the monthly form to an organisation unit level before proceeding.");
-        case "unmapped":
-            return i18n.t("Map the {{count}} parent organisation units left before proceeding.", {
-                count: blocker.count,
-            });
         case "duplicated":
             return i18n.t("{{names}} are mapped to the same target organisation unit.", {
                 names: blocker.orgUnitNames.join(", "),

@@ -24,7 +24,7 @@ export function findDuplicatedTargets(
 ): ReadonlyArray<WmrDuplicatedTarget> {
     const mappedOrgUnits = orgUnitIds.flatMap(orgUnitId => {
         const targetId = mapping?.[orgUnitId]?.mappedId;
-        return targetId ? [{ orgUnitId, targetId }] : [];
+        return targetId && isOrgUnitMapped(mapping, orgUnitId) ? [{ orgUnitId, targetId }] : [];
     });
     return _(mappedOrgUnits)
         .groupBy(({ targetId }) => targetId)

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-10-21T18:06:16.212Z\n"
-"PO-Revision-Date: 2026-10-21T18:06:16.213Z\n"
+"POT-Creation-Date: 2026-10-22T02:41:31.645Z\n"
+"PO-Revision-Date: 2026-10-22T02:41:31.646Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2798,11 +2798,6 @@ msgstr "Select the target instance before proceeding."
 
 msgid "Assign the monthly form to an organisation unit level before proceeding."
 msgstr "Assign the monthly form to an organisation unit level before proceeding."
-
-msgid "Map the {{count}} parent organisation units left before proceeding."
-msgid_plural "Map the {{count}} parent organisation units left before proceeding."
-msgstr[0] "Map the {{count}} parent organisation units left before proceeding."
-msgstr[1] "Map the {{count}} parent organisation units left before proceeding."
 
 msgid "{{names}} are mapped to the same target organisation unit."
 msgstr "{{names}} are mapped to the same target organisation unit."

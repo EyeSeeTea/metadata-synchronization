@@ -73,6 +73,12 @@ describe("WmrOrgUnits", () => {
             expect(findDuplicatedTargets(mapping, [badjia, baoma, "unknownOrgU"])).toEqual([]);
         });
 
+        it("ignores parents mapped to DISABLED", () => {
+            const mapping = mappedTo({ [badjia]: "DISABLED", [baoma]: "DISABLED" });
+
+            expect(findDuplicatedTargets(mapping, [badjia, baoma])).toEqual([]);
+        });
+
         it("reports nothing without a mapping", () => {
             expect(findDuplicatedTargets(undefined, [badjia, baoma])).toEqual([]);
         });
