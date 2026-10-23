@@ -42,6 +42,7 @@ export type {
 export type { FilterValueOperator, FilterBase, FilterValue } from "@eyeseetea/d2-api/api/common";
 export type { D2SchemaProperties } from "@eyeseetea/d2-api/schemas";
 export type { TrackerPostParams, TrackerPostRequest, TrackerPostResponse } from "@eyeseetea/d2-api/api/tracker";
+export { getTrackerFieldsParam } from "@eyeseetea/d2-api/api/tracker";
 export type {
     D2TrackerTrackedEntity,
     D2TrackerTrackedEntitySchema,
