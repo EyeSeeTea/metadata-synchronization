@@ -8,15 +8,15 @@ export function WmrSyncPeriod({ year, sumsMonths }: WmrSyncPeriodProps) {
 }
 
 export function describeWmrSyncPeriod(year: string, sumsMonths: boolean, locale?: string): string {
-    const options = { nsSeparator: false, interpolation: { escapeValue: false } } as const;
     return sumsMonths
         ? i18n.t("Period: {{year}}, sum of {{from}} to {{to}}", {
               year,
               from: formatMonth(year, 0, locale),
               to: formatMonth(year, 11, locale),
-              ...options,
+              nsSeparator: false,
+              interpolation: { escapeValue: false },
           })
-        : i18n.t("Period: {{year}}", { year, ...options });
+        : i18n.t("Period: {{year}}", { year, nsSeparator: false, interpolation: { escapeValue: false } });
 }
 
 function formatMonth(year: string, monthIndex: number, locale: string | undefined): string {

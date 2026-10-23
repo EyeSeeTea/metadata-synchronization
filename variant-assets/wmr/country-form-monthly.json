@@ -1,0 +1,95 @@
+{
+    "dataSets": [
+        {
+            "code": "AFR_COUNTRY_MONTHLY",
+            "dataInputPeriods": [],
+            "dataSetElements": [
+                {
+                    "dataElement": {
+                        "id": "Th6srmdoaxC"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "nuTyN7QXLI0"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "dmBDMVEXfM3"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "R55HaOWBLdD"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "MSaLTr7SFxa"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "gy2LuIe7BRD"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "bjyXcVn0Slk"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "VH9BlPBzebH"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "C2tGpaWNOz3"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                },
+                {
+                    "dataElement": {
+                        "id": "j0tB5FSXNR5"
+                    },
+                    "dataSet": {
+                        "id": "XLH19d7nJlX"
+                    }
+                }
+            ],
+            "id": "XLH19d7nJlX",
+            "indicators": [],
+            "name": "MAL - WMR Country Form MONTHLY",
+            "periodType": "Monthly",
+            "shortName": "MAL - WMR Country Form MONTHLY"
+        }
+    ]
+}

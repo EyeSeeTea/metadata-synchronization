@@ -22,7 +22,6 @@ export function useWmrSyncAccess(destinationOrgUnits: ReadonlyArray<WmrNamedOrgU
 }
 
 export function toWmrSyncAccessState(access: WmrSyncAccess): WmrSyncAccessState {
-    const options = { nsSeparator: false, interpolation: { escapeValue: false } } as const;
     switch (access.type) {
         case "ok":
             return { type: "ok" };
@@ -31,7 +30,8 @@ export function toWmrSyncAccessState(access: WmrSyncAccess): WmrSyncAccessState 
                 type: "error",
                 message: i18n.t("You cannot enter data in {{dataSet}}. Ask an administrator for data write sharing.", {
                     dataSet: access.dataSet,
-                    ...options,
+                    nsSeparator: false,
+                    interpolation: { escapeValue: false },
                 }),
             };
         case "outsideCapture":
@@ -39,7 +39,8 @@ export function toWmrSyncAccessState(access: WmrSyncAccess): WmrSyncAccessState 
                 type: "error",
                 message: i18n.t("{{orgUnits}} are outside your data capture organisation units.", {
                     orgUnits: access.orgUnitNames.join(", "),
-                    ...options,
+                    nsSeparator: false,
+                    interpolation: { escapeValue: false },
                 }),
             };
     }
