@@ -20,14 +20,12 @@ const readyGlobal: WmrSetupState = {
     requisitesReady: true,
     hasTargetInstance: true,
     regionalParents: [],
-    orgUnitMapping: undefined,
 };
 
 const readyRegional: WmrSetupState = {
     ...readyGlobal,
     flowKind: "regional",
     regionalParents: [badjia, baoma],
-    orgUnitMapping: { [badjia.id]: { mappedId: "targetBadjia" }, [baoma.id]: { mappedId: "targetBaoma" } },
 };
 
 describe("getWmrSetupBlocker", () => {
@@ -46,30 +44,12 @@ describe("getWmrSetupBlocker", () => {
     });
 
     describe("regional flow", () => {
-        it("lets the user proceed when every parent is mapped to its own target", () => {
+        it("lets the user proceed once a level is assigned, whatever the org unit mapping", () => {
             expect(getWmrSetupBlocker(readyRegional)).toBe(undefined);
         });
 
-        it("requires an assigned level before the mapping", () => {
-            expect(getWmrSetupBlocker({ ...readyRegional, regionalParents: [], orgUnitMapping: undefined })).toEqual({
-                type: "level",
-            });
-        });
-
-        it("lets the user proceed with parents left unmapped or disabled", () => {
-            expect([
-                getWmrSetupBlocker({ ...readyRegional, orgUnitMapping: undefined }),
-                getWmrSetupBlocker({ ...readyRegional, orgUnitMapping: { [badjia.id]: { mappedId: "DISABLED" } } }),
-            ]).toEqual([undefined, undefined]);
-        });
-
-        it("names the parents mapped to the same target", () => {
-            const orgUnitMapping = { [badjia.id]: { mappedId: "target" }, [baoma.id]: { mappedId: "target" } };
-
-            expect(getWmrSetupBlocker({ ...readyRegional, orgUnitMapping })).toEqual({
-                type: "duplicated",
-                orgUnitNames: ["Badjia", "Baoma"],
-            });
+        it("requires an assigned level", () => {
+            expect(getWmrSetupBlocker({ ...readyRegional, regionalParents: [] })).toEqual({ type: "level" });
         });
     });
 });

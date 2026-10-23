@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { MetadataMappingDictionary } from "../../../../mapping/entities/MetadataMapping";
 import {
     buildWmrLevelAssignment,
-    findDuplicatedTargets,
     getAssignableLevels,
     getParentOrgUnits,
     getSingleLevel,
@@ -49,38 +48,6 @@ describe("WmrOrgUnits", () => {
 
         it("skips the root, which has no parent", () => {
             expect(getParentOrgUnits([{ id: sierraLeone, path: `/${sierraLeone}` }])).toEqual([]);
-        });
-    });
-
-    describe("findDuplicatedTargets", () => {
-        it("reports two parents mapped to the same target", () => {
-            const mapping = mappedTo({ [badjia]: targetBadjia, [baoma]: targetBadjia });
-
-            expect(findDuplicatedTargets(mapping, [badjia, baoma])).toEqual([
-                { targetId: targetBadjia, orgUnitIds: [badjia, baoma] },
-            ]);
-        });
-
-        it("reports nothing when every parent has its own target", () => {
-            const mapping = mappedTo({ [badjia]: targetBadjia, [baoma]: targetBaoma });
-
-            expect(findDuplicatedTargets(mapping, [badjia, baoma])).toEqual([]);
-        });
-
-        it("ignores unmapped parents and org units outside the given ids", () => {
-            const mapping = { ...mappedTo({ [badjia]: targetBadjia, [bumpe]: targetBadjia }), [baoma]: {} };
-
-            expect(findDuplicatedTargets(mapping, [badjia, baoma, "unknownOrgU"])).toEqual([]);
-        });
-
-        it("ignores parents mapped to DISABLED", () => {
-            const mapping = mappedTo({ [badjia]: "DISABLED", [baoma]: "DISABLED" });
-
-            expect(findDuplicatedTargets(mapping, [badjia, baoma])).toEqual([]);
-        });
-
-        it("reports nothing without a mapping", () => {
-            expect(findDuplicatedTargets(undefined, [badjia, baoma])).toEqual([]);
         });
     });
 

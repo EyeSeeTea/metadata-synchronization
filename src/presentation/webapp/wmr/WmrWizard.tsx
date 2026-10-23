@@ -18,16 +18,11 @@ function getSetupBlockerMessage(blocker: WmrSetupBlocker): string {
             return i18n.t("Select the target instance before proceeding.");
         case "level":
             return i18n.t("Assign the monthly form to an organisation unit level before proceeding.");
-        case "duplicated":
-            return i18n.t("{{names}} are mapped to the same target organisation unit.", {
-                names: blocker.orgUnitNames.join(", "),
-                interpolation: { escapeValue: false },
-            });
     }
 }
 
 export function WmrWizard() {
-    const { requisitesReady, syncRule, flowKind, targetInstance, regionalParents, orgUnitMapping } = useWmrContext();
+    const { requisitesReady, syncRule, flowKind, targetInstance, regionalParents } = useWmrContext();
 
     const setupBlocker = React.useMemo(
         () =>
@@ -36,9 +31,8 @@ export function WmrWizard() {
                 requisitesReady,
                 hasTargetInstance: Boolean(targetInstance),
                 regionalParents,
-                orgUnitMapping,
             }),
-        [flowKind, requisitesReady, targetInstance, regionalParents, orgUnitMapping]
+        [flowKind, requisitesReady, targetInstance, regionalParents]
     );
 
     const onStepChangeRequest = React.useCallback(
