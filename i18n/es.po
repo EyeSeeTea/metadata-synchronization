@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-10-23T20:45:48.004Z\n"
+"POT-Creation-Date: 2026-10-23T21:34:30.538Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2577,6 +2577,13 @@ msgstr ""
 msgid "Data submission failed."
 msgstr ""
 
+msgid ""
+"The {{year}} values of {{dataSet}} will be the sum of the selected months "
+"only."
+msgstr ""
+"The {{year}} values of {{dataSet}} will be the sum of the selected months "
+"only."
+
 msgid "Sync WMR Country Dataset"
 msgstr ""
 
@@ -2772,6 +2779,12 @@ msgstr "The user has no capture organisation unit assigned"
 msgid "Sent with organisation unit mapping"
 msgstr "The user has no capture organisation unit assigned"
 
+msgid "From"
+msgstr "From"
+
+msgid "To"
+msgstr "To"
+
 msgid "Loading organisation units..."
 msgstr "Loading organisation units..."
 
@@ -2806,11 +2819,15 @@ msgstr "Assign"
 msgid "{{mapped}} of {{total}} mapped"
 msgstr "{{mapped}} of {{total}} mapped"
 
-msgid "Period: {{year}}, sum of {{from}} to {{to}}"
-msgstr "Period: {{year}}, sum of {{from}} to {{to}}"
-
 msgid "Period: {{year}}"
 msgstr "Period: {{year}}"
+
+#, fuzzy
+msgid "Period: {{year}}, {{month}} only"
+msgstr "Period: {{year}}, sum of {{from}} to {{to}}"
+
+msgid "Period: {{year}}, sum of {{from}} to {{to}}"
+msgstr "Period: {{year}}, sum of {{from}} to {{to}}"
 
 msgid "Synchronization did not return a report."
 msgstr "Synchronization did not return a report."

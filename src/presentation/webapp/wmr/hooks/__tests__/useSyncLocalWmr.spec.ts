@@ -1,6 +1,10 @@
+import moment from "moment";
 import { describe, expect, it, vi } from "vitest";
+import { wmrFlowDefinitions } from "../../../../../domain/entities/wmr/entities/WmrFlowKind";
+import { WmrMonthRange } from "../../../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { SynchronizationReport } from "../../../../../domain/reports/entities/SynchronizationReport";
-import { summarizeWmrLocalSync, syncWithDryRun } from "../useSyncLocalWmr";
+import { SynchronizationRule } from "../../../../../domain/rules/entities/SynchronizationRule";
+import { buildWmrLocalSyncRule, summarizeWmrLocalSync, syncWithDryRun } from "../useSyncLocalWmr";
 
 vi.hoisted(() => {
     Object.defineProperty(globalThis, "localStorage", {
@@ -98,5 +102,38 @@ describe("syncWithDryRun", () => {
             message: "2 created, 3 updated, 0 unchanged",
         });
         expect(synchronize.mock.calls).toEqual([[true], [false]]);
+    });
+});
+
+describe("buildWmrLocalSyncRule", () => {
+    const marchToJune: WmrMonthRange = { from: "202503", to: "202506" };
+    const orgUnitPath = "/ImspTQPwCqd/O6uvpzGd5pu/YuQRtpLP10I";
+    const yearRule = SynchronizationRule.createOnDemand("aggregated").updateDataSyncPeriod("LAST_YEAR");
+
+    const buildPeriodParams = (flowKind: keyof typeof wmrFlowDefinitions) => {
+        const { period, startDate, endDate } = buildWmrLocalSyncRule(yearRule, {
+            definition: wmrFlowDefinitions[flowKind],
+            syncIds: { metadataIds: ["bjyXcVn0Slk"], mappedIndicatorIds: [] },
+            orgUnitPaths: [orgUnitPath],
+            monthRange: marchToJune,
+        }).dataParams;
+        const formatDay = (date: Date | undefined) => date && moment(date).format("YYYY-MM-DD");
+        return { period, startDate: formatDay(startDate), endDate: formatDay(endDate) };
+    };
+
+    it("syncs the selected months in the regional flow", () => {
+        expect(buildPeriodParams("regional")).toEqual({
+            period: "FIXED",
+            startDate: "2025-03-01",
+            endDate: "2025-06-30",
+        });
+    });
+
+    it("keeps the last year in the global flow", () => {
+        expect(buildPeriodParams("global")).toEqual({
+            period: "LAST_YEAR",
+            startDate: undefined,
+            endDate: undefined,
+        });
     });
 });

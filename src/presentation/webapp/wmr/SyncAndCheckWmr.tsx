@@ -8,7 +8,7 @@ import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
 import { formatDateLong } from "../../../utils/date";
 import { removeTrailingSlash } from "../../../utils/d2-utils";
-import { getWmrReportedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { getWmrReportedYear, isWmrFullYearRange } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
 import { useWmrContext } from "./context/WmrContext";
 import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
@@ -16,13 +16,14 @@ import { AnalyticsFreshness, useAnalyticsFreshness } from "./hooks/useAnalyticsF
 import { NoticeBox, NoticeBoxProps } from "./components/NoticeBox";
 import { WmrFlowLabel } from "./components/WmrFlowLabel";
 import { WmrSyncPeriod } from "./components/WmrSyncPeriod";
+import { WmrMonthRangeSelector } from "./components/WmrMonthRangeSelector";
 import { useWmrSyncAccess, WmrSyncAccessState } from "./hooks/useWmrSyncAccess";
 
 type SyncAndCheckWmrProps = {};
 
 export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const { compositionRoot } = useAppContext();
-    const { syncRule, settings } = useWmrContext();
+    const { syncRule, settings, regionalMonthRange, setRegionalMonthRange } = useWmrContext();
     const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult, readsAnalytics, destinationOrgUnits } =
         useSyncLocalWmr();
     const syncAccess = useWmrSyncAccess(destinationOrgUnits);
@@ -34,6 +35,7 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const definition = wmrFlowDefinitions[flow.kind];
     const year = getWmrReportedYear(syncRule.rule.dataParams);
     const showsDataEntry = definition.destinationOrgUnits === "country";
+    const monthRange = definition.sumIntoYear ? regionalMonthRange : undefined;
 
     const onDownload = async () => {
         loading.show();
@@ -53,7 +55,29 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
             )}
             <Grid item xs={12}>
                 <WmrFlowLabel flow={flow} />
-                <WmrSyncPeriod year={year} sumsMonths={definition.sumIntoYear} />
+                <WmrSyncPeriod year={year} monthRange={monthRange} />
+                {monthRange && !wmrLocalSyncResult && (
+                    <WmrMonthRangeSelector
+                        year={year}
+                        range={monthRange}
+                        disabled={wmrLocalSyncIsLoading}
+                        onChange={setRegionalMonthRange}
+                    />
+                )}
+                {monthRange && !isWmrFullYearRange(monthRange, year) && (
+                    <NoticeBox
+                        type="info"
+                        message={i18n.t(
+                            "The {{year}} values of {{dataSet}} will be the sum of the selected months only.",
+                            {
+                                year,
+                                dataSet: flow.destination.name,
+                                nsSeparator: false,
+                                interpolation: { escapeValue: false },
+                            }
+                        )}
+                    />
+                )}
             </Grid>
             {syncAccess.type !== "ok" && (
                 <Grid item xs={12}>

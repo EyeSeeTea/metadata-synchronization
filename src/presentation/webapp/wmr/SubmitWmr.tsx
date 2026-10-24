@@ -8,7 +8,7 @@ import { Id } from "../../../domain/common/entities/Schemas";
 import { Instance } from "../../../domain/instance/entities/Instance";
 import { WmrFlow } from "../../../domain/entities/wmr/entities/WmrSettings";
 import { WmrFlowDefinition, wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
-import { getWmrReportedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { getWmrReportedYear, WmrMonthRange } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { OrgUnitInput } from "./components/OrgUnitInput";
 import { NoticeBox } from "./components/NoticeBox";
 import { useSyncRemoteWmr, WmrRemoteSyncResult } from "./hooks/useSyncRemoteWmr";
@@ -20,7 +20,7 @@ import { useWmrTargetOrgUnit } from "./hooks/useWmrTargetOrgUnit";
 
 export function SubmitWmr() {
     const loading = useLoading();
-    const { syncRule, targetInstance, regionalParents } = useWmrContext();
+    const { syncRule, targetInstance, regionalParents, regionalMonthRange } = useWmrContext();
     const [targetOrgUnitId, setTargetOrgUnitId] = React.useState<Id>();
     const { syncRemoteWmr, wmrRemoteSyncResult, submitTarget } = useSyncRemoteWmr({
         instance: targetInstance,
@@ -32,7 +32,8 @@ export function SubmitWmr() {
     const { flow } = syncRule;
     const definition = wmrFlowDefinitions[flow.kind];
     const year = getWmrReportedYear(syncRule.rule.dataParams);
-    const header = <WmrSubmitHeader flow={flow} year={year} definition={definition} />;
+    const monthRange = definition.sumIntoYear ? regionalMonthRange : undefined;
+    const header = <WmrSubmitHeader flow={flow} year={year} monthRange={monthRange} />;
 
     if (wmrRemoteSyncResult) {
         return (
@@ -95,16 +96,16 @@ export function SubmitWmr() {
     );
 }
 
-type WmrSubmitHeaderProps = Readonly<{ flow: WmrFlow; year: string; definition: WmrFlowDefinition }>;
+type WmrSubmitHeaderProps = Readonly<{ flow: WmrFlow; year: string; monthRange?: WmrMonthRange }>;
 
-function WmrSubmitHeader({ flow, year, definition }: WmrSubmitHeaderProps) {
+function WmrSubmitHeader({ flow, year, monthRange }: WmrSubmitHeaderProps) {
     return (
         <Box mb={2}>
             <Typography variant="h4" gutterBottom>
                 {i18n.t("Submit WMR Data")}
             </Typography>
             <WmrFlowLabel flow={flow} />
-            <WmrSyncPeriod year={year} sumsMonths={definition.sumIntoYear} />
+            <WmrSyncPeriod year={year} monthRange={monthRange} />
         </Box>
     );
 }

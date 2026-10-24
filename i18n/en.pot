@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-10-23T20:56:37.903Z\n"
-"PO-Revision-Date: 2026-10-23T20:56:37.903Z\n"
+"POT-Creation-Date: 2026-10-23T21:34:30.538Z\n"
+"PO-Revision-Date: 2026-10-23T21:34:30.538Z\n"
 
 msgid ""
 "THIS NEW RELEASE INCLUDES SHARING SETTINGS PER INSTANCES. FOR THIS VERSION "
@@ -2681,6 +2681,13 @@ msgstr "Data submitted with warnings."
 msgid "Data submission failed."
 msgstr "Data submission failed."
 
+msgid ""
+"The {{year}} values of {{dataSet}} will be the sum of the selected months "
+"only."
+msgstr ""
+"The {{year}} values of {{dataSet}} will be the sum of the selected months "
+"only."
+
 msgid "Sync WMR Country Dataset"
 msgstr "Sync WMR Country Dataset"
 
@@ -2874,6 +2881,12 @@ msgstr "Summed per year into their parent organisation unit"
 msgid "Sent with organisation unit mapping"
 msgstr "Sent with organisation unit mapping"
 
+msgid "From"
+msgstr "From"
+
+msgid "To"
+msgstr "To"
+
 msgid "Loading organisation units..."
 msgstr "Loading organisation units..."
 
@@ -2908,11 +2921,14 @@ msgstr "Assign"
 msgid "{{mapped}} of {{total}} mapped"
 msgstr "{{mapped}} of {{total}} mapped"
 
-msgid "Period: {{year}}, sum of {{from}} to {{to}}"
-msgstr "Period: {{year}}, sum of {{from}} to {{to}}"
-
 msgid "Period: {{year}}"
 msgstr "Period: {{year}}"
+
+msgid "Period: {{year}}, {{month}} only"
+msgstr "Period: {{year}}, {{month}} only"
+
+msgid "Period: {{year}}, sum of {{from}} to {{to}}"
+msgstr "Period: {{year}}, sum of {{from}} to {{to}}"
 
 msgid "Synchronization did not return a report."
 msgstr "Synchronization did not return a report."

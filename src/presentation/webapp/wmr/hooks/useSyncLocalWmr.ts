@@ -6,13 +6,19 @@ import { SynchronizationResult } from "../../../../domain/reports/entities/Synch
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 import i18n from "../../../../utils/i18n";
-import { getWmrReportedYear } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
+import {
+    getWmrMonthRangeDates,
+    getWmrReportedYear,
+    WmrMonthRange,
+} from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
 import {
     getWmrDestinationOrgUnits,
     isWmrAggregationEnabled,
+    WmrFlowDefinition,
     wmrFlowDefinitions,
 } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
-import { getWmrSyncIds, useMappingDataElements } from "./useMappingDataElements";
+import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
+import { getWmrSyncIds, useMappingDataElements, WmrSyncIds } from "./useMappingDataElements";
 
 export type WmrLocalSyncResult = Readonly<{
     type: "success" | "info" | "warning" | "error";
@@ -73,9 +79,31 @@ export async function syncWithDryRun(
     return dryRunResult.type === "error" ? dryRunResult : summarizeWmrLocalSync(await synchronize(false));
 }
 
+export type WmrLocalSyncRuleParams = Readonly<{
+    definition: WmrFlowDefinition;
+    syncIds: WmrSyncIds;
+    orgUnitPaths: ReadonlyArray<string>;
+    monthRange: WmrMonthRange;
+}>;
+
+export function buildWmrLocalSyncRule(rule: SynchronizationRule, params: WmrLocalSyncRuleParams): SynchronizationRule {
+    const { definition, syncIds, orgUnitPaths, monthRange } = params;
+    const enableAggregation = isWmrAggregationEnabled(definition, syncIds.mappedIndicatorIds);
+    const ruleWithIds = rule
+        .updateBuilder({ metadataIds: syncIds.metadataIds })
+        .updateDataSyncEnableAggregation(enableAggregation)
+        .updateDataSyncAggregationType(enableAggregation ? definition.aggregationType : undefined)
+        .updateDataSyncOrgUnitPaths([...orgUnitPaths]);
+
+    if (!definition.sumIntoYear) return ruleWithIds;
+
+    const { startDate, endDate } = getWmrMonthRangeDates(monthRange);
+    return ruleWithIds.updateDataSyncPeriod("FIXED").updateDataSyncStartDate(startDate).updateDataSyncEndDate(endDate);
+}
+
 export function useSyncLocalWmr() {
     const { compositionRoot } = useAppContext();
-    const { settings, syncRule, regionalParents } = useWmrContext();
+    const { settings, syncRule, regionalParents, regionalMonthRange } = useWmrContext();
     const { dataElementsToMigrate } = useMappingDataElements("LOCAL");
     const loading = useLoading();
     const [wmrLocalSyncResult, setWmrLocalSyncResult] = React.useState<WmrLocalSyncResult | null>(null);
@@ -106,8 +134,7 @@ export function useSyncLocalWmr() {
             throw new Error("WMR settings, sync rule or flow not found");
         }
 
-        const { metadataIds, mappedIndicatorIds } = syncIds;
-        if (!metadataIds.length) {
+        if (!syncIds.metadataIds.length) {
             setWmrLocalSyncResult({
                 type: "error",
                 message: i18n.t("No mapped data elements found for the selected data set."),
@@ -116,12 +143,12 @@ export function useSyncLocalWmr() {
         }
 
         const { destination } = syncRule.flow;
-        const enableAggregation = isWmrAggregationEnabled(definition, mappedIndicatorIds);
-        const syncRuleUpdated = syncRule.rule
-            .updateBuilder({ metadataIds })
-            .updateDataSyncEnableAggregation(enableAggregation)
-            .updateDataSyncAggregationType(enableAggregation ? definition.aggregationType : undefined)
-            .updateDataSyncOrgUnitPaths(destinationOrgUnits.map(({ path }) => path));
+        const syncRuleUpdated = buildWmrLocalSyncRule(syncRule.rule, {
+            definition,
+            syncIds,
+            orgUnitPaths: destinationOrgUnits.map(({ path }) => path),
+            monthRange: regionalMonthRange,
+        });
 
         const year = getWmrReportedYear(syncRuleUpdated.dataParams);
 
@@ -165,6 +192,7 @@ export function useSyncLocalWmr() {
         definition,
         destinationOrgUnits,
         loading,
+        regionalMonthRange,
         syncIds,
         syncRule,
     ]);

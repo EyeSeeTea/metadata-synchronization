@@ -3,6 +3,7 @@ import { Id } from "../../../../domain/common/entities/Schemas";
 import { WmrFlowKind } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
 import { WmrLevelOrgUnit } from "../../../../domain/entities/wmr/entities/WmrOrgUnits";
 import { WmrFlow, WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
+import { WmrMonthRange } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { Instance } from "../../../../domain/instance/entities/Instance";
 import { MetadataMappingDictionary } from "../../../../domain/mapping/entities/MetadataMapping";
 import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
@@ -30,6 +31,8 @@ export interface WmrContextState {
     setOrgUnitMapping: (mapping: Maybe<WmrOrgUnitMapping>) => void;
     regionalParents: ReadonlyArray<WmrLevelOrgUnit>;
     setRegionalParents: (parents: ReadonlyArray<WmrLevelOrgUnit>) => void;
+    regionalMonthRange: WmrMonthRange;
+    setRegionalMonthRange: (range: WmrMonthRange) => void;
 }
 
 export const WmrContext = React.createContext<WmrContextState | null>(null);

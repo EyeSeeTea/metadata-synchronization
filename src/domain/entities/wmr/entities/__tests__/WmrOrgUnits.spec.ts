@@ -15,7 +15,6 @@ const badjia = "YuQRtpLP10I";
 const baoma = "vWbkYPRmKyS";
 const bumpe = "BGGmAwx33dj";
 const targetBadjia = "tgtBadjia01";
-const targetBaoma = "tgtBaoma001";
 
 function orgUnit(id: string, level: number, path: string): WmrLevelOrgUnit {
     return { id, name: `${id} name`, level, path };
