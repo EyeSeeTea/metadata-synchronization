@@ -30,7 +30,7 @@ export const wmrFlowDefinitions: Readonly<Record<WmrFlowKind, WmrFlowDefinition>
     },
     regional: {
         sourcePeriodType: "Monthly",
-        requisites: ["metadata", "dataStore", "countryFormMonthly"],
+        requisites: ["metadata", "countryFormMonthly"],
         destinationOrgUnits: "parents",
         targetOrgUnit: "mapping",
         aggregation: "always",

@@ -25,10 +25,10 @@ describe("WmrFlowKind", () => {
             });
         });
 
-        it("aggregates the monthly country form by month into the parents and sums the year", () => {
+        it("aggregates the monthly country form by month into the parents without a data store prerequisite", () => {
             expect(wmrFlowDefinitions.regional).toEqual({
                 sourcePeriodType: "Monthly",
-                requisites: ["metadata", "dataStore", "countryFormMonthly"],
+                requisites: ["metadata", "countryFormMonthly"],
                 destinationOrgUnits: "parents",
                 targetOrgUnit: "mapping",
                 aggregation: "always",
