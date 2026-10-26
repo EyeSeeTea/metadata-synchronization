@@ -14,10 +14,12 @@ import { apiToFuture } from "../common/utils/api-futures";
 import { StorageDataStoreClient } from "../storage/StorageDataStoreClient";
 import { getJsonToFuture } from "../common/utils/request-futures";
 import { getCountryOrgUnit } from "./getCountryOrgUnit";
+import { generateUid } from "d2/uid";
 
 const AUTOGENFORMS_NAMESPACE = "d2-autogen-forms";
 
 type MetadataPackage = Readonly<{ dataSets: ReadonlyArray<object> }>;
+type D2DataSetOwner = Readonly<Record<string, unknown> & { id: string }>;
 
 export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
     private api: D2Api;
@@ -62,12 +64,47 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
 
     setupRequisite(requisiteType: WmrRequisiteType): FutureData<void> {
         const requisite = wmrRequisites[requisiteType];
+        if (requisiteType === "regionalMonthlyStaging") return this.setupRegionalMonthlyStaging();
         switch (requisite.kind) {
             case "metadata":
                 return this.setupMetadataPackage(requisite);
             case "dataStore":
                 return this.setupDataStoreValue(requisite.code, requisite.assetPath);
         }
+    }
+
+    private setupRegionalMonthlyStaging(): FutureData<void> {
+        const annualCode = wmrRequisites.metadata.code;
+        const monthlyCode = wmrRequisites.regionalMonthlyStaging.code;
+        return apiToFuture(
+            this.api.models.dataSets.get({
+                fields: { id: true },
+                filter: { code: { eq: annualCode } },
+                paging: false,
+            })
+        ).flatMap(({ objects }) => {
+            const annual = objects[0];
+            if (!annual) {
+                return Future.error(new Error(`The data set ${annualCode} is not installed`));
+            }
+            return apiToFuture(this.api.get<D2DataSetOwner>(`/dataSets/${annual.id}`, { fields: ":owner" })).flatMap(
+                annualDataSet =>
+                    apiToFuture(
+                        this.api.metadata.post(
+                            { dataSets: [buildRegionalMonthlyStagingDataSet(annualDataSet, monthlyCode)] },
+                            {
+                                importStrategy: "CREATE",
+                                importMode: "COMMIT",
+                                atomicMode: "ALL",
+                            }
+                        )
+                    ).flatMap(importResponse =>
+                        importResponse.status === "OK"
+                            ? Future.success(undefined)
+                            : Future.error(new Error("Failed to create the regional monthly staging data set"))
+                    )
+            );
+        });
     }
 
     private setupMetadataPackage({ assetPath, assignToCountry }: WmrRequisite): FutureData<void> {
@@ -119,6 +156,37 @@ export class WmrRequisitesD2Repository implements WmrRequisitesRepository {
             })
         ).map(response => response.objects.length > 0);
     }
+}
+
+function buildRegionalMonthlyStagingDataSet(annualDataSet: D2DataSetOwner, code: string): D2DataSetOwner {
+    const {
+        id: _id,
+        code: _code,
+        name: _name,
+        displayName: _displayName,
+        shortName: _shortName,
+        periodType: _periodType,
+        organisationUnits: _organisationUnits,
+        version: _version,
+        created: _created,
+        lastUpdated: _lastUpdated,
+        ...references
+    } = annualDataSet;
+    const id = generateUid();
+    const dataSetElements = annualDataSet.dataSetElements as Array<Record<string, unknown>> | undefined;
+    return {
+        ...references,
+        id,
+        code,
+        name: "MAL - WMR Regional Monthly Sync",
+        shortName: "WMR Regional Monthly Sync",
+        periodType: "Monthly",
+        dataSetElements: dataSetElements?.map(dataSetElement => ({
+            ...dataSetElement,
+            dataSet: { id },
+        })),
+        organisationUnits: [],
+    };
 }
 
 function isMetadataPackage(data: unknown): data is MetadataPackage {

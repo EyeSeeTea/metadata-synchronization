@@ -95,11 +95,11 @@ describe("WmrAggregatedSyncUseCase", () => {
     });
 
     describe("Regional", () => {
-        it("sums the monthly analytics values of each parent into the target period", async () => {
+        it("keeps monthly analytics values and category combinations in their original periods", async () => {
             const { useCase, aggregatedRepository } = givenUseCase({
                 dataParams: givenAggregationParams([`/${country}/${badjia}`, `/${country}/${baoma}`], "MONTHLY"),
                 metadata: { dataElements: [sourceDataElement] },
-                options: { targetPeriod: "2025" },
+                options: { periods: ["202502", "202505", "202512"] },
             });
             aggregatedRepository.getAnalytics.mockResolvedValueOnce({
                 dataValues: [
@@ -112,17 +112,19 @@ describe("WmrAggregatedSyncUseCase", () => {
 
             await expect(useCase.buildPayload()).resolves.toEqual({
                 dataValues: [
-                    givenValue({ orgUnit: badjia, period: "2025", value: "23" }),
-                    givenValue({ orgUnit: baoma, period: "2025", value: "8" }),
+                    givenValue({ orgUnit: badjia, period: "202505", value: "7" }),
+                    givenValue({ orgUnit: baoma, period: "202502", value: "2" }),
+                    givenValue({ orgUnit: badjia, period: "202512", value: "16" }),
+                    givenValue({ orgUnit: baoma, period: "202512", value: "6" }),
                 ],
             });
         });
 
-        it("sums the monthly values of an indicator of a parent into one yearly value", async () => {
+        it("keeps an indicator in every monthly period returned by analytics", async () => {
             const { useCase, aggregatedRepository } = givenUseCase({
                 dataParams: givenAggregationParams([`/${country}/${badjia}`], "MONTHLY"),
                 metadata: { indicators: [indicator] },
-                options: { targetPeriod: "2025" },
+                options: { periods: ["202505", "202512"] },
             });
             aggregatedRepository.getAnalytics.mockResolvedValueOnce({ dataValues: [] });
             aggregatedRepository.getAnalytics.mockResolvedValueOnce({
@@ -133,7 +135,10 @@ describe("WmrAggregatedSyncUseCase", () => {
             });
 
             await expect(useCase.buildPayload()).resolves.toEqual({
-                dataValues: [givenIndicatorValue({ orgUnit: badjia, period: "2025", value: "10" })],
+                dataValues: [
+                    givenIndicatorValue({ orgUnit: badjia, period: "202505", value: "7" }),
+                    givenIndicatorValue({ orgUnit: badjia, period: "202512", value: "3" }),
+                ],
             });
         });
     });
@@ -161,20 +166,20 @@ describe("WmrAggregatedSyncUseCase", () => {
             );
         });
 
-        it("sends a value of a parent to its mapped org unit keeping the data element and category option combo", async () => {
+        it("sends a staged month to its mapped org unit and the selected target data set", async () => {
             const dataParams: DataSynchronizationParams = {
                 orgUnitPaths: [`/${country}/${badjia}`],
                 period: "LAST_YEAR",
                 dryRun: true,
             };
             const countrySyncValue = {
-                ...givenValue({ orgUnit: badjia, period: "2025", value: "23" }, publicCategoryOptionCombo),
+                ...givenValue({ orgUnit: badjia, period: "202505", value: "23" }, publicCategoryOptionCombo),
                 dataElement: countrySyncDataElement.id,
             };
             const { useCase, aggregatedRepository } = givenUseCase({
                 dataParams,
                 metadata: { dataElements: [countrySyncDataElement] },
-                options: { periods: ["2025"] },
+                options: { periods: ["202505"], targetDataSetId: "targetMonthlyDataSet" },
                 targetMapping: { organisationUnits: { [badjia]: { mappedId: targetBadjia } } },
             });
             aggregatedRepository.getAggregated.mockResolvedValueOnce({ dataValues: [] });
@@ -189,10 +194,11 @@ describe("WmrAggregatedSyncUseCase", () => {
                             orgUnit: targetBadjia,
                             dataElement: countrySyncDataElement.id,
                             categoryOptionCombo: publicCategoryOptionCombo,
-                            period: "2025",
+                            period: "202505",
                             value: "23",
                         },
                     ],
+                    dataSet: "targetMonthlyDataSet",
                 },
                 dataParams
             );
@@ -272,7 +278,7 @@ function givenUseCase(attrs: {
         localInstance
     );
     useCase.periods = attrs.options.periods;
-    useCase.targetPeriod = attrs.options.targetPeriod;
+    useCase.targetDataSetId = attrs.options.targetDataSetId;
 
     return { useCase, aggregatedRepository };
 }

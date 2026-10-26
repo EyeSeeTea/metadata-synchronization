@@ -19,13 +19,13 @@ const readyGlobal: WmrSetupState = {
     flowKind: "global",
     requisitesReady: true,
     hasTargetInstance: true,
-    regionalParents: [],
+    regionalOutputOrgUnits: [],
 };
 
 const readyRegional: WmrSetupState = {
     ...readyGlobal,
     flowKind: "regional",
-    regionalParents: [badjia, baoma],
+    regionalOutputOrgUnits: [badjia, baoma],
 };
 
 describe("getWmrSetupBlocker", () => {
@@ -49,7 +49,7 @@ describe("getWmrSetupBlocker", () => {
         });
 
         it("requires an assigned level", () => {
-            expect(getWmrSetupBlocker({ ...readyRegional, regionalParents: [] })).toEqual({ type: "level" });
+            expect(getWmrSetupBlocker({ ...readyRegional, regionalOutputOrgUnits: [] })).toEqual({ type: "level" });
         });
     });
 });

@@ -5,7 +5,7 @@ import {
     WmrDestination,
     WmrSettings,
 } from "../../domain/entities/wmr/entities/WmrSettings";
-import { wmrDestinationCode } from "../../domain/entities/wmr/entities/WmrRequisite";
+import { wmrDestinationCodes } from "../../domain/entities/wmr/entities/WmrRequisite";
 import { WmrSettingsRepository } from "../../domain/entities/wmr/repositories/WmrSettingsRepository";
 import { Instance } from "../../domain/instance/entities/Instance";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
@@ -38,13 +38,20 @@ export class WmrSettingsD2Repository implements WmrSettingsRepository {
                 order: "displayName:asc",
             })
             .getData();
-        const destinationResponse = await this.api.models.dataSets
-            .get({ fields: dataSetFields, filter: { code: { eq: wmrDestinationCode } }, paging: false })
+        const destinationsResponse = await this.api.models.dataSets
+            .get({ fields: dataSetFields, filter: { code: { in: Object.values(wmrDestinationCodes) } }, paging: false })
             .getData();
 
         return new WmrSettings({
             dataSets: dataSetsResponse.objects.flatMap(toDataSetAttrs),
-            destination: destinationResponse.objects.flatMap(toDestination)[0],
+            destinations: {
+                global: destinationsResponse.objects
+                    .filter(({ code }) => code === wmrDestinationCodes.global)
+                    .flatMap(toDestination)[0],
+                regional: destinationsResponse.objects
+                    .filter(({ code }) => code === wmrDestinationCodes.regional)
+                    .flatMap(toDestination)[0],
+            },
             countryOrgUnit: { id: countryOrgUnit.id, name: countryOrgUnit.name, path: countryOrgUnit.path },
         });
     }

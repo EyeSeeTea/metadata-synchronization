@@ -33,7 +33,10 @@ export function getWmrSyncIds(
     return { metadataIds, mappedIndicatorIds: filterMappedDataElementIds(metadataIds, indicatorIds) };
 }
 
-export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
+export function useMappingDataElements(
+    dataElementsFrom: "LOCAL" | "REMOTE",
+    sourceDataElementIds?: ReadonlyArray<Id>
+) {
     const { compositionRoot } = useAppContext();
     const [dataElementsToMigrate, setDataElementsToMigrate] = React.useState<Id[]>([]);
     const loading = useLoading();
@@ -52,12 +55,17 @@ export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
                 success: async instance => {
                     const dataSourceMapping = await compositionRoot.mapping.get({ type: "instance", id: instance.id });
                     const mapping = dataSourceMapping?.mappingDictionary ?? {};
+                    const selectedMappings = _(mapping.aggregatedDataElements)
+                        .toPairs()
+                        .filter(([sourceDataElementId]) =>
+                            sourceDataElementIds ? sourceDataElementIds.includes(sourceDataElementId) : true
+                        )
+                        .value();
                     const dataElementsIds =
                         dataElementsFrom === "LOCAL"
-                            ? _(mapping.aggregatedDataElements).keys().value()
-                            : _(mapping.aggregatedDataElements)
-                                  .values()
-                                  .map(mapping => mapping.mappedId)
+                            ? selectedMappings.map(([sourceDataElementId]) => sourceDataElementId)
+                            : _(selectedMappings)
+                                  .map(([, mapping]) => mapping.mappedId)
                                   .compact()
                                   .value();
                     setDataElementsToMigrate(dataElementsIds);
@@ -67,7 +75,7 @@ export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
         }
 
         getInstance();
-    }, [compositionRoot, dataElementsFrom, loading, snackbar]);
+    }, [compositionRoot, dataElementsFrom, loading, snackbar, sourceDataElementIds]);
 
     return { dataElementsToMigrate };
 }

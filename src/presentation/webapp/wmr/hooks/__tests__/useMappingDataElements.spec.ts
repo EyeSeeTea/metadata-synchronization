@@ -51,7 +51,7 @@ describe("getWmrSyncIds", () => {
             dataSet("source", sourceDataElementIds, sourceIndicatorIds),
             dataSet("other", [otherDataElementId], [otherIndicatorId]),
         ],
-        destination: undefined,
+        destinations: { global: undefined, regional: undefined },
         countryOrgUnit: { id: "ImspTQPwCqd", name: "Sierra Leone", path: "/ImspTQPwCqd" },
     });
 

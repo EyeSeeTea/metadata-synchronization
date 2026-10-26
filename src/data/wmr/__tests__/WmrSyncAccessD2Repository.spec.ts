@@ -35,7 +35,7 @@ describe("WmrSyncAccessD2Repository", () => {
         it("reads the data write access of the Country Sync by code and the capture org units", async () => {
             givenCountrySync([{ name: countrySyncName, access: { data: { write: true } } }]);
 
-            const info = await new WmrSyncAccessD2Repository(localInstance).get().toPromise();
+            const info = await new WmrSyncAccessD2Repository(localInstance).get("global").toPromise();
 
             expect({ info, requestedDataSetParams }).toEqual({
                 info: { dataSet: { name: countrySyncName, canWriteData: true }, captureOrgUnitIds: [sierraLeone] },
@@ -48,7 +48,7 @@ describe("WmrSyncAccessD2Repository", () => {
         it("reads a missing data access as no data write", async () => {
             givenCountrySync([{ name: countrySyncName, access: {} }]);
 
-            const info = await new WmrSyncAccessD2Repository(localInstance).get().toPromise();
+            const info = await new WmrSyncAccessD2Repository(localInstance).get("global").toPromise();
 
             expect(info.dataSet).toEqual({ name: countrySyncName, canWriteData: false });
         });
@@ -56,9 +56,19 @@ describe("WmrSyncAccessD2Repository", () => {
         it("fails when the Country Sync is not installed", async () => {
             givenCountrySync([]);
 
-            await expect(new WmrSyncAccessD2Repository(localInstance).get().toPromise()).rejects.toEqual(
+            await expect(new WmrSyncAccessD2Repository(localInstance).get("global").toPromise()).rejects.toEqual(
                 new Error("The data set MAL_WMR_COUNTRY_SYNC is not installed")
             );
+        });
+
+        it("checks data write access against the monthly staging data set for regional flow", async () => {
+            givenCountrySync([{ name: "MAL - WMR Regional Monthly Sync", access: { data: { write: true } } }]);
+
+            await new WmrSyncAccessD2Repository(localInstance).get("regional").toPromise();
+
+            expect(requestedDataSetParams).toEqual([
+                { filter: ["code:eq:MAL_WMR_REGIONAL_MONTHLY_SYNC"], fields: "access[data[write]],name" },
+            ]);
         });
     });
 });

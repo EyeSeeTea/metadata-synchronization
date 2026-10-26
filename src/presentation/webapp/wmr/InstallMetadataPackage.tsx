@@ -28,6 +28,12 @@ function getRequisiteTexts(type: WmrRequisiteType): RequisiteTexts {
                 caption: i18n.t("MAL - WMR Country Form MONTHLY, the form where the regional data is entered"),
                 itemName: i18n.t("monthly form package"),
             };
+        case "regionalMonthlyStaging":
+            return {
+                title: i18n.t("Regional monthly staging data set"),
+                caption: i18n.t("A monthly copy of the installed Country Sync references used for regional submission"),
+                itemName: i18n.t("regional monthly staging data set"),
+            };
     }
 }
 

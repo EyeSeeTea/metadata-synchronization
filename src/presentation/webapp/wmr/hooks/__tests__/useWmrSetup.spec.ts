@@ -13,6 +13,7 @@ const allDone: WmrSetupStatuses = {
     metadata: { status: "done" },
     dataStore: { status: "done" },
     countryFormMonthly: { status: "done" },
+    regionalMonthlyStaging: { status: "done" },
 };
 
 const buildStatuses = (overrides: Partial<WmrSetupStatuses>): WmrSetupStatuses => ({ ...allDone, ...overrides });

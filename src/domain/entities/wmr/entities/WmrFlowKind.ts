@@ -11,11 +11,10 @@ export type WmrFlowKind = typeof wmrFlowKinds[number];
 export type WmrFlowDefinition = Readonly<{
     sourcePeriodType: WmrSourcePeriodType;
     requisites: ReadonlyArray<WmrRequisiteType>;
-    destinationOrgUnits: "country" | "parents";
+    destinationOrgUnits: "country" | "selected";
     targetOrgUnit: "override" | "mapping";
     aggregation: "always" | "withIndicators";
     aggregationType: DataSyncAggregation;
-    sumIntoYear: boolean;
 }>;
 
 export const wmrFlowDefinitions: Readonly<Record<WmrFlowKind, WmrFlowDefinition>> = {
@@ -26,16 +25,14 @@ export const wmrFlowDefinitions: Readonly<Record<WmrFlowKind, WmrFlowDefinition>
         targetOrgUnit: "override",
         aggregation: "withIndicators",
         aggregationType: "YEARLY",
-        sumIntoYear: false,
     },
     regional: {
         sourcePeriodType: "Monthly",
-        requisites: ["metadata", "countryFormMonthly"],
-        destinationOrgUnits: "parents",
+        requisites: ["metadata", "countryFormMonthly", "regionalMonthlyStaging"],
+        destinationOrgUnits: "selected",
         targetOrgUnit: "mapping",
         aggregation: "always",
         aggregationType: "MONTHLY",
-        sumIntoYear: true,
     },
 };
 
@@ -51,13 +48,13 @@ export function isWmrAggregationEnabled(definition: WmrFlowDefinition, mappedInd
 export function getWmrDestinationOrgUnits(
     definition: WmrFlowDefinition,
     country: WmrNamedOrgUnit,
-    parents: ReadonlyArray<WmrNamedOrgUnit>
+    selectedOrgUnits: ReadonlyArray<WmrNamedOrgUnit>
 ): ReadonlyArray<WmrNamedOrgUnit> {
     switch (definition.destinationOrgUnits) {
         case "country":
             return [country];
-        case "parents":
-            return parents;
+        case "selected":
+            return selectedOrgUnits;
     }
 }
 
@@ -68,10 +65,10 @@ export type WmrSubmitTarget = Readonly<
 export function getWmrSubmitTarget(
     definition: WmrFlowDefinition,
     country: WmrNamedOrgUnit,
-    parents: ReadonlyArray<WmrNamedOrgUnit>,
+    selectedOrgUnits: ReadonlyArray<WmrNamedOrgUnit>,
     targetOrgUnitId: Maybe<Id>
 ): WmrSubmitTarget {
-    const orgUnitPaths = getWmrDestinationOrgUnits(definition, country, parents).map(({ path }) => path);
+    const orgUnitPaths = getWmrDestinationOrgUnits(definition, country, selectedOrgUnits).map(({ path }) => path);
     switch (definition.targetOrgUnit) {
         case "override":
             return targetOrgUnitId

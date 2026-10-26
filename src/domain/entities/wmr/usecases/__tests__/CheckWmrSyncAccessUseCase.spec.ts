@@ -23,7 +23,7 @@ describe("CheckWmrSyncAccessUseCase", () => {
             captureOrgUnitIds: [sierraLeone.id],
         });
 
-        await expect(useCase.execute([sierraLeone]).toPromise()).resolves.toEqual({ type: "ok" });
+        await expect(useCase.execute("global", [sierraLeone]).toPromise()).resolves.toEqual({ type: "ok" });
     });
 
     it("rejects the destination org units outside the capture org units read from the repository", async () => {
@@ -32,7 +32,7 @@ describe("CheckWmrSyncAccessUseCase", () => {
             captureOrgUnitIds: ["O6uvpzGd5pu"],
         });
 
-        await expect(useCase.execute([sierraLeone]).toPromise()).resolves.toEqual({
+        await expect(useCase.execute("regional", [sierraLeone]).toPromise()).resolves.toEqual({
             type: "outsideCapture",
             orgUnitNames: ["Sierra Leone"],
         });

@@ -1,6 +1,5 @@
 import _ from "lodash";
 import { DataSynchronizationParams } from "../../../aggregated/entities/DataSynchronizationParams";
-import { DataValue } from "../../../aggregated/entities/DataValue";
 import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../../aggregated/utils";
 
 export const wmrSourcePeriodTypes = ["Yearly", "Monthly"] as const;
@@ -36,6 +35,20 @@ export function getWmrRangeEndMonths(months: ReadonlyArray<string>, range: WmrMo
     return months.filter(month => month >= range.from);
 }
 
+/** Returns every monthly period in an inclusive, single-year WMR range. */
+export function getWmrRangeMonths({ from, to }: WmrMonthRange): ReadonlyArray<string> {
+    if (!/^\d{4}(0[1-9]|1[0-2])$/.test(from) || !/^\d{4}(0[1-9]|1[0-2])$/.test(to)) {
+        throw new Error(`WMR month range must use YYYYMM periods, got ${from} to ${to}`);
+    }
+    if (from.slice(0, 4) !== to.slice(0, 4) || from > to) {
+        throw new Error(`WMR month range must be ordered within one reporting year, got ${from} to ${to}`);
+    }
+
+    return Array.from({ length: Number(to.slice(4)) - Number(from.slice(4)) + 1 }, (_, index) => {
+        return `${from.slice(0, 4)}${String(Number(from.slice(4)) + index).padStart(2, "0")}`;
+    });
+}
+
 export function updateWmrRangeStart(range: WmrMonthRange, from: string): WmrMonthRange {
     return { from, to: from > range.to ? from : range.to };
 }
@@ -50,17 +63,4 @@ function getWmrMonthEnd(month: string): Date {
 
 export function getWmrMonthRangeDates({ from, to }: WmrMonthRange): Readonly<{ startDate: Date; endDate: Date }> {
     return { startDate: getWmrMonthStart(from), endDate: getWmrMonthEnd(to) };
-}
-
-export function sumIntoPeriod(dataValues: ReadonlyArray<DataValue>, period: string): DataValue[] {
-    return _(dataValues)
-        .groupBy(({ dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo }) =>
-            [dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo].join("-")
-        )
-        .map(([first, ...rest]) => ({
-            ...first,
-            period,
-            value: String([first, ...rest].reduce((total, { value }) => total + Number(value), 0)),
-        }))
-        .value();
 }

@@ -21,19 +21,17 @@ describe("WmrFlowKind", () => {
                 targetOrgUnit: "override",
                 aggregation: "withIndicators",
                 aggregationType: "YEARLY",
-                sumIntoYear: false,
             });
         });
 
-        it("aggregates the monthly country form by month into the parents without a data store prerequisite", () => {
+        it("uses the monthly staging form at the selected output level without a data store prerequisite", () => {
             expect(wmrFlowDefinitions.regional).toEqual({
                 sourcePeriodType: "Monthly",
-                requisites: ["metadata", "countryFormMonthly"],
-                destinationOrgUnits: "parents",
+                requisites: ["metadata", "countryFormMonthly", "regionalMonthlyStaging"],
+                destinationOrgUnits: "selected",
                 targetOrgUnit: "mapping",
                 aggregation: "always",
                 aggregationType: "MONTHLY",
-                sumIntoYear: true,
             });
         });
     });
@@ -59,7 +57,7 @@ describe("WmrFlowKind", () => {
             ]);
         });
 
-        it("writes the regional flow into the parents", () => {
+        it("writes the regional flow into the selected output units", () => {
             expect(getWmrDestinationOrgUnits(wmrFlowDefinitions.regional, sierraLeone, [badjia, baoma])).toEqual([
                 badjia,
                 baoma,
@@ -80,7 +78,7 @@ describe("WmrFlowKind", () => {
             });
         });
 
-        it("sends the regional flow from the parents without override, leaving the org units to the mapping", () => {
+        it("sends the regional flow from the selected output units without override, leaving the org units to the mapping", () => {
             expect(
                 getWmrSubmitTarget(wmrFlowDefinitions.regional, sierraLeone, [badjia, baoma], targetOrgUnitId)
             ).toEqual({ type: "ready", orgUnitPaths: [badjia.path, baoma.path], orgUnitIdOverride: undefined });

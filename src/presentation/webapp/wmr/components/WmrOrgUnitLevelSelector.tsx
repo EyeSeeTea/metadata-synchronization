@@ -6,8 +6,8 @@ import i18n from "../../../../utils/i18n";
 import { getSelectedLevel, useWmrOrgUnitLevel, WmrLevelSelection } from "../hooks/useWmrOrgUnitLevel";
 import { NoticeBox } from "./NoticeBox";
 
-function getAssignmentCounts({ orgUnits, parents }: WmrLevelAssignment) {
-    return { assigned: orgUnits.length, parents: parents.length };
+function getAssignmentCounts({ orgUnits }: WmrLevelAssignment) {
+    return { assigned: orgUnits.length };
 }
 
 function SelectionNotice({ selection }: { selection: WmrLevelSelection }) {
@@ -22,7 +22,7 @@ function SelectionNotice({ selection }: { selection: WmrLevelSelection }) {
                 <NoticeBox
                     type="info"
                     message={i18n.t(
-                        "{{assigned}} org units will be assigned. Their values will be summed into {{parents}} parents, the organisation units you map below.",
+                        "{{assigned}} organisation units will be assigned and used directly as the output level.",
                         getAssignmentCounts(selection.assignment)
                     )}
                 />
@@ -32,7 +32,7 @@ function SelectionNotice({ selection }: { selection: WmrLevelSelection }) {
                 <NoticeBox
                     type="success"
                     message={i18n.t(
-                        "{{assigned}} org units are assigned. Their values are summed into {{parents}} parents, the organisation units you map below.",
+                        "{{assigned}} organisation units are assigned and used directly as the output level.",
                         getAssignmentCounts(selection.assignment)
                     )}
                 />

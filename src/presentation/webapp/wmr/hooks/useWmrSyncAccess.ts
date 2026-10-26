@@ -1,4 +1,5 @@
 import React from "react";
+import { WmrFlowKind } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
 import { WmrNamedOrgUnit } from "../../../../domain/entities/wmr/entities/WmrOrgUnits";
 import { WmrSyncAccess } from "../../../../domain/entities/wmr/entities/WmrSyncAccess";
 import i18n from "../../../../utils/i18n";
@@ -6,17 +7,20 @@ import { useAppContext } from "../../../react/core/contexts/AppContext";
 
 export type WmrSyncAccessState = Readonly<{ type: "checking" } | { type: "ok" } | { type: "error"; message: string }>;
 
-export function useWmrSyncAccess(destinationOrgUnits: ReadonlyArray<WmrNamedOrgUnit>): WmrSyncAccessState {
+export function useWmrSyncAccess(
+    flowKind: WmrFlowKind,
+    destinationOrgUnits: ReadonlyArray<WmrNamedOrgUnit>
+): WmrSyncAccessState {
     const { compositionRoot } = useAppContext();
     const [state, setState] = React.useState<WmrSyncAccessState>({ type: "checking" });
 
     React.useEffect(() => {
         setState({ type: "checking" });
-        return compositionRoot.wmr.checkSyncAccess(destinationOrgUnits).run(
+        return compositionRoot.wmr.checkSyncAccess(flowKind, destinationOrgUnits).run(
             access => setState(toWmrSyncAccessState(access)),
             error => setState({ type: "error", message: error.message })
         );
-    }, [compositionRoot, destinationOrgUnits]);
+    }, [compositionRoot, flowKind, destinationOrgUnits]);
 
     return state;
 }

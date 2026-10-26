@@ -1,5 +1,6 @@
 import { Future, FutureData } from "../../domain/common/entities/Future";
-import { wmrDestinationCode } from "../../domain/entities/wmr/entities/WmrRequisite";
+import { WmrFlowKind } from "../../domain/entities/wmr/entities/WmrFlowKind";
+import { wmrDestinationCodes } from "../../domain/entities/wmr/entities/WmrRequisite";
 import { WmrSyncAccessInfo } from "../../domain/entities/wmr/entities/WmrSyncAccess";
 import { WmrSyncAccessRepository } from "../../domain/entities/wmr/repositories/WmrSyncAccessRepository";
 import { Instance } from "../../domain/instance/entities/Instance";
@@ -14,12 +15,13 @@ export class WmrSyncAccessD2Repository implements WmrSyncAccessRepository {
         this.api = getD2APiFromInstance(this.instance);
     }
 
-    get(): FutureData<WmrSyncAccessInfo> {
+    get(flowKind: WmrFlowKind): FutureData<WmrSyncAccessInfo> {
+        const dataSetCode = wmrDestinationCodes[flowKind];
         return Future.joinObj({
             dataSets: apiToFuture(
                 this.api.models.dataSets.get({
                     fields: { name: true, access: { data: { write: true } } },
-                    filter: { code: { eq: wmrDestinationCode } },
+                    filter: { code: { eq: dataSetCode } },
                     paging: false,
                 })
             ),
@@ -34,7 +36,7 @@ export class WmrSyncAccessD2Repository implements WmrSyncAccessRepository {
                       captureOrgUnitIds,
                   })
                 : Future.error(
-                      new Error(i18n.t("The data set {{code}} is not installed", { code: wmrDestinationCode }))
+                      new Error(i18n.t("The data set {{code}} is not installed", { code: dataSetCode }))
                   );
         });
     }

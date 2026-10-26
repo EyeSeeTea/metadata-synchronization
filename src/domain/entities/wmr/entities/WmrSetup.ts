@@ -6,7 +6,7 @@ export type WmrSetupState = Readonly<{
     flowKind: Maybe<WmrFlowKind>;
     requisitesReady: boolean;
     hasTargetInstance: boolean;
-    regionalParents: ReadonlyArray<WmrLevelOrgUnit>;
+    regionalOutputOrgUnits: ReadonlyArray<WmrLevelOrgUnit>;
 }>;
 
 export type WmrSetupBlocker =
@@ -16,11 +16,13 @@ export type WmrSetupBlocker =
     | Readonly<{ type: "level" }>;
 
 export function getWmrSetupBlocker(state: WmrSetupState): Maybe<WmrSetupBlocker> {
-    const { flowKind, requisitesReady, hasTargetInstance, regionalParents } = state;
+    const { flowKind, requisitesReady, hasTargetInstance, regionalOutputOrgUnits } = state;
     if (!flowKind) return { type: "noFlow" };
     if (!requisitesReady) return { type: "requisites" };
     if (!hasTargetInstance) return { type: "targetInstance" };
 
     const definition = wmrFlowDefinitions[flowKind];
-    return definition.destinationOrgUnits === "parents" && regionalParents.length === 0 ? { type: "level" } : undefined;
+    return definition.destinationOrgUnits === "selected" && regionalOutputOrgUnits.length === 0
+        ? { type: "level" }
+        : undefined;
 }

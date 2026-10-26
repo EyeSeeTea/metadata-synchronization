@@ -59,19 +59,19 @@ export type WmrFlow = Readonly<{
 
 export type WmrSettingsAttrs = Readonly<{
     dataSets: ReadonlyArray<DataSetAttrs>;
-    destination: Maybe<WmrDestination>;
+    destinations: Readonly<Record<WmrFlowKind, Maybe<WmrDestination>>>;
     countryOrgUnit: WmrNamedOrgUnit;
 }>;
 
 export class WmrSettings {
     public readonly dataSets: ReadonlyArray<DataSetAttrs>;
-    public readonly destination: Maybe<WmrDestination>;
+    public readonly destinations: Readonly<Record<WmrFlowKind, Maybe<WmrDestination>>>;
     public readonly countryOrgUnit: WmrNamedOrgUnit;
     public static readonly LOCAL_INSTANCE_ID = "LOCAL";
 
     constructor(attrs: WmrSettingsAttrs) {
         this.dataSets = attrs.dataSets;
-        this.destination = attrs.destination;
+        this.destinations = attrs.destinations;
         this.countryOrgUnit = attrs.countryOrgUnit;
     }
 
@@ -88,13 +88,13 @@ export class WmrSettings {
     }
 
     public getFlowFor(sourceDataSetId: Maybe<Id>, kind: WmrFlowKind): Maybe<WmrFlow> {
-        const { destination } = this;
+        const destination = this.destinations[kind];
         const source = this.getSelectableSources(kind).find(dataSet => dataSet.id === sourceDataSetId);
         return destination && source ? { kind, source, destination } : undefined;
     }
 
     public getSelectableSources(kind: WmrFlowKind): ReadonlyArray<WmrFlowSource> {
-        const destinationId = this.destination?.id;
+        const destinationId = this.destinations[kind]?.id;
         const { sourcePeriodType } = wmrFlowDefinitions[kind];
         return this.dataSets.flatMap(dataSet =>
             dataSet.id !== destinationId && dataSet.periodType === sourcePeriodType

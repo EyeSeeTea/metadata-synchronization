@@ -1,5 +1,6 @@
 import { useSnackbar } from "@eyeseetea/d2-ui-components";
 import React from "react";
+import { Id } from "../../../../domain/common/entities/Schemas";
 import { WmrFlowKind } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
 import { WmrLevelOrgUnit } from "../../../../domain/entities/wmr/entities/WmrOrgUnits";
 import { WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
@@ -34,8 +35,10 @@ export function WmrProvider({ children }: { children: React.ReactNode }) {
     const [requisitesReady, setRequisitesReady] = React.useState<boolean>(false);
     const [flowKind, setFlowKindState] = React.useState<Maybe<WmrFlowKind>>();
     const [targetInstance, setTargetInstance] = React.useState<Maybe<Instance>>();
+    const [targetDataSetId, setTargetDataSetId] = React.useState<Maybe<Id>>();
     const [orgUnitMapping, setOrgUnitMapping] = React.useState<Maybe<WmrOrgUnitMapping>>();
-    const [regionalParents, setRegionalParents] = React.useState<ReadonlyArray<WmrLevelOrgUnit>>([]);
+    const [regionalOutputOrgUnits, setRegionalOutputOrgUnits] = React.useState<ReadonlyArray<WmrLevelOrgUnit>>([]);
+    const [regionalPrepared, setRegionalPrepared] = React.useState(false);
     const syncRuleRef = React.useRef<WmrSyncRule>({
         localDataSetId: undefined,
         flow: undefined,
@@ -62,11 +65,35 @@ export function WmrProvider({ children }: { children: React.ReactNode }) {
             syncRuleRef.current.rule = createWmrSyncRule();
             setRegionalMonthRange(getFullReportedYearRange(syncRuleRef.current.rule));
             setTargetInstance(undefined);
+            setTargetDataSetId(undefined);
             setOrgUnitMapping(undefined);
+            setRegionalOutputOrgUnits([]);
+            setRegionalPrepared(false);
             setFlowKindState(kind);
         },
         [flowKind]
     );
+
+    const setTargetInstanceWithInvalidation = React.useCallback((instance: Maybe<Instance>) => {
+        setTargetInstance(instance);
+        setTargetDataSetId(undefined);
+        setRegionalPrepared(false);
+    }, []);
+    const setOrgUnitMappingWithInvalidation = React.useCallback((mapping: Maybe<WmrOrgUnitMapping>) => {
+        setOrgUnitMapping(mapping);
+        setRegionalPrepared(false);
+    }, []);
+    const setRegionalOutputOrgUnitsWithInvalidation = React.useCallback(
+        (orgUnits: ReadonlyArray<WmrLevelOrgUnit>) => {
+            setRegionalOutputOrgUnits(orgUnits);
+            setRegionalPrepared(false);
+        },
+        []
+    );
+    const setRegionalMonthRangeWithInvalidation = React.useCallback((range: WmrMonthRange) => {
+        setRegionalMonthRange(range);
+        setRegionalPrepared(false);
+    }, []);
 
     return (
         <WmrContext.Provider
@@ -79,13 +106,17 @@ export function WmrProvider({ children }: { children: React.ReactNode }) {
                 flowKind,
                 setFlowKind,
                 targetInstance,
-                setTargetInstance,
+                setTargetInstance: setTargetInstanceWithInvalidation,
+                targetDataSetId,
+                setTargetDataSetId,
                 orgUnitMapping,
-                setOrgUnitMapping,
-                regionalParents,
-                setRegionalParents,
+                setOrgUnitMapping: setOrgUnitMappingWithInvalidation,
+                regionalOutputOrgUnits,
+                setRegionalOutputOrgUnits: setRegionalOutputOrgUnitsWithInvalidation,
                 regionalMonthRange,
-                setRegionalMonthRange,
+                setRegionalMonthRange: setRegionalMonthRangeWithInvalidation,
+                regionalPrepared,
+                setRegionalPrepared,
             }}
         >
             {children}

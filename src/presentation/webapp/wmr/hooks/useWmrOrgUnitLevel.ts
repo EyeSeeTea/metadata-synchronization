@@ -26,7 +26,7 @@ export function getSelectedLevel(selection: WmrLevelSelection): Maybe<number> {
 
 export function useWmrOrgUnitLevel() {
     const { compositionRoot } = useAppContext();
-    const { setRegionalParents } = useWmrContext();
+    const { setRegionalOutputOrgUnits } = useWmrContext();
     const [levels, setLevels] = React.useState<ReadonlyArray<WmrOrgUnitLevel>>();
     const [selection, setSelection] = React.useState<WmrLevelSelection>({ type: "none" });
     const [error, setError] = React.useState<Maybe<string>>();
@@ -34,16 +34,16 @@ export function useWmrOrgUnitLevel() {
     React.useEffect(() => {
         return Future.joinObj({
             levels: compositionRoot.wmr.getOrgUnitLevels(),
-            assignment: compositionRoot.wmr.getAssignedOrgUnits(wmrRequisites.countryFormMonthly.code),
+            assignment: compositionRoot.wmr.getAssignedOrgUnits(wmrRequisites.regionalMonthlyStaging.code),
         }).run(
             ({ levels, assignment }) => {
                 setLevels(levels);
                 setSelection(assignment ? { type: "assigned", assignment } : { type: "none" });
-                setRegionalParents(assignment?.parents ?? []);
+                setRegionalOutputOrgUnits(assignment?.orgUnits ?? []);
             },
             error => setError(error.message)
         );
-    }, [compositionRoot.wmr, setRegionalParents]);
+    }, [compositionRoot.wmr, setRegionalOutputOrgUnits]);
 
     const selectLevel = React.useCallback(
         (level: number | undefined) => {
@@ -74,14 +74,14 @@ export function useWmrOrgUnitLevel() {
         compositionRoot.wmr.assignOrgUnitLevel(assignment.level).run(
             () => {
                 setSelection({ type: "assigned", assignment });
-                setRegionalParents(assignment.parents);
+                setRegionalOutputOrgUnits(assignment.orgUnits);
             },
             error => {
                 setSelection({ type: "preview", assignment });
                 setError(error.message);
             }
         );
-    }, [compositionRoot.wmr, selection, setRegionalParents]);
+    }, [compositionRoot.wmr, selection, setRegionalOutputOrgUnits]);
 
     return { levels, selection, error, selectLevel, assignLevel };
 }

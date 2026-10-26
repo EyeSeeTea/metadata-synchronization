@@ -12,11 +12,13 @@ const ngelehun = "DiszpKrYNg8";
 const baomaStation = "jNb63DIHuwU";
 const monthlyFormId = "monthlyForm";
 const countrySyncId = "countrySync";
+const regionalMonthlyStagingId = "regionalMonthlyStaging";
 const monthlyFormName = "MAL - WMR Country Form MONTHLY";
 const countrySyncName = "MAL - WMR Form - Country Sync";
+const regionalMonthlyStagingName = "MAL - WMR Regional Monthly Sync";
 const dataSetElements = [{ dataElement: { id: "malariaDeaths" } }];
 const assignErrorPrefix = "The organisation units could not be assigned";
-const permissionSuffix = `Your user needs permission to edit the data sets ${monthlyFormName}, ${countrySyncName}.`;
+const permissionSuffix = `Your user needs permission to edit the data sets ${regionalMonthlyStagingName}.`;
 
 const localInstance = Instance.build({ url: baseUrl, name: "Testing", version: "2.40", type: "local" });
 
@@ -44,6 +46,13 @@ const ownerDataSets: Readonly<Record<string, object>> = {
         periodType: "Yearly",
         dataSetElements,
         organisationUnits: [{ id: sierraLeone }, { id: "oldParent" }],
+    },
+    [regionalMonthlyStagingId]: {
+        id: regionalMonthlyStagingId,
+        code: "MAL_WMR_REGIONAL_MONTHLY_SYNC",
+        periodType: "Monthly",
+        dataSetElements,
+        organisationUnits: [{ id: "oldFacility" }],
     },
 };
 
@@ -76,6 +85,11 @@ describe("WmrOrgUnitsD2Repository", () => {
             dataSets: [
                 { id: monthlyFormId, code: "AFR_COUNTRY_MONTHLY", displayName: monthlyFormName },
                 { id: countrySyncId, code: "MAL_WMR_COUNTRY_SYNC", displayName: countrySyncName },
+                {
+                    id: regionalMonthlyStagingId,
+                    code: "MAL_WMR_REGIONAL_MONTHLY_SYNC",
+                    displayName: regionalMonthlyStagingName,
+                },
             ],
         }));
         server.get("/dataSets/:id", async (_schema, request) => ownerDataSets[request.params["id"] ?? ""] ?? {});
@@ -90,7 +104,7 @@ describe("WmrOrgUnitsD2Repository", () => {
     });
 
     describe("assignLevel", () => {
-        it("posts both complete data sets replacing only their organisation units", async () => {
+        it("assigns only the complete monthly staging data set to the selected output level", async () => {
             respondToImport(() => ({ status: "OK" }));
 
             await repository().assignLevel(4).toPromise();
@@ -100,12 +114,8 @@ describe("WmrOrgUnitsD2Repository", () => {
                 {
                     dataSets: [
                         {
-                            ...ownerDataSets[monthlyFormId],
+                            ...ownerDataSets[regionalMonthlyStagingId],
                             organisationUnits: [{ id: ngelehun }, { id: baomaStation }],
-                        },
-                        {
-                            ...ownerDataSets[countrySyncId],
-                            organisationUnits: [{ id: sierraLeone }, { id: badjia }, { id: baoma }],
                         },
                     ],
                 },

@@ -12,8 +12,11 @@ export type WmrOrgUnitMappingProps = Readonly<{ instance: Instance }>;
 
 export function WmrOrgUnitMapping({ instance }: WmrOrgUnitMappingProps) {
     const { compositionRoot } = useAppContext();
-    const { regionalParents, orgUnitMapping, setOrgUnitMapping } = useWmrContext();
-    const parentIds = React.useMemo(() => regionalParents.map(({ id }) => id), [regionalParents]);
+    const { regionalOutputOrgUnits, orgUnitMapping, setOrgUnitMapping } = useWmrContext();
+    const outputOrgUnitIds = React.useMemo(
+        () => regionalOutputOrgUnits.map(({ id }) => id),
+        [regionalOutputOrgUnits]
+    );
 
     React.useEffect(() => {
         compositionRoot.mapping
@@ -27,8 +30,8 @@ export function WmrOrgUnitMapping({ instance }: WmrOrgUnitMappingProps) {
         [setOrgUnitMapping]
     );
 
-    const total = parentIds.length;
-    const mapped = parentIds.filter(id => isOrgUnitMapped(orgUnitMapping, id)).length;
+    const total = outputOrgUnitIds.length;
+    const mapped = outputOrgUnitIds.filter(id => isOrgUnitMapped(orgUnitMapping, id)).length;
     const counter = i18n.t("{{mapped}} of {{total}} mapped", { mapped, total });
 
     return (
@@ -47,7 +50,7 @@ export function WmrOrgUnitMapping({ instance }: WmrOrgUnitMappingProps) {
                 instanceId={instance.id}
                 section="orgUnit"
                 showHeader={false}
-                filterRows={parentIds}
+                filterRows={outputOrgUnitIds}
                 onChange={onChangeMapping}
             />
         </Box>

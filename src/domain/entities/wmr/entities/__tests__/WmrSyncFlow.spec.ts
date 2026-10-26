@@ -1,25 +1,18 @@
 import moment from "moment";
 import { describe, expect, it } from "vitest";
-import { DataValue } from "../../../../aggregated/entities/DataValue";
 import { buildPeriodFromParams, buildPeriodsForAggregation } from "../../../../aggregated/utils";
 import {
     getWmrFullYearRange,
     getWmrMonthRangeDates,
+    getWmrRangeMonths,
     getWmrRangeEndMonths,
     getWmrReportedYear,
     getWmrYearMonths,
     isWmrFullYearRange,
-    sumIntoPeriod,
     updateWmrRangeStart,
     WmrMonthRange,
 } from "../WmrSyncFlow";
 
-const deaths = "bjyXcVn0Slk";
-const cases = "Th6srmdoaxC";
-const country = "ImspTQPwCqd";
-const publicCombo = "R5qZMtfmdF0";
-const privateCombo = "UeyDzq4Gdsr";
-const defaultCombo = "HllvX50cXC0";
 const marchToJune: WmrMonthRange = { from: "202503", to: "202506" };
 
 function formatDay(date: Date): string {
@@ -28,18 +21,6 @@ function formatDay(date: Date): string {
 
 function fixedParams(range: WmrMonthRange) {
     return { period: "FIXED" as const, ...getWmrMonthRangeDates(range) };
-}
-
-function dataValue(dataElement: string, period: string, categoryOptionCombo: string, value: string): DataValue {
-    return {
-        dataElement,
-        period,
-        orgUnit: country,
-        categoryOptionCombo,
-        attributeOptionCombo: defaultCombo,
-        value,
-        comment: "[aggregated]",
-    };
 }
 
 describe("WmrSyncFlow", () => {
@@ -115,6 +96,22 @@ describe("WmrSyncFlow", () => {
         });
     });
 
+    describe("getWmrRangeMonths", () => {
+        it("returns every selected monthly period, inclusive", () => {
+            expect(getWmrRangeMonths(marchToJune)).toEqual(["202503", "202504", "202505", "202506"]);
+        });
+
+        it("keeps a single selected month", () => {
+            expect(getWmrRangeMonths({ from: "202512", to: "202512" })).toEqual(["202512"]);
+        });
+
+        it("rejects invalid or cross-year ranges", () => {
+            expect(() => getWmrRangeMonths({ from: "202513", to: "202514" })).toThrow("YYYYMM");
+            expect(() => getWmrRangeMonths({ from: "202512", to: "202601" })).toThrow("one reporting year");
+            expect(() => getWmrRangeMonths({ from: "202506", to: "202503" })).toThrow("ordered");
+        });
+    });
+
     describe("updateWmrRangeStart", () => {
         it("keeps the end when the new start is before it", () => {
             expect(updateWmrRangeStart(marchToJune, "202505")).toEqual({ from: "202505", to: "202506" });
@@ -166,35 +163,4 @@ describe("WmrSyncFlow", () => {
         });
     });
 
-    describe("sumIntoPeriod", () => {
-        it("sums the months of the same data element and combo into the year", () => {
-            const months = [
-                dataValue(deaths, "202505", defaultCombo, "7"),
-                dataValue(deaths, "202512", defaultCombo, "1"),
-            ];
-
-            expect(sumIntoPeriod(months, "2025")).toEqual([dataValue(deaths, "2025", defaultCombo, "8")]);
-        });
-
-        it("keeps data elements and category option combos apart", () => {
-            const months = [
-                dataValue(cases, "202505", publicCombo, "100"),
-                dataValue(cases, "202512", publicCombo, "5"),
-                dataValue(cases, "202505", privateCombo, "200"),
-                dataValue(deaths, "202505", defaultCombo, "7"),
-            ];
-
-            expect(sumIntoPeriod(months, "2025")).toEqual([
-                dataValue(cases, "2025", publicCombo, "105"),
-                dataValue(cases, "2025", privateCombo, "200"),
-                dataValue(deaths, "2025", defaultCombo, "7"),
-            ]);
-        });
-
-        it("moves a single month to the year unchanged", () => {
-            expect(sumIntoPeriod([dataValue(deaths, "202512", defaultCombo, "1")], "2025")).toEqual([
-                dataValue(deaths, "2025", defaultCombo, "1"),
-            ]);
-        });
-    });
 });

@@ -8,6 +8,7 @@ import { useWmrContext } from "../context/WmrContext";
 import i18n from "../../../../utils/i18n";
 import {
     getWmrMonthRangeDates,
+    getWmrRangeMonths,
     getWmrReportedYear,
     WmrMonthRange,
 } from "../../../../domain/entities/wmr/entities/WmrSyncFlow";
@@ -93,9 +94,10 @@ export function buildWmrLocalSyncRule(rule: SynchronizationRule, params: WmrLoca
         .updateBuilder({ metadataIds: syncIds.metadataIds })
         .updateDataSyncEnableAggregation(enableAggregation)
         .updateDataSyncAggregationType(enableAggregation ? definition.aggregationType : undefined)
-        .updateDataSyncOrgUnitPaths([...orgUnitPaths]);
+        .updateDataSyncOrgUnitPaths([...orgUnitPaths])
+        .updateBuilderDataParams({ runAnalyticsBefore: false, runAnalyticsAfter: false });
 
-    if (!definition.sumIntoYear) return ruleWithIds;
+    if (definition.sourcePeriodType !== "Monthly") return ruleWithIds;
 
     const { startDate, endDate } = getWmrMonthRangeDates(monthRange);
     return ruleWithIds.updateDataSyncPeriod("FIXED").updateDataSyncStartDate(startDate).updateDataSyncEndDate(endDate);
@@ -103,10 +105,25 @@ export function buildWmrLocalSyncRule(rule: SynchronizationRule, params: WmrLoca
 
 export function useSyncLocalWmr() {
     const { compositionRoot } = useAppContext();
-    const { settings, syncRule, regionalParents, regionalMonthRange } = useWmrContext();
+    const {
+        settings,
+        syncRule,
+        regionalOutputOrgUnits,
+        regionalMonthRange,
+        setRegionalPrepared,
+    } = useWmrContext();
     const { dataElementsToMigrate } = useMappingDataElements("LOCAL");
     const loading = useLoading();
     const [wmrLocalSyncResult, setWmrLocalSyncResult] = React.useState<WmrLocalSyncResult | null>(null);
+    const mountedRef = React.useRef(false);
+    const latestRequestRef = React.useRef(0);
+
+    React.useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []);
 
     const flowKind = syncRule?.flow?.kind;
     const definition = flowKind ? wmrFlowDefinitions[flowKind] : undefined;
@@ -120,16 +137,34 @@ export function useSyncLocalWmr() {
     const destinationOrgUnits = React.useMemo(
         () =>
             settings && definition
-                ? getWmrDestinationOrgUnits(definition, settings.countryOrgUnit, regionalParents)
+                ? getWmrDestinationOrgUnits(definition, settings.countryOrgUnit, regionalOutputOrgUnits)
                 : [],
-        [settings, definition, regionalParents]
+        [settings, definition, regionalOutputOrgUnits]
     );
 
     const readsAnalytics = Boolean(
         definition && syncIds && isWmrAggregationEnabled(definition, syncIds.mappedIndicatorIds)
     );
+    const preparationInputKey = JSON.stringify({
+        flowKind,
+        localDataSetId,
+        metadataIds: syncIds?.metadataIds,
+        mappedIndicatorIds: syncIds?.mappedIndicatorIds,
+        destinationOrgUnitPaths: destinationOrgUnits.map(({ path }) => path),
+        monthRange: regionalMonthRange,
+    });
+    const currentInputKeyRef = React.useRef(preparationInputKey);
+    currentInputKeyRef.current = preparationInputKey;
 
     const syncLocalWmr = React.useCallback(async () => {
+        const requestId = ++latestRequestRef.current;
+        const requestInputKey = preparationInputKey;
+        const isRegional = flowKind === "regional";
+        if (isRegional) setRegionalPrepared(false);
+
+        const isCurrentRequest = () =>
+            mountedRef.current && requestId === latestRequestRef.current && currentInputKeyRef.current === requestInputKey;
+
         if (!syncIds || !definition || !syncRule?.flow) {
             throw new Error("WMR settings, sync rule or flow not found");
         }
@@ -151,48 +186,73 @@ export function useSyncLocalWmr() {
         });
 
         const year = getWmrReportedYear(syncRuleUpdated.dataParams);
+        const periods =
+            definition.sourcePeriodType === "Monthly" ? getWmrRangeMonths(regionalMonthRange) : [year];
 
         loading.show();
-        const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
+        try {
+            const result = await compositionRoot.sync.prepare(syncRuleUpdated.type, syncRuleUpdated.toBuilder());
 
-        const synchronize = async (dryRun: boolean) => {
-            const sync = compositionRoot.wmr.syncDataset(
-                syncRuleUpdated.updateBuilderDataParams({ dryRun }).toBuilder()
-            );
-            for await (const { message, syncReport, done } of sync.execute({
-                periods: [year],
-                targetPeriod: definition.sumIntoYear ? year : undefined,
-                targetDataSetId: destination.id,
-            })) {
-                if (message) loading.show(true, message);
-                if (syncReport && !dryRun) await compositionRoot.reports.save(syncReport);
-                if (done) return syncReport;
-            }
-        };
+            const synchronize = async (dryRun: boolean) => {
+                const sync = compositionRoot.wmr.syncDataset(
+                    syncRuleUpdated.updateBuilderDataParams({ dryRun }).toBuilder()
+                );
+                for await (const { message, syncReport, done } of sync.execute({
+                    periods,
+                    targetDataSetId: destination.id,
+                })) {
+                    if (message) loading.show(true, message);
+                    if (syncReport && !dryRun) await compositionRoot.reports.save(syncReport);
+                    if (done) return syncReport;
+                }
+                return undefined;
+            };
 
-        await result.match({
-            success: async () => {
-                const localSyncResult = await syncWithDryRun(synchronize);
-                loading.hide();
-                if (localSyncResult.type !== "error") syncRule.rule = syncRuleUpdated;
-                setWmrLocalSyncResult(localSyncResult);
-            },
-            error: async code => {
-                loading.hide();
+            await result.match({
+                success: async () => {
+                    if (!isCurrentRequest()) return;
+                    const localSyncResult = await syncWithDryRun(synchronize);
+                    if (localSyncResult.type !== "error") {
+                        if (isCurrentRequest()) syncRule.rule = syncRuleUpdated;
+                        if (flowKind === "regional" && localSyncResult.type !== "warning") {
+                            if (isCurrentRequest()) setRegionalPrepared(true);
+                        }
+                    }
+                    if (isCurrentRequest()) setWmrLocalSyncResult(localSyncResult);
+                },
+                error: async code => {
+                    if (isCurrentRequest()) {
+                        setWmrLocalSyncResult({
+                            type: "error",
+                            message: `${i18n.t("Failed to prepare synchronization rule")}: ${code}`,
+                        });
+                    }
+                },
+            });
+        } catch (error) {
+            if (isCurrentRequest()) {
                 setWmrLocalSyncResult({
                     type: "error",
-                    message: `${i18n.t("Failed to prepare synchronization rule")}: ${code}`,
+                    message: error instanceof Error ? error.message : i18n.t("Synchronization failed."),
                 });
-            },
-        });
+            }
+        } finally {
+            loading.hide();
+        }
     }, [
         compositionRoot.reports,
         compositionRoot.sync,
         compositionRoot.wmr,
         definition,
         destinationOrgUnits,
+        flowKind,
         loading,
         regionalMonthRange,
+        preparationInputKey,
+        mountedRef,
+        latestRequestRef,
+        currentInputKeyRef,
+        setRegionalPrepared,
         syncIds,
         syncRule,
     ]);

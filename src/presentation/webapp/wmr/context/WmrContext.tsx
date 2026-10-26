@@ -27,12 +27,16 @@ export interface WmrContextState {
     setFlowKind: (flowKind: WmrFlowKind) => void;
     targetInstance: Maybe<Instance>;
     setTargetInstance: (instance: Maybe<Instance>) => void;
+    targetDataSetId: Maybe<Id>;
+    setTargetDataSetId: (dataSetId: Maybe<Id>) => void;
     orgUnitMapping: Maybe<WmrOrgUnitMapping>;
     setOrgUnitMapping: (mapping: Maybe<WmrOrgUnitMapping>) => void;
-    regionalParents: ReadonlyArray<WmrLevelOrgUnit>;
-    setRegionalParents: (parents: ReadonlyArray<WmrLevelOrgUnit>) => void;
+    regionalOutputOrgUnits: ReadonlyArray<WmrLevelOrgUnit>;
+    setRegionalOutputOrgUnits: (orgUnits: ReadonlyArray<WmrLevelOrgUnit>) => void;
     regionalMonthRange: WmrMonthRange;
     setRegionalMonthRange: (range: WmrMonthRange) => void;
+    regionalPrepared: boolean;
+    setRegionalPrepared: (prepared: boolean) => void;
 }
 
 export const WmrContext = React.createContext<WmrContextState | null>(null);

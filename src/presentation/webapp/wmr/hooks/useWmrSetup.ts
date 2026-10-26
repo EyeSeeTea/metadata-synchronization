@@ -15,6 +15,7 @@ const initialStatuses: WmrSetupStatuses = {
     metadata: { status: "loading" },
     dataStore: { status: "loading" },
     countryFormMonthly: { status: "loading" },
+    regionalMonthlyStaging: { status: "loading" },
 };
 
 export function toWmrSetupStatus(check: WmrRequisiteCheck): WmrSetupStatus {

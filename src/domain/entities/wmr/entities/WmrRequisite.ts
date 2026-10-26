@@ -1,6 +1,6 @@
 import { Id } from "../../../common/entities/Schemas";
 
-export const wmrRequisiteTypes = ["metadata", "dataStore", "countryFormMonthly"] as const;
+export const wmrRequisiteTypes = ["metadata", "dataStore", "countryFormMonthly", "regionalMonthlyStaging"] as const;
 export type WmrRequisiteType = typeof wmrRequisiteTypes[number];
 
 export type WmrRequisite = Readonly<{
@@ -29,6 +29,12 @@ export const wmrRequisites: Readonly<Record<WmrRequisiteType, WmrRequisite>> = {
         assetPath: "wmr/country-form-monthly.json",
         assignToCountry: false,
     },
+    regionalMonthlyStaging: {
+        kind: "metadata",
+        code: "MAL_WMR_REGIONAL_MONTHLY_SYNC",
+        assetPath: "",
+        assignToCountry: false,
+    },
 };
 
 export type WmrRequisiteCheck =
@@ -50,4 +56,7 @@ export function checkWmrRequisiteDataSet(
     return { type: "installed" };
 }
 
-export const wmrDestinationCode = wmrRequisites.metadata.code;
+export const wmrDestinationCodes = {
+    global: wmrRequisites.metadata.code,
+    regional: wmrRequisites.regionalMonthlyStaging.code,
+} as const;

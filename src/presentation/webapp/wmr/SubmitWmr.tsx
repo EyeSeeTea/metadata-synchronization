@@ -17,11 +17,19 @@ import { useWmrContext } from "./context/WmrContext";
 import { WmrFlowLabel } from "./components/WmrFlowLabel";
 import { WmrSyncPeriod } from "./components/WmrSyncPeriod";
 import { useWmrTargetOrgUnit } from "./hooks/useWmrTargetOrgUnit";
-import { getWmrRegionalSubmissionWarning, isWmrRegionalSubmissionAvailable } from "./wmrRegionalSubmission";
+import { isOrgUnitMapped } from "../../../domain/entities/wmr/entities/WmrOrgUnits";
 
 export function SubmitWmr() {
     const loading = useLoading();
-    const { syncRule, targetInstance, regionalParents, regionalMonthRange } = useWmrContext();
+    const {
+        syncRule,
+        targetInstance,
+        targetDataSetId,
+        regionalOutputOrgUnits,
+        orgUnitMapping,
+        regionalMonthRange,
+        regionalPrepared,
+    } = useWmrContext();
     const [targetOrgUnitId, setTargetOrgUnitId] = React.useState<Id>();
     const { syncRemoteWmr, wmrRemoteSyncResult, submitTarget } = useSyncRemoteWmr({
         instance: targetInstance,
@@ -32,9 +40,8 @@ export function SubmitWmr() {
     }
     const { flow } = syncRule;
     const definition = wmrFlowDefinitions[flow.kind];
-    const regionalSubmissionAvailable = isWmrRegionalSubmissionAvailable(flow.kind);
     const year = getWmrReportedYear(syncRule.rule.dataParams);
-    const monthRange = definition.sumIntoYear ? regionalMonthRange : undefined;
+    const monthRange = flow.kind === "regional" ? regionalMonthRange : undefined;
     const header = <WmrSubmitHeader flow={flow} year={year} monthRange={monthRange} />;
 
     if (wmrRemoteSyncResult) {
@@ -47,16 +54,16 @@ export function SubmitWmr() {
         );
     }
 
-    const sendIsDisabled =
-        !regionalSubmissionAvailable || !targetInstance?.url || submitTarget?.type !== "ready" || loading.isLoading;
+    const outputUnitsMapped = regionalOutputOrgUnits.every(({ id }) => isOrgUnitMapped(orgUnitMapping, id));
+    const regionalReady =
+        flow.kind !== "regional" ||
+        (Boolean(targetDataSetId) && regionalOutputOrgUnits.length > 0 && outputUnitsMapped && regionalPrepared);
+    const sendIsDisabled = !targetInstance?.url || submitTarget?.type !== "ready" || !regionalReady || loading.isLoading;
 
     return (
         <Box>
             {header}
-            {regionalSubmissionAvailable && <NoticeBox type="info" message={describeWmrSubmitIntro(definition)} />}
-            {!regionalSubmissionAvailable && (
-                <NoticeBox type="warning" message={getWmrRegionalSubmissionWarning()} />
-            )}
+            <NoticeBox type="info" message={describeWmrSubmitIntro(definition)} />
             <Box p={2}>
                 <NoticeBox
                     type={targetInstance?.url ? "success" : "error"}
@@ -82,9 +89,24 @@ export function SubmitWmr() {
                 ) : (
                     <NoticeBox
                         type="info"
-                        message={i18n.t("Values are sent to the {{count}} organisation units mapped in step 1.", {
-                            count: regionalParents.length,
+                        message={i18n.t("Monthly values are sent to the {{count}} selected output organisation units.", {
+                            count: regionalOutputOrgUnits.length,
                         })}
+                    />
+                )}
+                {flow.kind === "regional" && !targetDataSetId && (
+                    <NoticeBox type="error" message={i18n.t("Select an AFRO Monthly data set in Setup before sending.")} />
+                )}
+                {flow.kind === "regional" && !regionalPrepared && (
+                    <NoticeBox
+                        type="error"
+                        message={i18n.t("Prepare the selected Monthly range again before sending the data.")}
+                    />
+                )}
+                {flow.kind === "regional" && !outputUnitsMapped && (
+                    <NoticeBox
+                        type="error"
+                        message={i18n.t("Map every selected output organisation unit to the target instance before sending.")}
                     />
                 )}
                 <Button

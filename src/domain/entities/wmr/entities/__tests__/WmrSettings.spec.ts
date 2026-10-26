@@ -20,6 +20,7 @@ const sourceWithDataElements: DataSetAttrs = {
 };
 const weeklySource = dataSet("weeklySource", "Weekly");
 const yearlyDestination = destination("yearlyDestination", "Yearly");
+const monthlyDestination = destination("monthlyDestination", "Monthly");
 const countryOrgUnit = { id: "ImspTQPwCqd", name: "Sierra Leone", path: "/ImspTQPwCqd" };
 
 const settings = new WmrSettings({
@@ -29,8 +30,9 @@ const settings = new WmrSettings({
         weeklySource,
         sourceWithDataElements,
         dataSet(yearlyDestination.id, "Yearly"),
+        dataSet(monthlyDestination.id, "Monthly"),
     ],
-    destination: yearlyDestination,
+    destinations: { global: yearlyDestination, regional: monthlyDestination },
     countryOrgUnit,
 });
 
@@ -48,11 +50,11 @@ describe("WmrSettings", () => {
             expect(settings.getFlowFor(yearlySource.id, "regional")).toBeUndefined();
         });
 
-        it("sends a monthly source to the destination in the regional flow", () => {
+        it("sends a monthly source to the regional destination in the regional flow", () => {
             expect(settings.getFlowFor(monthlySource.id, "regional")).toEqual({
                 kind: "regional",
                 source: monthlySource,
-                destination: yearlyDestination,
+                destination: monthlyDestination,
             });
         });
 
@@ -81,7 +83,7 @@ describe("WmrSettings", () => {
         it("has no flow while the destination is not installed", () => {
             const withoutDestination = new WmrSettings({
                 dataSets: [yearlySource],
-                destination: undefined,
+                destinations: { global: undefined, regional: undefined },
                 countryOrgUnit,
             });
 

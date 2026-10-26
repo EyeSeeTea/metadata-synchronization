@@ -15,12 +15,10 @@ import { promiseMap } from "../../../../utils/common";
 import { SynchronizationReport } from "../../../reports/entities/SynchronizationReport";
 import { Maybe } from "../../../../types/utils";
 import { Id } from "../../../common/entities/Schemas";
-import { sumIntoPeriod } from "../entities/WmrSyncFlow";
 
 export type WmrAggregatedSyncOptions = Readonly<{
     orgUnitIdOverride?: Maybe<Id>;
     periods?: ReadonlyArray<string>;
-    targetPeriod?: string;
     targetDataSetId?: Id;
 }>;
 
@@ -31,7 +29,6 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
 
     public orgUnitIdOverride: Maybe<Id>;
     public periods: ReadonlyArray<string> | undefined;
-    public targetPeriod: Maybe<string>;
     public targetDataSetId: Maybe<Id>;
 
     // TODO: review typings for this generator
@@ -46,7 +43,6 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
     > {
         this.orgUnitIdOverride = options.orgUnitIdOverride;
         this.periods = options.periods;
-        this.targetPeriod = options.targetPeriod;
         this.targetDataSetId = options.targetDataSetId;
         yield* super.execute();
         return undefined as unknown as SynchronizationReport;
@@ -59,7 +55,7 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
             includeCategoryOptionCombos: true,
             periods: this.periods,
         });
-        return { dataValues: this.targetPeriod ? sumIntoPeriod(dataValues, this.targetPeriod) : dataValues };
+        return { dataValues };
     });
 
     public async postPayload(instance: Instance): Promise<SynchronizationResult[]> {

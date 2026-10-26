@@ -8,7 +8,7 @@ import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
 import { formatDateLong } from "../../../utils/date";
 import { removeTrailingSlash } from "../../../utils/d2-utils";
-import { getWmrReportedYear, isWmrFullYearRange } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { getWmrReportedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
 import { wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
 import { useWmrContext } from "./context/WmrContext";
 import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
@@ -26,7 +26,8 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const { syncRule, settings, regionalMonthRange, setRegionalMonthRange } = useWmrContext();
     const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult, readsAnalytics, destinationOrgUnits } =
         useSyncLocalWmr();
-    const syncAccess = useWmrSyncAccess(destinationOrgUnits);
+    const flowKind = syncRule?.flow?.kind ?? "global";
+    const syncAccess = useWmrSyncAccess(flowKind, destinationOrgUnits);
     const loading = useLoading();
     if (!syncRule?.flow || !settings) {
         throw new Error("WMR Context should be initialized");
@@ -35,7 +36,7 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const definition = wmrFlowDefinitions[flow.kind];
     const year = getWmrReportedYear(syncRule.rule.dataParams);
     const showsDataEntry = definition.destinationOrgUnits === "country";
-    const monthRange = definition.sumIntoYear ? regionalMonthRange : undefined;
+    const monthRange = flow.kind === "regional" ? regionalMonthRange : undefined;
 
     const onDownload = async () => {
         loading.show();
@@ -64,20 +65,6 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                         onChange={setRegionalMonthRange}
                     />
                 )}
-                {monthRange && !isWmrFullYearRange(monthRange, year) && (
-                    <NoticeBox
-                        type="info"
-                        message={i18n.t(
-                            "The {{year}} values of {{dataSet}} will be the sum of the selected months only.",
-                            {
-                                year,
-                                dataSet: flow.destination.name,
-                                nsSeparator: false,
-                                interpolation: { escapeValue: false },
-                            }
-                        )}
-                    />
-                )}
             </Grid>
             {syncAccess.type !== "ok" && (
                 <Grid item xs={12}>
@@ -93,7 +80,7 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                         endIcon={<SyncAltIcon />}
                         disabled={wmrLocalSyncIsLoading || syncAccess.type !== "ok"}
                     >
-                        {i18n.t("Sync WMR Country Dataset")}
+                        {flow.kind === "regional" ? i18n.t("Prepare WMR Monthly Dataset") : i18n.t("Sync WMR Country Dataset")}
                     </Button>
                     <Button
                         variant="outlined"

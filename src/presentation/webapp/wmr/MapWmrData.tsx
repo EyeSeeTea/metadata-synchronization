@@ -12,12 +12,16 @@ import { NoticeBox } from "./components/NoticeBox";
 type MapWmrDataProps = {};
 
 export function MapWmrData(_props: MapWmrDataProps) {
-    const { syncRule, settings, loadSettings, flowKind } = useWmrContext();
+    const { syncRule, settings, loadSettings, flowKind, setRegionalPrepared } = useWmrContext();
     const [dataSetId, setDataSetId] = React.useState<Maybe<Id>>(syncRule?.localDataSetId);
 
     React.useEffect(() => {
         loadSettings();
     }, [loadSettings]);
+
+    React.useEffect(() => {
+        setRegionalPrepared(false);
+    }, [setRegionalPrepared]);
 
     if (!settings || !syncRule) {
         return <NoticeBox type="loading" message={i18n.t("Loading settings...")} />;
@@ -33,6 +37,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
         setDataSetId(value);
         syncRule.localDataSetId = value;
         syncRule.flow = flowKind && settings.getFlowFor(value, flowKind);
+        setRegionalPrepared(false);
     };
 
     const allowedLocalIds = settings.getSourceMetadataIds(dataSetId);
@@ -62,6 +67,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
                         filterRows={allowedLocalIds}
                         filterMappingIds={[...(syncRule.flow?.destination.dataElementsIds ?? [])]}
                         applyFilterMappingIdsToAutoMap
+                        onChange={() => setRegionalPrepared(false)}
                     />
                 </Grid>
             )}

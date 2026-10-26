@@ -17,6 +17,22 @@ const monthlyForm = {
     dataSetElements: [{ dataElement: { id: "malariaDeaths", displayName: "Malaria - deaths" } }],
     indicators: [{ id: "malariaDeathsIndicator", displayName: "MAL - Malaria deaths (female + male)" }],
 };
+const countrySync = {
+    id: "countrySync",
+    code: "MAL_WMR_COUNTRY_SYNC",
+    displayName: "MAL - WMR Form - Country Sync",
+    periodType: "Yearly",
+    dataSetElements: [{ dataElement: { id: "malariaDeaths", displayName: "Malaria - deaths" } }],
+    indicators: [],
+};
+const regionalMonthlyStaging = {
+    id: "regionalMonthlyStaging",
+    code: "MAL_WMR_REGIONAL_MONTHLY_SYNC",
+    displayName: "MAL - WMR Regional Monthly Sync",
+    periodType: "Monthly",
+    dataSetElements: [{ dataElement: { id: "malariaDeaths", displayName: "Malaria - deaths" } }],
+    indicators: [],
+};
 
 describe("WmrSettingsD2Repository", () => {
     let server: Server;
@@ -26,9 +42,16 @@ describe("WmrSettingsD2Repository", () => {
         server.get("/me", async () => ({
             organisationUnits: [{ id: sierraLeone, name: "Sierra Leone", level: 1, path: `/${sierraLeone}` }],
         }));
-        server.get("/dataSets", async (_schema, request) => ({
-            dataSets: new URL(request.url).searchParams.getAll("filter").includes(countryFilter) ? [monthlyForm] : [],
-        }));
+        server.get("/dataSets", async (_schema, request) => {
+            const filters = new URL(request.url).searchParams.getAll("filter");
+            return {
+                dataSets: filters.includes(countryFilter)
+                    ? [monthlyForm]
+                    : filters.some(filter => filter.startsWith("code:in:"))
+                    ? [countrySync, regionalMonthlyStaging]
+                    : [],
+            };
+        });
     });
 
     afterEach(() => {
@@ -55,6 +78,27 @@ describe("WmrSettingsD2Repository", () => {
             const settings = await new WmrSettingsD2Repository(localInstance).get();
 
             expect(settings.countryOrgUnit).toEqual({ id: sierraLeone, name: "Sierra Leone", path: `/${sierraLeone}` });
+        });
+
+        it("resolves the staging destination independently for each flow", async () => {
+            const settings = await new WmrSettingsD2Repository(localInstance).get();
+
+            expect(settings.destinations).toEqual({
+                global: {
+                    id: countrySync.id,
+                    code: countrySync.code,
+                    name: countrySync.displayName,
+                    periodType: "Yearly",
+                    dataElementsIds: ["malariaDeaths"],
+                },
+                regional: {
+                    id: regionalMonthlyStaging.id,
+                    code: regionalMonthlyStaging.code,
+                    name: regionalMonthlyStaging.displayName,
+                    periodType: "Monthly",
+                    dataElementsIds: ["malariaDeaths"],
+                },
+            });
         });
     });
 });

@@ -17,12 +17,12 @@ function getSetupBlockerMessage(blocker: WmrSetupBlocker): string {
         case "targetInstance":
             return i18n.t("Select the target instance before proceeding.");
         case "level":
-            return i18n.t("Assign the monthly form to an organisation unit level before proceeding.");
+            return i18n.t("Assign output organisation units to the Regional monthly staging data set before proceeding.");
     }
 }
 
 export function WmrWizard() {
-    const { requisitesReady, syncRule, flowKind, targetInstance, regionalParents } = useWmrContext();
+    const { requisitesReady, syncRule, flowKind, targetInstance, targetDataSetId, regionalOutputOrgUnits } = useWmrContext();
 
     const setupBlocker = React.useMemo(
         () =>
@@ -30,15 +30,17 @@ export function WmrWizard() {
                 flowKind,
                 requisitesReady,
                 hasTargetInstance: Boolean(targetInstance),
-                regionalParents,
+                regionalOutputOrgUnits,
             }),
-        [flowKind, requisitesReady, targetInstance, regionalParents]
+        [flowKind, requisitesReady, targetInstance, regionalOutputOrgUnits]
     );
 
     const onStepChangeRequest = React.useCallback(
         async (currentStep: WizardStep) => {
             if (currentStep.key === "metadata-package" && setupBlocker) {
                 return [getSetupBlockerMessage(setupBlocker)];
+            } else if (currentStep.key === "metadata-package" && flowKind === "regional" && !targetDataSetId) {
+                return [i18n.t("Select an accessible AFRO Monthly data set before proceeding.")];
             } else if (currentStep.key === "map-server-data" && (!syncRule?.localDataSetId || !syncRule.flow)) {
                 return [i18n.t("Please select a source data set before proceeding.")];
             } else if (currentStep.key === "check-data" && !syncRule?.rule.metadataIds.length) {
@@ -46,7 +48,7 @@ export function WmrWizard() {
             }
             return undefined;
         },
-        [setupBlocker, syncRule?.localDataSetId, syncRule?.flow, syncRule?.rule.metadataIds.length]
+        [setupBlocker, flowKind, targetDataSetId, syncRule?.localDataSetId, syncRule?.flow, syncRule?.rule.metadataIds.length]
     );
 
     const steps = React.useMemo((): WizardStep[] => {

@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { Future, FutureData } from "../../domain/common/entities/Future";
 import { Id } from "../../domain/common/entities/Schemas";
-import { getParentOrgUnits, WmrLevelOrgUnit, WmrOrgUnitLevel } from "../../domain/entities/wmr/entities/WmrOrgUnits";
+import { WmrLevelOrgUnit, WmrOrgUnitLevel } from "../../domain/entities/wmr/entities/WmrOrgUnits";
 import { wmrRequisites } from "../../domain/entities/wmr/entities/WmrRequisite";
 import { WmrOrgUnitsRepository } from "../../domain/entities/wmr/repositories/WmrOrgUnitsRepository";
 import { Instance } from "../../domain/instance/entities/Instance";
@@ -11,8 +11,7 @@ import i18n from "../../utils/i18n";
 import { apiToFuture } from "../common/utils/api-futures";
 import { CountryOrgUnit, getCountryOrgUnit } from "./getCountryOrgUnit";
 
-const monthlyFormCode = wmrRequisites.countryFormMonthly.code;
-const countrySyncCode = wmrRequisites.metadata.code;
+const regionalMonthlyStagingCode = wmrRequisites.regionalMonthlyStaging.code;
 
 const orgUnitFields = { id: true, displayName: true, level: true, path: true } as const;
 
@@ -22,7 +21,7 @@ type D2DataSetRef = Readonly<{ id: Id; code: string; displayName: string }>;
 
 type D2OwnerDataSet = Readonly<Record<string, unknown> & { id: Id }>;
 
-type AssignedDataSets = Readonly<{ monthlyForm: D2DataSetRef; countrySync: D2DataSetRef }>;
+type AssignedDataSets = Readonly<{ regionalMonthlyStaging: D2DataSetRef }>;
 
 type ImportErrorBody = Readonly<{
     message?: string;
@@ -74,10 +73,10 @@ export class WmrOrgUnitsD2Repository implements WmrOrgUnitsRepository {
 
     assignLevel(level: number): FutureData<void> {
         return this.getAssignedDataSets()
-            .mapError(error => toAssignError(error, [monthlyFormCode, countrySyncCode]))
+            .mapError(error => toAssignError(error, [regionalMonthlyStagingCode]))
             .flatMap(dataSets =>
                 this.postLevelAssignment(level, dataSets).mapError(error =>
-                    toAssignError(error, [dataSets.monthlyForm.displayName, dataSets.countrySync.displayName])
+                    toAssignError(error, [dataSets.regionalMonthlyStaging.displayName])
                 )
             );
     }
@@ -86,17 +85,14 @@ export class WmrOrgUnitsD2Repository implements WmrOrgUnitsRepository {
         return getCountryOrgUnit(this.api).flatMap(countryOrgUnit =>
             Future.joinObj({
                 orgUnits: this.getOrgUnitsOfLevel(countryOrgUnit, level),
-                monthlyForm: this.getOwnerDataSet(dataSets.monthlyForm.id),
-                countrySync: this.getOwnerDataSet(dataSets.countrySync.id),
-            }).flatMap(({ orgUnits, monthlyForm, countrySync }) => {
-                const parentIds = getParentOrgUnits(orgUnits).map(({ id }) => id);
+                regionalMonthlyStaging: this.getOwnerDataSet(dataSets.regionalMonthlyStaging.id),
+            }).flatMap(({ orgUnits, regionalMonthlyStaging }) => {
                 const payload = {
                     dataSets: [
                         withOrgUnits(
-                            monthlyForm,
+                            regionalMonthlyStaging,
                             orgUnits.map(({ id }) => id)
                         ),
-                        withOrgUnits(countrySync, _.uniq([countryOrgUnit.id, ...parentIds])),
                     ],
                 };
                 return apiToFuture(
@@ -119,18 +115,17 @@ export class WmrOrgUnitsD2Repository implements WmrOrgUnitsRepository {
         return apiToFuture(
             this.api.models.dataSets.get({
                 fields: { id: true, code: true, displayName: true },
-                filter: { code: { in: [monthlyFormCode, countrySyncCode] } },
+                filter: { code: { eq: regionalMonthlyStagingCode } },
                 paging: false,
             })
         ).flatMap(({ objects }) => {
-            const monthlyForm = objects.find(({ code }) => code === monthlyFormCode);
-            const countrySync = objects.find(({ code }) => code === countrySyncCode);
-            return monthlyForm && countrySync
-                ? Future.success({ monthlyForm, countrySync })
+            const regionalMonthlyStaging = objects.find(({ code }) => code === regionalMonthlyStagingCode);
+            return regionalMonthlyStaging
+                ? Future.success({ regionalMonthlyStaging })
                 : Future.error(
                       new Error(
                           i18n.t("The data set {{code}} is not installed", {
-                              code: monthlyForm ? countrySyncCode : monthlyFormCode,
+                              code: regionalMonthlyStagingCode,
                           })
                       )
                   );
