@@ -14,6 +14,7 @@ import {
     WmrSubmitTarget,
     wmrFlowDefinitions,
 } from "../../../../domain/entities/wmr/entities/WmrFlowKind";
+import { getWmrRegionalSubmissionWarning, isWmrRegionalSubmissionAvailable } from "../wmrRegionalSubmission";
 
 export type WmrRemoteSyncResult = Readonly<
     { stats?: SynchronizationStats } & ({ type: "success" } | { type: "error"; message: string } | { type: "warning" })
@@ -47,6 +48,10 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
     );
 
     const syncRemoteWmr = React.useCallback(async () => {
+        if (!isWmrRegionalSubmissionAvailable(flowKind)) {
+            setWmrRemoteSyncResult({ type: "error", message: getWmrRegionalSubmissionWarning() });
+            return;
+        }
         if (!instance || !syncRule || submitTarget?.type !== "ready") {
             setWmrRemoteSyncResult({
                 type: "error",
@@ -111,6 +116,7 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
         });
     }, [
         instance,
+        flowKind,
         submitTarget,
         syncRule,
         loading,

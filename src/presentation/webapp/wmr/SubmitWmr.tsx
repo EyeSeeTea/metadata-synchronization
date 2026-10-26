@@ -17,6 +17,7 @@ import { useWmrContext } from "./context/WmrContext";
 import { WmrFlowLabel } from "./components/WmrFlowLabel";
 import { WmrSyncPeriod } from "./components/WmrSyncPeriod";
 import { useWmrTargetOrgUnit } from "./hooks/useWmrTargetOrgUnit";
+import { getWmrRegionalSubmissionWarning, isWmrRegionalSubmissionAvailable } from "./wmrRegionalSubmission";
 
 export function SubmitWmr() {
     const loading = useLoading();
@@ -31,6 +32,7 @@ export function SubmitWmr() {
     }
     const { flow } = syncRule;
     const definition = wmrFlowDefinitions[flow.kind];
+    const regionalSubmissionAvailable = isWmrRegionalSubmissionAvailable(flow.kind);
     const year = getWmrReportedYear(syncRule.rule.dataParams);
     const monthRange = definition.sumIntoYear ? regionalMonthRange : undefined;
     const header = <WmrSubmitHeader flow={flow} year={year} monthRange={monthRange} />;
@@ -45,12 +47,16 @@ export function SubmitWmr() {
         );
     }
 
-    const sendIsDisabled = !targetInstance?.url || submitTarget?.type !== "ready" || loading.isLoading;
+    const sendIsDisabled =
+        !regionalSubmissionAvailable || !targetInstance?.url || submitTarget?.type !== "ready" || loading.isLoading;
 
     return (
         <Box>
             {header}
-            <NoticeBox type="info" message={describeWmrSubmitIntro(definition)} />
+            {regionalSubmissionAvailable && <NoticeBox type="info" message={describeWmrSubmitIntro(definition)} />}
+            {!regionalSubmissionAvailable && (
+                <NoticeBox type="warning" message={getWmrRegionalSubmissionWarning()} />
+            )}
             <Box p={2}>
                 <NoticeBox
                     type={targetInstance?.url ? "success" : "error"}
