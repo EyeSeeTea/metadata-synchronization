@@ -1396,6 +1396,9 @@ msgstr "Destination"
 msgid "Set Credentials"
 msgstr "Set Credentials"
 
+msgid "Could not load metadata types"
+msgstr "Could not load metadata types"
+
 msgid "Every day"
 msgstr "Every day"
 

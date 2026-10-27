@@ -1349,6 +1349,9 @@ msgstr ""
 msgid "Set Credentials"
 msgstr ""
 
+msgid "Could not load metadata types"
+msgstr "Could not load metadata types"
+
 msgid "Every day"
 msgstr ""
 
