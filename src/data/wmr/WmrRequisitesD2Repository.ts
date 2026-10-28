@@ -186,6 +186,7 @@ function buildRegionalMonthlyStagingDataSet(annualDataSet: D2DataSetOwner, code:
             dataSet: { id },
         })),
         organisationUnits: [],
+        dataInputPeriods: [],
     };
 }
 

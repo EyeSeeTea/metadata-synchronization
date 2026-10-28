@@ -24,10 +24,10 @@ function getFlowTexts(kind: WmrFlowKind): WmrFlowTexts {
         case "regional":
             return {
                 title: getWmrFlowName(kind),
-                chip: i18n.t("Monthly → Yearly"),
+                chip: i18n.t("Monthly"),
                 route: [
-                    i18n.t("Data is entered monthly at the organisation units of a level"),
-                    i18n.t("Summed per year into their parent organisation unit"),
+                    i18n.t("Data is entered monthly in the country"),
+                    i18n.t("Stored per month for each output organisation unit"),
                     i18n.t("Sent with organisation unit mapping"),
                 ],
             };

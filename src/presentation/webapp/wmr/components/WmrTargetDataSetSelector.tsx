@@ -1,6 +1,7 @@
 import { Dropdown } from "@eyeseetea/d2-ui-components";
 import React from "react";
 import { Id } from "../../../../domain/common/entities/Schemas";
+import { wmrRequisites } from "../../../../domain/entities/wmr/entities/WmrRequisite";
 import { Instance } from "../../../../domain/instance/entities/Instance";
 import { getD2APiFromInstance } from "../../../../utils/d2-utils";
 import i18n from "../../../../utils/i18n";
@@ -8,6 +9,8 @@ import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { NoticeBox } from "./NoticeBox";
 
 type TargetDataSet = Readonly<{ id: Id; name: string }>;
+
+const stagingDataSetCode = wmrRequisites.regionalMonthlyStaging.code;
 
 type WmrTargetDataSetSelectorProps = Readonly<{
     instance: Instance;
@@ -28,8 +31,13 @@ export function WmrTargetDataSetSelector({ instance, value, onChange }: WmrTarge
         const api = getD2APiFromInstance(compositionRoot.localInstance, instance);
         api.models.dataSets
             .get({
-                fields: { id: true, displayName: true, access: { data: { write: true } } },
-                filter: { periodType: { eq: "Monthly" } },
+                fields: {
+                    id: true,
+                    code: true,
+                    displayName: true,
+                    periodType: true,
+                    access: { data: { write: true } },
+                },
                 order: "displayName:asc",
                 paging: false,
             })
@@ -38,7 +46,12 @@ export function WmrTargetDataSetSelector({ instance, value, onChange }: WmrTarge
                 if (!cancelled) {
                     setDataSets(
                         response.objects
-                            .filter(({ access }) => access.data?.write === true)
+                            .filter(
+                                ({ code, periodType, access }) =>
+                                    periodType === "Monthly" &&
+                                    access.data?.write === true &&
+                                    code !== stagingDataSetCode
+                            )
                             .map(({ id, displayName }) => ({ id, name: displayName }))
                     );
                 }
@@ -52,8 +65,20 @@ export function WmrTargetDataSetSelector({ instance, value, onChange }: WmrTarge
         };
     }, [compositionRoot.localInstance, instance]);
 
-    if (error) return <NoticeBox type="error" message={i18n.t("Could not load Monthly data sets: {{error}}", { error })} />;
-    if (!dataSets) return <NoticeBox type="loading" message={i18n.t("Loading Monthly data sets from the target instance...")} />;
+    if (error) {
+        return (
+            <NoticeBox
+                type="error"
+                message={i18n.t("Could not load Monthly data sets: {{error}}", {
+                    error,
+                    nsSeparator: false,
+                    interpolation: { escapeValue: false },
+                })}
+            />
+        );
+    }
+    if (!dataSets)
+        return <NoticeBox type="loading" message={i18n.t("Loading Monthly data sets from the target instance...")} />;
     if (dataSets.length === 0) {
         return (
             <NoticeBox

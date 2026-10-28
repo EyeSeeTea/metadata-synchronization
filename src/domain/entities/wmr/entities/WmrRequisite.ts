@@ -1,6 +1,6 @@
 import { Id } from "../../../common/entities/Schemas";
 
-export const wmrRequisiteTypes = ["metadata", "dataStore", "countryFormMonthly", "regionalMonthlyStaging"] as const;
+export const wmrRequisiteTypes = ["metadata", "dataStore", "regionalMonthlyStaging"] as const;
 export type WmrRequisiteType = typeof wmrRequisiteTypes[number];
 
 export type WmrRequisite = Readonly<{
@@ -21,12 +21,6 @@ export const wmrRequisites: Readonly<Record<WmrRequisiteType, WmrRequisite>> = {
         kind: "dataStore",
         code: "MAL_WMR_COUNTRY_SYNC",
         assetPath: "wmr/dataStore.json",
-        assignToCountry: false,
-    },
-    countryFormMonthly: {
-        kind: "metadata",
-        code: "AFR_COUNTRY_MONTHLY",
-        assetPath: "wmr/country-form-monthly.json",
         assignToCountry: false,
     },
     regionalMonthlyStaging: {

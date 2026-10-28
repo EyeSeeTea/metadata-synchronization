@@ -27,7 +27,7 @@ describe("WmrFlowKind", () => {
         it("uses the monthly staging form at the selected output level without a data store prerequisite", () => {
             expect(wmrFlowDefinitions.regional).toEqual({
                 sourcePeriodType: "Monthly",
-                requisites: ["metadata", "countryFormMonthly", "regionalMonthlyStaging"],
+                requisites: ["metadata", "regionalMonthlyStaging"],
                 destinationOrgUnits: "selected",
                 targetOrgUnit: "mapping",
                 aggregation: "always",

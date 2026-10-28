@@ -54,8 +54,7 @@ describe("useWmrOrgUnitLevel", () => {
             await Promise.resolve();
         });
 
-        expect(mocks.getAssignedOrgUnits).toHaveBeenCalledWith(wmrRequisites.regionalMonthlyStaging.code);
-        expect(mocks.getAssignedOrgUnits).not.toHaveBeenCalledWith(wmrRequisites.countryFormMonthly.code);
+        expect(mocks.getAssignedOrgUnits.mock.calls).toEqual([[wmrRequisites.regionalMonthlyStaging.code]]);
         expect(renderedSelection).toEqual({ type: "assigned", assignment });
         expect(mocks.setRegionalOutputOrgUnits).toHaveBeenCalledWith(assignment.orgUnits);
     });

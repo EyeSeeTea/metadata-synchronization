@@ -13,15 +13,13 @@ export function describeWmrSyncPeriod(year: string, monthRange?: WmrMonthRange, 
         return i18n.t("Period: {{year}}", { year, nsSeparator: false, interpolation: { escapeValue: false } });
     }
     if (monthRange.from === monthRange.to) {
-        return i18n.t("Period: {{year}}, {{month}} only", {
-            year,
+        return i18n.t("Period: {{month}}", {
             month: formatMonthOfYear(monthRange.from, locale),
             nsSeparator: false,
             interpolation: { escapeValue: false },
         });
     }
-    return i18n.t("Period: {{year}}, sum of {{from}} to {{to}}", {
-        year,
+    return i18n.t("Period: {{from}} to {{to}}", {
         from: formatMonthOfYear(monthRange.from, locale),
         to: formatMonthOfYear(monthRange.to, locale),
         nsSeparator: false,

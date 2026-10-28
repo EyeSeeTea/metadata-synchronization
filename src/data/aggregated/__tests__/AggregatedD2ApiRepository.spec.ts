@@ -106,6 +106,54 @@ describe("AggregatedD2ApiRepository", () => {
 
             expect(requestedPeriodFilters()).toEqual([{ period: [], startDate: "2025-01-01", endDate: "2025-12-31" }]);
         });
+
+        describe("reads period and org unit from each value or from the set", () => {
+            const expectedValue = {
+                dataElement: dataElementId,
+                period: "202503",
+                orgUnit: orgUnitId,
+                value: "5",
+                comment: undefined,
+                categoryOptionCombo: "defaultCoc",
+                attributeOptionCombo: "defaultCoc",
+            };
+
+            it("keeps the ones repeated in every value (2.41)", async () => {
+                const { dataValues } = await getAggregatedFrom({
+                    dataSet: dataSetId,
+                    dataValues: [{ dataElement: dataElementId, period: "202503", orgUnit: orgUnitId, value: "5" }],
+                });
+
+                expect(dataValues).toEqual([expectedValue]);
+            });
+
+            it("takes them from the set when the values omit them (2.43, single period and org unit)", async () => {
+                const { dataValues } = await getAggregatedFrom({
+                    dataSet: dataSetId,
+                    period: "202503",
+                    orgUnit: orgUnitId,
+                    dataValues: [{ dataElement: dataElementId, value: "5" }],
+                });
+
+                expect(dataValues).toEqual([expectedValue]);
+            });
+
+            it("takes only the org unit from the set when the values keep the period (2.43, date range)", async () => {
+                const { dataValues } = await getAggregatedFrom({
+                    dataSet: dataSetId,
+                    orgUnit: orgUnitId,
+                    dataValues: [{ dataElement: dataElementId, period: "202503", value: "5" }],
+                });
+
+                expect(dataValues).toEqual([expectedValue]);
+            });
+
+            async function getAggregatedFrom(response: object) {
+                server.get("/dataValueSets", async () => response);
+                const repository = new AggregatedD2ApiRepository(localInstance, localInstance);
+                return repository.getAggregated(dataParams, [dataSetId], []);
+            }
+        });
     });
 
     function requestedPeriodFilters() {

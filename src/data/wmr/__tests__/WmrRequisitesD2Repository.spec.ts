@@ -21,6 +21,7 @@ const annualOwner = {
         },
     ],
     organisationUnits: [{ id: "country" }],
+    dataInputPeriods: [{ period: { id: "2025" } }, { period: { id: "2026" } }],
 };
 const localInstance = Instance.build({ url: baseUrl, name: "Testing", version: "2.40", type: "local" });
 
@@ -45,12 +46,18 @@ describe("WmrRequisitesD2Repository", () => {
         await new WmrRequisitesD2Repository(localInstance).setupRequisite("regionalMonthlyStaging").toPromise();
 
         expect(postedBodies).toHaveLength(1);
-        const stagedDataSet = (postedBodies[0] as {
-            dataSets: Array<{
-                id: string;
-                dataSetElements: Array<{ dataSet: { id: string }; dataElement: { id: string }; categoryCombo: { id: string } }>;
-            }>;
-        }).dataSets[0];
+        const stagedDataSet = (
+            postedBodies[0] as {
+                dataSets: Array<{
+                    id: string;
+                    dataSetElements: Array<{
+                        dataSet: { id: string };
+                        dataElement: { id: string };
+                        categoryCombo: { id: string };
+                    }>;
+                }>;
+            }
+        ).dataSets[0];
         expect(stagedDataSet.dataSetElements[0]).toEqual({
             dataSet: { id: stagedDataSet.id },
             dataElement: { id: "malariaDeaths" },
@@ -90,6 +97,14 @@ describe("WmrRequisitesD2Repository", () => {
                 },
             ],
             organisationUnits: [{ id: "country" }],
+            dataInputPeriods: [{ period: { id: "2025" } }, { period: { id: "2026" } }],
         });
+    });
+
+    it("leaves the monthly staging data set without the yearly input periods of the annual data set", async () => {
+        await new WmrRequisitesD2Repository(localInstance).setupRequisite("regionalMonthlyStaging").toPromise();
+
+        const [stagedDataSet] = (postedBodies[0] as { dataSets: Array<{ dataInputPeriods: unknown[] }> }).dataSets;
+        expect(stagedDataSet?.dataInputPeriods).toEqual([]);
     });
 });

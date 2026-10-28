@@ -51,13 +51,15 @@ describe("WmrOrgUnits", () => {
     });
 
     describe("getAssignableLevels", () => {
-        it("keeps level 3 and deeper, since level 2 would sum into the country", () => {
-            const levels = [1, 2, 3, 4].map(level => ({ level, name: `Level ${level}`, count: level }));
+        it("keeps every level with organisation units below the country, the country level included", () => {
+            const levels = [
+                { level: 1, name: "Region", count: 0 },
+                { level: 2, name: "Country", count: 1 },
+                { level: 3, name: "District", count: 14 },
+                { level: 4, name: "Facility", count: 1166 },
+            ];
 
-            expect(getAssignableLevels(levels)).toEqual([
-                { level: 3, name: "Level 3", count: 3 },
-                { level: 4, name: "Level 4", count: 4 },
-            ]);
+            expect(getAssignableLevels(levels)).toEqual(levels.slice(1));
         });
     });
 

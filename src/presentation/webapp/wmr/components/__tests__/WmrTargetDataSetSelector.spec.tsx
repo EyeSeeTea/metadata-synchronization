@@ -18,11 +18,20 @@ vi.mock("../../../../react/core/contexts/AppContext", () => ({
 }));
 vi.mock("../../../../../utils/i18n", () => ({
     default: {
-        t: (message: string, options?: { error?: string }) => message.replace("{{error}}", options?.error ?? "{{error}}"),
+        t: (message: string, options?: { error?: string }) =>
+            message.replace("{{error}}", options?.error ?? "{{error}}"),
     },
 }));
 vi.mock("@eyeseetea/d2-ui-components", () => ({
-    Dropdown: ({ items, value, onChange }: { items: Array<{ value: string; text: string }>; value: string; onChange: (value: string) => void }) => (
+    Dropdown: ({
+        items,
+        value,
+        onChange,
+    }: {
+        items: Array<{ value: string; text: string }>;
+        value: string;
+        onChange: (value: string) => void;
+    }) => (
         <select aria-label="AFRO Monthly data set" value={value} onChange={event => onChange(event.target.value)}>
             {items.map(item => (
                 <option key={item.value} value={item.value}>
@@ -40,10 +49,31 @@ const container = document.createElement("div");
 const localInstance = mocks.localInstance as never;
 const instanceA = { id: "target-a" } as never;
 const instanceB = { id: "target-b" } as never;
+const writeAccess = { data: { write: true } };
 const monthlyDataSets = [
-    { id: "writable", displayName: "Writable monthly", access: { data: { write: true } } },
-    { id: "readonly", displayName: "Read only monthly", access: { data: { write: false } } },
-    { id: "missing", displayName: "No access details", access: {} },
+    {
+        id: "writable",
+        code: "AFR_MONTHLY",
+        displayName: "Writable monthly",
+        periodType: "Monthly",
+        access: writeAccess,
+    },
+    { id: "yearly", code: "AFR_YEARLY", displayName: "Writable yearly", periodType: "Yearly", access: writeAccess },
+    {
+        id: "readonly",
+        code: "AFR_READONLY",
+        displayName: "Read only monthly",
+        periodType: "Monthly",
+        access: { data: { write: false } },
+    },
+    { id: "missing", code: "AFR_NO_ACCESS", displayName: "No access details", periodType: "Monthly", access: {} },
+    {
+        id: "staging",
+        code: "MAL_WMR_REGIONAL_MONTHLY_SYNC",
+        displayName: "MAL - WMR Regional Monthly Sync",
+        periodType: "Monthly",
+        access: writeAccess,
+    },
 ];
 
 function render(instance = instanceA) {
@@ -78,19 +108,27 @@ afterEach(() => {
 });
 
 describe("WmrTargetDataSetSelector", () => {
-    it("offers only writable Monthly data sets and allows selecting one", async () => {
+    it("offers only writable Monthly data sets other than the local staging one and allows selecting one", async () => {
         mocks.getData.mockResolvedValue({ objects: monthlyDataSets });
         render();
         await settle();
 
         expect(mocks.getD2APiFromInstance).toHaveBeenCalledWith(localInstance, instanceA);
-        expect(mocks.getDataSetQuery).toHaveBeenCalledWith(
-            expect.objectContaining({
-                fields: { id: true, displayName: true, access: { data: { write: true } } },
-                filter: { periodType: { eq: "Monthly" } },
-            })
-        );
-        const options = Array.from(container.querySelectorAll("option")).map(option => [option.value, option.textContent]);
+        expect(mocks.getDataSetQuery).toHaveBeenCalledWith({
+            fields: {
+                id: true,
+                code: true,
+                displayName: true,
+                periodType: true,
+                access: { data: { write: true } },
+            },
+            order: "displayName:asc",
+            paging: false,
+        });
+        const options = Array.from(container.querySelectorAll("option")).map(option => [
+            option.value,
+            option.textContent,
+        ]);
         expect(options).toEqual([["writable", "Writable monthly"]]);
         const select = container.querySelector("select");
         expect(select).not.toBeNull();
@@ -106,8 +144,9 @@ describe("WmrTargetDataSetSelector", () => {
         render();
         await settle();
 
-        expect(container.textContent).toContain("No writable Monthly data sets were found");
-        expect(container.textContent).toContain("Ask an administrator for data write access");
+        expect(container.textContent).toBe(
+            "No writable Monthly data sets were found on the target instance. Ask an administrator for data write access to an AFRO Monthly data set."
+        );
     });
 
     it("shows a clear contextual message when the target query fails", async () => {
@@ -115,14 +154,24 @@ describe("WmrTargetDataSetSelector", () => {
         render();
         await settle();
 
-        expect(container.textContent).toContain("Could not load Monthly data sets: Network unavailable");
+        expect(container.textContent).toBe("Could not load Monthly data sets: Network unavailable");
     });
 
     it("ignores a late response from the previous target instance", async () => {
         let resolveA: ((value: { objects: typeof monthlyDataSets }) => void) | undefined;
         mocks.getData
             .mockImplementationOnce(() => new Promise(resolve => (resolveA = resolve)))
-            .mockResolvedValueOnce({ objects: [{ id: "target-b-ds", displayName: "Target B Monthly", access: { data: { write: true } } }] });
+            .mockResolvedValueOnce({
+                objects: [
+                    {
+                        id: "target-b-ds",
+                        code: "AFR_TARGET_B",
+                        displayName: "Target B Monthly",
+                        periodType: "Monthly",
+                        access: writeAccess,
+                    },
+                ],
+            });
 
         render(instanceA);
         render(instanceB);

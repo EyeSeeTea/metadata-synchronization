@@ -14,7 +14,6 @@ export type WmrSetupStatuses = Readonly<Record<WmrRequisiteType, WmrSetupStatus>
 const initialStatuses: WmrSetupStatuses = {
     metadata: { status: "loading" },
     dataStore: { status: "loading" },
-    countryFormMonthly: { status: "loading" },
     regionalMonthlyStaging: { status: "loading" },
 };
 

@@ -22,12 +22,6 @@ function getRequisiteTexts(type: WmrRequisiteType): RequisiteTexts {
                 caption: i18n.t("Contains the dataStore configurations required by the autogenforms tool"),
                 itemName: i18n.t("Autogenform configuration"),
             };
-        case "countryFormMonthly":
-            return {
-                title: i18n.t("Monthly form package"),
-                caption: i18n.t("MAL - WMR Country Form MONTHLY, the form where the regional data is entered"),
-                itemName: i18n.t("monthly form package"),
-            };
         case "regionalMonthlyStaging":
             return {
                 title: i18n.t("Regional monthly staging data set"),

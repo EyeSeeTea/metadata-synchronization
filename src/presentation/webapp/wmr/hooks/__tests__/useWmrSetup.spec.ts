@@ -12,7 +12,6 @@ vi.hoisted(() => {
 const allDone: WmrSetupStatuses = {
     metadata: { status: "done" },
     dataStore: { status: "done" },
-    countryFormMonthly: { status: "done" },
     regionalMonthlyStaging: { status: "done" },
 };
 
@@ -39,8 +38,17 @@ describe("isWmrSetupReady", () => {
         ]);
     });
 
-    it("only waits for the monthly form package in the flow that requires it", () => {
-        const statuses = buildStatuses({ countryFormMonthly: { status: "pending" } });
+    it("only waits for the Autogenform configuration in the global flow", () => {
+        const statuses = buildStatuses({ dataStore: { status: "pending" } });
+
+        expect([isWmrSetupReady(statuses, globalRequisites), isWmrSetupReady(statuses, regionalRequisites)]).toEqual([
+            false,
+            true,
+        ]);
+    });
+
+    it("only waits for the regional monthly staging data set in the regional flow", () => {
+        const statuses = buildStatuses({ regionalMonthlyStaging: { status: "pending" } });
 
         expect([isWmrSetupReady(statuses, globalRequisites), isWmrSetupReady(statuses, regionalRequisites)]).toEqual([
             true,

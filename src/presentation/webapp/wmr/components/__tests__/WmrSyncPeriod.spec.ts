@@ -25,32 +25,28 @@ describe("describeWmrSyncPeriod", () => {
     });
 
     describe("with a range of several months", () => {
-        it("shows the full year summed with the given locale", () => {
+        it("shows the first and last month of the full year with the given locale", () => {
             expect(describeWmrSyncPeriod(year, getWmrFullYearRange(year), "en-US")).toBe(
-                "Period: 2025, sum of January 2025 to December 2025"
+                "Period: January 2025 to December 2025"
             );
         });
 
-        it("shows the months of the range", () => {
-            expect(describeWmrSyncPeriod(year, marchToJune, "en-US")).toBe(
-                "Period: 2025, sum of March 2025 to June 2025"
-            );
+        it("shows the first and last month of the range", () => {
+            expect(describeWmrSyncPeriod(year, marchToJune, "en-US")).toBe("Period: March 2025 to June 2025");
         });
 
         it("names the months in the language of the locale", () => {
-            expect(describeWmrSyncPeriod(year, marchToJune, "es")).toBe(
-                "Period: 2025, sum of marzo de 2025 to junio de 2025"
-            );
+            expect(describeWmrSyncPeriod(year, marchToJune, "es")).toBe("Period: marzo de 2025 to junio de 2025");
         });
     });
 
     describe("with a single month", () => {
         it("shows the only month synced", () => {
-            expect(describeWmrSyncPeriod(year, onlyMarch, "en-US")).toBe("Period: 2025, March 2025 only");
+            expect(describeWmrSyncPeriod(year, onlyMarch, "en-US")).toBe("Period: March 2025");
         });
 
         it("names the month in the language of the locale", () => {
-            expect(describeWmrSyncPeriod(year, onlyMarch, "es")).toBe("Period: 2025, marzo de 2025 only");
+            expect(describeWmrSyncPeriod(year, onlyMarch, "es")).toBe("Period: marzo de 2025");
         });
     });
 });

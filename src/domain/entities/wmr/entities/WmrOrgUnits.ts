@@ -26,10 +26,8 @@ export type WmrLevelAssignment = Readonly<{
     parents: ReadonlyArray<WmrLevelOrgUnit>;
 }>;
 
-export const wmrMinAssignableLevel = 3;
-
 export function getAssignableLevels(levels: ReadonlyArray<WmrOrgUnitLevel>): ReadonlyArray<WmrOrgUnitLevel> {
-    return levels.filter(({ level }) => level >= wmrMinAssignableLevel);
+    return levels.filter(({ count }) => count > 0);
 }
 
 export function getSingleLevel(orgUnits: ReadonlyArray<WmrLevelOrgUnit>): number | undefined {
