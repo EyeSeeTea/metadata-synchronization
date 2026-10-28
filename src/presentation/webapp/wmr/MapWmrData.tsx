@@ -47,7 +47,7 @@ export function MapWmrData(_props: MapWmrDataProps) {
             <Grid item xs={12}>
                 <NoticeBox
                     type="info"
-                    message={i18n.t("Select a DataSet. Then map your server data to the newly created test WMR form")}
+                    message={i18n.t("Select a DataSet. Then map your local data to the WMR Form data")}
                 />
             </Grid>
             <Grid item xs={12}>

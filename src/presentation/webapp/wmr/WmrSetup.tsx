@@ -21,8 +21,7 @@ export function WmrSetup() {
         targetDataSetId,
         setTargetDataSetId,
         regionalOutputOrgUnits,
-    } =
-        useWmrContext();
+    } = useWmrContext();
     const definition = flowKind && wmrFlowDefinitions[flowKind];
 
     const metadataLocked = !definition;
@@ -36,7 +35,7 @@ export function WmrSetup() {
                 {i18n.t("Setup WMR")}
             </Typography>
             <Typography variant="body2" color="textSecondary" gutterBottom>
-                {i18n.t("Choose how you report, install what the flow needs and connect the target instance.")}
+                {i18n.t("Choose the report, install what the report flow requires, then connect the target instance.")}
             </Typography>
 
             <WmrSetupSection
@@ -78,7 +77,9 @@ export function WmrSetup() {
                 <WmrSetupSection
                     number={4}
                     title={i18n.t("AFRO Monthly data set")}
-                    hint={i18n.t("Choose the accessible Monthly data set that will receive the selected district values.")}
+                    hint={i18n.t(
+                        "Choose the accessible Monthly data set that will receive the selected district values."
+                    )}
                     locked={orgUnitsLocked}
                     lockNote={i18n.t("Available once the target instance is selected.")}
                 >
@@ -120,7 +121,9 @@ export function WmrSetup() {
                             }
                         )}
                         locked={mappingLocked}
-                        lockNote={i18n.t("Available once output organisation units are assigned to the Regional monthly staging data set.")}
+                        lockNote={i18n.t(
+                            "Available once output organisation units are assigned to the Regional monthly staging data set."
+                        )}
                     >
                         {!mappingLocked && targetInstance && (
                             <WmrOrgUnitMapping key={targetInstance.id} instance={targetInstance} />
