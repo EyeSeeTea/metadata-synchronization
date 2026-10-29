@@ -93,6 +93,10 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                                     // single orgUnit (it's only set once at the response root in that case);
                                     // <=2.42 and 2.43 with multiple orgUnits always include it per dataValue.
                                     // Empirically verified against play.im.dhis2.org 2.41/2.42/2.43.
+
+                                    // the same problem happens with period, so we need to fallback to the root value
+                                    // if it's not present in the dataValue
+                                    // https://play.im.dhis2.org/stable-2-43-2-1/api/dataValueSets?dataSet=lyLU2wR22tC&period=2024
                                     period: period ?? data.period,
                                     orgUnit: orgUnit ?? data.orgUnit,
                                     value,
