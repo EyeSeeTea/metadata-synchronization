@@ -2867,6 +2867,22 @@
                     },
                     "openingDate": "2024-01-01T00:00:00.000",
                     "closingDate": "2024-12-31T00:00:00.000"
+                },
+                {
+                    "period": {
+                        "id": "2025",
+                        "name": "2025"
+                    },
+                    "openingDate": "2026-01-01T00:00:00.000",
+                    "closingDate": "2026-12-31T00:00:00.000"
+                },
+                {
+                    "period": {
+                        "id": "2026",
+                        "name": "2026"
+                    },
+                    "openingDate": "2027-01-01T00:00:00.000",
+                    "closingDate": "2027-12-31T00:00:00.000"
                 }
             ],
             "dataSetElements": [
@@ -37905,7 +37921,31 @@
             "allItems": false,
             "categoryOptions": [
                 {
+                    "id": "hky9WnlXhpf"
+                },
+                {
                     "id": "gaanuV10DJo"
+                },
+                {
+                    "id": "qBED7zPmChg"
+                },
+                {
+                    "id": "rDBS8H4iiwo"
+                },
+                {
+                    "id": "Ed23kkeTGqz"
+                },
+                {
+                    "id": "KIuCQAbmmdj"
+                },
+                {
+                    "id": "L3qvqAb9xaG"
+                },
+                {
+                    "id": "Ac2sI48Dz7C"
+                },
+                {
+                    "id": "dgfSVm4ZXYJ"
                 }
             ],
             "categoryCombos": [

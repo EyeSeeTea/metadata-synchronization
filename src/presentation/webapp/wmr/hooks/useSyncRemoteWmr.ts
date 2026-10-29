@@ -2,7 +2,7 @@ import { useLoading } from "@eyeseetea/d2-ui-components";
 import React from "react";
 import { Id } from "../../../../domain/common/entities/Schemas";
 import { Instance } from "../../../../domain/instance/entities/Instance";
-import { SynchronizationStats } from "../../../../domain/reports/entities/SynchronizationResult";
+import { SynchronizationStats, SynchronizationStatus } from "../../../../domain/reports/entities/SynchronizationResult";
 import { SynchronizationReport } from "../../../../domain/reports/entities/SynchronizationReport";
 import { isOrgUnitMapped } from "../../../../domain/entities/wmr/entities/WmrOrgUnits";
 import { Maybe } from "../../../../types/utils";
@@ -26,6 +26,8 @@ type UseSyncRemoteWmrOptions = Readonly<{
     targetOrgUnitId?: Id;
 }>;
 
+const completedSyncStatuses: ReadonlyArray<SynchronizationStatus> = ["SUCCESS", "WARNING"];
+
 export function summarizeWmrRemoteSync(report?: SynchronizationReport): WmrRemoteSyncResult {
     if (!report) {
         return { type: "error", message: i18n.t("Synchronization did not return a report.") };
@@ -42,7 +44,7 @@ export function summarizeWmrRemoteSync(report?: SynchronizationReport): WmrRemot
             stats: failedResult?.stats,
         };
     }
-    if (results.length === 0 || results.some(result => result.status === "PENDING")) {
+    if (results.length === 0 || results.some(result => !completedSyncStatuses.includes(result.status))) {
         return { type: "error", message: i18n.t("Synchronization did not return a completed result.") };
     }
     const stats = results[0]?.stats;
@@ -87,11 +89,18 @@ export function useSyncRemoteWmr(options: UseSyncRemoteWmrOptions) {
 
     const syncRemoteWmr = React.useCallback(async () => {
         if (flowKind === "regional" && !regionalPrepared) {
-            setWmrRemoteSyncResult({ type: "error", message: i18n.t("Prepare the selected monthly data before sending.") });
+            setWmrRemoteSyncResult({
+                type: "error",
+                message: i18n.t("Prepare the selected monthly data before sending."),
+            });
             return;
         }
-        if (!instance || !syncRule?.flow || submitTarget?.type !== "ready" ||
-            (flowKind === "regional" && (!targetDataSetId || !regionalOutputOrgUnits.length))) {
+        if (
+            !instance ||
+            !syncRule?.flow ||
+            submitTarget?.type !== "ready" ||
+            (flowKind === "regional" && (!targetDataSetId || !regionalOutputOrgUnits.length))
+        ) {
             setWmrRemoteSyncResult({
                 type: "error",
                 message: i18n.t("Instance, target data set or target organisation unit ID is not provided."),

@@ -231,20 +231,45 @@ describe("summarizeWmrRemoteSync", () => {
 
     it("reports a failure even without a result", () => {
         expect(summarizeWmrRemoteSync(buildReport([], "FAILURE"))).toEqual({
-            type: "error", message: "Synchronization failed.", stats: undefined,
+            type: "error",
+            message: "Synchronization failed.",
+            stats: undefined,
         });
     });
 
     it("reports a network error even if another result succeeded", () => {
-        expect(summarizeWmrRemoteSync(buildReport([
-            { status: "NETWORK ERROR", message: "Connection lost" },
-            { status: "SUCCESS", stats },
-        ]))).toEqual({ type: "error", message: "Connection lost", stats: undefined });
+        expect(
+            summarizeWmrRemoteSync(
+                buildReport([
+                    { status: "NETWORK ERROR", message: "Connection lost" },
+                    { status: "SUCCESS", stats },
+                ])
+            )
+        ).toEqual({ type: "error", message: "Connection lost", stats: undefined });
+    });
+
+    it("rejects a result without a status, as a non-DHIS2 error page produces", () => {
+        expect(summarizeWmrRemoteSync(buildReport([{ status: undefined, errors: [] }]))).toEqual({
+            type: "error",
+            message: "Synchronization did not return a completed result.",
+        });
+    });
+
+    it("accepts a successful import", () => {
+        expect(summarizeWmrRemoteSync(buildReport([{ status: "SUCCESS", stats }]))).toEqual({ type: "success", stats });
     });
 
     it("surfaces import conflicts", () => {
-        expect(summarizeWmrRemoteSync(buildReport([{
-            status: "WARNING", errors: [{ id: "ou-1", message: "Organisation unit is not assigned" }], stats,
-        }]))).toEqual({ type: "error", message: "Organisation unit is not assigned", stats });
+        expect(
+            summarizeWmrRemoteSync(
+                buildReport([
+                    {
+                        status: "WARNING",
+                        errors: [{ id: "ou-1", message: "Organisation unit is not assigned" }],
+                        stats,
+                    },
+                ])
+            )
+        ).toEqual({ type: "error", message: "Organisation unit is not assigned", stats });
     });
 });
