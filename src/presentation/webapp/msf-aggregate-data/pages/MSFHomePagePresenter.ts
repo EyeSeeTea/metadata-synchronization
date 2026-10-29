@@ -3,6 +3,7 @@ import moment from "moment";
 import { DataSyncAggregation } from "../../../../domain/aggregated/entities/DataSyncAggregation";
 import { DataSyncPeriod } from "../../../../domain/aggregated/entities/DataSyncPeriod";
 import { buildPeriodFromParams } from "../../../../domain/aggregated/utils";
+import { ProgramStageRef, toProgramStageRefs } from "../../../../domain/events/mapper/Models";
 import { Instance } from "../../../../domain/instance/entities/Instance";
 import { SynchronizationReport } from "../../../../domain/reports/entities/SynchronizationReport";
 import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
@@ -16,13 +17,7 @@ import { promiseMap } from "../../../../utils/common";
 import { formatDateLong } from "../../../../utils/date";
 import { availablePeriods } from "../../../../utils/synchronization";
 import { CompositionRoot } from "../../../CompositionRoot";
-import {
-    AdvancedSettings,
-    AnalyticsOptions,
-    defaultAnalyticsOptions,
-    MSFSettings,
-    toAnalyticsRequest,
-} from "./MSFEntities";
+import { AdvancedSettings, AnalyticsOptions, MSFSettings } from "./MSFEntities";
 import { NamedRef, Ref } from "../../../../domain/common/entities/Ref";
 
 type LoggerFunction = (event: string, userType?: "user" | "admin") => void;
@@ -98,11 +93,7 @@ export async function executeAggregateData(
 
     if (runAnalyticsBeforeIsRequired) {
         const localInstance = await compositionRoot.instances.getLocal();
-        const analyticsOptions = toAnalyticsRequest(
-            msfSettings.analyticsBefore ?? defaultAnalyticsOptions,
-            "individual"
-        );
-        await runAnalytics(localInstance, addEventToProgress, analyticsOptions);
+        await runAnalytics(localInstance, addEventToProgress, msfSettings.analyticsBefore);
     }
 
     const reports = await promiseMap(rulesWithoutRunAnalylics, syncRule =>
@@ -123,12 +114,8 @@ export async function executeAggregateData(
         await promiseMap(targetInstances, async instanceId => {
             const instance = await compositionRoot.instances.getById(instanceId);
 
-            const analyticsOptions = toAnalyticsRequest(
-                msfSettings.analyticsAfter ?? defaultAnalyticsOptions,
-                "aggregate"
-            );
             instance.match({
-                success: async instance => await runAnalytics(instance, addEventToProgress, analyticsOptions),
+                success: async instance => await runAnalytics(instance, addEventToProgress, msfSettings.analyticsAfter),
                 error: () => {
                     addEventToProgress(
                         i18n.t(`An error has occurred retrieving the instance {{name}}`, {
@@ -183,7 +170,7 @@ async function validatePreviousDataValues(
             if (!rule.dataParams || !rule.dataParams.period) return undefined;
             const { startDate } = buildPeriodFromParams(rule.dataParams);
 
-            const programStageIds = await getRuleProgramStageIds(compositionRoot, rule, instance);
+            const programStages = await getRuleProgramStageIds(compositionRoot, rule, instance);
 
             const events = await promiseMap(rule.dataSyncOrgUnitPaths, async orgUnit => {
                 const executionKey = `${rule.id}-${cleanOrgUnitPath(orgUnit)}`;
@@ -199,7 +186,7 @@ async function validatePreviousDataValues(
                         orgUnitPaths: [orgUnit],
                         allEvents: true,
                     },
-                    programStageIds
+                    programStages
                 );
             });
 
@@ -527,7 +514,7 @@ async function getRuleProgramStageIds(
     compositionRoot: CompositionRoot,
     rule: SynchronizationRule,
     instance: Instance
-): Promise<string[]> {
+): Promise<ProgramStageRef[]> {
     const { objects } = await compositionRoot.metadata.list(
         {
             type: "programIndicators",
@@ -538,12 +525,13 @@ async function getRuleProgramStageIds(
         instance
     );
 
-    return _(objects as Partial<{ id: string; program: { id: string; programStages: Ref[] } }>[])
-        .map(({ program }) => program?.programStages.map(({ id }) => id))
-        .flatten()
+    const programs = _(objects as Partial<{ id: string; program: { id: string; programStages: Ref[] } }>[])
+        .map(({ program }) => program)
         .compact()
-        .uniq()
+        .uniqBy("id")
         .value();
+
+    return toProgramStageRefs(programs);
 }
 
 const aggregationTimeUnits = {

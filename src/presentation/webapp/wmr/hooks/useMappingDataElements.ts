@@ -42,33 +42,41 @@ export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE", sou
     React.useEffect(() => {
         async function getInstance() {
             loading.show();
-            const instanceResult = await compositionRoot.instances.getById(WmrSettings.LOCAL_INSTANCE_ID);
+            try {
+                const instanceResult = await compositionRoot.instances.getById(WmrSettings.LOCAL_INSTANCE_ID);
 
-            instanceResult.match({
-                error: () => {
-                    snackbar.error("Failed to load LOCAL instance");
-                    loading.hide();
-                },
-                success: async instance => {
-                    const dataSourceMapping = await compositionRoot.mapping.get({ type: "instance", id: instance.id });
-                    const mapping = dataSourceMapping?.mappingDictionary ?? {};
-                    const selectedMappings = _(mapping.aggregatedDataElements)
-                        .toPairs()
-                        .filter(([sourceDataElementId]) =>
-                            sourceDataElementIds ? sourceDataElementIds.includes(sourceDataElementId) : true
-                        )
-                        .value();
-                    const dataElementsIds =
-                        dataElementsFrom === "LOCAL"
-                            ? selectedMappings.map(([sourceDataElementId]) => sourceDataElementId)
-                            : _(selectedMappings)
-                                  .map(([, mapping]) => mapping.mappedId)
-                                  .compact()
-                                  .value();
-                    setDataElementsToMigrate(dataElementsIds);
-                    loading.hide();
-                },
-            });
+                await instanceResult.match({
+                    error: async () => {
+                        snackbar.error("Failed to load LOCAL instance");
+                        loading.hide();
+                    },
+                    success: async instance => {
+                        const dataSourceMapping = await compositionRoot.mapping.get({
+                            type: "instance",
+                            id: instance.id,
+                        });
+                        const mapping = dataSourceMapping?.mappingDictionary ?? {};
+                        const selectedMappings = _(mapping.aggregatedDataElements)
+                            .toPairs()
+                            .filter(([sourceDataElementId]) =>
+                                sourceDataElementIds ? sourceDataElementIds.includes(sourceDataElementId) : true
+                            )
+                            .value();
+                        const dataElementsIds =
+                            dataElementsFrom === "LOCAL"
+                                ? selectedMappings.map(([sourceDataElementId]) => sourceDataElementId)
+                                : _(selectedMappings)
+                                      .map(([, mapping]) => mapping.mappedId)
+                                      .compact()
+                                      .value();
+                        setDataElementsToMigrate(dataElementsIds);
+                        loading.hide();
+                    },
+                });
+            } catch (error: any) {
+                snackbar.error("Failed to load data elements mapping");
+                loading.hide();
+            }
         }
 
         getInstance();

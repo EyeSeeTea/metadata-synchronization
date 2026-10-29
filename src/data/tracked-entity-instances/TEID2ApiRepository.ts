@@ -1,7 +1,7 @@
 import {
     D2TrackerTrackedEntity,
     D2TrackerTrackedEntitySchema,
-    TrackedEntitiesGetResponse,
+    getTrackerFieldsParam,
     TrackerPostParams,
     TrackerPostRequest,
     TrackerPostResponse,
@@ -23,7 +23,7 @@ import { TransformationRepository } from "../../domain/transformations/repositor
 import { D2Api, SelectedPick } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance } from "../../utils/d2-utils";
-import { getPageCount, getRemainingPages } from "../../utils/pagination";
+import { getPageCount, getRemainingPages, getTotal } from "../../utils/pagination";
 import { teiTransformations } from "../transformations/PackageTransformations";
 
 export class TEID2ApiRepository implements TEIRepository {
@@ -93,26 +93,22 @@ export class TEID2ApiRepository implements TEIRepository {
                               : undefined,
                   };
 
-        const result = await this.api.tracker.trackedEntities
-            .get({
-                fields: teiFields,
-                program,
-                ouMode: "SELECTED",
-                orgUnit: orgUnits.join(";"),
-                totalPages: true,
-                page,
-                pageSize,
-                ...periodFilter,
-            })
-            .getData();
+        const result = await this.getTrackedEntities({
+            program,
+            ...buildTEIOrgUnitParams(this.targetInstance.apiVersion, orgUnits),
+            ...(page === 1 ? { totalPages: true } : {}),
+            page,
+            pageSize,
+            ...periodFilter,
+        });
 
-        const trackedEntities = result.instances || (hasTrackedEntitiesProperty(result) ? result.trackedEntities : []);
+        const trackedEntities = this.extractTrackedEntities(result);
 
         return {
             instances: trackedEntities.map(tei => this.buildTrackedEntityInstance(tei)),
             page,
             pageSize,
-            total: result.total || 0,
+            total: getTotal(result),
             pageCount: getPageCount(result),
         };
     }
@@ -124,20 +120,47 @@ export class TEID2ApiRepository implements TEIRepository {
         if (orgUnits.length === 0) return [];
         if (ids.length === 0) return [];
 
-        // Cross-program lookup by TEI ids: the DHIS2 /tracker/trackedEntities endpoint
-        // accepts omitting `program`, but d2-api types mark it as required. Cast to bypass.
-        const result: TrackedEntitiesGetResponse<any> = await this.api.tracker.trackedEntities
-            .get({
-                fields: teiFields,
-                ouMode: "SELECTED",
-                orgUnit: orgUnits.join(";"),
-                trackedEntity: ids.join(";"),
-            } as Parameters<typeof this.api.tracker.trackedEntities.get>[0])
-            .getData();
+        // Cross-program lookup by TEI ids: the DHIS2 /tracker/trackedEntities endpoint accepts
+        // omitting `program`, but d2-api types mark it as required, so a raw request is used.
+        // Empirically verified against play.im.dhis2.org 2.40/2.41/2.42/2.43 that there's no
+        // single param that works on all versions:
+        // - <= 2.40: only the deprecated singular `trackedEntity` filters by id. The plural
+        //   `trackedEntities` either 409s (no program/trackedEntityType given) or, when `program`
+        //   is added to satisfy that, silently ignores the id filter and returns the whole list.
+        // - 2.41: singular `trackedEntity` alone still works, but sending both params together is
+        //   itself rejected (400 E1003, "only one of trackedEntity/trackedEntities").
+        // - >= 2.42: singular `trackedEntity` alone fails (400 E1003, "either program,
+        //   trackedEntityType or trackedEntities should be specified"); only the plural
+        //   `trackedEntities` works.
+        // So the param must be chosen based on the target server's version, not sent unconditionally.
+        const useTrackedEntitiesPlural = this.targetInstance.apiVersion >= 41;
+        const trackedEntityParam = useTrackedEntitiesPlural
+            ? { trackedEntities: ids.join(",") }
+            : { trackedEntity: ids.join(";") };
 
-        const trackedEntities = result.instances || (hasTrackedEntitiesProperty(result) ? result.trackedEntities : []);
+        const result = await this.getTrackedEntities({
+            ...buildTEIOrgUnitParams(this.targetInstance.apiVersion, orgUnits),
+            ...trackedEntityParam,
+        });
+
+        const trackedEntities = this.extractTrackedEntities(result);
 
         return trackedEntities.map(tei => this.buildTrackedEntityInstance(tei));
+    }
+
+    private getTrackedEntities(
+        params: Record<string, string | number | boolean | undefined>
+    ): Promise<RawTrackedEntitiesResponse> {
+        return this.api
+            .get<RawTrackedEntitiesResponse>("/tracker/trackedEntities", {
+                ...params,
+                fields: getTrackerFieldsParam(teiFields),
+            })
+            .getData();
+    }
+
+    private extractTrackedEntities(result: RawTrackedEntitiesResponse): D2TrackerEntitySelectedPick[] {
+        return result.instances || result.trackedEntities || [];
     }
 
     async save(data: TEIsPackage, additionalParams: DataImportParams | undefined): Promise<SynchronizationResult> {
@@ -304,10 +327,6 @@ export class TEID2ApiRepository implements TEIRepository {
     }
 }
 
-function hasTrackedEntitiesProperty(obj: any): obj is { trackedEntities: D2TrackerEntitySelectedPick[] } {
-    return obj && Array.isArray(obj.trackedEntities);
-}
-
 const enrollmentsFields = {
     enrollment: true,
     createdAt: true,
@@ -346,3 +365,19 @@ const teiFields = {
 } as const;
 
 export type D2TrackerEntitySelectedPick = SelectedPick<D2TrackerTrackedEntitySchema, typeof teiFields>;
+
+// Reason: `orgUnit`/`ouMode` are ignored from 2.42, `orgUnits`/`orgUnitMode` are not understood in 2.40 and rejected together in 2.41
+export function buildTEIOrgUnitParams(apiVersion: number, orgUnits: string[]): Record<string, string> {
+    return apiVersion >= 41
+        ? { orgUnits: orgUnits.join(","), orgUnitMode: "SELECTED" }
+        : { orgUnit: orgUnits.join(";"), ouMode: "SELECTED" };
+}
+
+type RawTrackedEntitiesResponse = {
+    pager?: { total?: number; pageCount?: number; pageSize: number };
+    total?: number;
+    pageCount?: number;
+    pageSize: number;
+    instances?: D2TrackerEntitySelectedPick[];
+    trackedEntities?: D2TrackerEntitySelectedPick[];
+};

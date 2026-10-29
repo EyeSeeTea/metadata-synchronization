@@ -1,6 +1,5 @@
-/// <reference types="vitest" />
-import { defineConfig } from "vite";
-import { loadEnv } from "vite";
+/// <reference types="vitest/config" />
+import { defineConfig, loadEnv } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import react from "@vitejs/plugin-react";
 

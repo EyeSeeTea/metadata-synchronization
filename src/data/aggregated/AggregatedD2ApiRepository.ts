@@ -89,9 +89,10 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                                     comment,
                                 }) => ({
                                     dataElement,
-                                    // DHIS2 2.43 omits period/orgUnit in each value when the request filter fixes a
-                                    // single one, and returns it only at the set level. 2.41/2.42 repeats it in every value.
-                                    // Undocumented in the Web API, so the d2-api types still declare both as required.
+                                    // DHIS2 2.43 omits orgUnit on each dataValue when the request filters by a
+                                    // single orgUnit (it's only set once at the response root in that case);
+                                    // <=2.42 and 2.43 with multiple orgUnits always include it per dataValue.
+                                    // Empirically verified against play.im.dhis2.org 2.41/2.42/2.43.
                                     period: period ?? data.period,
                                     orgUnit: orgUnit ?? data.orgUnit,
                                     value,

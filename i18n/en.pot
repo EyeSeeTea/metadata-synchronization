@@ -374,6 +374,9 @@ msgstr "Deleting History Notifications"
 msgid "Successfully deleted {{total}} history notifications"
 msgstr "Successfully deleted {{total}} history notifications"
 
+msgid "Failed to delete history notifications"
+msgstr "Failed to delete history notifications"
+
 msgid "Synchronization status"
 msgstr "Synchronization status"
 
@@ -1406,6 +1409,9 @@ msgstr "Destination"
 msgid "Set Credentials"
 msgstr "Set Credentials"
 
+msgid "Could not load metadata types"
+msgstr "Could not load metadata types"
+
 msgid "Every day"
 msgstr "Every day"
 
@@ -1691,6 +1697,9 @@ msgstr "Include references and objects"
 msgid "Use sync rules periods"
 msgstr "Use sync rules periods"
 
+msgid "Skip generation of aggregate data and completeness data"
+msgstr "Skip generation of aggregate data and completeness data"
+
 msgid "Skip generation of resource tables"
 msgstr "Skip generation of resource tables"
 
@@ -1705,9 +1714,6 @@ msgstr "Skip generation of organisation unit ownership data"
 
 msgid "Skip generation of tracked entity data"
 msgstr "Skip generation of tracked entity data"
-
-msgid "Skip generation of aggregate data and completeness data"
-msgstr "Skip generation of aggregate data and completeness data"
 
 msgid "Skip generation of outlier data"
 msgstr "Skip generation of outlier data"
@@ -1753,6 +1759,9 @@ msgstr "Project minimum dates"
 
 msgid "Minimum date"
 msgstr "Minimum date"
+
+msgid "An error occurred while checking pending migrations"
+msgstr "An error occurred while checking pending migrations"
 
 msgid "Distributed under GNU GLPv3"
 msgstr "Distributed under GNU GLPv3"
@@ -2002,6 +2011,9 @@ msgstr "Please fix the issues before testing the connection"
 msgid "Connected successfully to instance"
 msgstr "Connected successfully to instance"
 
+msgid "Failed to save instance"
+msgstr "Failed to save instance"
+
 msgid "Server name (*)"
 msgstr "Server name (*)"
 
@@ -2040,6 +2052,9 @@ msgstr "Failed to delete some instances"
 
 msgid "Successfully deleted {{total}} instances"
 msgstr "Successfully deleted {{total}} instances"
+
+msgid "Failed to delete instances"
+msgstr "Failed to delete instances"
 
 msgid "Server name"
 msgstr "Server name"
@@ -2115,6 +2130,9 @@ msgstr "Organisation unit mapping"
 
 msgid "Global mapping"
 msgstr "Global mapping"
+
+msgid "Couldn't load instance mapping"
+msgstr "Couldn't load instance mapping"
 
 msgid "Metadata Synchronization"
 msgstr "Metadata Synchronization"
@@ -2365,11 +2383,17 @@ msgstr "Deleting Sync Rules"
 msgid "Successfully deleted {{total}} rules"
 msgstr "Successfully deleted {{total}} rules"
 
+msgid "Failed to delete sync rules"
+msgstr "Failed to delete sync rules"
+
 msgid "Synchronizing {{name}}"
 msgstr "Synchronizing {{name}}"
 
 msgid "Successfully updated sync rule"
 msgstr "Successfully updated sync rule"
+
+msgid "Failed to update sync rule"
+msgstr "Failed to update sync rule"
 
 msgid "Couldn't read the file because it's not valid"
 msgstr "Couldn't read the file because it's not valid"
@@ -2386,6 +2410,9 @@ msgstr "Importing {{n}} rules"
 msgid "Imported {{n}} rules"
 msgstr "Imported {{n}} rules"
 
+msgid "Failed to import sync rules"
+msgstr "Failed to import sync rules"
+
 msgid "Execute"
 msgstr "Execute"
 
@@ -2397,6 +2424,9 @@ msgstr "Toggle scheduling"
 
 msgid "Import sync rules"
 msgstr "Import sync rules"
+
+msgid "Failed to update sharing settings"
+msgstr "Failed to update sharing settings"
 
 msgid "Last executed date"
 msgstr "Last executed date"

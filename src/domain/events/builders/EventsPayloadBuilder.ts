@@ -13,6 +13,7 @@ import { eventsFields } from "../usecases/EventsSyncUseCase";
 import { Ref } from "../../common/entities/Ref";
 import { TEIRepository } from "../../tracked-entity-instances/repositories/TEIRepository";
 import { EventsPayload } from "../entities/EventsPayload";
+import { ProgramStageRef, toProgramStageRefs } from "../mapper/Models";
 
 export class EventsPayloadBuilder {
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
@@ -30,17 +31,13 @@ export class EventsPayloadBuilder {
             programStages = [],
         } = await this.extractMetadata(this.localInstance, metadataIds);
 
-        const stageIdsFromPrograms = programs
-            ? (programs as Program[]).map(program => program.programStages.map(({ id }) => id)).flat()
-            : [];
+        const stagesFromPrograms = toProgramStageRefs(programs as Program[]);
 
-        const progamStageIds = [...programStages.map(({ id }) => id), ...stageIdsFromPrograms];
+        const allProgramStages = _.uniqBy([...programStages, ...stagesFromPrograms], "id");
 
-        const retrievedEvents = (await eventsRepository.getEvents(dataParams, [...new Set(progamStageIds)])).map(
-            event => {
-                return dataParams.generateNewUid ? { ...event, event: generateUid() } : event;
-            }
-        );
+        const retrievedEvents = (await eventsRepository.getEvents(dataParams, allProgramStages)).map(event => {
+            return dataParams.generateNewUid ? { ...event, event: generateUid() } : event;
+        });
 
         const events = excludeEventCoordinates
             ? retrievedEvents.map(event => ({ ...event, geometry: undefined }))
@@ -169,5 +166,5 @@ export class EventsPayloadBuilder {
 type EventsMetadataExtracted = {
     programs?: Pick<Program, "id" | "programType" | "programStages" | "programIndicators">[];
     programIndicators?: Ref[];
-    programStages?: Ref[];
+    programStages?: ProgramStageRef[];
 };
