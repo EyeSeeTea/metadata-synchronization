@@ -1,122 +1,136 @@
 import { Box, Button, Grid, Typography } from "@material-ui/core";
 import { CloudDownload as CloudDownloadIcon, CloudUpload as CloudUploadIcon } from "@material-ui/icons";
-import _ from "lodash";
 import React from "react";
-import { WmrRequisiteType } from "../../../domain/entities/wmr/entities/WmrRequisite";
+import { WmrRequisiteType, wmrRequisites } from "../../../domain/entities/wmr/entities/WmrRequisite";
 import i18n from "../../../utils/i18n";
 import { NoticeBox } from "./components/NoticeBox";
-import { useWmrSetup, WmrSetupStatusType } from "./hooks/useWmrSetup";
+import { useWmrSetup, WmrSetupStatus, WmrSetupStatusType } from "./hooks/useWmrSetup";
+
+type RequisiteTexts = Readonly<{ title: string; caption: string; itemName: string }>;
+
+function getRequisiteTexts(type: WmrRequisiteType): RequisiteTexts {
+    switch (type) {
+        case "metadata":
+            return {
+                title: i18n.t("Metadata package"),
+                caption: i18n.t("This package contains the WMR dataset and its dependencies"),
+                itemName: i18n.t("metadata package"),
+            };
+        case "dataStore":
+            return {
+                title: i18n.t("Autogenform configuration"),
+                caption: i18n.t("Contains the dataStore configurations required by the autogenforms tool"),
+                itemName: i18n.t("Autogenform configuration"),
+            };
+        case "regionalMonthlyStaging":
+            return {
+                title: i18n.t("Regional monthly staging data set"),
+                caption: i18n.t("A monthly copy of the installed Country Sync references used for regional submission"),
+                itemName: i18n.t("regional monthly staging data set"),
+            };
+    }
+}
+
+const noticeTypeByStatus: Readonly<Record<WmrSetupStatusType, "loading" | "success" | "error" | "info">> = {
+    loading: "loading",
+    uploading: "loading",
+    done: "success",
+    error: "error",
+    misassigned: "error",
+    pending: "info",
+};
+
+function getStatusMessage(setupStatus: WmrSetupStatus, itemName: string): string {
+    switch (setupStatus.status) {
+        case "loading":
+            return i18n.t("Checking {{itemName}}...", { itemName });
+        case "uploading":
+            return i18n.t("Uploading {{itemName}}...", { itemName });
+        case "done":
+            return i18n.t("The {{itemName}} is already installed.", { itemName });
+        case "error":
+            return i18n.t(
+                "An error occurred while installing the {{itemName}}. Alternatively, you can download the configuration and import it manually",
+                { itemName }
+            );
+        case "pending":
+            return i18n.t("The {{itemName}} is not installed yet. Use the button below to install it.", { itemName });
+        case "misassigned":
+            return i18n.t("The dataSet {{name}} must be assigned to the country organisation unit", {
+                name: setupStatus.dataSetName,
+            });
+    }
+}
 
 function PrerequisiteItem({
     type,
-    status,
-    downloadUrl,
+    setupStatus,
     importFunction,
 }: {
     type: WmrRequisiteType;
-    status: WmrSetupStatusType;
-    downloadUrl: string;
+    setupStatus: WmrSetupStatus;
     importFunction: (type: WmrRequisiteType) => void;
 }) {
-    const itemName = type === "metadata" ? "metadata package" : "Autogenform configuration";
-    const messagesByStatus: Record<WmrSetupStatusType, string> = {
-        loading: i18n.t("Checking {{itemName}}...", { itemName }),
-        uploading: i18n.t("Uploading {{itemName}}...", { itemName }),
-        done: i18n.t("The {{itemName}} is already installed.", { itemName }),
-        error: i18n.t(
-            "An error occurred while installing the {{itemName}}. Alternatively, you can download the configuration and import it manually",
-            { itemName }
-        ),
-        pending: i18n.t("The {{itemName}} is not installed yet. Use the button below to install it.", { itemName }),
-    };
-    const getTypeFromWmrStatus = (status: WmrSetupStatusType) => {
-        switch (status) {
-            case "loading":
-            case "uploading":
-                return "loading";
-            case "done":
-                return "success";
-            case "error":
-                return "error";
-            case "pending":
-                return "info";
-            default:
-                return "info";
-        }
-    };
+    const { title, caption, itemName } = getRequisiteTexts(type);
+    const { assetPath } = wmrRequisites[type];
+
     return (
-        <NoticeBox type={getTypeFromWmrStatus(status)} message={messagesByStatus[status]}>
-            {status === "pending" ? (
-                <Box py={2}>
-                    <Button
-                        onClick={() => importFunction(type)}
-                        variant="contained"
-                        color="primary"
-                        endIcon={<CloudUploadIcon />}
-                    >
-                        {i18n.t(`Setup ${itemName}`)}
-                    </Button>
-                </Box>
-            ) : status === "error" ? (
-                <Box py={2}>
-                    <Button
-                        download={`${_.snakeCase(itemName)}.json`}
-                        href={downloadUrl}
-                        variant="contained"
-                        color="primary"
-                        endIcon={<CloudDownloadIcon />}
-                    >
-                        {i18n.t(`Download ${itemName}`)}
-                    </Button>
-                </Box>
-            ) : null}
-        </NoticeBox>
+        <Grid item xs={12}>
+            <Typography variant="subtitle1" component="h3">
+                {title}
+            </Typography>
+            <Typography variant="caption" gutterBottom>
+                {caption}
+            </Typography>
+            <NoticeBox type={noticeTypeByStatus[setupStatus.status]} message={getStatusMessage(setupStatus, itemName)}>
+                {setupStatus.status === "pending" ? (
+                    <Box py={2}>
+                        <Button
+                            onClick={() => importFunction(type)}
+                            variant="contained"
+                            color="primary"
+                            endIcon={<CloudUploadIcon />}
+                        >
+                            {i18n.t("Setup {{itemName}}", { itemName })}
+                        </Button>
+                    </Box>
+                ) : setupStatus.status === "error" ? (
+                    <Box py={2}>
+                        <Button
+                            download={assetPath.split("/").pop()}
+                            href={assetPath}
+                            variant="contained"
+                            color="primary"
+                            endIcon={<CloudDownloadIcon />}
+                        >
+                            {i18n.t("Download {{itemName}}", { itemName })}
+                        </Button>
+                    </Box>
+                ) : null}
+            </NoticeBox>
+        </Grid>
     );
 }
 
-export function InstallMetadataPackage() {
-    const { setupStatuses, setupRequisite, verifyRequisite } = useWmrSetup();
+export type InstallMetadataPackageProps = Readonly<{ requisites: ReadonlyArray<WmrRequisiteType> }>;
+
+export function InstallMetadataPackage({ requisites }: InstallMetadataPackageProps) {
+    const { setupStatuses, setupRequisite, verifyRequisite } = useWmrSetup(requisites);
 
     React.useEffect(() => {
-        verifyRequisite("metadata");
-        verifyRequisite("dataStore");
-    }, [verifyRequisite]);
+        requisites.forEach(type => verifyRequisite(type));
+    }, [requisites, verifyRequisite]);
 
     return (
         <Grid container spacing={3}>
-            <Grid item xs={12}>
-                <Typography variant="h4" gutterBottom>
-                    {i18n.t("Setup WMR prerequisites")}
-                </Typography>
-            </Grid>
-            <Grid item xs={12}>
-                <Typography variant="h5" gutterBottom>
-                    {i18n.t("Metadata package")}
-                </Typography>
-                <Typography variant="caption" gutterBottom>
-                    {i18n.t("This package contains the WMR dataset and its dependencies")}
-                </Typography>
+            {requisites.map(type => (
                 <PrerequisiteItem
-                    type="metadata"
-                    status={setupStatuses.metadata.status}
-                    downloadUrl="wmr/metadata.json"
+                    key={type}
+                    type={type}
+                    setupStatus={setupStatuses[type]}
                     importFunction={setupRequisite}
                 />
-            </Grid>
-            <Grid item xs={12}>
-                <Typography variant="h5" gutterBottom>
-                    {i18n.t("Autogenform configuration")}
-                </Typography>
-                <Typography variant="caption" gutterBottom>
-                    {i18n.t("Contains the dataStore configurations required by the autogenforms tool")}
-                </Typography>
-                <PrerequisiteItem
-                    type="dataStore"
-                    status={setupStatuses.dataStore.status}
-                    downloadUrl="wmr/dataStore.json"
-                    importFunction={setupRequisite}
-                />
-            </Grid>
+            ))}
         </Grid>
     );
 }

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-09-28T09:33:47.810Z\n"
+"POT-Creation-Date: 2026-10-28T17:10:45.384Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13,6 +13,19 @@ msgid ""
 "TO WORK PROPERLY, YOU WILL HAVE TO SET THE SHARING SETTINGS FOR EACH "
 "INSTANCE (Menu 'Instance Settings' > Contextual action 'Sharing settings')"
 msgstr ""
+
+msgid "The data set {{code}} is not installed"
+msgstr "The data set {{code}} is not installed"
+
+msgid ""
+"The organisation units could not be assigned: {{reason}}. Your user needs "
+"permission to edit the data sets {{dataSets}}."
+msgstr ""
+"The organisation units could not be assigned: {{reason}}. Your user needs "
+"permission to edit the data sets {{dataSets}}."
+
+msgid "The user has no capture organisation unit assigned"
+msgstr "The user has no capture organisation unit assigned"
 
 msgid "Field {{field}} cannot be blank"
 msgstr ""
@@ -2476,6 +2489,34 @@ msgstr ""
 msgid "Patients (Tracked Entity Instances)"
 msgstr ""
 
+msgid "Metadata package"
+msgstr ""
+
+msgid "This package contains the WMR dataset and its dependencies"
+msgstr ""
+
+msgid "metadata package"
+msgstr "metadata package"
+
+msgid "Autogenform configuration"
+msgstr ""
+
+msgid "Contains the dataStore configurations required by the autogenforms tool"
+msgstr ""
+
+msgid "Regional monthly staging data set"
+msgstr "Regional monthly staging data set"
+
+msgid ""
+"A monthly copy of the installed Country Sync references used for regional "
+"submission"
+msgstr ""
+"A monthly copy of the installed Country Sync references used for regional "
+"submission"
+
+msgid "regional monthly staging data set"
+msgstr "regional monthly staging data set"
+
 msgid "Checking {{itemName}}..."
 msgstr ""
 
@@ -2494,33 +2535,79 @@ msgid ""
 "The {{itemName}} is not installed yet. Use the button below to install it."
 msgstr ""
 
-msgid "Setup WMR prerequisites"
+#, fuzzy
+msgid "The dataSet {{name}} must be assigned to the country organisation unit"
 msgstr ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
+"assigned only to the country"
 
-msgid "Metadata package"
-msgstr ""
+msgid "Setup {{itemName}}"
+msgstr "Setup {{itemName}}"
 
-msgid "This package contains the WMR dataset and its dependencies"
-msgstr ""
-
-msgid "Autogenform configuration"
-msgstr ""
-
-msgid "Contains the dataStore configurations required by the autogenforms tool"
-msgstr ""
+msgid "Download {{itemName}}"
+msgstr "Download {{itemName}}"
 
 msgid "Loading settings..."
 msgstr ""
 
-msgid ""
-"Select a DataSet. Then map your server data to the newly created test WMR "
-"form"
-msgstr ""
+msgid "Select a DataSet. Then map your local data to the WMR Form data"
+msgstr "Select a DataSet. Then map your local data to the WMR Form data"
 
 msgid "Select a DataSet"
 msgstr ""
 
+#, fuzzy
+msgid "Target instance: {{name}} ({{url}})"
+msgstr "Instance: {{name}}"
+
+msgid "Please select a target instance to submit the data"
+msgstr ""
+
+#, fuzzy
+msgid ""
+"Monthly values are sent to the {{count}} selected output organisation units."
+msgid_plural ""
+"Monthly values are sent to the {{count}} selected output organisation units."
+msgstr[0] "Map the {{count}} parent organisation units left before proceeding."
+msgstr[1] "Map the {{count}} parent organisation units left before proceeding."
+
+#, fuzzy
+msgid "Select an AFRO Monthly data set in Setup before sending."
+msgstr "Select the target instance before proceeding."
+
+msgid "Prepare the selected Monthly range again before sending the data."
+msgstr "Prepare the selected Monthly range again before sending the data."
+
+#, fuzzy
+msgid ""
+"Map every selected output organisation unit to the target instance before "
+"sending."
+msgstr "Sent to one organisation unit of the target instance"
+
+msgid "Send DataValues to target instance"
+msgstr ""
+
 msgid "Submit WMR Data"
+msgstr ""
+
+msgid ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+msgstr ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+
+#, fuzzy
+msgid ""
+"Your data is ready for submission. Send the data to the target instance."
+msgstr ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+
+msgid "Target Organisation Unit Id"
+msgstr ""
+
+msgid "Please provide a target organisation unit ID and Validate it"
 msgstr ""
 
 msgid "Data successfully submitted to the target instance."
@@ -2532,20 +2619,8 @@ msgstr ""
 msgid "Data submission failed."
 msgstr ""
 
-msgid "Target Instance "
-msgstr ""
-
-msgid "Please select a target instance to submit the data"
-msgstr ""
-
-msgid "Target Organisation Unit Id"
-msgstr ""
-
-msgid "Please provide a target organisation unit ID and Validate it"
-msgstr ""
-
-msgid "Send DataValues to target instance"
-msgstr ""
+msgid "Prepare WMR Monthly Dataset"
+msgstr "Prepare WMR Monthly Dataset"
 
 msgid "Sync WMR Country Dataset"
 msgstr ""
@@ -2553,14 +2628,145 @@ msgstr ""
 msgid "Download DataValues"
 msgstr ""
 
+msgid "Checking your data entry access..."
+msgstr "Checking your data entry access..."
+
 msgid "Failed to synchronize WMR data"
 msgstr ""
 
-msgid "WMR data synchronized successfully."
-msgstr ""
+msgid "You can still complete the WMR form manually."
+msgstr "You can still complete the WMR form manually."
 
-msgid "Please complete the prerequisites before proceeding."
+msgid "Checking when analytics tables were last generated..."
+msgstr "Checking when analytics tables were last generated..."
+
+msgid ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
 msgstr ""
+"Analytics tables were last generated on {{date}}. This sync reads those "
+"tables, so data captured after that moment is not included."
+
+msgid ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+msgstr ""
+"Analytics tables have never been generated on this server. This sync reads "
+"those tables, so it will not find any data until analytics runs."
+
+msgid ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
+msgstr ""
+"Could not determine when analytics tables were last generated. This sync "
+"reads those tables, so data captured after the last analytics run is not "
+"included."
+
+msgid "Setup WMR"
+msgstr "Setup WMR"
+
+#, fuzzy
+msgid ""
+"Choose the report, install what the report flow requires, then connect the "
+"target instance."
+msgstr ""
+"Choose how you report, install what the flow needs and connect the target "
+"instance."
+
+msgid "Reporting flow"
+msgstr "Reporting flow"
+
+msgid ""
+"The flow decides which forms are installed and how data reaches the target "
+"instance."
+msgstr ""
+"The flow decides which forms are installed and how data reaches the target "
+"instance."
+
+#, fuzzy
+msgid ""
+"The Regional flow uses the Global Country Sync and a local monthly staging "
+"data set."
+msgstr ""
+"The Regional flow uses the Country Sync of the Global flow plus the monthly "
+"form."
+
+msgid "Two packages for the Global flow."
+msgstr "Two packages for the Global flow."
+
+msgid "Target instance"
+msgstr "Target instance"
+
+msgid "Where step 4 submits the data."
+msgstr "Where step 4 submits the data."
+
+msgid "Available once the metadata of the flow is installed."
+msgstr "Available once the metadata of the flow is installed."
+
+msgid "AFRO Monthly data set"
+msgstr "AFRO Monthly data set"
+
+msgid ""
+"Choose the accessible Monthly data set that will receive the selected "
+"district values."
+msgstr ""
+"Choose the accessible Monthly data set that will receive the selected "
+"district values."
+
+msgid "Available once the target instance is selected."
+msgstr "Available once the target instance is selected."
+
+#, fuzzy
+msgid "Output organisation units"
+msgstr "Organisation unit level"
+
+#, fuzzy
+msgid ""
+"The Regional monthly staging data set is assigned to every organisation unit "
+"of the chosen level in the country. The selected organisation units receive "
+"their own monthly values for submission."
+msgstr ""
+"MAL - WMR Country Form MONTHLY is assigned to every organisation unit of the "
+"chosen level in the country. Their values are summed into their parents."
+
+#, fuzzy
+msgid ""
+"Map each selected output organisation unit to its organisation unit in "
+"{{instance}}."
+msgstr ""
+"Map each parent organisation unit that receives values to its organisation "
+"unit in {{instance}}."
+
+msgid "the target instance"
+msgstr "the target instance"
+
+msgid ""
+"Available once output organisation units are assigned to the Regional "
+"monthly staging data set."
+msgstr ""
+"Available once output organisation units are assigned to the Regional "
+"monthly staging data set."
+
+msgid "Choose a reporting flow before proceeding."
+msgstr "Choose a reporting flow before proceeding."
+
+msgid "Install the metadata of the flow before proceeding."
+msgstr "Install the metadata of the flow before proceeding."
+
+msgid "Select the target instance before proceeding."
+msgstr "Select the target instance before proceeding."
+
+#, fuzzy
+msgid ""
+"Assign output organisation units to the Regional monthly staging data set "
+"before proceeding."
+msgstr ""
+"Assign the monthly form to an organisation unit level before proceeding."
+
+#, fuzzy
+msgid "Select an accessible AFRO Monthly data set before proceeding."
+msgstr "Select the target instance before proceeding."
 
 msgid "Please select a source data set before proceeding."
 msgstr ""
@@ -2568,6 +2774,9 @@ msgstr ""
 msgid ""
 "Please Sync your server data to the WMR Country Sync form before proceeding."
 msgstr ""
+
+msgid "Setup"
+msgstr "Setup"
 
 msgid "Map Server data"
 msgstr ""
@@ -2600,8 +2809,161 @@ msgstr ""
 msgid "Create New Target Instance"
 msgstr ""
 
-msgid "Instance or target organisation unit ID is not provided."
+msgid "Regional"
+msgstr "Regional"
+
+#, fuzzy
+msgid ""
+"{{flow}}: {{source}} ({{sourcePeriodType}}) → {{destination}} "
+"({{destinationPeriodType}})"
 msgstr ""
+"{{source}} ({{sourcePeriodType}}) → {{destination}} "
+"({{destinationPeriodType}})"
+
+msgid "Data is entered yearly at the country"
+msgstr "Data is entered yearly at the country"
+
+msgid "Copied as is to MAL - WMR Form - Country Sync"
+msgstr "Copied as is to MAL - WMR Form - Country Sync"
+
+msgid "Sent to one organisation unit of the target instance"
+msgstr "Sent to one organisation unit of the target instance"
+
+#, fuzzy
+msgid "Data is entered monthly in the country"
+msgstr "Data is entered yearly at the country"
+
+#, fuzzy
+msgid "Stored per month for each output organisation unit"
+msgstr "The user has no capture organisation unit assigned"
+
+#, fuzzy
+msgid "Sent with organisation unit mapping"
+msgstr "The user has no capture organisation unit assigned"
+
+msgid "Logs"
+msgstr "Logs"
+
+msgid "From"
+msgstr "From"
+
+msgid "To"
+msgstr "To"
+
+msgid "Loading organisation units..."
+msgstr "Loading organisation units..."
+
+#, fuzzy
+msgid ""
+"{{assigned}} organisation units will be assigned and used directly as the "
+"output level."
+msgstr ""
+"{{assigned}} org units will be assigned. Their values will be summed into "
+"{{parents}} parents, the organisation units you map below."
+
+msgid ""
+"{{assigned}} organisation units are assigned and used directly as the output "
+"level."
+msgstr ""
+"{{assigned}} organisation units are assigned and used directly as the output "
+"level."
+
+msgid "Loading organisation unit levels..."
+msgstr "Loading organisation unit levels..."
+
+msgid "{{name}} (level {{level}}) · {{count}} org units"
+msgid_plural "{{name}} (level {{level}}) · {{count}} org units"
+msgstr[0] "{{name}} (level {{level}}) · {{count}} org units"
+msgstr[1] "{{name}} (level {{level}}) · {{count}} org units"
+
+msgid "Organisation unit level"
+msgstr "Organisation unit level"
+
+msgid "Assign"
+msgstr "Assign"
+
+msgid "{{mapped}} of {{total}} mapped"
+msgstr "{{mapped}} of {{total}} mapped"
+
+msgid "Period: {{year}}"
+msgstr "Period: {{year}}"
+
+#, fuzzy
+msgid "Period: {{month}}"
+msgstr "Period: {{year}}"
+
+#, fuzzy
+msgid "Period: {{from}} to {{to}}"
+msgstr "Period: {{year}}, sum of {{from}} to {{to}}"
+
+msgid "Could not load Monthly data sets: {{error}}"
+msgstr "Could not load Monthly data sets: {{error}}"
+
+#, fuzzy
+msgid "Loading Monthly data sets from the target instance..."
+msgstr ""
+"Your data is ready for submission. Provide the target organisation unit and "
+"send the data."
+
+msgid ""
+"No writable Monthly data sets were found on the target instance. Ask an "
+"administrator for data write access to an AFRO Monthly data set."
+msgstr ""
+"No writable Monthly data sets were found on the target instance. Ask an "
+"administrator for data write access to an AFRO Monthly data set."
+
+msgid "Synchronization did not return a report."
+msgstr "Synchronization did not return a report."
+
+msgid "Synchronization failed."
+msgstr "Synchronization failed."
+
+msgid "{{imported}} created, {{updated}} updated, {{ignored}} unchanged"
+msgstr "{{imported}} created, {{updated}} updated, {{ignored}} unchanged"
+
+msgid "The {{ignored}} values were already up to date"
+msgstr "The {{ignored}} values were already up to date"
+
+msgid "There are no values for the mapped data elements in the period"
+msgstr "There are no values for the mapped data elements in the period"
+
+msgid "No mapped data elements found for the selected data set."
+msgstr "No mapped data elements found for the selected data set."
+
+msgid "Failed to prepare synchronization rule"
+msgstr "Failed to prepare synchronization rule"
+
+#, fuzzy
+msgid "Synchronization did not return a completed result."
+msgstr "Synchronization did not return a report."
+
+msgid "Prepare the selected monthly data before sending."
+msgstr "Prepare the selected monthly data before sending."
+
+msgid ""
+"Instance, target data set or target organisation unit ID is not provided."
+msgstr ""
+"Instance, target data set or target organisation unit ID is not provided."
+
+msgid ""
+"You cannot enter data in {{dataSet}}. Ask an administrator for data write "
+"sharing."
+msgstr ""
+"You cannot enter data in {{dataSet}}. Ask an administrator for data write "
+"sharing."
+
+#, fuzzy
+msgid "{{orgUnits}} are outside your data capture organisation units."
+msgstr ""
+"The dataSet {{name}} is assigned to {{count}} organisation units and must be "
+"assigned only to the country"
+
+msgid ""
+"Regional submission is temporarily unavailable while monthly district "
+"reporting is being corrected."
+msgstr ""
+"Regional submission is temporarily unavailable while monthly district "
+"reporting is being corrected."
 
 msgid "Widget cannot be used until an administrator opens the application"
 msgstr ""
@@ -2709,3 +3071,102 @@ msgctxt ""
 "repo' or 'repo' scopes depending if the repository is public or private"
 msgid "The personal access token requires either 'public"
 msgstr ""
+
+#, fuzzy
+#~ msgid "Monthly form package"
+#~ msgstr "Monthly metadata package"
+
+#~ msgid ""
+#~ "MAL - WMR Country Form MONTHLY, the form where the regional data is "
+#~ "entered"
+#~ msgstr ""
+#~ "MAL - WMR Country Form MONTHLY, the form where the regional data is "
+#~ "entered"
+
+#, fuzzy
+#~ msgid "monthly form package"
+#~ msgstr "monthly metadata package"
+
+#~ msgid "Monthly → Yearly"
+#~ msgstr "Monthly → Yearly"
+
+#~ msgid "Data is entered monthly at the organisation units of a level"
+#~ msgstr "Data is entered monthly at the organisation units of a level"
+
+#, fuzzy
+#~ msgid "Period: {{year}}, {{month}} only"
+#~ msgstr "Period: {{year}}, sum of {{from}} to {{to}}"
+
+#~ msgid ""
+#~ "The {{year}} values of {{dataSet}} will be the sum of the selected months "
+#~ "only."
+#~ msgstr ""
+#~ "The {{year}} values of {{dataSet}} will be the sum of the selected months "
+#~ "only."
+
+#~ msgid "Organisation units of the monthly form"
+#~ msgstr "Organisation units of the monthly form"
+
+#~ msgid "Available once the monthly form is assigned to a level."
+#~ msgstr "Available once the monthly form is assigned to a level."
+
+#~ msgid ""
+#~ "{{assigned}} org units are assigned. Their values are summed into "
+#~ "{{parents}} parents, the organisation units you map below."
+#~ msgstr ""
+#~ "{{assigned}} org units are assigned. Their values are summed into "
+#~ "{{parents}} parents, the organisation units you map below."
+
+#, fuzzy
+#~ msgid "{{names}} are mapped to the same target organisation unit."
+#~ msgstr ""
+#~ "The dataSet {{name}} is assigned to {{count}} organisation units and must "
+#~ "be assigned only to the country"
+
+#~ msgid "Map the {{count}} parent organisation units left before proceeding."
+#~ msgid_plural ""
+#~ "Map the {{count}} parent organisation units left before proceeding."
+#~ msgstr[0] ""
+#~ "Map the {{count}} parent organisation units left before proceeding."
+#~ msgstr[1] ""
+#~ "Map the {{count}} parent organisation units left before proceeding."
+
+#~ msgid "This package contains the monthly WMR dataset and its dependencies"
+#~ msgstr "This package contains the monthly WMR dataset and its dependencies"
+
+#~ msgid ""
+#~ "Install the metadata package first. The monthly package does not include "
+#~ "the constants used by the form labels, the annual package installs them."
+#~ msgstr ""
+#~ "Install the metadata package first. The monthly package does not include "
+#~ "the constants used by the form labels, the annual package installs them."
+
+#~ msgid "Monthly Autogenform configuration"
+#~ msgstr "Monthly Autogenform configuration"
+
+#~ msgid ""
+#~ "Contains the dataStore configurations of the monthly WMR dataset required "
+#~ "by the autogenforms tool"
+#~ msgstr ""
+#~ "Contains the dataStore configurations of the monthly WMR dataset required "
+#~ "by the autogenforms tool"
+
+#~ msgid "monthly Autogenform configuration"
+#~ msgstr "monthly Autogenform configuration"
+
+#~ msgid "Month"
+#~ msgstr "Month"
+
+#~ msgid "DataSet: {{name}} ({{periodType}})"
+#~ msgstr "DataSet: {{name}} ({{periodType}})"
+
+#~ msgid "WMR data synchronized successfully. {{count}} values transferred."
+#~ msgid_plural ""
+#~ "WMR data synchronized successfully. {{count}} values transferred."
+#~ msgstr[0] ""
+#~ "WMR data synchronized successfully. {{count}} values transferred."
+#~ msgstr[1] ""
+#~ "WMR data synchronized successfully. {{count}} values transferred."
+
+#~ msgid "Synchronization completed, but no data values were transferred."
+#~ msgstr "Synchronization completed, but no data values were transferred."
