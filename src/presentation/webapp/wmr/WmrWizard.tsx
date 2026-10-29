@@ -17,12 +17,15 @@ function getSetupBlockerMessage(blocker: WmrSetupBlocker): string {
         case "targetInstance":
             return i18n.t("Select the target instance before proceeding.");
         case "level":
-            return i18n.t("Assign output organisation units to the Regional monthly staging data set before proceeding.");
+            return i18n.t(
+                "Assign output organisation units to the Regional monthly staging data set before proceeding."
+            );
     }
 }
 
 export function WmrWizard() {
-    const { requisitesReady, syncRule, flowKind, targetInstance, targetDataSetId, regionalOutputOrgUnits } = useWmrContext();
+    const { requisitesReady, syncRule, flowKind, targetInstance, targetDataSetId, regionalOutputOrgUnits } =
+        useWmrContext();
 
     const setupBlocker = React.useMemo(
         () =>
@@ -48,7 +51,14 @@ export function WmrWizard() {
             }
             return undefined;
         },
-        [setupBlocker, flowKind, targetDataSetId, syncRule?.localDataSetId, syncRule?.flow, syncRule?.rule.metadataIds.length]
+        [
+            setupBlocker,
+            flowKind,
+            targetDataSetId,
+            syncRule?.localDataSetId,
+            syncRule?.flow,
+            syncRule?.rule.metadataIds.length,
+        ]
     );
 
     const steps = React.useMemo((): WizardStep[] => {

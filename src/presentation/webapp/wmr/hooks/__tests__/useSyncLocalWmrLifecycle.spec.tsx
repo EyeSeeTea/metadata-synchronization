@@ -90,7 +90,9 @@ function render(monthRange = { from: "202601", to: "202602" }) {
 }
 
 function successfulPreparation() {
-    mocks.prepare.mockResolvedValue({ match: async (handlers: { success: () => Promise<void> }) => handlers.success() });
+    mocks.prepare.mockResolvedValue({
+        match: async (handlers: { success: () => Promise<void> }) => handlers.success(),
+    });
     mocks.syncDataset.mockReturnValue({
         execute: async function* () {
             yield { done: true, syncReport: report };
@@ -130,7 +132,9 @@ describe("useSyncLocalWmr preparation lifecycle", () => {
 
     it("clears previous readiness before a retry that fails preparation", async () => {
         render();
-        mocks.prepare.mockResolvedValue({ match: async (handlers: { error: (code: string) => Promise<void> }) => handlers.error("denied") });
+        mocks.prepare.mockResolvedValue({
+            match: async (handlers: { error: (code: string) => Promise<void> }) => handlers.error("denied"),
+        });
         await act(async () => {
             await renderedSync?.();
         });

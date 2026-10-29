@@ -28,7 +28,12 @@ describe("WmrProvider", () => {
 
     it("keeps wrapped setter identities stable and invalidates preparation when values change", () => {
         act(() => {
-            ReactDOM.render(<WmrProvider><Probe /></WmrProvider>, container);
+            ReactDOM.render(
+                <WmrProvider>
+                    <Probe />
+                </WmrProvider>,
+                container
+            );
         });
         const initialSetters = {
             outputUnits: context?.setRegionalOutputOrgUnits,
@@ -47,7 +52,12 @@ describe("WmrProvider", () => {
         expect(context?.regionalPrepared).toBe(false);
 
         act(() => {
-            ReactDOM.render(<WmrProvider><Probe /></WmrProvider>, container);
+            ReactDOM.render(
+                <WmrProvider>
+                    <Probe />
+                </WmrProvider>,
+                container
+            );
         });
         expect(context?.setRegionalOutputOrgUnits).toBe(initialSetters.outputUnits);
         expect(context?.setTargetInstance).toBe(initialSetters.targetInstance);
@@ -57,7 +67,12 @@ describe("WmrProvider", () => {
 
     it("clears the selected destination dataset and preparation when target instance changes", () => {
         act(() => {
-            ReactDOM.render(<WmrProvider><Probe /></WmrProvider>, container);
+            ReactDOM.render(
+                <WmrProvider>
+                    <Probe />
+                </WmrProvider>,
+                container
+            );
         });
         act(() => {
             context?.setTargetDataSetId("selected-dataset");

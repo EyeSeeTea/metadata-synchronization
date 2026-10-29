@@ -80,7 +80,9 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                         endIcon={<SyncAltIcon />}
                         disabled={wmrLocalSyncIsLoading || syncAccess.type !== "ok"}
                     >
-                        {flow.kind === "regional" ? i18n.t("Prepare WMR Monthly Dataset") : i18n.t("Sync WMR Country Dataset")}
+                        {flow.kind === "regional"
+                            ? i18n.t("Prepare WMR Monthly Dataset")
+                            : i18n.t("Sync WMR Country Dataset")}
                     </Button>
                     <Button
                         variant="outlined"

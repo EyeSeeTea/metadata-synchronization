@@ -13,10 +13,7 @@ export type WmrOrgUnitMappingProps = Readonly<{ instance: Instance }>;
 export function WmrOrgUnitMapping({ instance }: WmrOrgUnitMappingProps) {
     const { compositionRoot } = useAppContext();
     const { regionalOutputOrgUnits, orgUnitMapping, setOrgUnitMapping } = useWmrContext();
-    const outputOrgUnitIds = React.useMemo(
-        () => regionalOutputOrgUnits.map(({ id }) => id),
-        [regionalOutputOrgUnits]
-    );
+    const outputOrgUnitIds = React.useMemo(() => regionalOutputOrgUnits.map(({ id }) => id), [regionalOutputOrgUnits]);
 
     React.useEffect(() => {
         compositionRoot.mapping

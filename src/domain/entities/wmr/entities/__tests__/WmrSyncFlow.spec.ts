@@ -162,5 +162,4 @@ describe("WmrSyncFlow", () => {
             expect(getWmrReportedYear(fixedParams(marchToJune))).toBe("2025");
         });
     });
-
 });

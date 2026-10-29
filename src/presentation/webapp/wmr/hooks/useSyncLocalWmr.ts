@@ -105,13 +105,7 @@ export function buildWmrLocalSyncRule(rule: SynchronizationRule, params: WmrLoca
 
 export function useSyncLocalWmr() {
     const { compositionRoot } = useAppContext();
-    const {
-        settings,
-        syncRule,
-        regionalOutputOrgUnits,
-        regionalMonthRange,
-        setRegionalPrepared,
-    } = useWmrContext();
+    const { settings, syncRule, regionalOutputOrgUnits, regionalMonthRange, setRegionalPrepared } = useWmrContext();
     const { dataElementsToMigrate } = useMappingDataElements("LOCAL");
     const loading = useLoading();
     const [wmrLocalSyncResult, setWmrLocalSyncResult] = React.useState<WmrLocalSyncResult | null>(null);
@@ -163,7 +157,9 @@ export function useSyncLocalWmr() {
         if (isRegional) setRegionalPrepared(false);
 
         const isCurrentRequest = () =>
-            mountedRef.current && requestId === latestRequestRef.current && currentInputKeyRef.current === requestInputKey;
+            mountedRef.current &&
+            requestId === latestRequestRef.current &&
+            currentInputKeyRef.current === requestInputKey;
 
         if (!syncIds || !definition || !syncRule?.flow) {
             throw new Error("WMR settings, sync rule or flow not found");
@@ -186,8 +182,7 @@ export function useSyncLocalWmr() {
         });
 
         const year = getWmrReportedYear(syncRuleUpdated.dataParams);
-        const periods =
-            definition.sourcePeriodType === "Monthly" ? getWmrRangeMonths(regionalMonthRange) : [year];
+        const periods = definition.sourcePeriodType === "Monthly" ? getWmrRangeMonths(regionalMonthRange) : [year];
 
         loading.show();
         try {

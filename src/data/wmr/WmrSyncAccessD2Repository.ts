@@ -35,9 +35,7 @@ export class WmrSyncAccessD2Repository implements WmrSyncAccessRepository {
                       dataSet: { name: dataSet.name, canWriteData: dataSet.access.data?.write ?? false },
                       captureOrgUnitIds,
                   })
-                : Future.error(
-                      new Error(i18n.t("The data set {{code}} is not installed", { code: dataSetCode }))
-                  );
+                : Future.error(new Error(i18n.t("The data set {{code}} is not installed", { code: dataSetCode })));
         });
     }
 }

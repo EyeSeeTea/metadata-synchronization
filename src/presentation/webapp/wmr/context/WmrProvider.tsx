@@ -83,13 +83,10 @@ export function WmrProvider({ children }: { children: React.ReactNode }) {
         setOrgUnitMapping(mapping);
         setRegionalPrepared(false);
     }, []);
-    const setRegionalOutputOrgUnitsWithInvalidation = React.useCallback(
-        (orgUnits: ReadonlyArray<WmrLevelOrgUnit>) => {
-            setRegionalOutputOrgUnits(orgUnits);
-            setRegionalPrepared(false);
-        },
-        []
-    );
+    const setRegionalOutputOrgUnitsWithInvalidation = React.useCallback((orgUnits: ReadonlyArray<WmrLevelOrgUnit>) => {
+        setRegionalOutputOrgUnits(orgUnits);
+        setRegionalPrepared(false);
+    }, []);
     const setRegionalMonthRangeWithInvalidation = React.useCallback((range: WmrMonthRange) => {
         setRegionalMonthRange(range);
         setRegionalPrepared(false);

@@ -58,7 +58,8 @@ export function SubmitWmr() {
     const regionalReady =
         flow.kind !== "regional" ||
         (Boolean(targetDataSetId) && regionalOutputOrgUnits.length > 0 && outputUnitsMapped && regionalPrepared);
-    const sendIsDisabled = !targetInstance?.url || submitTarget?.type !== "ready" || !regionalReady || loading.isLoading;
+    const sendIsDisabled =
+        !targetInstance?.url || submitTarget?.type !== "ready" || !regionalReady || loading.isLoading;
 
     return (
         <Box>
@@ -89,13 +90,19 @@ export function SubmitWmr() {
                 ) : (
                     <NoticeBox
                         type="info"
-                        message={i18n.t("Monthly values are sent to the {{count}} selected output organisation units.", {
-                            count: regionalOutputOrgUnits.length,
-                        })}
+                        message={i18n.t(
+                            "Monthly values are sent to the {{count}} selected output organisation units.",
+                            {
+                                count: regionalOutputOrgUnits.length,
+                            }
+                        )}
                     />
                 )}
                 {flow.kind === "regional" && !targetDataSetId && (
-                    <NoticeBox type="error" message={i18n.t("Select an AFRO Monthly data set in Setup before sending.")} />
+                    <NoticeBox
+                        type="error"
+                        message={i18n.t("Select an AFRO Monthly data set in Setup before sending.")}
+                    />
                 )}
                 {flow.kind === "regional" && !regionalPrepared && (
                     <NoticeBox
@@ -106,7 +113,9 @@ export function SubmitWmr() {
                 {flow.kind === "regional" && !outputUnitsMapped && (
                     <NoticeBox
                         type="error"
-                        message={i18n.t("Map every selected output organisation unit to the target instance before sending.")}
+                        message={i18n.t(
+                            "Map every selected output organisation unit to the target instance before sending."
+                        )}
                     />
                 )}
                 <Button

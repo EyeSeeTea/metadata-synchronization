@@ -33,10 +33,7 @@ export function getWmrSyncIds(
     return { metadataIds, mappedIndicatorIds: filterMappedDataElementIds(metadataIds, indicatorIds) };
 }
 
-export function useMappingDataElements(
-    dataElementsFrom: "LOCAL" | "REMOTE",
-    sourceDataElementIds?: ReadonlyArray<Id>
-) {
+export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE", sourceDataElementIds?: ReadonlyArray<Id>) {
     const { compositionRoot } = useAppContext();
     const [dataElementsToMigrate, setDataElementsToMigrate] = React.useState<Id[]>([]);
     const loading = useLoading();
