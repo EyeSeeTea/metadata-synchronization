@@ -13,6 +13,7 @@ import {
 } from "../../domain/metadata/entities/FilterRule";
 import {
     CategoryOptionCombo,
+    DataStore,
     MetadataEntities,
     MetadataEntity,
     MetadataPackage,
@@ -164,6 +165,13 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         order,
         ...params
     }: ListMetadataParams): Promise<MetadataEntity[]> {
+        if (type === "dataStores") {
+            // Namespaces are not a /metadata collection. Callers match selections against
+            // these ids, so include both namespace ids and key ids.
+            const { objects } = await this.listMetadata({ type });
+            return (objects as DataStore[]).flatMap(dataStore => [dataStore, ...dataStore.keys]) as MetadataEntity[];
+        }
+
         const filter = this.buildListFilters(params);
         const { apiVersion } = this.targetInstance;
         const objects = await this.getListAll({ type, fields, filter, order });
