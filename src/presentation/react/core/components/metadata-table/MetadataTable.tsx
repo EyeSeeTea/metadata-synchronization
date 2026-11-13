@@ -28,7 +28,7 @@ import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
 import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
-import { getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
+import { getChildrenIds, getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
 import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 import { useSelection } from "./useSelection";
@@ -69,6 +69,8 @@ export interface MetadataTableProps extends Omit<ObjectsTableProps<MetadataType>
     externalFilterComponents?: ReactNode;
     viewFilters?: MetadataTableFilters[];
 }
+
+const noChildrenKeys: string[] = [];
 
 const useStyles = makeStyles({
     checkbox: {
@@ -124,7 +126,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     notifyNewModel = _.noop,
     notifyRowsChange = _.noop,
     notifyModelSyncAllChange = _.noop,
-    childrenKeys = [],
+    childrenKeys = noChildrenKeys,
     additionalColumns = [],
     additionalActions = [],
     loading: providedLoading,
@@ -521,9 +523,9 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         compositionRoot.metadata
             .listAll({ ...filters, filterRows, fields: { id: true }, selectedIds }, remoteInstance)
             .then(objects => {
-                updateIds(objects.map(({ id }) => id));
+                updateIds([...objects.map(({ id }) => id), ...getChildrenIds(objects, childrenKeys)]);
             });
-    }, [filters, filterRows, model, compositionRoot, remoteInstance, selectedIds]);
+    }, [filters, filterRows, model, compositionRoot, remoteInstance, selectedIds, childrenKeys]);
 
     useEffect(() => {
         if (model.getCollectionName() !== "organisationUnits") return;
@@ -611,12 +613,10 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
 
         const parseChildren = (ids: string[]) =>
-            _(rows)
-                .filter(({ id }) => !!ids.includes(id))
-                .map(row => _.values(_.pick(row, childrenKeys)) as unknown as MetadataType)
-                .flattenDeep()
-                .map(({ id }) => id)
-                .value();
+            getChildrenIds(
+                rows.filter(({ id }) => ids.includes(id)),
+                childrenKeys
+            );
 
         if (model.getMetadataType() === "dataStore") {
             const result = computeDataStoreSelection({

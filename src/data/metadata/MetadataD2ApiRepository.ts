@@ -171,12 +171,8 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         order,
         ...params
     }: ListMetadataParams): Promise<MetadataEntity[]> {
-        if (type === "dataStores") {
-            // Namespaces are not a /metadata collection. Callers match selections against
-            // these ids, so include both namespace ids and key ids.
-            const dataStores = await this.getAllDataStores();
-            return dataStores.flatMap(dataStore => [dataStore, ...dataStore.keys]) as MetadataEntity[];
-        }
+        // Namespaces are not a /metadata collection, so they cannot use getListAll.
+        if (type === "dataStores") return this.getAllDataStores();
 
         const filter = this.buildListFilters(params);
         const { apiVersion } = this.targetInstance;
