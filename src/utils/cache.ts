@@ -37,6 +37,12 @@ export const cache = (options: CacheOptions = {}): any =>
             // Compute the default value, store it and return it
             const result = originalFunction.apply(this, args);
             cache?.set(key, result);
+            // A rejected promise is still truthy: drop it so the next call retries instead of failing forever.
+            if (result instanceof Promise) {
+                result.catch(() => {
+                    if (cache?.get(key) === result) cache.delete(key);
+                });
+            }
             return result;
         };
 

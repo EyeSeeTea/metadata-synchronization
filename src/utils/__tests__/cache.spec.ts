@@ -37,6 +37,15 @@ class TestClass {
         return Math.random();
     }
 
+    public asyncCalls = 0;
+
+    @cache()
+    public async getAsyncFailingOnce(): Promise<number> {
+        this.asyncCalls += 1;
+        if (this.asyncCalls === 1) throw new Error("First call fails");
+        return this.asyncCalls;
+    }
+
     public resetBasic(): void {
         clear(this.getBasic, this);
     }
@@ -190,6 +199,26 @@ describe("Cache decorator with clearing", () => {
         expect(test.getObjectComparison({ a: "test", b: 13 })).not.toEqual(
             test.getObjectComparison({ a: "test", b: 11 })
         );
+    });
+});
+
+describe("Cache decorator with promises", () => {
+    it("retries after a rejected promise", async () => {
+        const test = new TestClass();
+
+        await expect(test.getAsyncFailingOnce()).rejects.toThrow("First call fails");
+
+        expect(await test.getAsyncFailingOnce()).toBe(2);
+    });
+
+    it("keeps a resolved promise", async () => {
+        const test = new TestClass();
+        await test.getAsyncFailingOnce().catch(() => undefined);
+
+        const first = await test.getAsyncFailingOnce();
+        const second = await test.getAsyncFailingOnce();
+
+        expect([first, second]).toEqual([2, 2]);
     });
 });
 

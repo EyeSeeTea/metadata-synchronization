@@ -1,4 +1,6 @@
 import memoize from "nano-memoize";
+import { Id } from "../../../../../domain/common/entities/Schemas";
+import { Ref } from "../../../../../domain/common/entities/Ref";
 import { MetadataEntities } from "../../../../../domain/metadata/entities/MetadataEntities";
 import { modelFactory } from "../../../../../models/dhis/factory";
 import { D2Api } from "../../../../../types/d2-api";
@@ -46,4 +48,12 @@ export function getMergedSelection({
     otherTypeIds: string[];
 }): string[] {
     return _.uniq([...otherTypeIds, ...included]);
+}
+
+const isRef = (value: unknown): value is Ref => _.isString(_.get(value, "id"));
+
+export function getChildrenIds(objects: ReadonlyArray<object>, childrenKeys: ReadonlyArray<string>): Id[] {
+    return _.flattenDeep(objects.map(object => _.values(_.pick(object, childrenKeys))))
+        .filter(isRef)
+        .map(({ id }) => id);
 }

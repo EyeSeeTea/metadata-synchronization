@@ -13,6 +13,7 @@ import {
 } from "../../domain/metadata/entities/FilterRule";
 import {
     CategoryOptionCombo,
+    DataStore,
     MetadataEntities,
     MetadataEntity,
     MetadataPackage,
@@ -130,6 +131,13 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         return { dataStores: dataStores };
     }
 
+    // Loading all namespaces takes one request per namespace. Cache without arguments so that
+    // selection changes, which change the listMetadata cache key, do not load them again.
+    @cache()
+    private async getAllDataStores(): Promise<DataStore[]> {
+        return new D2ApiDataStore(this.targetInstance).getDataStores({ namespaces: undefined });
+    }
+
     @cache()
     public async listMetadata(listParams: ListMetadataParams): Promise<ListMetadataResponse> {
         const { type, fields = { $owner: true }, page, pageSize, order, rootJunction, ...params } = listParams;
@@ -138,8 +146,7 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         const { apiVersion } = this.targetInstance;
         const options = { type, fields, filter, order, page, pageSize, rootJunction };
         if (type === "dataStores") {
-            const d2ApiDataStore = new D2ApiDataStore(this.targetInstance);
-            const response = await d2ApiDataStore.getDataStores({ namespaces: undefined });
+            const response = await this.getAllDataStores();
             // Hardcoded pagination since DHIS2 does not support pagination for namespaces
             return { objects: response, pager: { page: 1, total: response.length, pageSize: 100 } };
         } else {
@@ -164,6 +171,9 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         order,
         ...params
     }: ListMetadataParams): Promise<MetadataEntity[]> {
+        // Namespaces are not a /metadata collection, so they cannot use getListAll.
+        if (type === "dataStores") return this.getAllDataStores();
+
         const filter = this.buildListFilters(params);
         const { apiVersion } = this.targetInstance;
         const objects = await this.getListAll({ type, fields, filter, order });
