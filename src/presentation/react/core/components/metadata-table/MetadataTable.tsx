@@ -681,7 +681,6 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         );
 
     const idsAreComplete = model.getCollectionName() !== "organisationUnits" && !filterRestrictsIds;
-    const exclusion = excludedIds.map(id => ({ id }));
     const { selection, crossTypeCount } = useSelection(
         model.getCollectionName(),
         ids,
@@ -721,26 +720,18 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
               ]
             : [];
 
-    const childrenSelection: TableSelection[] = useMemo(
-        () =>
-            showIndeterminateSelection
-                ? _(rows)
-                      .intersectionBy(selection, "id")
-                      .map(row => _.values(_.pick(row, childrenKeys)) as unknown as MetadataType[])
-                      .flattenDeep()
-                      .differenceBy(selection, "id")
-                      .differenceBy(exclusion, "id")
-                      .map(({ id }) => {
-                          return {
-                              id,
-                              checked: true,
-                              indeterminate: !_.find(selection, { id }),
-                          };
-                      })
-                      .value()
-                : [],
-        [childrenKeys, exclusion, rows, selection, showIndeterminateSelection]
-    );
+    const childrenSelection: TableSelection[] = useMemo(() => {
+        if (!showIndeterminateSelection) return [];
+
+        const selectedRows = _.intersectionBy(rows, selection, "id");
+        const selectionIds = selection.map(({ id }) => id);
+
+        return _(getChildrenIds(selectedRows, childrenKeys))
+            .difference(selectionIds)
+            .difference(excludedIds)
+            .map(id => ({ id, checked: true, indeterminate: !_.find(selection, { id }) }))
+            .value();
+    }, [childrenKeys, excludedIds, rows, selection, showIndeterminateSelection]);
 
     const responsibleField = showResponsibles
         ? {
