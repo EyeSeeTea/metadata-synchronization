@@ -125,7 +125,6 @@ function buildRoute(instance: Instance): D2Route {
         description: instance.description,
         disabled: false,
         displayName: instance.name,
-        headers: { "Content-Type": "application/json" },
         id: instance.id,
         name: instance.name,
         sharing: {
