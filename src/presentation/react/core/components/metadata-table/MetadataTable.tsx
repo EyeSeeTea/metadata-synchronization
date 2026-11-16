@@ -28,7 +28,7 @@ import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
 import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
-import { getChildrenIds, getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
+import { getChildrenIds, getCurrentTypeIds, getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
 import { Toggle } from "../toggle/Toggle";
 import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 import { useSelection } from "./useSelection";
@@ -211,6 +211,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     const [categoryFilterData, setCategoryFilterData] = useState<NamedRef[]>([]);
 
     const [rows, setRows] = useState<MetadataType[]>([]);
+    const currentTypeIds = useMemo(() => getCurrentTypeIds(ids, rows, childrenKeys), [ids, rows, childrenKeys]);
     const [pager, setPager] = useState<Partial<TablePagination>>({});
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -607,7 +608,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
-        const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
+        const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => currentTypeIds.includes(id));
 
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
@@ -683,7 +684,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     const idsAreComplete = model.getCollectionName() !== "organisationUnits" && !filterRestrictsIds;
     const { selection, crossTypeCount } = useSelection(
         model.getCollectionName(),
-        ids,
+        currentTypeIds,
         selectedIds,
         remoteInstance,
         idsAreComplete

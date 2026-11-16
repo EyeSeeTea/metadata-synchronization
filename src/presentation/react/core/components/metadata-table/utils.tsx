@@ -57,3 +57,13 @@ export function getChildrenIds(objects: ReadonlyArray<object>, childrenKeys: Rea
         .filter(isRef)
         .map(({ id }) => id);
 }
+
+// Some children (e.g. program data elements) only exist after the model transform, often with
+// composite ids, so the id-only listAll cannot return them. Take them from the loaded rows.
+export function getCurrentTypeIds(
+    ids: ReadonlyArray<Id>,
+    rows: ReadonlyArray<object>,
+    childrenKeys: ReadonlyArray<string>
+): Id[] {
+    return _.union(ids, getChildrenIds(rows, childrenKeys));
+}
