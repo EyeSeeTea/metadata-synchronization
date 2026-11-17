@@ -85,7 +85,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     }
 
     private async saveRoute(instance: Instance) {
-        const routeToUpload = this.buildRoute(instance);
+        const routeToUpload = buildRoute(instance);
 
         const existedRoute = await this.getById(instance.id);
 
@@ -105,32 +105,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     private async deleteRoute(id: string) {
         this.cache.clear();
         await this.api.delete(`/routes/${id}`, {}).getData();
-    }
-
-    private buildRoute(instance: Instance): D2Route {
-        const url = removeTrailingSlash(instance.url);
-
-        return {
-            auth:
-                instance.authType === "api-token"
-                    ? { type: "api-token", token: instance.token }
-                    : { type: "http-basic", username: instance.username, password: instance.password },
-            code: slugify(instance.name),
-            description: instance.description,
-            disabled: false,
-            displayName: instance.name,
-            headers: { "Content-Type": "application/json" },
-            id: instance.id,
-            name: instance.name,
-            sharing: {
-                external: false,
-                owner: instance.user.id,
-                public: instance.publicAccess,
-                users: mapArrayToRecord(instance.userAccesses),
-                userGroups: mapArrayToRecord(instance.userGroupAccesses),
-            },
-            url: `${url}/**`,
-        };
     }
 
     private buildInstance(route: D2Route): Instance {
@@ -275,6 +249,32 @@ export function slugify(text: string): string {
         .replace(/[^a-z0-9\s-]/g, "")
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-");
+}
+
+export function buildRoute(instance: Instance): D2Route {
+    const url = removeTrailingSlash(instance.url);
+
+    return {
+        auth:
+            instance.authType === "api-token"
+                ? { type: "api-token", token: instance.token }
+                : { type: "http-basic", username: instance.username, password: instance.password },
+        code: slugify(instance.name),
+        description: instance.description,
+        disabled: false,
+        displayName: instance.name,
+        headers: {},
+        id: instance.id,
+        name: instance.name,
+        sharing: {
+            external: false,
+            owner: instance.user.id,
+            public: instance.publicAccess,
+            users: mapArrayToRecord(instance.userAccesses),
+            userGroups: mapArrayToRecord(instance.userGroupAccesses),
+        },
+        url: `${url}/**`,
+    };
 }
 
 export function mapArrayToRecord(array: SharingSetting[]): Record<string, SharingSetting> {
