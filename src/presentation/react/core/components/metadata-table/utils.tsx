@@ -1,4 +1,6 @@
 import memoize from "nano-memoize";
+import { Id } from "../../../../../domain/common/entities/Schemas";
+import { Ref } from "../../../../../domain/common/entities/Ref";
 import { MetadataEntities } from "../../../../../domain/metadata/entities/MetadataEntities";
 import { modelFactory } from "../../../../../models/dhis/factory";
 import { D2Api } from "../../../../../types/d2-api";
@@ -46,4 +48,23 @@ export function getMergedSelection({
     otherTypeIds: string[];
 }): string[] {
     return _.uniq([...otherTypeIds, ...included]);
+}
+
+const isRef = (value: unknown): value is Ref => _.isString(_.get(value, "id"));
+
+// Walks every level, because the table shows nested children (e.g. group set > group > data element).
+export function getChildrenIds(objects: ReadonlyArray<object>, childrenKeys: ReadonlyArray<string>): Id[] {
+    const children = _.flattenDeep(objects.map(object => _.values(_.pick(object, childrenKeys)))).filter(isRef);
+
+    return children.length === 0 ? [] : [...children.map(({ id }) => id), ...getChildrenIds(children, childrenKeys)];
+}
+
+// Some children (e.g. program data elements) only exist after the model transform, often with
+// composite ids, so the id-only listAll cannot return them. Take them from the loaded rows.
+export function getCurrentTypeIds(
+    ids: ReadonlyArray<Id>,
+    rows: ReadonlyArray<object>,
+    childrenKeys: ReadonlyArray<string>
+): Id[] {
+    return _.union(ids, getChildrenIds(rows, childrenKeys));
 }
