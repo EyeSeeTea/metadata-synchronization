@@ -119,7 +119,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
             description: instance.description,
             disabled: false,
             displayName: instance.name,
-            headers: { "Content-Type": "application/json" },
             id: instance.id,
             name: instance.name,
             sharing: {
@@ -234,7 +233,7 @@ export type D2Route = {
     disabled: boolean;
     displayName: string;
     favorite?: boolean;
-    headers: Record<string, string>;
+    headers?: Record<string, string>;
     href?: string;
     id: Id;
     lastUpdated?: string;

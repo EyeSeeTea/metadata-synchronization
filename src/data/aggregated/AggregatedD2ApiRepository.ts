@@ -30,7 +30,8 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
     public async getAggregated(
         params: DataSynchronizationParams,
         dataSet: string[],
-        dataElementGroup: string[]
+        dataElementGroup: string[],
+        periods?: ReadonlyArray<string>
     ): Promise<AggregatedPackage> {
         const { orgUnitPaths = [], allAttributeCategoryOptions, attributeCategoryOptions, lastUpdated } = params;
         const { startDate, endDate } = buildPeriodFromParams(params);
@@ -41,6 +42,10 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
         const attributeOptionCombo = !allAttributeCategoryOptions ? attributeCategoryOptions : undefined;
 
         const [defaultCategoryOptionCombo] = await this.getDefaultIds("categoryOptionCombos");
+        const periodFilter =
+            periods && periods.length > 0
+                ? { period: [...periods] }
+                : { startDate: startDate.format("YYYY-MM-DD"), endDate: endDate.format("YYYY-MM-DD") };
 
         const dimensions = _.uniqBy(
             [
@@ -65,8 +70,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                             orgUnitIdScheme: "UID",
                             categoryOptionComboIdScheme: "UID",
                             includeDeleted: false,
-                            startDate: startDate.format("YYYY-MM-DD"),
-                            endDate: endDate.format("YYYY-MM-DD"),
+                            ...periodFilter,
                             attributeOptionCombo,
                             dataSet: [dataSet.join(",")],
                             dataElementGroup: [dataElementGroup.join(",")],
@@ -85,11 +89,15 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
                                     comment,
                                 }) => ({
                                     dataElement,
-                                    period,
                                     // DHIS2 2.43 omits orgUnit on each dataValue when the request filters by a
                                     // single orgUnit (it's only set once at the response root in that case);
                                     // <=2.42 and 2.43 with multiple orgUnits always include it per dataValue.
                                     // Empirically verified against play.im.dhis2.org 2.41/2.42/2.43.
+
+                                    // the same problem happens with period, so we need to fallback to the root value
+                                    // if it's not present in the dataValue
+                                    // https://play.im.dhis2.org/stable-2-43-2-1/api/dataValueSets?dataSet=lyLU2wR22tC&period=2024
+                                    period: period ?? data.period,
                                     orgUnit: orgUnit ?? data.orgUnit,
                                     value,
                                     comment,
@@ -122,11 +130,13 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
         dimensionIds,
         filter,
         includeCategories,
+        includeCategoryOptionCombos = false,
     }: {
         dataParams: DataSynchronizationParams;
         dimensionIds: string[];
         filter?: string[] | undefined;
         includeCategories: boolean;
+        includeCategoryOptionCombos?: boolean;
     }): Promise<AggregatedPackage> {
         const {
             orgUnitPaths = [],
@@ -144,26 +154,32 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
         if (dimensionIds.length === 0 || orgUnits.length === 0) {
             return { dataValues: [] };
         } else if (aggregationType) {
-            const result = await promiseMap(_.chunk(periods, 5), period =>
-                promiseMap(_.chunk(dimensionIds, Math.max(10, 100 - period.length)), ids => {
-                    return this.api
-                        .get<AggregatedPackage>("/analytics/dataValueSet.json", {
-                            dimension: _.compact([
-                                `dx:${ids.join(";")}`,
-                                `pe:${period.join(";")}`,
-                                `ou:${orgUnits.join(";")}`,
-                                //includeCategories ? `co` : undefined,
-                                attributeOptionCombo ? `ao:${attributeOptionCombo.join(";")}` : undefined,
-                            ]),
-                            filter,
-                        })
-                        .getData();
-                })
+            // Chunked request by orgUnits, periods and dimensions to avoid 414
+            const result = await promiseMap(_.chunk(orgUnits, 100), orgUnitsChunk =>
+                promiseMap(_.chunk(periods, 5), period =>
+                    promiseMap(_.chunk(dimensionIds, Math.max(10, 100 - period.length)), ids => {
+                        return this.api
+                            .get<AggregatedPackage>("/analytics/dataValueSet.json", {
+                                dimension: _.compact([
+                                    `dx:${ids.join(";")}`,
+                                    `pe:${period.join(";")}`,
+                                    `ou:${orgUnitsChunk.join(";")}`,
+                                    // Opt-in: without `co` analytics collapses the disaggregation onto the default
+                                    // categoryOptionCombo, which the core and MSF aggregated syncs depend on.
+                                    includeCategoryOptionCombos ? "co" : undefined,
+                                    attributeOptionCombo ? `ao:${attributeOptionCombo.join(";")}` : undefined,
+                                ]),
+                                filter,
+                            })
+                            .getData();
+                    })
+                )
             );
 
             const [defaultCategoryOptionCombo] = await this.getDefaultIds("categoryOptionCombos");
 
             const analyticsValues = _(result)
+                .flatten()
                 .flatten()
                 .map(({ dataValues = [] }: AggregatedPackage): DataValue[] =>
                     dataValues.map(

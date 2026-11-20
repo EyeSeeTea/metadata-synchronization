@@ -12,34 +12,42 @@ import { NoticeBox } from "./components/NoticeBox";
 type MapWmrDataProps = {};
 
 export function MapWmrData(_props: MapWmrDataProps) {
-    const { syncRule, settings, loadSettings } = useWmrContext();
+    const { syncRule, settings, loadSettings, flowKind, setRegionalPrepared } = useWmrContext();
     const [dataSetId, setDataSetId] = React.useState<Maybe<Id>>(syncRule?.localDataSetId);
 
     React.useEffect(() => {
         loadSettings();
     }, [loadSettings]);
 
+    React.useEffect(() => {
+        setRegionalPrepared(false);
+    }, [setRegionalPrepared]);
+
     if (!settings || !syncRule) {
         return <NoticeBox type="loading" message={i18n.t("Loading settings...")} />;
     }
 
-    const dataSets = settings.dataSets.map(dataSet => {
-        return { text: dataSet.name, value: dataSet.id };
-    });
+    const sources = flowKind ? settings.getSelectableSources(flowKind) : [];
+    const dataSets = sources.map(dataSet => ({
+        text: `${dataSet.name} (${dataSet.periodType})`,
+        value: dataSet.id,
+    }));
 
     const onChangeDataSet = (value: Id | undefined) => {
         setDataSetId(value);
         syncRule.localDataSetId = value;
+        syncRule.flow = flowKind && settings.getFlowFor(value, flowKind);
+        setRegionalPrepared(false);
     };
 
-    const allowedLocalDataElementsIds = settings.getDataElementsIds(dataSetId);
+    const allowedLocalIds = settings.getSourceMetadataIds(dataSetId);
 
     return (
         <Grid container spacing={3}>
             <Grid item xs={12}>
                 <NoticeBox
                     type="info"
-                    message={i18n.t("Select a DataSet. Then map your server data to the newly created test WMR form")}
+                    message={i18n.t("Select a DataSet. Then map your local data to the WMR Form data")}
                 />
             </Grid>
             <Grid item xs={12}>
@@ -56,9 +64,10 @@ export function MapWmrData(_props: MapWmrDataProps) {
                         instanceId={WmrSettings.LOCAL_INSTANCE_ID}
                         section="aggregated"
                         showHeader={false}
-                        filterRows={allowedLocalDataElementsIds}
-                        filterMappingIds={settings.countryDataElementsIds}
+                        filterRows={allowedLocalIds}
+                        filterMappingIds={[...(syncRule.flow?.destination.dataElementsIds ?? [])]}
                         applyFilterMappingIdsToAutoMap
+                        onChange={() => setRegionalPrepared(false)}
                     />
                 </Grid>
             )}
