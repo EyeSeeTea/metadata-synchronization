@@ -4,7 +4,7 @@ import { Debug } from "../../../domain/migrations/entities/Debug";
 import { ObjectSharing } from "../../../domain/storage/repositories/StorageClient";
 import { promiseMap } from "../../../utils/common";
 import { AppStorage, Migration } from "../client/types";
-import { buildRoute } from "../../instance/InstanceD2ApiRepository";
+import { buildRoute } from "../../instance/D2Route";
 import { decrypt } from "../../../utils/crypto";
 import { Namespace } from "../../storage/Namespaces";
 import { getD2APiFromInstance } from "../../../utils/d2-utils";
