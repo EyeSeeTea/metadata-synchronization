@@ -32,14 +32,7 @@ import {
     OverlappedMappingDialog,
     OverlappedMappingDialogProps,
 } from "../overlapped-mapping-dialog/OverlappedMappingDialog";
-import {
-    cleanNestedMappedId,
-    EXCLUDED_KEY,
-    getAllChildrenRows,
-    getChildrenRows,
-    getDestinationModel,
-    MAPPED_BY_VALUE_KEY,
-} from "./utils";
+import { cleanNestedMappedId, EXCLUDED_KEY, getAllChildrenRows, getChildrenRows, MAPPED_BY_VALUE_KEY } from "./utils";
 
 const useStyles = makeStyles({
     iconButton: {
@@ -299,7 +292,6 @@ export default function MappingTable({
                             mappingPath,
                             mappingType,
                             firstElement,
-                            model: getDestinationModel(firstElement.model),
                         });
                     }
                 }
@@ -340,7 +332,6 @@ export default function MappingTable({
                     mappingPath,
                     mappingType,
                     firstElement,
-                    model: getDestinationModel(firstElement?.model),
                 });
                 setSelectedIds([]);
             } else if (types.length > 1) {
