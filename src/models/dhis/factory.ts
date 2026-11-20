@@ -63,10 +63,19 @@ const findClasses = (predicate: object) => {
     return _.find(metadataClasses, predicate) ?? _.find(mappingClasses, predicate);
 };
 
-// Several classes share a mappingType (e.g. indicators map to "aggregatedDataElements"). The class
-// whose metadataType is also that key lists the destination items, so prefer it over export order.
+// Shared mapping types need an explicit model: export order differs between the browser and Vitest.
+export const modelByMappingType: Partial<Record<string, typeof D2Model>> = {
+    aggregatedDataElements: mappingClasses.AggregatedDataElementModel,
+    categoryOptions: mappingClasses.CategoryOptionMappedModel,
+    eventPrograms: mappingClasses.EventProgramModel,
+    options: mappingClasses.OptionMappedModel,
+    programDataElements: mappingClasses.ProgramDataElementModel,
+    trackedEntityAttributesToDE: mappingClasses.DataElementFromTEIMappedModel,
+    trackerPrograms: mappingClasses.TrackerProgramModel,
+};
+
 const findMappedModel = (mappingType: string) => {
-    return findClasses({ mappingType, metadataType: mappingType }) ?? findClasses({ mappingType });
+    return modelByMappingType[mappingType] ?? findClasses({ mappingType });
 };
 
 export const defaultName = "default";
