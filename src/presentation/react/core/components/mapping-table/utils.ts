@@ -28,3 +28,10 @@ export const getAllChildrenRows = (rows: MetadataType[], model: typeof D2Model):
 
     return [...childrenLevel1, ...childrenLevel2];
 };
+
+// Global mapping lists plain ids, so the destination picker reuses the source model. Other models can
+// map to a different type (e.g. indicators to data elements), so MappingDialog resolves them from the
+// mapping type.
+export const getDestinationModel = (sourceModel: typeof D2Model | undefined): typeof D2Model | undefined => {
+    return sourceModel?.getIsGlobalMapping() ? sourceModel : undefined;
+};
