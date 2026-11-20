@@ -59,8 +59,14 @@ export const metadataModels = [
     metadataClasses.VisualizationsModel,
 ];
 
-const findClasses = (key: string, value: string) => {
-    return _.find(metadataClasses, [key, value]) ?? _.find(mappingClasses, [key, value]);
+const findClasses = (predicate: object) => {
+    return _.find(metadataClasses, predicate) ?? _.find(mappingClasses, predicate);
+};
+
+// Several classes share a mappingType (e.g. indicators map to "aggregatedDataElements"). The class
+// whose metadataType is also that key lists the destination items, so prefer it over export order.
+const findMappedModel = (mappingType: string) => {
+    return findClasses({ mappingType, metadataType: mappingType }) ?? findClasses({ mappingType });
 };
 
 export const defaultName = "default";
@@ -77,9 +83,9 @@ export function modelFactory(d2ModelName?: string): typeof D2Model {
     const api = new D2Api();
     const { modelName = defaultName } = getApiModel(api, d2ModelName) ?? {};
 
-    const mappedModel = findClasses("mappingType", d2ModelName);
-    const directClass = findClasses("metadataType", d2ModelName);
-    const modelClass = findClasses("collectionName", modelName);
+    const mappedModel = findMappedModel(d2ModelName);
+    const directClass = findClasses({ metadataType: d2ModelName });
+    const modelClass = findClasses({ collectionName: modelName });
 
     const result = mappedModel ?? directClass ?? modelClass;
     if (!result) {
