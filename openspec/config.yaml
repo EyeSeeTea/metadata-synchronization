@@ -71,7 +71,7 @@ context: |
   Server-side scheduler:
   - yarn build-scheduler        — builds scheduler as standalone Node.js server
   - Runs via: node index.js -c app-config.json
-  - Requires app-config.json with encryptionKey, baseUrl, username, password
+  - Requires a configuration file with baseUrl, username, password (encryptionKey is no longer needed and is ignored if present)
 
   Migrations:
   - DataStore schema migrations in src/migrations/
@@ -86,7 +86,7 @@ context: |
   - yarn test → Jest unit tests
   - Cypress e2e: requires eyeseetea/dhis2-data:2.30-datasync-sender docker instance
   - Environment config via .env.local (copy from .env)
-  - public/app-config.json: must be created from app-config.template.json (encryptionKey)
+  - public/app-config.json: copy it from public/app-config.template.json (git-ignored, no encryptionKey)
   - REACT_APP_DHIS2_BASE_URL: target DHIS2 instance
   - REACT_APP_DHIS2_AUTH: optional USERNAME:PASSWORD override for proxy
 
