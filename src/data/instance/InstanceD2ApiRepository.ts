@@ -119,8 +119,12 @@ export class InstanceD2ApiRepository implements InstanceRepository {
             description: instance.description,
             disabled: false,
             displayName: instance.name,
+            // No static headers: DHIS2 routes append them to the request headers, so a static
+            // Content-Type is sent twice on POST/PUT and the destination answers 415.
+            headers: {},
             id: instance.id,
             name: instance.name,
+            responseTimeoutSeconds: ROUTE_RESPONSE_TIMEOUT_SECONDS,
             sharing: {
                 external: false,
                 owner: instance.user.id,
@@ -239,10 +243,15 @@ export type D2Route = {
     lastUpdated?: string;
     lastUpdatedBy?: D2User;
     name: string;
+    // DHIS2 >= 2.40.12 (default 5, max 60). Older versions ignore it.
+    responseTimeoutSeconds?: number;
     sharing: D2ObjectSharing;
     url: string;
     user?: D2User;
 };
+
+// The DHIS2 default (5 seconds) is too short for metadata searches on large instances.
+export const ROUTE_RESPONSE_TIMEOUT_SECONDS = 60;
 
 export interface D2ObjectSharing {
     owner: string;
