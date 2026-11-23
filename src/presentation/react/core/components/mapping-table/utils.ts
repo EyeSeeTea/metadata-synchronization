@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { D2Model } from "../../../../../models/dhis/default";
+import { modelFactory } from "../../../../../models/dhis/factory";
 import { MetadataType } from "../../../../../utils/d2";
 
 export const EXCLUDED_KEY = "DISABLED";
@@ -29,9 +30,8 @@ export const getAllChildrenRows = (rows: MetadataType[], model: typeof D2Model):
     return [...childrenLevel1, ...childrenLevel2];
 };
 
-// Global mapping lists plain ids, so the destination picker reuses the source model. Other models can
-// map to a different type (e.g. indicators to data elements), so MappingDialog resolves them from the
-// mapping type.
-export const getDestinationModel = (sourceModel: typeof D2Model | undefined): typeof D2Model | undefined => {
-    return sourceModel?.getIsGlobalMapping() ? sourceModel : undefined;
+// Global mapping lists plain ids, so it reuses the source model. Other rows can map to another type
+// (e.g. indicators to data elements).
+export const getDestinationModel = (sourceModel: typeof D2Model | undefined, mappingType: string): typeof D2Model => {
+    return sourceModel?.getIsGlobalMapping() ? sourceModel : modelFactory(mappingType);
 };
