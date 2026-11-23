@@ -4,7 +4,12 @@ import { Debug } from "../../../domain/migrations/entities/Debug";
 import { ObjectSharing } from "../../../domain/storage/repositories/StorageClient";
 import { promiseMap } from "../../../utils/common";
 import { AppStorage, Migration } from "../client/types";
-import { D2Route, mapArrayToRecord, slugify } from "../../instance/InstanceD2ApiRepository";
+import {
+    D2Route,
+    mapArrayToRecord,
+    ROUTE_RESPONSE_TIMEOUT_SECONDS,
+    slugify,
+} from "../../instance/InstanceD2ApiRepository";
 import { decrypt } from "../../../utils/crypto";
 import { Namespace } from "../../storage/Namespaces";
 import { getD2APiFromInstance, removeTrailingSlash } from "../../../utils/d2-utils";
@@ -145,7 +150,8 @@ function buildRoute(instance: Instance): D2Route {
         description: instance.description,
         disabled: false,
         displayName: instance.name,
-        headers: { "Content-Type": "application/json" },
+        headers: {},
+        responseTimeoutSeconds: ROUTE_RESPONSE_TIMEOUT_SECONDS,
         id: instance.id,
         name: instance.name,
         sharing: {
