@@ -185,29 +185,36 @@ export class MetadataD2ApiRepository implements MetadataRepository {
             path: true,
             level: true,
         });
+        // Empty filter values are dropped by d2-api, and /metadata without filters returns the whole
+        // instance metadata (e.g. the name-less placeholder COC built for indicators). Skip those requests.
+        const empty: MetadataPackage<IdentifiableRef> = {};
         // using two separate requests because rootJunction is not working with name:token:str filter (2.41.3)
         const [responseEqual, responseSimilar] = await Promise.all([
-            this.api
-                .get<MetadataPackage<IdentifiableRef>>("/metadata", {
-                    fields: fields,
-                    filter: getFilterAsString({
-                        id: { eq: query.id },
-                        code: { eq: query.code },
-                        // identifiable: { token: query.name },
-                    }),
-                    rootJunction: "OR",
-                    paging: false,
-                })
-                .getData(),
-            this.api
-                .get<MetadataPackage<IdentifiableRef>>("/metadata", {
-                    fields: fields,
-                    filter: getFilterAsString({
-                        name: { token: query.name },
-                    }),
-                    paging: false,
-                })
-                .getData(),
+            query.id || query.code
+                ? this.api
+                      .get<MetadataPackage<IdentifiableRef>>("/metadata", {
+                          fields: fields,
+                          filter: getFilterAsString({
+                              id: { eq: query.id },
+                              code: { eq: query.code },
+                              // identifiable: { token: query.name },
+                          }),
+                          rootJunction: "OR",
+                          paging: false,
+                      })
+                      .getData()
+                : empty,
+            query.name
+                ? this.api
+                      .get<MetadataPackage<IdentifiableRef>>("/metadata", {
+                          fields: fields,
+                          filter: getFilterAsString({
+                              name: { token: query.name },
+                          }),
+                          paging: false,
+                      })
+                      .getData()
+                : empty,
         ]);
 
         return _.omit(_.merge(responseEqual, responseSimilar), ["system"]);
