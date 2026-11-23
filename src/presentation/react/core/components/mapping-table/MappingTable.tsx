@@ -435,27 +435,34 @@ export default function MappingTable({
             loading.show(true, i18n.t("Validating mapping for {{total}} elements", { total: selection.length }));
 
             const tasks = [];
-            const selectedRows = _.compact(selection.map(id => _.find(rows, ["id", id])));
-            const allRows = [...selectedRows, ...getChildrenRows(selectedRows, model)];
+            try {
+                const selectedRows = _.compact(selection.map(id => _.find(rows, ["id", id])));
+                const allRows = [...selectedRows, ...getChildrenRows(selectedRows, model)];
 
-            for (const row of allRows) {
-                const mappingType = row.model.getMappingType();
-                const global = row.model.getIsGlobalMapping();
-                if (mappingType) {
-                    const newMapping = await createValidations({
-                        [mappingType]: {
-                            [row.id]: getMappedItem(row),
-                        },
-                    });
-                    const { mappedId, ...overrides } = newMapping[mappingType][row.id];
-                    tasks.push({ selection: [row.id], mappingType, global, mappedId, overrides });
+                for (const row of allRows) {
+                    const mappingType = row.model.getMappingType();
+                    const global = row.model.getIsGlobalMapping();
+                    if (mappingType) {
+                        const newMapping = await createValidations({
+                            [mappingType]: {
+                                [row.id]: getMappedItem(row),
+                            },
+                        });
+                        const { mappedId, ...overrides } = newMapping[mappingType][row.id];
+                        tasks.push({ selection: [row.id], mappingType, global, mappedId, overrides });
+                    }
                 }
+            } catch (e) {
+                console.error(e);
+                snackbar.error(i18n.t("Could not validate mapping, please try again."));
+                return;
+            } finally {
+                loading.reset();
             }
 
-            applyMapping(tasks);
-            loading.reset();
+            await applyMapping(tasks);
         },
-        [applyMapping, getMappedItem, loading, rows, createValidations, model]
+        [applyMapping, getMappedItem, loading, rows, createValidations, model, snackbar]
     );
 
     const validateMapping = useCallback(
@@ -519,8 +526,14 @@ export default function MappingTable({
                         eventPrograms: { ...mapping.eventPrograms, [program]: { ...innerMapping, overlaps } },
                     };
 
-                    await onChangeMapping(newMapping);
-                    loading.reset();
+                    try {
+                        await onChangeMapping(newMapping);
+                    } catch (e) {
+                        console.error(e);
+                        snackbar.error(i18n.t("Could not apply mapping, please try again."));
+                    } finally {
+                        loading.reset();
+                    }
                 },
                 onCancel: () => {
                     setOverlappedConfig(null);

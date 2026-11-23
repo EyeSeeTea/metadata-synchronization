@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-09-28T09:33:47.810Z\n"
+"POT-Creation-Date: 2026-11-23T10:01:04.714Z\n"
 "PO-Revision-Date: 2020-07-10T06:53:30.625Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -456,6 +456,9 @@ msgstr ""
 
 msgid "Validating mapping for {{total}} elements"
 msgstr ""
+
+msgid "Could not validate mapping, please try again."
+msgstr "Could not validate mapping, please try again."
 
 msgid "Validate mapping"
 msgstr ""
