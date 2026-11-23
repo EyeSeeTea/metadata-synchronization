@@ -10,7 +10,7 @@ context: |
   - Multiple build variants for different deployment scenarios
   - Manages metadata custodians (guardians) who approve sync requests
 
-  Repository: EyeSeeTea/metadata-synchronization-blessed (GitHub)
+  Repository: EyeSeeTea/metadata-synchronization (GitHub)
 
   Key features:
   - Metadata sync: push/pull metadata between DHIS2 instances with dependency resolution
@@ -18,14 +18,14 @@ context: |
   - Metadata packages: bundle metadata into modules, generate versioned packages, distribute via repositories
   - Sync rules: define reusable synchronization configurations with schedules (cron)
   - Metadata custodians: configure approval workflows for metadata changes
-  - Instance management: register and manage multiple DHIS2 instances with encrypted credentials
+  - Instance management: register and manage multiple DHIS2 instances, stored as DHIS2 routes
   - Migration system: automatic dataStore schema migrations with versioning
   - Sync history: audit trail of all synchronization operations
 
   Tech stack:
   - Node.js
   - TypeScript
-  - React (CRA via react-scripts, craco available for WDYR debugging)
+  - React, built and served with Vite (why-did-you-render enabled in development mode)
   - Material UI 4 (@material-ui/core, @material-ui/icons, @material-ui/lab)
   - DHIS2 libraries:
     - @dhis2/app-runtime (API hooks and data engine)
@@ -36,27 +36,29 @@ context: |
     - @eyeseetea/feedback-component (user feedback widget)
   - @monaco-editor/react (JSON viewer/editor for metadata)
   - @octokit/rest (GitHub API for package distribution)
-  - cryptr (credential encryption)
   - cronstrue (cron expression display)
-  - fluture (async functional programming)
+  - Future (own class in src/domain/common/entities/Future.ts, FutureData<D> for async)
   - cmd-ts (CLI scripts)
   - jszip (package bundling)
   - lodash, axios, log4js
-  - Testing: Jest (unit, from CRA), Cypress (e2e)
-  - Husky + githooks for pre-commit checks
+  - Testing: Vitest (unit)
+  - Husky pre-push hook: yarn prettify, yarn lint, yarn update-po, yarn test
 
   Directory structure (Clean Architecture):
   - src/
     - domain/        # Entities, use cases, repository interfaces
     - data/          # Repository implementations, DHIS2 API calls
-    - presentation/  # React UI layer (or src/webapp/ — check actual structure)
+    - presentation/  # UI layer
       - react/       # React components, pages, hooks
+      - webapp/      # App entry point
+      - widget/      # Dashboard widget entry point
+      - CompositionRoot.ts, NewCompositionRoot.ts  # Dependency injection wiring (two roots)
     - models/        # Shared type definitions
     - types/         # TypeScript declarations
     - scheduler/     # Server-side sync scheduler (CLI entry point)
-    - migrations/    # DataStore schema migrations (versioned, auto-loaded)
-    - scripts/       # Utility CLI scripts
-    - compositionRoot.ts  # Dependency injection wiring
+    - migrations/    # Migrations CLI (cli.ts)
+  - src/data/migrations/tasks/  # DataStore schema migrations (versioned, auto-loaded)
+  - scripts/         # Build and start CLI scripts, build variants (repo root)
 
   Build variants:
   - yarn build all              — builds all variants
@@ -67,6 +69,7 @@ context: |
   - yarn build package-exporter — package export tool
   - yarn build msf-aggregate-data-app — MSF-specific aggregate data
   - yarn build sp-emergency-responses — Samaritan's Purse emergency responses
+  - yarn build wmr              — WMR data submission
 
   Server-side scheduler:
   - yarn build-scheduler        — builds scheduler as standalone Node.js server
@@ -74,25 +77,23 @@ context: |
   - Requires a configuration file with baseUrl, username, password (encryptionKey is no longer needed and is ignored if present)
 
   Migrations:
-  - DataStore schema migrations in src/migrations/
+  - DataStore schema migrations in src/data/migrations/tasks/
   - Each migration defines old/new types (never rely on current app types, use unknown)
   - *.ts files auto-loaded by version order
   - CLI: yarn migrate 'http://admin:PASSWORD@localhost:8080'
   - App checks dataStore version on startup, prompts user if migration needed
 
   Development setup:
-  - yarn start → dev server on localhost:8081, proxies DHIS2 requests to localhost:8080
-  - yarn craco-start → dev server with why-did-you-render enabled
-  - yarn test → Jest unit tests
-  - Cypress e2e: requires eyeseetea/dhis2-data:2.30-datasync-sender docker instance
+  - yarn start → Vite dev server on localhost:8081 (PORT), proxies /dhis2 requests to VITE_DHIS2_BASE_URL
+  - yarn test → Vitest unit tests
   - Environment config via .env.local (copy from .env)
   - public/app-config.json: copy it from public/app-config.template.json (git-ignored, no encryptionKey)
-  - REACT_APP_DHIS2_BASE_URL: target DHIS2 instance
-  - REACT_APP_DHIS2_AUTH: optional USERNAME:PASSWORD override for proxy
+  - VITE_DHIS2_BASE_URL: target DHIS2 instance (required, the dev server exits without it)
+  - VITE_DHIS2_AUTH: USERNAME:PASSWORD for the proxy (required, the dev server exits without it)
 
   Code conventions:
   - TypeScript strict mode
-  - Functional composition (fluture for async, lodash for data transforms)
+  - Functional composition (Future for async, lodash for data transforms)
   - Clean Architecture: domain has no framework dependencies
   - Naming: camelCase variables/functions, PascalCase React components
   - i18n via @dhis2/d2-i18n, translations managed with yarn update-po / yarn localize
@@ -135,7 +136,7 @@ context: |
   Extension principles:
   - Maintain (and improve) Clean Architecture boundaries
   - Domain logic must not depend on DHIS2 API specifics
-  - Encrypted credentials must never be logged or exposed
+  - Instance credentials (passwords, tokens) must never be logged or exposed
   - Migration files must define self-contained old/new types (no importing from app)
   - Preserve backward compatibility of dataStore schema (always provide migrations)
   - Build variants must remain independently buildable
@@ -143,8 +144,7 @@ context: |
   Known constraints:
   - Large metadata payloads can cause DHIS2 API timeouts
   - Cross-version sync (e.g., 2.33 → 2.38) requires metadata transformations
-  - Encrypted credentials stored in dataStore via cryptr
-  - Tests require a specific Docker image (eyeseetea/dhis2-data:2.30-datasync-sender)
+  - Remote instances are stored as DHIS2 routes since migration 16. Only that migration decrypts passwords saved by older versions.
   - Multiple build variants add complexity to changes that touch shared code
 
   Versioning:
@@ -153,10 +153,9 @@ context: |
   - Explicit change proposals required for sync behavior, migration schema, or package format changes
 
   Testing strategy:
-  - Unit tests (Jest) for domain logic, use cases, sync operations, transformations
+  - Unit tests (Vitest) for domain logic, use cases, sync operations, transformations
   - MANDATORY: every new feature must include unit tests
   - MANDATORY: every modified function must have its tests updated or added (boy scout)
-  - Cypress e2e for user workflows (requires running DHIS2 Docker instance)
   - Mock d2-api in unit tests using getMockApiFromClass pattern
 
   ClickUp project structure:
@@ -172,8 +171,8 @@ rules:
     - "Test coverage is mandatory: every new feature must include unit tests. Every modified function must have tests added or updated. No exceptions."
     - Do not introduce new direct DHIS2 API calls outside of data/; always go through repository interfaces defined in domain/.
     - Follow code conventions: TypeScript strict, functional composition, correct naming (camelCase/PascalCase).
-    - "Migrations: when changing dataStore schema, always create a new migration in src/migrations/. Define old/new types locally in the migration file — never import from app types. Use unknown for unrelated fields."
-    - "Do NOT: change sync behavior without a spec + proposal, modify dataStore schema without a migration, introduce direct DHIS2 API calls in domain/ or presentation/, bypass the CompositionRoot, log or expose encrypted credentials."
+    - "Migrations: when changing dataStore schema, always create a new migration in src/data/migrations/tasks/. Define old/new types locally in the migration file — never import from app types. Use unknown for unrelated fields."
+    - "Do NOT: change sync behavior without a spec + proposal, modify dataStore schema without a migration, introduce direct DHIS2 API calls in domain/ or presentation/, bypass the CompositionRoot, log or expose instance credentials."
     - "Definition of Done: specs updated, code aligns with specs, all tests pass (new + existing), Clean Architecture boundaries respected (or improved), migrations included if dataStore changes, no breaking changes without proposal."
     - "Clean Architecture: domain layer must have no framework dependencies (no React, no DHIS2 imports). React components must contain zero business logic — they only render state and forward events. All logic goes in use cases or the composition root."
     - "Git: always branch from `development` unless the feature depends on an unmerged branch, in which case branch from that branch and merge back to it. Use feature/<n> for features, fix/<n> for bugs. All commits must follow Conventional Commits."
@@ -193,8 +192,7 @@ rules:
     - "Boy scout: identify any technical debt in the affected area and include at least one cleanup task."
 
   tasks:
-    - Include at least one task for unit tests (Jest) for any domain logic or sync behavior changes.
-    - Include at least one task for Cypress e2e tests when user-facing workflows change.
+    - Include at least one task for unit tests (Vitest) for any domain logic or sync behavior changes.
     - Include a task to update specs/ domain docs whenever behavior changes.
     - "Include a boy scout task for any refactoring identified during design (e.g., 'Extract sync logic from component X into use case')."
     - "Tag each task with the responsible agent role: [FE], [BE]."
