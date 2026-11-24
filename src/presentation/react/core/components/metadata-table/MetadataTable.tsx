@@ -522,6 +522,9 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
             .listAll({ ...filters, filterRows, fields: { id: true }, selectedIds }, remoteInstance)
             .then(objects => {
                 updateIds(objects.map(({ id }) => id));
+            })
+            .catch(error => {
+                if (!isCancel(error)) console.error(error);
             });
     }, [filters, filterRows, model, compositionRoot, remoteInstance, selectedIds]);
 
