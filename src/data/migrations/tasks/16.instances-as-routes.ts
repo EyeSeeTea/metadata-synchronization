@@ -4,15 +4,10 @@ import { Debug } from "../../../domain/migrations/entities/Debug";
 import { ObjectSharing } from "../../../domain/storage/repositories/StorageClient";
 import { promiseMap } from "../../../utils/common";
 import { AppStorage, Migration } from "../client/types";
-import {
-    D2Route,
-    mapArrayToRecord,
-    ROUTE_RESPONSE_TIMEOUT_SECONDS,
-    slugify,
-} from "../../instance/InstanceD2ApiRepository";
+import { buildRoute } from "../../instance/D2Route";
 import { decrypt } from "../../../utils/crypto";
 import { Namespace } from "../../storage/Namespaces";
-import { getD2APiFromInstance, removeTrailingSlash } from "../../../utils/d2-utils";
+import { getD2APiFromInstance } from "../../../utils/d2-utils";
 
 type DataStoreInstance = { id: string };
 
@@ -136,31 +131,4 @@ async function getObjectSharingOrError(storage: AppStorage, id: string): Promise
     } catch {
         return undefined;
     }
-}
-
-function buildRoute(instance: Instance): D2Route {
-    const url = removeTrailingSlash(instance.url);
-
-    return {
-        auth:
-            instance.authType === "api-token"
-                ? { type: "api-token", token: instance.token }
-                : { type: "http-basic", username: instance.username, password: instance.password },
-        code: slugify(instance.name),
-        description: instance.description,
-        disabled: false,
-        displayName: instance.name,
-        headers: {},
-        responseTimeoutSeconds: ROUTE_RESPONSE_TIMEOUT_SECONDS,
-        id: instance.id,
-        name: instance.name,
-        sharing: {
-            external: false,
-            owner: instance.user.id,
-            public: instance.publicAccess,
-            users: mapArrayToRecord(instance.userAccesses),
-            userGroups: mapArrayToRecord(instance.userGroupAccesses),
-        },
-        url: `${url}/**`,
-    };
 }
