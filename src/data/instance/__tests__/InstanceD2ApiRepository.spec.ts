@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Instance } from "../../../domain/instance/entities/Instance";
 import { StorageClientFactory } from "../../config/StorageClientFactory";
 import { startDhis } from "../../../utils/dhisServer";
+import { ROUTE_RESPONSE_TIMEOUT_SECONDS } from "../D2Route";
 import { InstanceD2ApiRepository } from "../InstanceD2ApiRepository";
 
 const baseUrl = "http://origin.test";
@@ -55,8 +56,10 @@ describe("InstanceD2ApiRepository", () => {
                     description: "",
                     disabled: false,
                     displayName: "Target",
+                    headers: {},
                     id: "targetRoute",
                     name: "Target",
+                    responseTimeoutSeconds: ROUTE_RESPONSE_TIMEOUT_SECONDS,
                     sharing: { external: false, owner: "", public: "--------", users: {}, userGroups: {} },
                     url: `${targetUrl}/**`,
                 },

@@ -6,5 +6,4 @@ export interface AppConfig {
         showShareButton: boolean;
     };
     feedback: FeedbackOptions;
-    encryptionKey: string;
 }

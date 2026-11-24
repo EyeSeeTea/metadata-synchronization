@@ -4,21 +4,36 @@ import { Debug } from "../../../domain/migrations/entities/Debug";
 import { ObjectSharing } from "../../../domain/storage/repositories/StorageClient";
 import { promiseMap } from "../../../utils/common";
 import { AppStorage, Migration } from "../client/types";
-import { D2Route, mapArrayToRecord, slugify } from "../../instance/InstanceD2ApiRepository";
+import { buildRoute } from "../../instance/D2Route";
 import { decrypt } from "../../../utils/crypto";
 import { Namespace } from "../../storage/Namespaces";
-import { getD2APiFromInstance, removeTrailingSlash } from "../../../utils/d2-utils";
+import { getD2APiFromInstance } from "../../../utils/d2-utils";
 
 type DataStoreInstance = { id: string };
+
+type StoredInstance = Readonly<{
+    instanceData: InstanceData;
+    sharing: ObjectSharing | undefined;
+    username: string | undefined;
+    encryptedPassword: string | undefined;
+}>;
+
+export const missingEncryptionKeyError =
+    "app-config.json has no encryptionKey. It is needed to decrypt the passwords of remote instances " +
+    "saved before version 2.25.0. Add the encryption key of the previous installation as encryptionKey in " +
+    "app-config.json inside the release ZIP and install it again. See README, section Upgrading from versions " +
+    "before 2.25.0.";
 
 export async function migrate(storage: AppStorage, _debug: Debug, { localInstance }: MigrationParams): Promise<void> {
     if (!localInstance) {
         throw new Error("localInstance is required");
     }
 
-    const encryptionKey = await getEncryptionKey();
+    const storedInstances = await getStoredInstances(storage);
+    const hasEncryptedPasswords = storedInstances.some(({ encryptedPassword }) => Boolean(encryptedPassword));
+    const encryptionKey = hasEncryptedPasswords ? await getEncryptionKey() : undefined;
 
-    const instances = await getInstancesWithSharing(storage, encryptionKey);
+    const instances = await promiseMap(storedInstances, storedInstance => buildInstance(storedInstance, encryptionKey));
 
     const d2api = getD2APiFromInstance(localInstance);
 
@@ -47,17 +62,19 @@ const migration: Migration<MigrationParams> = {
 export default migration;
 
 async function getEncryptionKey(): Promise<string> {
-    const appConfig = await fetch("app-config.json", {
-        credentials: "same-origin",
-    }).then(res => res.json());
+    const response = await fetch("app-config.json", { credentials: "same-origin" });
+    const appConfig: unknown = response.ok ? await response.json() : undefined;
+    const encryptionKey =
+        typeof appConfig === "object" && appConfig !== null && "encryptionKey" in appConfig
+            ? appConfig.encryptionKey
+            : undefined;
 
-    const encryptionKey = appConfig?.encryptionKey;
-    if (!encryptionKey) throw new Error("You need to provide a valid encryption key");
+    if (typeof encryptionKey !== "string" || encryptionKey === "") throw new Error(missingEncryptionKeyError);
 
     return encryptionKey;
 }
 
-async function getInstancesWithSharing(storage: AppStorage, encryptionKey: string) {
+async function getStoredInstances(storage: AppStorage): Promise<StoredInstance[]> {
     const dataStoreBaseInstances = await storage.get<InstanceData[]>(Namespace.INSTANCES);
 
     if (!dataStoreBaseInstances) {
@@ -66,39 +83,42 @@ async function getInstancesWithSharing(storage: AppStorage, encryptionKey: strin
 
     const dataStoreInstances = dataStoreBaseInstances.filter(instance => instance.id !== "LOCAL");
 
-    const instances = await promiseMap(dataStoreInstances, async instance => {
-        const sharing = await getObjectSharingOrError(storage, instance.id);
+    return promiseMap(dataStoreInstances, async instanceData => {
+        const sharing = await getObjectSharingOrError(storage, instanceData.id);
         const advancedProps = await storage.get<{ username?: string; password?: string }>(
-            `${Namespace.INSTANCES}-${instance.id}`
+            `${Namespace.INSTANCES}-${instanceData.id}`
         );
 
-        const decryptPassword = (password?: string) => {
-            return password ? decrypt(password, encryptionKey) : "";
+        return {
+            instanceData,
+            sharing,
+            username: advancedProps?.username,
+            encryptedPassword: advancedProps?.password,
         };
-
-        const mapToInstance = async (instanceData: InstanceData, sharing: ObjectSharing | undefined) =>
-            Instance.build({
-                ...instanceData,
-                url: instanceData.url,
-                version: instanceData.version,
-                username: advancedProps?.username,
-                password: await decryptPassword(advancedProps?.password),
-                ...(sharing ?? {
-                    publicAccess: "--------",
-                    userAccesses: [],
-                    userGroupAccesses: [],
-                    user: {
-                        id: "",
-                        name: "",
-                    },
-                    externalAccess: false,
-                }),
-            });
-
-        return mapToInstance(instance, sharing);
     });
+}
 
-    return instances;
+async function buildInstance(storedInstance: StoredInstance, encryptionKey: string | undefined): Promise<Instance> {
+    const { instanceData, sharing, username, encryptedPassword } = storedInstance;
+    const password = encryptedPassword && encryptionKey ? await decrypt(encryptedPassword, encryptionKey) : "";
+
+    return Instance.build({
+        ...instanceData,
+        url: instanceData.url,
+        version: instanceData.version,
+        username: username,
+        password: password,
+        ...(sharing ?? {
+            publicAccess: "--------",
+            userAccesses: [],
+            userGroupAccesses: [],
+            user: {
+                id: "",
+                name: "",
+            },
+            externalAccess: false,
+        }),
+    });
 }
 
 async function getObjectSharingOrError(storage: AppStorage, id: string): Promise<ObjectSharing | undefined> {
@@ -108,32 +128,7 @@ async function getObjectSharingOrError(storage: AppStorage, id: string): Promise
         const sharing = await storage.getObjectSharing(key);
 
         return sharing;
-    } catch (error: any) {
+    } catch {
         return undefined;
     }
-}
-
-function buildRoute(instance: Instance): D2Route {
-    const url = removeTrailingSlash(instance.url);
-
-    return {
-        auth:
-            instance.authType === "api-token"
-                ? { type: "api-token", token: instance.token }
-                : { type: "http-basic", username: instance.username, password: instance.password },
-        code: slugify(instance.name),
-        description: instance.description,
-        disabled: false,
-        displayName: instance.name,
-        id: instance.id,
-        name: instance.name,
-        sharing: {
-            external: false,
-            owner: instance.user.id,
-            public: instance.publicAccess,
-            users: mapArrayToRecord(instance.userAccesses),
-            userGroups: mapArrayToRecord(instance.userGroupAccesses),
-        },
-        url: `${url}/**`,
-    };
 }
