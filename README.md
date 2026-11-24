@@ -83,11 +83,30 @@ After this:
 -   This repo will use **Yarn 4.12.0**.
 -   Other repos without `packageManager` will keep using **Yarn 1.22.22** (or whatever you activated with `corepack prepare`).
 
-File `public/app-config.json` must be created by duplicating `public/app-config.template.json` and filling in the encryptionKey.
+## App configuration (`app-config.json`)
+
+The app reads `app-config.json` when it starts. Its source is `public/app-config.template.json`, which is tracked in git and holds no secrets.
+
+-   **Release builds:** `yarn build` writes `build/app-config.json` from the template for every variant, so each ZIP contains it. It never copies a local `public/app-config.json`. The ZIP only carries what the app reads: `appKey`, `appearance` and `feedback`. The build fails if the template is invalid or contains `encryptionKey`.
+-   **Local development:** `yarn start` serves `public/`. Create `public/app-config.json` by copying the template. That file is git-ignored.
+
+### Upgrading from versions before 2.25.0
+
+An `encryptionKey` field is only needed for one upgrade case: an installation older than 2.25.0 that has remote instances saved with a password. Migration 16 moves those instances to DHIS2 routes and needs the key to decrypt their passwords. A fresh installation never runs this migration, and an upgrade without saved passwords does not need the key either.
+
+DHIS2 deletes the files of the previous version when it installs a new one, so the old `app-config.json` is gone after the upgrade. Before installing, add an `encryptionKey` field with the encryption key of the previous installation to `app-config.json` inside the release ZIP. If you run the scheduler, it is the `encryptionKey` in its configuration file.
+
+```bash
+unzip metadata-synchronization.zip app-config.json
+# edit app-config.json and add "encryptionKey": "<the previous installation's key>"
+zip metadata-synchronization.zip app-config.json
+```
+
+Install that ZIP, let the migration run, and then install the unmodified ZIP again so the key is no longer served. Do not share the modified ZIP.
 
 ## Migrations
 
-The app uses the DHIS2 data store to persist custom data. Whenever the schema of the data store changes, we'll create a [migration task](src/migrations/tasks) with an incremental version. \*.ts files in this folder are automatically loaded.
+The app uses the DHIS2 data store to persist custom data. Whenever the schema of the data store changes, we'll create a [migration task](src/data/migrations/tasks) with an incremental version. \*.ts files in this folder are automatically loaded.
 
 When writing a migration, we must define the old/new types of data structures used in that migration task. Note that we cannot rely on types on the app, as they may have diverged. For fields/objects we must reference but don't care the type, we will use `unknown` (not `any`).
 
@@ -96,6 +115,8 @@ When the app starts, it will check the data store version and open a dialog if a
 ```
 $ yarn migrate 'http://admin:PASSWORD@localhost:8080'
 ```
+
+The CLI cannot read `app-config.json`, so it cannot run migration 16 when remote instances have saved passwords. Run that upgrade from the app, as explained in [Upgrading from versions before 2.25.0](#upgrading-from-versions-before-2250).
 
 ## Scheduler
 
@@ -108,16 +129,17 @@ $ cd metadata-synchronization-server
 $ node index.js -c app-config.json
 ```
 
-To connect to the destination instance, it requires a configuration file. If no configuration file is supplied the following is used as a placeholder:
+The `-c` option is required. The configuration file tells the script how to connect to the DHIS2 instance:
 
 ```json
 {
-    "encryptionKey": "encryptionKey",
     "baseUrl": "https://play.dhis2.org/2.30",
     "username": "admin",
     "password": "district"
 }
 ```
+
+The file holds credentials, so keep it out of git. Older configuration files may still have an `encryptionKey` field. It is ignored.
 
 ## Development
 
