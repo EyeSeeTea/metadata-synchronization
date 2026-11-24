@@ -21,6 +21,7 @@ export type D2Route = {
     lastUpdated?: string;
     lastUpdatedBy?: D2User;
     name: string;
+    responseTimeoutSeconds?: number;
     sharing: D2ObjectSharing;
     url: string;
     user?: D2User;
@@ -41,6 +42,9 @@ type RouteAuth = {
     token?: string;
 };
 
+// DHIS2 defaults to 5 seconds, which is too short for large metadata searches.
+export const ROUTE_RESPONSE_TIMEOUT_SECONDS = 60;
+
 export function buildRoute(instance: Instance): D2Route {
     const url = removeTrailingSlash(instance.url);
 
@@ -56,6 +60,7 @@ export function buildRoute(instance: Instance): D2Route {
         headers: {},
         id: instance.id,
         name: instance.name,
+        responseTimeoutSeconds: ROUTE_RESPONSE_TIMEOUT_SECONDS,
         sharing: {
             external: false,
             owner: instance.user.id,

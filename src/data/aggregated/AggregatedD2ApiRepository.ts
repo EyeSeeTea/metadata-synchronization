@@ -322,7 +322,7 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             return this.cleanAggregatedImportResponse(result);
         } catch (error: any) {
             if (error?.response?.data) {
-                return this.cleanAggregatedImportResponse(error.response.data);
+                return this.cleanAggregatedImportResponse(error.response.data, error.response.status);
             }
 
             return {
@@ -367,25 +367,8 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
         return new File([blob], fileName, { type: fileResource.contentType });
     }
 
-    private cleanAggregatedImportResponse(importResult: DataValueSetsPostResponse): SynchronizationResult {
-        const { status, description, importCount, conflicts } = importResult;
-
-        const errors =
-            conflicts?.map(({ object, value }) => ({
-                id: object,
-                message: value,
-            })) ?? [];
-
-        return {
-            status,
-            message: description,
-            stats: importCount,
-            instance: this.targetInstance.toPublicObject(),
-            errors,
-            date: new Date(),
-            type: "aggregated",
-            response: importResult,
-        };
+    private cleanAggregatedImportResponse(importResult: unknown, httpStatus?: number): SynchronizationResult {
+        return buildAggregatedSyncResult(importResult, this.targetInstance.toPublicObject(), httpStatus);
     }
 
     @cache()
@@ -409,6 +392,56 @@ export class AggregatedD2ApiRepository implements AggregatedRepository {
             .map(({ id }) => id)
             .value();
     }
+}
+
+/**
+ * Converts a /dataValueSets import response into a SynchronizationResult. A response that is not an
+ * import summary (e.g. an HTML error page from a proxy, as the 415 returned through a DHIS2 route) is
+ * an error: before, its fields were undefined and the synchronization was reported as done.
+ */
+export function buildAggregatedSyncResult(
+    importResult: unknown,
+    instance: SynchronizationResult["instance"],
+    httpStatus?: number
+): SynchronizationResult {
+    if (!isImportSummary(importResult)) {
+        const body = typeof importResult === "string" ? importResult : JSON.stringify(importResult);
+        const httpInfo = httpStatus ? `HTTP ${httpStatus}: ` : "";
+
+        return {
+            status: "ERROR",
+            message: `Unexpected response from the destination instance (${httpInfo}${_.truncate(body, {
+                length: 300,
+            })})`,
+            instance,
+            errors: [],
+            date: new Date(),
+            type: "aggregated",
+        };
+    }
+
+    const { status, description, importCount, conflicts } = importResult;
+
+    const errors =
+        conflicts?.map(({ object, value }) => ({
+            id: object,
+            message: value,
+        })) ?? [];
+
+    return {
+        status,
+        message: description,
+        stats: importCount,
+        instance,
+        errors,
+        date: new Date(),
+        type: "aggregated",
+        response: importResult,
+    };
+}
+
+function isImportSummary(value: unknown): value is DataValueSetsPostResponse {
+    return typeof value === "object" && value !== null && typeof (value as { status?: unknown }).status === "string";
 }
 
 function fixValue(value: string): string {

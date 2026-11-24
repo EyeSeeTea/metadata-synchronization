@@ -28,6 +28,7 @@ describe("buildRoute", () => {
             code: "sago-remote-instance",
             description: "Remote server",
             disabled: false,
+            responseTimeoutSeconds: 60,
             url: "https://remote.example.org/**",
             auth: { type: "http-basic", username: "admin", password: "secret" },
         });
