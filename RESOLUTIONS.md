@@ -32,7 +32,7 @@ This file documents every entry in the `resolutions` block of `package.json`. Ea
 
 Re-audit the dependency tree monthly, before every release, and again immediately before requesting review on a change that claims a clean gate. Run it over the whole tree (`yarn npm audit --recursive`), not only the packages named in this file. Each entry below has a **drop when** condition; when that condition becomes true, delete the entry and re-install.
 
-Note that `yarn npm audit` and the Dependency-Track analysis score against different advisory sources and disagree: `uuid` is high in Dependency-Track and medium upstream, and Dependency-Track keeps reporting some advisories GitHub has withdrawn (currently `esbuild`'s `GHSA-gv7w-rqvm-qjhr` and `eslint`'s `GHSA-p5wg-g6qr-c7cg` — dismiss both in code scanning rather than acting on them). **The CI gate follows Dependency-Track**, so measure there before concluding the tree is clean.
+Note that `yarn npm audit` and the Dependency-Track analysis score against different advisory sources and disagree: `uuid` is high in Dependency-Track and medium upstream, and Dependency-Track keeps reporting some advisories GitHub has withdrawn (currently `eslint`'s `GHSA-p5wg-g6qr-c7cg`, `braces`' `GHSA-vfj7-8cjw-p6xm` and `sprintf-js`' `GHSA-hp3w-g68c-fv3c` — dismiss them in code scanning rather than acting on them). Prefer a cheap version change that removes the reported version over a dismissal: `esbuild`'s withdrawn `GHSA-gv7w-rqvm-qjhr` left the list that way, once `tsx` and the `@dhis2/cli-app-scripts` vite both moved onto esbuild 0.28. **The CI gate follows Dependency-Track**, so measure there before concluding the tree is clean.
 
 ---
 
@@ -179,13 +179,12 @@ Each pin below was verified against the tool or component that actually consumes
 -   **Build/dev-tool chain only** — `node-gettext` converts PO/POT files during i18n generation and is never bundled.
 -   **Drop when:** `i18next-conv` requests `node-gettext@^3.0.1` or later natively, or drops it. Verify with `yarn why node-gettext`.
 
-#### `@dhis2/cli-app-scripts/vite: ^6.4.3`
+#### `@dhis2/cli-app-scripts/vite: ^7.3.7`
 
--   **Why:** `@dhis2/cli-app-scripts@12.11.1` bundles its own `vite` at `^5.2.9`, and there is no fix anywhere on the 5.x line; its bundled `esbuild` also sits inside a separate advisory. 6.4.3 is the lowest release that clears both and requests a patched esbuild. Scoped to `@dhis2/cli-app-scripts` because the application's own vite is on a different major and must not be moved by this entry. Verified by running the commands that actually use this package — `yarn localize` — which produces no content change beyond the generated file's timestamp.
--   **Fixes:** GHSA-fx2h-pf6j-xcff — `server.fs.deny` bypass via Windows alternate paths; GHSA-67mh-4wv8-2f99 against the bundled `esbuild`.
--   ⚠️ Dependency-Track may also report this vite's `esbuild` against `GHSA-gv7w-rqvm-qjhr` — withdrawn upstream, dismiss rather than remediate.
+-   **Why:** `@dhis2/cli-app-scripts@12.11.1` requests its own `vite` at `^5.2.9`, and there is no fix anywhere on the 5.x line. The floor is the application's own vite rather than the lowest patched 6.x: it collapses the tree onto a single vite and a single `esbuild` (0.28.x), where a 6.x floor kept a second vite whose `esbuild@0.25.x` the scanner kept reporting. Removing the entry drops this chain back to vite 5.x. Verified by running the commands that actually use this package — `yarn localize` and `yarn extract-pot` — which produce no content change beyond the generated file's timestamp.
+-   **Fixes:** GHSA-fx2h-pf6j-xcff — `server.fs.deny` bypass via Windows alternate paths; GHSA-67mh-4wv8-2f99 against the bundled `esbuild`; GHSA-587h-7wmj-h5pm, GHSA-698v-4r3x-3vcv, GHSA-r825-w8mm-5pxw, GHSA-rq7h-c2jc-7f22 and GHSA-9jrq-w75r-8gcw, which affect both `<= 6.4.3` and `>= 7.0.0, <= 7.3.6` — the reason the floor is 7.3.7 and not 7.3.6.
 -   **Build/dev-tool chain only** — this vite instance serves the i18n commands and never builds the application.
--   **Drop when:** `@dhis2/cli-app-scripts` requests a vite range admitting 6.4.3 or later.
+-   **Drop when:** `@dhis2/cli-app-scripts` requests a vite range admitting 7.3.7 or later. Keep it aligned with the application's `vite` range when that one moves.
 
 #### `@dhis2/cli-helpers-engine` chain: `http-proxy-agent/@tootallnate/once`, `request/tough-cookie`, `request/form-data`, `latest-version/package-json`, `execa@npm:0.7.0/cross-spawn`
 

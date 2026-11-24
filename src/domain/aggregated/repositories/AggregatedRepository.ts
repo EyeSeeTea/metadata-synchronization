@@ -9,7 +9,8 @@ export interface AggregatedRepository {
     getAggregated(
         params: DataSynchronizationParams,
         dataSet: string[],
-        dataElementGroup: string[]
+        dataElementGroup: string[],
+        periods?: ReadonlyArray<string>
     ): Promise<AggregatedPackage>;
 
     getAnalytics(params: {
@@ -17,6 +18,7 @@ export interface AggregatedRepository {
         dimensionIds: string[];
         filter?: string[];
         includeCategories: boolean;
+        includeCategoryOptionCombos?: boolean;
     }): Promise<AggregatedPackage>;
 
     getOptions(

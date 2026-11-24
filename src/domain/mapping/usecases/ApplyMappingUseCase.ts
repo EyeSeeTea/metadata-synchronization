@@ -15,42 +15,37 @@ export class ApplyMappingUseCase extends GenericMappingUseCase implements UseCas
         updates: MappingConfig[],
         isChildrenMapping: boolean
     ): Promise<MetadataMappingDictionary> {
-        try {
-            const ids = _.flatMap(updates, ({ selection }) =>
-                cleanOrgUnitPaths(selection).map(id => cleanNestedMappedId(id))
-            );
+        const ids = _.flatMap(updates, ({ selection }) =>
+            cleanOrgUnitPaths(selection).map(id => cleanNestedMappedId(id))
+        );
 
-            const metadataResponse = await this.getMetadata(originInstance, ids);
-            const metadata = this.createMetadataDictionary(metadataResponse);
+        const metadataResponse = await this.getMetadata(originInstance, ids);
+        const metadata = this.createMetadataDictionary(metadataResponse);
 
-            const newMapping = _.cloneDeep(mapping);
+        const newMapping = _.cloneDeep(mapping);
 
-            for (const { selection, mappingType, mappedId, mappedValue, global = false, overrides = {} } of updates) {
-                for (const id of selection) {
-                    _.unset(newMapping, [mappingType, id]);
-                    if (isChildrenMapping || mappedId) {
-                        const mapping = await this.buildMapping({
-                            metadata,
-                            originInstance,
-                            destinationInstance,
-                            originalId: _.last(id.split("-")) ?? id,
-                            mappedId: cleanOrgUnitPath(mappedId),
-                            mappedValue,
-                        });
+        for (const { selection, mappingType, mappedId, mappedValue, global = false, overrides = {} } of updates) {
+            for (const id of selection) {
+                _.unset(newMapping, [mappingType, id]);
+                if (isChildrenMapping || mappedId) {
+                    const mapping = await this.buildMapping({
+                        metadata,
+                        originInstance,
+                        destinationInstance,
+                        originalId: _.last(id.split("-")) ?? id,
+                        mappedId: cleanOrgUnitPath(mappedId),
+                        mappedValue,
+                    });
 
-                        _.set(newMapping, [mappingType, id], {
-                            ...mapping,
-                            global,
-                            ...overrides,
-                        });
-                    }
+                    _.set(newMapping, [mappingType, id], {
+                        ...mapping,
+                        global,
+                        ...overrides,
+                    });
                 }
             }
-
-            return newMapping;
-        } catch (e) {
-            console.error(e);
-            return {};
         }
+
+        return newMapping;
     }
 }

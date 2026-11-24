@@ -2,35 +2,38 @@ import _ from "lodash";
 import memoize from "nano-memoize";
 import { debug } from "../../../../utils/debug";
 import { Instance } from "../../../instance/entities/Instance";
-import {
-    DataElement,
-    DataElementGroup,
-    DataElementGroupSet,
-    DataSet,
-} from "../../../metadata/entities/MetadataEntities";
+import { DataElement } from "../../../metadata/entities/MetadataEntities";
 import { SynchronizationResult } from "../../../reports/entities/SynchronizationResult";
 import { GenericSyncUseCase } from "../../../synchronization/usecases/GenericSyncUseCase";
 import { buildMetadataDictionary } from "../../../synchronization/utils";
 import { AggregatedPackage } from "../../../aggregated/entities/AggregatedPackage";
 import { DataValue } from "../../../aggregated/entities/DataValue";
 import { createAggregatedPayloadMapper } from "../../../aggregated/mapper/AggregatedPayloadMapperFactory";
-import { getMinimumParents } from "../../../aggregated/utils";
+import { AggregatedPayloadBuilder } from "../../../aggregated/builders/AggregatedPayloadBuilder";
+import { AggregatedMetadatafields } from "../../../aggregated/usecases/AggregatedSyncUseCase";
 import { promiseMap } from "../../../../utils/common";
 import { SynchronizationReport } from "../../../reports/entities/SynchronizationReport";
 import { Maybe } from "../../../../types/utils";
 import { Id } from "../../../common/entities/Schemas";
 
+export type WmrAggregatedSyncOptions = Readonly<{
+    orgUnitIdOverride?: Maybe<Id>;
+    periods?: ReadonlyArray<string>;
+    targetDataSetId?: Id;
+}>;
+
 // This is a WMR PoC, cloned from AggregatedSyncUseCase, supporting org unit mapping with orgUnitIdOverride
 export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
     public readonly type = "aggregated";
-    public readonly fields =
-        "id,dataElements[id,name,valueType],dataSetElements[:all,dataElement[id,name,valueType]],dataElementGroups[id,dataElements[id,name,valueType]],name";
+    public readonly fields = AggregatedMetadatafields;
 
     public orgUnitIdOverride: Maybe<Id>;
+    public periods: ReadonlyArray<string> | undefined;
+    public targetDataSetId: Maybe<Id>;
 
     // TODO: review typings for this generator
     public async *execute(
-        orgUnitIdOverride?: Maybe<Id>
+        options: WmrAggregatedSyncOptions = {}
     ): AsyncGenerator<
         | { message: string; syncReport?: undefined; done?: undefined }
         | { syncReport: SynchronizationReport; message?: undefined; done?: undefined }
@@ -38,67 +41,22 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
         SynchronizationReport,
         unknown
     > {
-        this.orgUnitIdOverride = orgUnitIdOverride;
+        this.orgUnitIdOverride = options.orgUnitIdOverride;
+        this.periods = options.periods;
+        this.targetDataSetId = options.targetDataSetId;
         yield* super.execute();
         return undefined as unknown as SynchronizationReport;
     }
 
-    public buildPayload = memoize(async (remoteInstance?: Instance) => {
-        return this.buildNormalPayload(remoteInstance);
-    });
+    private readonly payloadBuilder = new AggregatedPayloadBuilder(this.repositoryFactory, this.localInstance);
 
-    private buildNormalPayload = async (remoteInstance?: Instance) => {
-        const { dataParams = {}, excludedIds = [] } = this.builder;
-        const aggregatedRepository = await this.getAggregatedRepository(remoteInstance);
-
-        const { dataSets = [] } = await this.extractMetadata<DataSet>(remoteInstance);
-        const { dataElementGroups = [] } = await this.extractMetadata<DataElementGroup>(remoteInstance);
-        const { dataElementGroupSets = [] } = await this.extractMetadata<DataElementGroupSet>(remoteInstance);
-        const { dataElements = [] } = await this.extractMetadata<DataElement>(remoteInstance);
-
-        const dataSetIds = dataSets.map(({ id }) => id);
-        const dataElementGroupIds = dataElementGroups.map(({ id }) => id);
-        const dataElementGroupSetIds = dataElementGroupSets.map(({ dataElementGroups }) =>
-            dataElementGroups.map(({ id }) => id)
-        );
-
-        // Retrieve direct data values from dataSets and dataElementGroups
-        const { dataValues: directDataValues = [] } = await aggregatedRepository.getAggregated(
-            dataParams,
-            dataSetIds,
-            _([...dataElementGroupIds, ...dataElementGroupSetIds])
-                .flatten()
-                .uniq()
-                .value()
-        );
-
-        // Retrieve candidate data values from dataElements
-        const dataSetIdsFromDataElements = getMinimumParents(
-            new Map(dataElements.map(de => [de.id, de.dataSetElements.map(dse => dse.dataSet.id)]))
-        );
-
-        const dataElementGroupIdsFromDataElements = getMinimumParents(
-            new Map(dataElements.map(de => [de.id, de.dataElementGroups.map(deg => deg.id)]))
-        );
-
-        const { dataValues: candidateDataValues = [] } = await aggregatedRepository.getAggregated(
-            dataParams,
-            dataSetIdsFromDataElements,
-            dataElementGroupIdsFromDataElements
-        );
-
-        // Retrieve indirect data values from dataElements
-        const indirectDataValues = _.filter(
-            candidateDataValues,
-            ({ dataElement }) => !!_.find(dataElements, { id: dataElement })
-        );
-
-        const dataValues = [...directDataValues, ...indirectDataValues].filter(
-            ({ dataElement }) => !excludedIds.includes(dataElement)
-        );
-
+    public buildPayload = memoize(async (remoteInstance?: Instance): Promise<{ dataValues: DataValue[] }> => {
+        const { dataValues = [] } = await this.payloadBuilder.build(this.builder, remoteInstance, {
+            includeCategoryOptionCombos: true,
+            periods: this.periods,
+        });
         return { dataValues };
-    };
+    });
 
     public async postPayload(instance: Instance): Promise<SynchronizationResult[]> {
         const { dataParams = {} } = this.builder;
@@ -115,7 +73,9 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
             ? await this.mapPayload(instance, await this.buildPayload(instance))
             : { dataValues: [] };
 
-        const payload = this.overrideOrgUnitId(this.filterPayload(mappedPayload, existingPayload));
+        const payload = this.withTargetDataSet(
+            this.overrideOrgUnitId(this.filterPayload(mappedPayload, existingPayload))
+        );
         debug("Aggregated package", {
             originalPayload,
             mappedPayload,
@@ -128,6 +88,12 @@ export class WmrAggregatedSyncUseCase extends GenericSyncUseCase {
         const origin = await this.getOriginInstance();
 
         return [{ ...syncResult, origin: origin.toPublicObject(), payload }];
+    }
+
+    // Data elements are shared between the yearly and monthly WMR data sets. Without an explicit
+    // data set, DHIS2 validates the periods against whichever of them it picks.
+    private withTargetDataSet(payload: AggregatedPackage): AggregatedPackage {
+        return this.targetDataSetId ? { ...payload, dataSet: this.targetDataSetId } : payload;
     }
 
     private overrideOrgUnitId(payload: AggregatedPackage): AggregatedPackage {

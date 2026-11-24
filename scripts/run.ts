@@ -2,6 +2,7 @@ import { execSync, spawn } from "child_process";
 import yargs, { Argv } from "yargs";
 import * as fs from "node:fs";
 import { setupVariantAssets, cleanupVariantAssets } from "./helpers/variant-assets";
+import { writeAppConfigFromTemplate } from "./helpers/app-config";
 import { VariantKeys, variants } from "./variants";
 
 const defaultVariant = "core-app";
@@ -101,6 +102,7 @@ function build(args: BuildArgs): void {
 
         try {
             run(`yarn build:variant`);
+            writeAppConfigFromTemplate();
             run(`d2-manifest package.json build/manifest.webapp -t ${manifestType} -n '${variant.title}'`);
             if (variant.file === "metadata-synchronization") {
                 updateManifestJsonFile(`build/manifest.json`, variant.title);

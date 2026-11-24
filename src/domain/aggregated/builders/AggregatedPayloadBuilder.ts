@@ -18,20 +18,33 @@ import { AggregatedMetadatafields } from "../usecases/AggregatedSyncUseCase";
 import { getMinimumParents } from "../utils";
 import { AggregatedPackage } from "../entities/AggregatedPackage";
 
+export type AggregatedPayloadBuildOptions = Readonly<{
+    includeCategoryOptionCombos?: boolean;
+    periods?: ReadonlyArray<string>;
+}>;
+
 export class AggregatedPayloadBuilder {
     constructor(private repositoryFactory: DynamicRepositoryFactory, private localInstance: Instance) {}
 
-    public async build(syncBuilder: SynchronizationBuilder, remoteInstance?: Instance): Promise<AggregatedPackage> {
+    public async build(
+        syncBuilder: SynchronizationBuilder,
+        remoteInstance?: Instance,
+        options: AggregatedPayloadBuildOptions = {}
+    ): Promise<AggregatedPackage> {
         const { dataParams: { enableAggregation = false } = {} } = syncBuilder;
 
         if (enableAggregation) {
-            return this.buildAnalyticsPayload(syncBuilder, remoteInstance);
+            return this.buildAnalyticsPayload(syncBuilder, remoteInstance, options);
         } else {
-            return this.buildNormalPayload(syncBuilder, remoteInstance);
+            return this.buildNormalPayload(syncBuilder, remoteInstance, options);
         }
     }
 
-    private async buildNormalPayload(syncBuilder: SynchronizationBuilder, remoteInstance?: Instance) {
+    private async buildNormalPayload(
+        syncBuilder: SynchronizationBuilder,
+        remoteInstance: Instance | undefined,
+        { periods }: AggregatedPayloadBuildOptions
+    ) {
         const { dataParams = {}, excludedIds = [], originInstance: originInstanceId, metadataIds } = syncBuilder;
         const aggregatedRepository = await this.getAggregatedRepository(remoteInstance?.id || originInstanceId);
 
@@ -53,7 +66,8 @@ export class AggregatedPayloadBuilder {
             _([...dataElementGroupIds, ...dataElementGroupSetIds])
                 .flatten()
                 .uniq()
-                .value()
+                .value(),
+            periods
         );
 
         // Retrieve candidate data values from dataElements
@@ -68,7 +82,8 @@ export class AggregatedPayloadBuilder {
         const { dataValues: candidateDataValues = [] } = await aggregatedRepository.getAggregated(
             dataParams,
             dataSetIdsFromDataElements,
-            dataElementGroupIdsFromDataElements
+            dataElementGroupIdsFromDataElements,
+            periods
         );
 
         // Retrieve indirect data values from dataElements
@@ -84,7 +99,11 @@ export class AggregatedPayloadBuilder {
         return { dataValues };
     }
 
-    private async buildAnalyticsPayload(syncBuilder: SynchronizationBuilder, remoteInstance?: Instance) {
+    private async buildAnalyticsPayload(
+        syncBuilder: SynchronizationBuilder,
+        remoteInstance: Instance | undefined,
+        { includeCategoryOptionCombos }: AggregatedPayloadBuildOptions
+    ) {
         const { dataParams = {}, excludedIds = [], metadataIds, originInstance: originInstanceId } = syncBuilder;
 
         // TODO: All these extract metadata methods can be combined if properly typed
@@ -118,6 +137,7 @@ export class AggregatedPayloadBuilder {
             dataParams,
             dimensionIds: [...dataElementIds, ...dataSetIds, ...dataElementGroupIds, ...dataElementGroupSetIds],
             includeCategories: true,
+            includeCategoryOptionCombos,
         });
 
         const { dataValues: indicatorValues = [] } = await aggregatedRepository.getAnalytics({

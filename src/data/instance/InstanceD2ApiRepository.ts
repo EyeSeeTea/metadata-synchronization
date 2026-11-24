@@ -3,14 +3,13 @@ import _ from "lodash";
 import { ExchangeTargetType, Instance, InstanceType } from "../../domain/instance/entities/Instance";
 import { InstanceMessage } from "../../domain/instance/entities/Message";
 import { InstanceRepository, InstancesFilter } from "../../domain/instance/repositories/InstanceRepository";
-import { D2Api, D2User } from "../../types/d2-api";
+import { D2Api } from "../../types/d2-api";
 import { promiseMap } from "../../utils/common";
 import { getD2APiFromInstance, removeTrailingSlash } from "../../utils/d2-utils";
 import { InmemoryCache } from "../common/InmemoryCache";
-import { Id } from "../../domain/common/entities/Schemas";
-import { SharingSetting } from "../../domain/common/entities/SharingSetting";
 import { StorageClientFactory } from "../config/StorageClientFactory";
 import { Namespace } from "../storage/Namespaces";
+import { buildRoute, D2Route } from "./D2Route";
 import { StorageClient } from "../../domain/storage/repositories/StorageClient";
 export class InstanceD2ApiRepository implements InstanceRepository {
     private api: D2Api;
@@ -85,7 +84,7 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     }
 
     private async saveRoute(instance: Instance) {
-        const routeToUpload = this.buildRoute(instance);
+        const routeToUpload = buildRoute(instance);
 
         const existedRoute = await this.getById(instance.id);
 
@@ -105,32 +104,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
     private async deleteRoute(id: string) {
         this.cache.clear();
         await this.api.delete(`/routes/${id}`, {}).getData();
-    }
-
-    private buildRoute(instance: Instance): D2Route {
-        const url = removeTrailingSlash(instance.url);
-
-        return {
-            auth:
-                instance.authType === "api-token"
-                    ? { type: "api-token", token: instance.token }
-                    : { type: "http-basic", username: instance.username, password: instance.password },
-            code: slugify(instance.name),
-            description: instance.description,
-            disabled: false,
-            displayName: instance.name,
-            headers: { "Content-Type": "application/json" },
-            id: instance.id,
-            name: instance.name,
-            sharing: {
-                external: false,
-                owner: instance.user.id,
-                public: instance.publicAccess,
-                users: mapArrayToRecord(instance.userAccesses),
-                userGroups: mapArrayToRecord(instance.userGroupAccesses),
-            },
-            url: `${url}/**`,
-        };
     }
 
     private buildInstance(route: D2Route): Instance {
@@ -222,66 +195,6 @@ export class InstanceD2ApiRepository implements InstanceRepository {
         //@ts-ignore https://github.com/EyeSeeTea/d2-api/pull/52
         await this.api.messageConversations.post(message).getData();
     }
-}
-
-export type D2Route = {
-    auth?: RouteAuth;
-    authorities?: string[];
-    code: Id;
-    created?: string;
-    createdBy?: D2User;
-    description: string;
-    disabled: boolean;
-    displayName: string;
-    favorite?: boolean;
-    headers: Record<string, string>;
-    href?: string;
-    id: Id;
-    lastUpdated?: string;
-    lastUpdatedBy?: D2User;
-    name: string;
-    sharing: D2ObjectSharing;
-    url: string;
-    user?: D2User;
-};
-
-export interface D2ObjectSharing {
-    owner: string;
-    external: boolean;
-    users: Record<string, SharingSetting>;
-    userGroups: Record<string, SharingSetting>;
-    public: string;
-}
-export interface D2Sharing {
-    access: string;
-    displayName: string;
-    id: string;
-    name?: string;
-}
-
-type RouteAuth = {
-    type: "http-basic" | "api-token";
-    username?: string;
-    password?: string;
-    token?: string;
-};
-
-export function slugify(text: string): string {
-    return text
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-}
-
-export function mapArrayToRecord(array: SharingSetting[]): Record<string, SharingSetting> {
-    return array.reduce((acc, item) => {
-        acc[item.id] = item;
-        return acc;
-    }, {} as Record<string, SharingSetting>);
 }
 
 export interface InstanceDataStoreData {
