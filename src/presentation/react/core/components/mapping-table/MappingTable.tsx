@@ -292,7 +292,6 @@ export default function MappingTable({
                             mappingPath,
                             mappingType,
                             firstElement,
-                            model: firstElement.model,
                         });
                     }
                 }
@@ -326,13 +325,13 @@ export default function MappingTable({
                 .uniq()
                 .value();
 
-            if (types.length === 1) {
+            const [mappingType] = types;
+            if (types.length === 1 && mappingType) {
                 setMappingConfig({
                     elements,
                     mappingPath,
-                    mappingType: types[0],
+                    mappingType,
                     firstElement,
-                    model: firstElement?.model,
                 });
                 setSelectedIds([]);
             } else if (types.length > 1) {
