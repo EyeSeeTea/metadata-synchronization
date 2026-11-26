@@ -77,22 +77,13 @@ export class ListSyncRuleUseCase implements UseCase {
             })
             .filter(rule => (targetInstanceFilter ? rule.targetInstances.includes(targetInstanceFilter) : true))
             .filter(rule => {
-                const useAggregatedDataExchangeDhis2Job = schedulerTypeFilter
-                    ? schedulerTypeFilter === "dhis2"
-                        ? true
-                        : false
-                    : undefined;
-
                 if (!schedulerEnabledFilter) return true;
+
+                const schedulerStatus = rule.enabled ? "enabled" : "disabled";
+                const schedulerType = rule.useAggregatedDataExchangeDhis2Job ? "dhis2" : "metadataSync";
                 return (
-                    (rule.enabled &&
-                        schedulerEnabledFilter === "enabled" &&
-                        (!useAggregatedDataExchangeDhis2Job ||
-                            rule.useAggregatedDataExchangeDhis2Job === useAggregatedDataExchangeDhis2Job)) ||
-                    (!rule.enabled &&
-                        schedulerEnabledFilter === "disabled" &&
-                        (!useAggregatedDataExchangeDhis2Job ||
-                            rule.useAggregatedDataExchangeDhis2Job === useAggregatedDataExchangeDhis2Job))
+                    schedulerEnabledFilter === schedulerStatus &&
+                    (!schedulerTypeFilter || schedulerTypeFilter === schedulerType)
                 );
             })
             .filter(rule =>
