@@ -238,13 +238,21 @@ export class SchedulerCLI {
     private async disableNeedsUpdateSchedulingFrequencyInSyncRules(syncRulesToUpdate: SynchronizationRule[]) {
         const { logger, compositionRoot } = this.options;
 
-        const updatedSyncRules = syncRulesToUpdate.map(syncRule =>
-            syncRule.updateNeedsUpdateSchedulingFrequency(false)
+        const detailedRules = await Promise.all(
+            syncRulesToUpdate.map(async listedRule => {
+                const rule = await compositionRoot.rules.get(listedRule.id);
+                return rule?.schedulingFrequencyNeedsUpdate && rule.frequency === listedRule.frequency
+                    ? rule.updateNeedsUpdateSchedulingFrequency(false)
+                    : undefined;
+            })
         );
+        const updatedSyncRules = detailedRules.filter((rule): rule is SynchronizationRule => rule !== undefined);
+        if (updatedSyncRules.length === 0) return;
+
         await compositionRoot.rules.save(updatedSyncRules);
         logger.info(
             "scheduler",
-            `Disabled schedulingFrequencyNeedsUpdate for rules with ids ${syncRulesToUpdate
+            `Disabled schedulingFrequencyNeedsUpdate for rules with ids ${updatedSyncRules
                 .map(({ id }) => id)
                 .join(", ")}`
         );

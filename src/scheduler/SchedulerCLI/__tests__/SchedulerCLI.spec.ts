@@ -58,6 +58,20 @@ describe("SchedulerCLI", () => {
         expect(mockLogger.errors).toContainEqual({ name: "scheduler", message: error.message });
     });
 
+    it("preserves the stored builder when clearing the frequency update flag from a partial listing", async () => {
+        schedulerCLI.initialize(API_PATH);
+        await mockScheduler.runScheduledJob(DEFAULT_SCHEDULED_JOB_ID);
+
+        const rule = getSynchronizationRule(true).updateNeedsUpdateSchedulingFrequency(true);
+        mockCompositionRoot.useStoredRuleWithPartialListing(rule);
+
+        await mockScheduler.runScheduledJob(DEFAULT_SCHEDULED_JOB_ID);
+
+        const storedRule = await mockCompositionRoot.rules.get(rule.id);
+        expect(storedRule?.schedulingFrequencyNeedsUpdate).toBe(false);
+        expect(storedRule?.toObject().builder).toEqual(rule.toObject().builder);
+    });
+
     describe("initialize", () => {
         it("should fetch tasks, schedule a job and log a message", async () => {
             const spyGetSyncRuleJobConfigs = vi.spyOn(mockCompositionRoot.rules, "list");
@@ -114,20 +128,32 @@ function getSyncRuleJobConfig(): SyncRuleJobConfig {
  */
 class MockCompositionRoot {
     private ruleListingError?: Error;
+    private storedRule?: SynchronizationRule;
+
+    useStoredRuleWithPartialListing(rule: SynchronizationRule): void {
+        this.storedRule = rule;
+    }
 
     failNextRuleListing(error: Error): void {
         this.ruleListingError = error;
     }
 
     rules = {
-        get(): Promise<SynchronizationRule | undefined> {
-            return Promise.resolve(getSynchronizationRule());
+        get: async (id: string): Promise<SynchronizationRule | undefined> => {
+            const rule = this.storedRule ?? getSynchronizationRule();
+            return rule.id === id ? rule : undefined;
+        },
+
+        save: async ([rule]: SynchronizationRule[]): Promise<void> => {
+            this.storedRule = rule;
         },
 
         list: async (params: ListSyncRuleUseCaseParams): Promise<{ rows: SynchronizationRule[] }> => {
             const error = this.ruleListingError;
             this.ruleListingError = undefined;
             if (error) throw error;
+
+            if (this.storedRule) return { rows: [this.storedRule.update({ builder: undefined })] };
 
             const { schedulerEnabledFilter = null } = params.filters || {};
             const isSchedulerEnabled = schedulerEnabledFilter === "enabled";
