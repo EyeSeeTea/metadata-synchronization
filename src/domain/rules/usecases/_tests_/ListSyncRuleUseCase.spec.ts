@@ -44,15 +44,9 @@ describe("ListSyncRuleUseCase scheduler filtering", () => {
             ],
         },
         {
-            name: "ignores the scheduler type when no schedule-enabled filter is supplied",
+            name: "lists DHIS2 rules regardless of scheduling status when only the type is requested",
             filters: { schedulerTypeFilter: "dhis2" },
-            expected: [
-                "scheduling-disabled-dhis2",
-                "scheduling-disabled-mdsync",
-                "scheduling-enabled-dhis2",
-                "scheduling-enabled-legacy",
-                "scheduling-enabled-mdsync",
-            ],
+            expected: ["scheduling-disabled-dhis2", "scheduling-enabled-dhis2"],
         },
         {
             name: "lists rules with scheduling enabled across scheduler types when no type is requested",

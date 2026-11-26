@@ -77,12 +77,10 @@ export class ListSyncRuleUseCase implements UseCase {
             })
             .filter(rule => (targetInstanceFilter ? rule.targetInstances.includes(targetInstanceFilter) : true))
             .filter(rule => {
-                if (!schedulerEnabledFilter) return true;
-
                 const schedulerStatus = rule.enabled ? "enabled" : "disabled";
                 const schedulerType = rule.useAggregatedDataExchangeDhis2Job ? "dhis2" : "metadataSync";
                 return (
-                    schedulerEnabledFilter === schedulerStatus &&
+                    (!schedulerEnabledFilter || schedulerEnabledFilter === schedulerStatus) &&
                     (!schedulerTypeFilter || schedulerTypeFilter === schedulerType)
                 );
             })
