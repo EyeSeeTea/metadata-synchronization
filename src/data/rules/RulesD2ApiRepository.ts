@@ -75,6 +75,12 @@ export class RulesD2ApiRepository implements RulesRepository {
     }
 
     public async save(rules: SynchronizationRule[]): Promise<void> {
+        for (const rule of rules) {
+            if (!rule.toObject().builder) {
+                throw new Error(`Cannot save rule ${rule.id} without a builder`);
+            }
+        }
+
         const originalAggregatedDataExchangeIds = await this.getOriginalAggregatedDataExchangeIds(rules);
         const originalAggregatedDataExchangeJobIds = await this.getOriginalAggregatedDataExchangeJobIds(rules);
 
