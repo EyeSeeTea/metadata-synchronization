@@ -1,13 +1,12 @@
 import { Either } from "../../../domain/common/entities/Either";
 import { FutureData, Future } from "../../../domain/common/entities/Future";
 import { SynchronizationRule } from "../../../domain/rules/entities/SynchronizationRule";
+import { DEFAULT_SCHEDULED_JOB_ID } from "../../../domain/scheduler/entities/ScheduledJob";
 import { ListSyncRuleUseCaseParams } from "../../../domain/rules/usecases/ListSyncRuleUseCase";
 import { SchedulerExecutionInfo } from "../../../domain/scheduler/entities/SchedulerExecutionInfo";
 import { PrepareSyncError } from "../../../domain/synchronization/usecases/PrepareSyncUseCase";
 import { CompositionRoot } from "../../../presentation/CompositionRoot";
-import { Logger } from "../Logger";
 import { SchedulerCLI, SyncRuleJobConfig } from "../SchedulerCLI";
-import { SchedulerContract } from "../SchedulerContract";
 import { getSynchronizationRule } from "./data/getSynchronizationRule";
 import { MockLogger } from "./mocks/MockLogger";
 import { MockScheduler } from "./mocks/MockScheduler";
@@ -19,9 +18,9 @@ const API_PATH = "baseUrl/api/";
 
 describe("SchedulerCLI", () => {
     let schedulerCLI: SchedulerCLI;
-    let mockScheduler: SchedulerContract;
-    let mockCompositionRoot: CompositionRoot;
-    let mockLogger: Logger;
+    let mockScheduler: MockScheduler;
+    let mockCompositionRoot: MockCompositionRoot;
+    let mockLogger: MockLogger;
 
     beforeEach(() => {
         vi.useFakeTimers();
@@ -29,7 +28,7 @@ describe("SchedulerCLI", () => {
 
         vi.clearAllMocks();
         mockScheduler = new MockScheduler();
-        mockCompositionRoot = new MockCompositionRoot() as unknown as CompositionRoot;
+        mockCompositionRoot = new MockCompositionRoot();
         mockLogger = new MockLogger();
 
         schedulerCLI = new SchedulerCLI({
@@ -41,6 +40,22 @@ describe("SchedulerCLI", () => {
 
     afterEach(() => {
         vi.useRealTimers();
+    });
+
+    it("keeps scheduled jobs and logs the error message when listing rules fails", async () => {
+        schedulerCLI.initialize(API_PATH);
+
+        await mockScheduler.runScheduledJob(DEFAULT_SCHEDULED_JOB_ID);
+        const scheduledJobs = mockScheduler.getScheduledJobs();
+        expect(scheduledJobs.map(job => job.id)).toContain(getSyncRuleJobConfig().id);
+
+        const error = new Error("DHIS2 unavailable");
+        mockCompositionRoot.failNextRuleListing(error);
+
+        await mockScheduler.runScheduledJob(DEFAULT_SCHEDULED_JOB_ID);
+
+        expect(mockScheduler.getScheduledJobs()).toEqual(scheduledJobs);
+        expect(mockLogger.errors).toContainEqual({ name: "scheduler", message: error.message });
     });
 
     describe("initialize", () => {
@@ -98,15 +113,25 @@ function getSyncRuleJobConfig(): SyncRuleJobConfig {
  * @deprecated this is only a workaround, we need to replace this by a correct implementation of testing CompositionRoot
  */
 class MockCompositionRoot {
+    private ruleListingError?: Error;
+
+    failNextRuleListing(error: Error): void {
+        this.ruleListingError = error;
+    }
+
     rules = {
         get(): Promise<SynchronizationRule | undefined> {
             return Promise.resolve(getSynchronizationRule());
         },
 
-        list(params: ListSyncRuleUseCaseParams): Promise<{ rows: SynchronizationRule[] }> {
+        list: async (params: ListSyncRuleUseCaseParams): Promise<{ rows: SynchronizationRule[] }> => {
+            const error = this.ruleListingError;
+            this.ruleListingError = undefined;
+            if (error) throw error;
+
             const { schedulerEnabledFilter = null } = params.filters || {};
             const isSchedulerEnabled = schedulerEnabledFilter === "enabled";
-            return Promise.resolve({ rows: [getSynchronizationRule(isSchedulerEnabled)] });
+            return { rows: [getSynchronizationRule(isSchedulerEnabled)] };
         },
     };
 

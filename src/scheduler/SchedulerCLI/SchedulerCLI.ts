@@ -86,7 +86,8 @@ export class SchedulerCLI {
 
             this.updateNextExecutionOfScheduler(scheduledJobs);
         } catch (error) {
-            const errorMessage = typeof error === "string" ? error : JSON.stringify(error, null, 2);
+            const details = error instanceof Error ? error.message : error;
+            const errorMessage = typeof details === "string" ? details : JSON.stringify(details, null, 2);
             logger.error("scheduler", `${errorMessage}`);
         }
     }
