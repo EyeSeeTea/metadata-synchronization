@@ -1,72 +1,71 @@
 import React from "react";
-import { WmrRequisiteType } from "../../../../domain/entities/wmr/entities/WmrRequisite";
+import { WmrRequisiteCheck, WmrRequisiteType } from "../../../../domain/entities/wmr/entities/WmrRequisite";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { useWmrContext } from "../context/WmrContext";
 
-export type WmrSetupStatusType = "loading" | "pending" | "done" | "error" | "uploading";
+export type WmrSetupStatus =
+    | Readonly<{ status: "loading" | "pending" | "done" | "error" | "uploading" }>
+    | Readonly<{ status: "misassigned"; dataSetName: string }>;
 
-export type WmrSetupStatus = {
-    status: WmrSetupStatusType;
+export type WmrSetupStatusType = WmrSetupStatus["status"];
+
+export type WmrSetupStatuses = Readonly<Record<WmrRequisiteType, WmrSetupStatus>>;
+
+const initialStatuses: WmrSetupStatuses = {
+    metadata: { status: "loading" },
+    dataStore: { status: "loading" },
+    regionalMonthlyStaging: { status: "loading" },
 };
 
-export type WmrSetupStatuses = {
-    [type in WmrRequisiteType]: WmrSetupStatus;
-};
+export function toWmrSetupStatus(check: WmrRequisiteCheck): WmrSetupStatus {
+    switch (check.type) {
+        case "installed":
+            return { status: "done" };
+        case "missing":
+            return { status: "pending" };
+        case "misassigned":
+            return { status: "misassigned", dataSetName: check.dataSetName };
+    }
+}
 
-export function useWmrSetup() {
+export function isWmrSetupReady(statuses: WmrSetupStatuses, requisites: ReadonlyArray<WmrRequisiteType>): boolean {
+    return requisites.every(type => statuses[type].status === "done");
+}
+
+export function useWmrSetup(requisites: ReadonlyArray<WmrRequisiteType>) {
     const { compositionRoot } = useAppContext();
     const { setRequisitesReady } = useWmrContext();
-    const [setupStatuses, setSetupStatuses] = React.useState<WmrSetupStatuses>({
-        metadata: { status: "loading" },
-        dataStore: { status: "loading" },
-    });
+    const [setupStatuses, setSetupStatuses] = React.useState<WmrSetupStatuses>(initialStatuses);
+
+    const updateSetupItem = React.useCallback((type: WmrRequisiteType, status: WmrSetupStatus) => {
+        setSetupStatuses(prevStatuses => ({ ...prevStatuses, [type]: status }));
+    }, []);
 
     const verifyRequisite = React.useCallback(
         (type: WmrRequisiteType) => {
             updateSetupItem(type, { status: "loading" });
             compositionRoot.wmr.checkRequisites(type).run(
-                result => {
-                    updateSetupItem(type, {
-                        status: result ? "done" : "pending",
-                    });
-                },
-                () => {
-                    updateSetupItem(type, { status: "error" });
-                }
+                check => updateSetupItem(type, toWmrSetupStatus(check)),
+                () => updateSetupItem(type, { status: "error" })
             );
         },
-        [compositionRoot]
+        [compositionRoot, updateSetupItem]
     );
 
     const setupRequisite = React.useCallback(
         (type: WmrRequisiteType) => {
             updateSetupItem(type, { status: "uploading" });
             compositionRoot.wmr.setupRequisites(type).run(
-                () => {
-                    verifyRequisite(type);
-                },
-                () => {
-                    updateSetupItem(type, { status: "error" });
-                }
+                () => verifyRequisite(type),
+                () => updateSetupItem(type, { status: "error" })
             );
         },
-        [compositionRoot, verifyRequisite]
+        [compositionRoot, updateSetupItem, verifyRequisite]
     );
 
-    const updateSetupItem = (type: WmrRequisiteType, status: WmrSetupStatus) => {
-        setSetupStatuses(prevStatuses => ({
-            ...prevStatuses,
-            [type]: status,
-        }));
-    };
-
     React.useEffect(() => {
-        if (Object.values(setupStatuses).every(item => item.status === "done")) {
-            setRequisitesReady(true);
-        } else {
-            setRequisitesReady(false);
-        }
-    }, [setupStatuses, setRequisitesReady]);
+        setRequisitesReady(isWmrSetupReady(setupStatuses, requisites));
+    }, [setupStatuses, requisites, setRequisitesReady]);
 
     return {
         setupStatuses,

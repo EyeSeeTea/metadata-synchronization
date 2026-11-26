@@ -64,8 +64,8 @@ async function main() {
 }
 
 const start = async (config: SchedulerConfig, logger: LoggerLog4js): Promise<void> => {
-    const { baseUrl, username, password, encryptionKey } = config;
-    if (!baseUrl || !username || !password || !encryptionKey) {
+    const { baseUrl, username, password } = config;
+    if (!baseUrl || !username || !password) {
         logger.fatal("main", "Missing fields from configuration file");
         return;
     }

@@ -1,5 +1,4 @@
 import React from "react";
-import _ from "lodash";
 import { useLoading } from "@eyeseetea/d2-ui-components";
 import { Grid, Button, LinearProgress } from "@material-ui/core";
 import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
@@ -7,21 +6,37 @@ import { CloudDownload, SyncAlt as SyncAltIcon } from "@material-ui/icons";
 import { Id } from "../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../react/core/contexts/AppContext";
 import i18n from "../../../utils/i18n";
+import { formatDateLong } from "../../../utils/date";
+import { removeTrailingSlash } from "../../../utils/d2-utils";
+import { getWmrReportedYear } from "../../../domain/entities/wmr/entities/WmrSyncFlow";
+import { wmrFlowDefinitions } from "../../../domain/entities/wmr/entities/WmrFlowKind";
 import { useWmrContext } from "./context/WmrContext";
-import { useSyncLocalWmr } from "./hooks/useSyncLocalWmr";
-import { NoticeBox } from "./components/NoticeBox";
+import { useSyncLocalWmr, WmrLocalSyncResult } from "./hooks/useSyncLocalWmr";
+import { AnalyticsFreshness, useAnalyticsFreshness } from "./hooks/useAnalyticsFreshness";
+import { NoticeBox, NoticeBoxProps } from "./components/NoticeBox";
+import { WmrFlowLabel } from "./components/WmrFlowLabel";
+import { WmrSyncPeriod } from "./components/WmrSyncPeriod";
+import { WmrMonthRangeSelector } from "./components/WmrMonthRangeSelector";
+import { useWmrSyncAccess, WmrSyncAccessState } from "./hooks/useWmrSyncAccess";
 
 type SyncAndCheckWmrProps = {};
 
 export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
     const { compositionRoot } = useAppContext();
-    const { syncRule, settings } = useWmrContext();
-    const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult } = useSyncLocalWmr();
+    const { syncRule, settings, regionalMonthRange, setRegionalMonthRange } = useWmrContext();
+    const { syncLocalWmr, wmrLocalSyncIsLoading, wmrLocalSyncResult, readsAnalytics, destinationOrgUnits } =
+        useSyncLocalWmr();
+    const flowKind = syncRule?.flow?.kind ?? "global";
+    const syncAccess = useWmrSyncAccess(flowKind, destinationOrgUnits);
     const loading = useLoading();
-    if (!syncRule || !settings) {
+    if (!syncRule?.flow || !settings) {
         throw new Error("WMR Context should be initialized");
     }
-    const path = _(syncRule.rule.dataParams.orgUnitPaths).first() || "";
+    const { flow } = syncRule;
+    const definition = wmrFlowDefinitions[flow.kind];
+    const year = getWmrReportedYear(syncRule.rule.dataParams);
+    const showsDataEntry = definition.destinationOrgUnits === "country";
+    const monthRange = flow.kind === "regional" ? regionalMonthRange : undefined;
 
     const onDownload = async () => {
         loading.show();
@@ -34,6 +49,28 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
 
     return (
         <Grid container spacing={1} style={{ height: "70vh" }}>
+            {readsAnalytics && (
+                <Grid item xs={12}>
+                    <AnalyticsFreshnessNotice />
+                </Grid>
+            )}
+            <Grid item xs={12}>
+                <WmrFlowLabel flow={flow} />
+                <WmrSyncPeriod year={year} monthRange={monthRange} />
+                {monthRange && !wmrLocalSyncResult && (
+                    <WmrMonthRangeSelector
+                        year={year}
+                        range={monthRange}
+                        disabled={wmrLocalSyncIsLoading}
+                        onChange={setRegionalMonthRange}
+                    />
+                )}
+            </Grid>
+            {syncAccess.type !== "ok" && (
+                <Grid item xs={12}>
+                    <WmrSyncAccessNotice access={syncAccess} />
+                </Grid>
+            )}
             {!wmrLocalSyncResult && (
                 <Grid item xs={12}>
                     <Button
@@ -41,9 +78,11 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                         color="primary"
                         onClick={syncLocalWmr}
                         endIcon={<SyncAltIcon />}
-                        disabled={wmrLocalSyncIsLoading}
+                        disabled={wmrLocalSyncIsLoading || syncAccess.type !== "ok"}
                     >
-                        {i18n.t("Sync WMR Country Dataset")}
+                        {flow.kind === "regional"
+                            ? i18n.t("Prepare WMR Monthly Dataset")
+                            : i18n.t("Sync WMR Country Dataset")}
                     </Button>
                     <Button
                         variant="outlined"
@@ -61,25 +100,75 @@ export function SyncAndCheckWmr(_props: SyncAndCheckWmrProps) {
                 {wmrLocalSyncIsLoading && (
                     <LinearProgress color="primary" style={{ position: "absolute", width: "100%" }} />
                 )}
-                {wmrLocalSyncResult?.type === "error" && (
-                    <NoticeBox
-                        type="error"
-                        message={`${i18n.t("Failed to synchronize WMR data")} ${wmrLocalSyncResult.message}`}
-                    />
+                {wmrLocalSyncResult && (
+                    <NoticeBox type={wmrLocalSyncResult.type} message={describeWmrLocalSync(wmrLocalSyncResult)} />
                 )}
-                {wmrLocalSyncResult?.type === "success" && (
-                    <NoticeBox type="success" message={i18n.t("WMR data synchronized successfully.")} />
-                )}
-                {settings.countryDataSetId && wmrLocalSyncResult?.type === "success" && path && (
-                    <DataEntry
-                        dataSetId={settings.countryDataSetId}
-                        orgUnitId={_(path).split("/").last() || ""}
-                        period={(new Date().getFullYear() - 1).toString()}
-                    />
+                {showsDataEntry && wmrLocalSyncResult && wmrLocalSyncResult.type !== "error" && (
+                    <DataEntry dataSetId={flow.destination.id} orgUnitId={settings.countryOrgUnit.id} period={year} />
                 )}
             </Grid>
         </Grid>
     );
+}
+
+function WmrSyncAccessNotice({ access }: { access: Exclude<WmrSyncAccessState, { type: "ok" }> }) {
+    switch (access.type) {
+        case "checking":
+            return <NoticeBox type="loading" message={i18n.t("Checking your data entry access...")} />;
+        case "error":
+            return <NoticeBox type="error" message={access.message} />;
+    }
+}
+
+function describeWmrLocalSync(result: WmrLocalSyncResult): string {
+    switch (result.type) {
+        case "error":
+            return `${i18n.t("Failed to synchronize WMR data")} ${result.message}`;
+        case "warning":
+            return `${result.message} ${i18n.t("You can still complete the WMR form manually.")}`;
+        case "success":
+        case "info":
+            return result.message;
+    }
+}
+
+function AnalyticsFreshnessNotice() {
+    const analyticsFreshness = useAnalyticsFreshness();
+    const { type, message } = describeAnalyticsFreshness(analyticsFreshness);
+
+    return <NoticeBox type={type} message={message} />;
+}
+
+function describeAnalyticsFreshness(freshness: AnalyticsFreshness): {
+    type: NoticeBoxProps["type"];
+    message: string;
+} {
+    switch (freshness.type) {
+        case "loading":
+            return { type: "loading", message: i18n.t("Checking when analytics tables were last generated...") };
+        case "lastRun":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Analytics tables were last generated on {{date}}. This sync reads those tables, so data captured after that moment is not included.",
+                    { date: formatDateLong(freshness.date) }
+                ),
+            };
+        case "neverRun":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Analytics tables have never been generated on this server. This sync reads those tables, so it will not find any data until analytics runs."
+                ),
+            };
+        case "unknown":
+            return {
+                type: "info",
+                message: i18n.t(
+                    "Could not determine when analytics tables were last generated. This sync reads those tables, so data captured after the last analytics run is not included."
+                ),
+            };
+    }
 }
 
 type DataEntryProps = { dataSetId: Id; orgUnitId: Id; period: string };
@@ -94,22 +183,24 @@ export function DataEntry(props: DataEntryProps) {
         const currentWindow = iframeRef.current?.contentWindow;
 
         function onLoad() {
-            if (currentWindow?.document) {
-                mutateDom(currentWindow.document, "#currentSelection", el => el.remove());
-                mutateDom(currentWindow.document, "#header", el => el.remove());
-                mutateDom(currentWindow.document, "#leftBar", el => (el.style.display = "none"));
-                mutateDom(currentWindow.document, "#selectionBox", el => (el.style.display = "none"));
-                mutateDom(currentWindow.document, "body", el => (el.style.marginTop = "-55px"));
-                mutateDom(currentWindow.document, "#mainPage", el => (el.style.margin = "65px 10px 10px 10px"));
-                mutateDom(currentWindow.document, "#completenessDiv", el => el.remove());
-                mutateDom(currentWindow.document, "#moduleHeader", el => el.remove());
-                mutateDom(currentWindow.document, "#actions", el => el.remove());
-                setStatus("loaded");
-            }
+            const document = currentWindow?.document;
+            if (!document) return;
+
+            mutateDom(document, "#currentSelection", el => el.remove());
+            mutateDom(document, "#header", el => el.remove());
+            mutateDom(document, "#leftBar", el => (el.style.display = "none"));
+            mutateDom(document, "#selectionBox", el => (el.style.display = "none"));
+            mutateDom(document, "body", el => (el.style.marginTop = "-55px"));
+            mutateDom(document, "#mainPage", el => (el.style.margin = "65px 10px 10px 10px"));
+            mutateDom(document, "#completenessDiv", el => el.remove());
+            mutateDom(document, "#moduleHeader", el => el.remove());
+            mutateDom(document, "#actions", el => el.remove());
+            setStatus("loaded");
         }
 
         if (currentWindow) {
             currentWindow.addEventListener("load", onLoad);
+            if (currentWindow.document?.readyState === "complete") onLoad();
         }
 
         return () => {
@@ -157,7 +248,7 @@ export function DataEntry(props: DataEntryProps) {
                 height="100%"
                 width="100%"
                 ref={iframeRef}
-                src={`${api.baseUrl}/dhis-web-dataentry/index.action`}
+                src={`${removeTrailingSlash(api.baseUrl)}/dhis-web-dataentry/index.action`}
                 title="WMR - Data Entry"
             />
         </>

@@ -59,8 +59,23 @@ export const metadataModels = [
     metadataClasses.VisualizationsModel,
 ];
 
-const findClasses = (key: string, value: string) => {
-    return _.find(metadataClasses, [key, value]) ?? _.find(mappingClasses, [key, value]);
+const findClasses = (predicate: object) => {
+    return _.find(metadataClasses, predicate) ?? _.find(mappingClasses, predicate);
+};
+
+// Shared mapping types need an explicit model: export order differs between the browser and Vitest.
+export const modelByMappingType: Partial<Record<string, typeof D2Model>> = {
+    aggregatedDataElements: mappingClasses.AggregatedDataElementModel,
+    categoryOptions: mappingClasses.CategoryOptionMappedModel,
+    eventPrograms: mappingClasses.EventProgramModel,
+    options: mappingClasses.OptionMappedModel,
+    programDataElements: mappingClasses.ProgramDataElementModel,
+    trackedEntityAttributesToDE: mappingClasses.DataElementFromTEIMappedModel,
+    trackerPrograms: mappingClasses.TrackerProgramModel,
+};
+
+const findMappedModel = (mappingType: string) => {
+    return modelByMappingType[mappingType] ?? findClasses({ mappingType });
 };
 
 export const defaultName = "default";
@@ -77,9 +92,9 @@ export function modelFactory(d2ModelName?: string): typeof D2Model {
     const api = new D2Api();
     const { modelName = defaultName } = getApiModel(api, d2ModelName) ?? {};
 
-    const mappedModel = findClasses("mappingType", d2ModelName);
-    const directClass = findClasses("metadataType", d2ModelName);
-    const modelClass = findClasses("collectionName", modelName);
+    const mappedModel = findMappedModel(d2ModelName);
+    const directClass = findClasses({ metadataType: d2ModelName });
+    const modelClass = findClasses({ collectionName: modelName });
 
     const result = mappedModel ?? directClass ?? modelClass;
     if (!result) {
