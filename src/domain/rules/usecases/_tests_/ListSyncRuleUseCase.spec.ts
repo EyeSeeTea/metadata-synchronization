@@ -92,7 +92,7 @@ describe("ListSyncRuleUseCase scheduler filtering", () => {
 
     function givenAListSyncRuleUseCaseWithRules(rules: SynchronizationRule[]): ListSyncRuleUseCase {
         const repository = mock<RulesRepository>();
-        when(repository.list(false)).thenResolve(rules);
+        when(repository.list()).thenResolve(rules);
 
         const factory = mock<DynamicRepositoryFactory>();
         when(factory.rulesRepository(localInstance)).thenReturn(instance(repository));

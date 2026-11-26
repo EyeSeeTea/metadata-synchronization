@@ -150,7 +150,7 @@ export class SchedulerCLI {
 
         const { rows: rulesWithSchedulerEnabled } = await compositionRoot.rules.list({
             paging: false,
-            filters: { schedulerEnabledFilter: "enabled", schedulerTypeFilter: "metadataSync", allProperties: true },
+            filters: { schedulerEnabledFilter: "enabled", schedulerTypeFilter: "metadataSync" },
         });
 
         return rulesWithSchedulerEnabled;

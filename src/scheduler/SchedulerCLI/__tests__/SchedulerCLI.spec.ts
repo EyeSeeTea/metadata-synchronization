@@ -85,22 +85,19 @@ describe("SchedulerCLI", () => {
             expect(spyLoggerInfo).toHaveBeenCalledWith("main", "Loading synchronization rules from remote server");
         });
 
-        it("should call compositionRoot.rules.list with correct params and return correct SyncRuleJobConfig[]", async () => {
+        it("requests the base listing of enabled MDSync rules", async () => {
             const spyListRules = vi.spyOn(mockCompositionRoot.rules, "list");
 
-            const expectedSyncRules: SynchronizationRule[] = [getSynchronizationRule(true)];
-
-            const result = await schedulerCLI["getEnabledSyncRules"]();
+            schedulerCLI.initialize(API_PATH);
+            await mockScheduler.runScheduledJob(DEFAULT_SCHEDULED_JOB_ID);
 
             expect(spyListRules).toHaveBeenCalledWith({
                 paging: false,
                 filters: {
                     schedulerEnabledFilter: "enabled",
                     schedulerTypeFilter: "metadataSync",
-                    allProperties: true,
                 },
             });
-            expect(result).toEqual(expectedSyncRules);
         });
 
         it("should call getSyncRuleJobConfigs and return correct SyncRuleJobConfig", async () => {

@@ -69,8 +69,9 @@ export class RulesD2ApiRepository implements RulesRepository {
         return data ?? [];
     }
 
-    public async list(allProperties?: boolean): Promise<SynchronizationRule[]> {
-        const rulesData = await this.getRulesData(allProperties);
+    public async list(): Promise<SynchronizationRule[]> {
+        const storageClient = await this.getStorageClient();
+        const rulesData = await storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
         return rulesData.map(ruleData => SynchronizationRule.build(ruleData));
     }
 
@@ -144,14 +145,9 @@ export class RulesD2ApiRepository implements RulesRepository {
         await storageClient.removeObjectInCollection(Namespace.RULES, id);
     }
 
-    private async getRulesData(allProperties?: boolean): Promise<SynchronizationRuleData[]> {
+    private async getCompleteRulesData(): Promise<SynchronizationRuleData[]> {
         const storageClient = await this.getStorageClient();
-
-        if (allProperties) {
-            return storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
-        }
-
-        return storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+        return storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
     }
 
     private async getInstances(): Promise<InstanceDataStoreData[]> {
@@ -171,7 +167,7 @@ export class RulesD2ApiRepository implements RulesRepository {
 
     private async getOriginalAggregatedDataExchangeIds(rules: SynchronizationRule[]) {
         const ruleIds = rules.map(rule => rule.id);
-        const originalRules = (await this.getRulesData(true)).filter(rule => ruleIds.includes(rule.id));
+        const originalRules = (await this.getCompleteRulesData()).filter(rule => ruleIds.includes(rule.id));
         const originalAggregatedDataExchangeIds: string[] = originalRules
             .map(rule => rule.aggregatedDataExchanges || [])
             .flat()
@@ -291,7 +287,7 @@ export class RulesD2ApiRepository implements RulesRepository {
 
     private async getOriginalAggregatedDataExchangeJobIds(rules: SynchronizationRule[]) {
         const ruleIds = rules.map(rule => rule.id);
-        const originalRules = (await this.getRulesData(true)).filter(rule => ruleIds.includes(rule.id));
+        const originalRules = (await this.getCompleteRulesData()).filter(rule => ruleIds.includes(rule.id));
         const originalAggregatedDataExchangeJobIds: string[] = originalRules
             .filter(rule => rule.aggregatedDataExchangeDhis2Job)
             .map(rule => rule.aggregatedDataExchangeDhis2Job)
