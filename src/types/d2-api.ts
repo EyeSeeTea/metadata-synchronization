@@ -21,6 +21,8 @@ export type {
     D2CategoryOptionSchema,
     D2CategoryOptionComboSchema,
     D2ConstantSchema,
+    D2DataElementGroupSchema,
+    D2DataElementGroupSetSchema,
     D2DataSetSchema,
     D2IndicatorSchema,
     D2ProgramIndicatorSchema,
