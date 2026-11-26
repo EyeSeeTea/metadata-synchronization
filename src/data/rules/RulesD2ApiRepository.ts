@@ -70,8 +70,7 @@ export class RulesD2ApiRepository implements RulesRepository {
     }
 
     public async list(): Promise<SynchronizationRule[]> {
-        const storageClient = await this.getStorageClient();
-        const rulesData = await storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+        const rulesData = await this.listRulesData();
         return rulesData.map(ruleData => SynchronizationRule.build(ruleData));
     }
 
@@ -82,8 +81,14 @@ export class RulesD2ApiRepository implements RulesRepository {
             }
         }
 
-        const originalAggregatedDataExchangeIds = await this.getOriginalAggregatedDataExchangeIds(rules);
-        const originalAggregatedDataExchangeJobIds = await this.getOriginalAggregatedDataExchangeJobIds(rules);
+        const ruleIds = new Set(rules.map(rule => rule.id));
+        const originalRules = (await this.listRulesData()).filter(rule => ruleIds.has(rule.id));
+        const originalAggregatedDataExchangeIds = originalRules.flatMap(rule =>
+            (rule.aggregatedDataExchanges ?? []).map(exchange => exchange.id)
+        );
+        const originalAggregatedDataExchangeJobIds = originalRules.flatMap(rule =>
+            rule.aggregatedDataExchangeDhis2Job ? [rule.aggregatedDataExchangeDhis2Job.id] : []
+        );
 
         const user = await this.userRepository.getCurrent();
 
@@ -145,9 +150,9 @@ export class RulesD2ApiRepository implements RulesRepository {
         await storageClient.removeObjectInCollection(Namespace.RULES, id);
     }
 
-    private async getCompleteRulesData(): Promise<SynchronizationRuleData[]> {
+    private async listRulesData(): Promise<SynchronizationRuleData[]> {
         const storageClient = await this.getStorageClient();
-        return storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
+        return storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
     }
 
     private async getInstances(): Promise<InstanceDataStoreData[]> {
@@ -163,16 +168,6 @@ export class RulesD2ApiRepository implements RulesRepository {
 
     private getStorageClient(): Promise<StorageClient> {
         return this.storageClientFactory.getStorageClientPromise();
-    }
-
-    private async getOriginalAggregatedDataExchangeIds(rules: SynchronizationRule[]) {
-        const ruleIds = rules.map(rule => rule.id);
-        const originalRules = (await this.getCompleteRulesData()).filter(rule => ruleIds.includes(rule.id));
-        const originalAggregatedDataExchangeIds: string[] = originalRules
-            .map(rule => rule.aggregatedDataExchanges || [])
-            .flat()
-            .map(ruleAdex => ruleAdex.id);
-        return originalAggregatedDataExchangeIds;
     }
 
     private async deleteOrphanAggregatedDataExchanges(
@@ -283,16 +278,6 @@ export class RulesD2ApiRepository implements RulesRepository {
         } catch (error) {
             console.error(`Error deleting Aggregated Data Exchange ${aggregatedDataExchangeId}:`, error);
         }
-    }
-
-    private async getOriginalAggregatedDataExchangeJobIds(rules: SynchronizationRule[]) {
-        const ruleIds = rules.map(rule => rule.id);
-        const originalRules = (await this.getCompleteRulesData()).filter(rule => ruleIds.includes(rule.id));
-        const originalAggregatedDataExchangeJobIds: string[] = originalRules
-            .filter(rule => rule.aggregatedDataExchangeDhis2Job)
-            .map(rule => rule.aggregatedDataExchangeDhis2Job)
-            .map(ruleJob => ruleJob!.id);
-        return originalAggregatedDataExchangeJobIds;
     }
 
     private async deleteOrphanAggregatedDataExchangeJobs(
