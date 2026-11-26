@@ -42,7 +42,7 @@ describe("SchedulerCLI", () => {
         vi.useRealTimers();
     });
 
-    it("keeps scheduled jobs and logs the error message when listing rules fails", async () => {
+    it("should keep scheduled jobs and log the error message when listing rules fails", async () => {
         schedulerCLI.initialize(API_PATH);
 
         await mockScheduler.runScheduledJob(DEFAULT_SCHEDULED_JOB_ID);
@@ -58,7 +58,7 @@ describe("SchedulerCLI", () => {
         expect(mockLogger.errors).toContainEqual({ name: "scheduler", message: error.message });
     });
 
-    it("preserves the stored builder when clearing the frequency update flag from a partial listing", async () => {
+    it("should preserve the stored builder when clearing the frequency update flag from a partial listing", async () => {
         schedulerCLI.initialize(API_PATH);
         await mockScheduler.runScheduledJob(DEFAULT_SCHEDULED_JOB_ID);
 
@@ -85,7 +85,7 @@ describe("SchedulerCLI", () => {
             expect(spyLoggerInfo).toHaveBeenCalledWith("main", "Loading synchronization rules from remote server");
         });
 
-        it("requests the base listing of enabled MDSync rules", async () => {
+        it("should request the base listing of enabled MDSync rules", async () => {
             const spyListRules = vi.spyOn(mockCompositionRoot.rules, "list");
 
             schedulerCLI.initialize(API_PATH);

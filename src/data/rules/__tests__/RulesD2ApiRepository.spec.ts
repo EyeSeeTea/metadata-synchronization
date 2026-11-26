@@ -8,14 +8,14 @@ import { Namespace } from "../../storage/Namespaces";
 import { RulesD2ApiRepository } from "../RulesD2ApiRepository";
 
 describe("RulesD2ApiRepository", () => {
-    it("propagates the error when listing rules fails", async () => {
+    it("should propagate the error when listing rules fails", async () => {
         const error = new Error("DHIS2 unavailable");
         const repository = givenARulesRepositoryWithFailedCollectionRead(error);
 
         await expect(repository.list()).rejects.toBe(error);
     });
 
-    it("rejects the whole batch before accessing storage when a rule has no builder", async () => {
+    it("should reject the whole batch before accessing storage when a rule has no builder", async () => {
         const completeRule = SynchronizationRule.create().update({ id: "complete-rule" });
         const partialRule = completeRule.update({ id: "partial-rule", builder: undefined });
         const { repository, storageClientFactory } = givenARulesRepositoryWithUnavailableStorage();

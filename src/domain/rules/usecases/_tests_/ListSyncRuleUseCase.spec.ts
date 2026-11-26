@@ -33,7 +33,7 @@ describe("ListSyncRuleUseCase scheduler filtering", () => {
 
     const cases: { name: string; filters: ListSyncRuleUseCaseParams["filters"]; expected: string[] }[] = [
         {
-            name: "lists visible rules when no scheduler filter is supplied",
+            name: "should list visible rules when no scheduler filter is supplied",
             filters: {},
             expected: [
                 "scheduling-disabled-dhis2",
@@ -44,32 +44,32 @@ describe("ListSyncRuleUseCase scheduler filtering", () => {
             ],
         },
         {
-            name: "lists DHIS2 rules regardless of scheduling status when only the type is requested",
+            name: "should list DHIS2 rules regardless of scheduling status when only the type is requested",
             filters: { schedulerTypeFilter: "dhis2" },
             expected: ["scheduling-disabled-dhis2", "scheduling-enabled-dhis2"],
         },
         {
-            name: "lists rules with scheduling enabled across scheduler types when no type is requested",
+            name: "should list rules with scheduling enabled across scheduler types when no type is requested",
             filters: { schedulerEnabledFilter: "enabled" },
             expected: ["scheduling-enabled-dhis2", "scheduling-enabled-legacy", "scheduling-enabled-mdsync"],
         },
         {
-            name: "lists only delegated rules with scheduling enabled when DHIS2 is requested",
+            name: "should list only delegated rules with scheduling enabled when DHIS2 is requested",
             filters: { schedulerEnabledFilter: "enabled", schedulerTypeFilter: "dhis2" },
             expected: ["scheduling-enabled-dhis2"],
         },
         {
-            name: "lists only MDSync rules with scheduling enabled, including legacy rules",
+            name: "should list only MDSync rules with scheduling enabled, including legacy rules",
             filters: { schedulerEnabledFilter: "enabled", schedulerTypeFilter: "metadataSync" },
             expected: ["scheduling-enabled-legacy", "scheduling-enabled-mdsync"],
         },
         {
-            name: "lists only delegated rules with scheduling disabled when DHIS2 is requested",
+            name: "should list only delegated rules with scheduling disabled when DHIS2 is requested",
             filters: { schedulerEnabledFilter: "disabled", schedulerTypeFilter: "dhis2" },
             expected: ["scheduling-disabled-dhis2"],
         },
         {
-            name: "lists only MDSync rules with scheduling disabled",
+            name: "should list only MDSync rules with scheduling disabled",
             filters: { schedulerEnabledFilter: "disabled", schedulerTypeFilter: "metadataSync" },
             expected: ["scheduling-disabled-mdsync"],
         },
