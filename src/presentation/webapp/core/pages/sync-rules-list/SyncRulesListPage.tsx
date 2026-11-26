@@ -110,7 +110,8 @@ export const SyncRulesListPage: React.FC = () => {
                 },
                 paging: false,
             })
-            .then(({ rows }) => setRows(rows));
+            .then(({ rows }) => setRows(rows))
+            .catch(error => snackbar.error(error instanceof Error ? error.message : String(error)));
     }, [
         compositionRoot,
         refreshKey,
@@ -120,6 +121,7 @@ export const SyncRulesListPage: React.FC = () => {
         schedulerEnabledFilter,
         lastExecutedFilter,
         sharingSettingsObject,
+        snackbar,
     ]);
 
     const [allInstances, setAllInstances] = useState<Instance[]>([]);

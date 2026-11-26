@@ -81,7 +81,7 @@ export class SchedulerCLI {
                 const syncRulesToUpdate = syncRulesWithSchedulerEnabled.filter(syncRule =>
                     jobIdsToUpdate.includes(syncRule.id)
                 );
-                this.disableNeedsUpdateSchedulingFrequencyInSyncRules(syncRulesToUpdate);
+                await this.disableNeedsUpdateSchedulingFrequencyInSyncRules(syncRulesToUpdate);
             }
 
             this.updateNextExecutionOfScheduler(scheduledJobs);
