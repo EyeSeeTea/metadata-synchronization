@@ -4,34 +4,36 @@ import { useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Id } from "../../../../domain/common/entities/Schemas";
 import { useAppContext } from "../../../react/core/contexts/AppContext";
 import { WmrSettings } from "../../../../domain/entities/wmr/entities/WmrSettings";
-import { WmrDataSet } from "../../../../domain/entities/wmr/entities/WmrDataSet";
+import { Maybe } from "../../../../types/utils";
 
-export function useGetDataSetOrgUnits(props: { id: Id }) {
-    const { compositionRoot } = useAppContext();
-    const [dataSet, setDataSet] = React.useState<WmrDataSet>();
-    const loading = useLoading();
-    const snackbar = useSnackbar();
-
-    React.useEffect(() => {
-        async function getInstance() {
-            loading.show();
-            try {
-                const dataSet = await compositionRoot.wmr.getDataSetById(props.id);
-                setDataSet(dataSet);
-            } catch (error: any) {
-                snackbar.error("Failed to load dataset organisation units");
-            } finally {
-                loading.hide();
-            }
-        }
-
-        getInstance();
-    }, [compositionRoot, loading, snackbar, props.id]);
-
-    return { dataSet };
+/**
+ * Keep the global mapping store intact, but scope the IDs used by a WMR sync
+ * to the data elements and indicators that belong to the selected source data set.
+ */
+export function filterMappedDataElementIds(
+    mappedDataElementIds: ReadonlyArray<Id>,
+    dataSetDataElementIds: ReadonlyArray<Id>
+): Id[] {
+    const dataSetDataElementIdsSet = new Set(dataSetDataElementIds);
+    return mappedDataElementIds.filter(dataElementId => dataSetDataElementIdsSet.has(dataElementId));
 }
 
-export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
+export type WmrSyncIds = Readonly<{
+    metadataIds: Id[];
+    mappedIndicatorIds: Id[];
+}>;
+
+export function getWmrSyncIds(
+    settings: WmrSettings,
+    sourceDataSetId: Maybe<Id>,
+    mappedIds: ReadonlyArray<Id>
+): WmrSyncIds {
+    const indicatorIds = settings.getIndicatorsIds(sourceDataSetId);
+    const metadataIds = filterMappedDataElementIds(mappedIds, settings.getSourceMetadataIds(sourceDataSetId));
+    return { metadataIds, mappedIndicatorIds: filterMappedDataElementIds(metadataIds, indicatorIds) };
+}
+
+export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE", sourceDataElementIds?: ReadonlyArray<Id>) {
     const { compositionRoot } = useAppContext();
     const [dataElementsToMigrate, setDataElementsToMigrate] = React.useState<Id[]>([]);
     const loading = useLoading();
@@ -54,12 +56,17 @@ export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
                             id: instance.id,
                         });
                         const mapping = dataSourceMapping?.mappingDictionary ?? {};
+                        const selectedMappings = _(mapping.aggregatedDataElements)
+                            .toPairs()
+                            .filter(([sourceDataElementId]) =>
+                                sourceDataElementIds ? sourceDataElementIds.includes(sourceDataElementId) : true
+                            )
+                            .value();
                         const dataElementsIds =
                             dataElementsFrom === "LOCAL"
-                                ? _(mapping.aggregatedDataElements).keys().value()
-                                : _(mapping.aggregatedDataElements)
-                                      .values()
-                                      .map(mapping => mapping.mappedId)
+                                ? selectedMappings.map(([sourceDataElementId]) => sourceDataElementId)
+                                : _(selectedMappings)
+                                      .map(([, mapping]) => mapping.mappedId)
                                       .compact()
                                       .value();
                         setDataElementsToMigrate(dataElementsIds);
@@ -73,7 +80,7 @@ export function useMappingDataElements(dataElementsFrom: "LOCAL" | "REMOTE") {
         }
 
         getInstance();
-    }, [compositionRoot, dataElementsFrom, loading, snackbar]);
+    }, [compositionRoot, dataElementsFrom, loading, snackbar, sourceDataElementIds]);
 
     return { dataElementsToMigrate };
 }
