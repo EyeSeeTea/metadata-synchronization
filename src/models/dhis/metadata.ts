@@ -1,4 +1,5 @@
 import { DataStore } from "../../domain/metadata/entities/MetadataEntities";
+import { D2DataElementGroupSchema, D2DataElementGroupSetSchema, SelectedPick } from "../../types/d2-api";
 import {
     categoryOptionColumns,
     categoryOptionFields,
@@ -224,6 +225,10 @@ export class DataElementGroupModel extends D2Model {
         "dataElementGroupSets",
         "dataElementGroupSets.attributes",
     ];
+
+    protected static modelTransform = (
+        groups: SelectedPick<D2DataElementGroupSchema, typeof dataElementGroupFields>[]
+    ) => groups.map(withDataElementModel);
 }
 
 export class DataElementGroupSetModel extends D2Model {
@@ -241,6 +246,22 @@ export class DataElementGroupSetModel extends D2Model {
         "dataElementGroups.dataElements",
         "dataElementGroups.dataElements.attributes",
     ];
+
+    protected static modelTransform = (
+        groupSets: SelectedPick<D2DataElementGroupSetSchema, typeof dataElementGroupSetFields>[]
+    ) =>
+        groupSets.map(({ dataElementGroups = [], ...rest }) => ({
+            ...rest,
+            dataElementGroups: dataElementGroups.map(group => ({
+                ...withDataElementModel(group),
+                model: DataElementGroupModel,
+            })),
+        }));
+}
+
+// Child rows in the metadata table need a model to render their type and to be selectable
+function withDataElementModel<T extends { dataElements?: object[] }>({ dataElements = [], ...rest }: T) {
+    return { ...rest, dataElements: dataElements.map(dataElement => ({ ...dataElement, model: DataElementModel })) };
 }
 
 export class DataEntryFormModel extends D2Model {
