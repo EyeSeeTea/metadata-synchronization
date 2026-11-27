@@ -1,10 +1,12 @@
 import { Request, Server } from "miragejs";
 import { AnyRegistry } from "miragejs/-types";
 import Schema from "miragejs/orm/schema";
-import { DynamicRepositoryFactory } from "../../../../domain/common/factories/DynamicRepositoryFactory";
+import { DynamicRepositoryFactory, Repositories } from "../../../../domain/common/factories/DynamicRepositoryFactory";
 import { Instance } from "../../../../domain/instance/entities/Instance";
 import { MetadataPayloadBuilder } from "../../../../domain/metadata/builders/MetadataPayloadBuilder";
 import { MetadataSyncUseCase } from "../../../../domain/metadata/usecases/MetadataSyncUseCase";
+import { SynchronizationRule } from "../../../../domain/rules/entities/SynchronizationRule";
+import { RulesRepository } from "../../../../domain/rules/repositories/RulesRepository";
 import { SynchronizationBuilder } from "../../../../domain/synchronization/entities/SynchronizationBuilder";
 import { registerDynamicRepositoriesInFactory } from "../../../../presentation/CompositionRoot";
 import { startDhis } from "../../../../utils/dhisServer";
@@ -173,7 +175,88 @@ describe("Sync metadata", () => {
         expect(response.dataElements[0].id).toEqual("id2");
         expect(local.db.metadataDestination.find(1)).toBeNull();
     });
+
+    it.each(["DONE", "FAILURE"] as const)("should record a %s execution with one rule save", async status => {
+        const { rule, rulesRepository, sync } = givenAScheduledRuleExecution(local, status);
+
+        let reportStatus;
+        for await (const progress of sync.execute()) {
+            if (progress.done) reportStatus = progress.syncReport?.status;
+        }
+
+        expect(reportStatus).toBe(status);
+        expect(rulesRepository.getSaveCount()).toBe(1);
+        const savedRule = await rulesRepository.getById(rule.id);
+        expect(savedRule?.lastExecuted).toBeInstanceOf(Date);
+        expect(savedRule?.toObject().lastExecutedBy).toEqual({ id: "test-user-id", name: "test-user" });
+        expect(savedRule?.lastSuccessfulSync).toEqual(
+            status === "DONE" ? savedRule?.lastExecuted : rule.lastSuccessfulSync
+        );
+    });
 });
+
+function givenAScheduledRuleExecution(server: Server, status: "DONE" | "FAILURE") {
+    const rule = SynchronizationRule.create()
+        .update({
+            id: "scheduled-rule",
+            builder: {
+                originInstance: "LOCAL",
+                targetInstances: ["DESTINATION"],
+                metadataIds: ["id1"],
+                excludedIds: [],
+            },
+        })
+        .updateLastSuccessfulSync(new Date("2025-01-01T00:00:00Z"));
+    const remoteApi = "/routes/DESTINATION/run/api";
+    server.post(remoteApi + "/metadata", () => ({ response: { id: "import-job", jobType: "METADATA_IMPORT" } }));
+    server.get(remoteApi + "/system/tasks/METADATA_IMPORT/import-job", () => [{ completed: true }]);
+    server.get(remoteApi + "/system/taskSummaries/METADATA_IMPORT/import-job", () => ({
+        status: status === "DONE" ? "OK" : "ERROR",
+        stats: { created: 0, updated: 0, deleted: 0, ignored: 0, total: 0 },
+    }));
+    server.get("/me", () => ({ id: "test-user-id", username: "test-user", name: "Test User", userRoles: [] }));
+
+    const repositoryFactory = buildRepositoryFactory(localInstance);
+    const rulesRepository = new FakeRulesRepository(rule);
+    repositoryFactory.bindByInstance(Repositories.RulesRepository, () => rulesRepository);
+    const metadataPayloadBuilder = new MetadataPayloadBuilder(repositoryFactory, localInstance);
+    const builder = { ...rule.builder, syncRule: rule.id };
+    const sync = new MetadataSyncUseCase(builder, repositoryFactory, localInstance, metadataPayloadBuilder);
+
+    return { rule, rulesRepository, sync };
+}
+
+class FakeRulesRepository implements RulesRepository {
+    private readonly rules = new Map<string, SynchronizationRule>();
+    private saveCount = 0;
+
+    constructor(rule: SynchronizationRule) {
+        this.rules.set(rule.id, rule);
+    }
+
+    getSaveCount(): number {
+        return this.saveCount;
+    }
+
+    async getById(id: string): Promise<SynchronizationRule | undefined> {
+        return this.rules.get(id);
+    }
+
+    async list(): Promise<SynchronizationRule[]> {
+        return Array.from(this.rules.values());
+    }
+
+    async save(rules: SynchronizationRule[]): Promise<void> {
+        this.saveCount++;
+        for (const rule of rules) {
+            this.rules.set(rule.id, rule);
+        }
+    }
+
+    async delete(id: string): Promise<void> {
+        this.rules.delete(id);
+    }
+}
 
 function buildRepositoryFactory(localInstance: Instance) {
     const repositoryFactory: DynamicRepositoryFactory = new DynamicRepositoryFactory();

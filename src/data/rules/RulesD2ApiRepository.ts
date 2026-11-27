@@ -69,14 +69,26 @@ export class RulesD2ApiRepository implements RulesRepository {
         return data ?? [];
     }
 
-    public async list(allProperties?: boolean): Promise<SynchronizationRule[]> {
-        const rulesData = await this.getRulesData(allProperties);
+    public async list(): Promise<SynchronizationRule[]> {
+        const rulesData = await this.listRulesData();
         return rulesData.map(ruleData => SynchronizationRule.build(ruleData));
     }
 
     public async save(rules: SynchronizationRule[]): Promise<void> {
-        const originalAggregatedDataExchangeIds = await this.getOriginalAggregatedDataExchangeIds(rules);
-        const originalAggregatedDataExchangeJobIds = await this.getOriginalAggregatedDataExchangeJobIds(rules);
+        for (const rule of rules) {
+            if (!rule.toObject().builder) {
+                throw new Error(`Cannot save rule ${rule.id} without a builder`);
+            }
+        }
+
+        const ruleIds = new Set(rules.map(rule => rule.id));
+        const originalRules = (await this.listRulesData()).filter(rule => ruleIds.has(rule.id));
+        const originalAggregatedDataExchangeIds = originalRules.flatMap(rule =>
+            (rule.aggregatedDataExchanges ?? []).map(exchange => exchange.id)
+        );
+        const originalAggregatedDataExchangeJobIds = originalRules.flatMap(rule =>
+            rule.aggregatedDataExchangeDhis2Job ? [rule.aggregatedDataExchangeDhis2Job.id] : []
+        );
 
         const user = await this.userRepository.getCurrent();
 
@@ -138,19 +150,9 @@ export class RulesD2ApiRepository implements RulesRepository {
         await storageClient.removeObjectInCollection(Namespace.RULES, id);
     }
 
-    private async getRulesData(allProperties?: boolean): Promise<SynchronizationRuleData[]> {
-        try {
-            const storageClient = await this.getStorageClient();
-
-            if (allProperties) {
-                return await storageClient.getObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
-            } else {
-                return await storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
-            }
-        } catch (error: any) {
-            console.error(error);
-            return [];
-        }
+    private async listRulesData(): Promise<SynchronizationRuleData[]> {
+        const storageClient = await this.getStorageClient();
+        return storageClient.listObjectsInCollection<SynchronizationRuleData>(Namespace.RULES);
     }
 
     private async getInstances(): Promise<InstanceDataStoreData[]> {
@@ -166,16 +168,6 @@ export class RulesD2ApiRepository implements RulesRepository {
 
     private getStorageClient(): Promise<StorageClient> {
         return this.storageClientFactory.getStorageClientPromise();
-    }
-
-    private async getOriginalAggregatedDataExchangeIds(rules: SynchronizationRule[]) {
-        const ruleIds = rules.map(rule => rule.id);
-        const originalRules = (await this.getRulesData(true)).filter(rule => ruleIds.includes(rule.id));
-        const originalAggregatedDataExchangeIds: string[] = originalRules
-            .map(rule => rule.aggregatedDataExchanges || [])
-            .flat()
-            .map(ruleAdex => ruleAdex.id);
-        return originalAggregatedDataExchangeIds;
     }
 
     private async deleteOrphanAggregatedDataExchanges(
@@ -286,16 +278,6 @@ export class RulesD2ApiRepository implements RulesRepository {
         } catch (error) {
             console.error(`Error deleting Aggregated Data Exchange ${aggregatedDataExchangeId}:`, error);
         }
-    }
-
-    private async getOriginalAggregatedDataExchangeJobIds(rules: SynchronizationRule[]) {
-        const ruleIds = rules.map(rule => rule.id);
-        const originalRules = (await this.getRulesData(true)).filter(rule => ruleIds.includes(rule.id));
-        const originalAggregatedDataExchangeJobIds: string[] = originalRules
-            .filter(rule => rule.aggregatedDataExchangeDhis2Job)
-            .map(rule => rule.aggregatedDataExchangeDhis2Job)
-            .map(ruleJob => ruleJob!.id);
-        return originalAggregatedDataExchangeJobIds;
     }
 
     private async deleteOrphanAggregatedDataExchangeJobs(

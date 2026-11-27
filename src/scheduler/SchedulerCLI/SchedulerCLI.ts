@@ -81,12 +81,13 @@ export class SchedulerCLI {
                 const syncRulesToUpdate = syncRulesWithSchedulerEnabled.filter(syncRule =>
                     jobIdsToUpdate.includes(syncRule.id)
                 );
-                this.disableNeedsUpdateSchedulingFrequencyInSyncRules(syncRulesToUpdate);
+                await this.disableNeedsUpdateSchedulingFrequencyInSyncRules(syncRulesToUpdate);
             }
 
             this.updateNextExecutionOfScheduler(scheduledJobs);
         } catch (error) {
-            const errorMessage = typeof error === "string" ? error : JSON.stringify(error, null, 2);
+            const details = error instanceof Error ? error.message : error;
+            const errorMessage = typeof details === "string" ? details : JSON.stringify(details, null, 2);
             logger.error("scheduler", `${errorMessage}`);
         }
     }
@@ -149,7 +150,7 @@ export class SchedulerCLI {
 
         const { rows: rulesWithSchedulerEnabled } = await compositionRoot.rules.list({
             paging: false,
-            filters: { schedulerEnabledFilter: "enabled", schedulerTypeFilter: "metadataSync", allProperties: true },
+            filters: { schedulerEnabledFilter: "enabled", schedulerTypeFilter: "metadataSync" },
         });
 
         return rulesWithSchedulerEnabled;
@@ -237,13 +238,21 @@ export class SchedulerCLI {
     private async disableNeedsUpdateSchedulingFrequencyInSyncRules(syncRulesToUpdate: SynchronizationRule[]) {
         const { logger, compositionRoot } = this.options;
 
-        const updatedSyncRules = syncRulesToUpdate.map(syncRule =>
-            syncRule.updateNeedsUpdateSchedulingFrequency(false)
+        const detailedRules = await Promise.all(
+            syncRulesToUpdate.map(async listedRule => {
+                const rule = await compositionRoot.rules.get(listedRule.id);
+                return rule?.schedulingFrequencyNeedsUpdate && rule.frequency === listedRule.frequency
+                    ? rule.updateNeedsUpdateSchedulingFrequency(false)
+                    : undefined;
+            })
         );
+        const updatedSyncRules = detailedRules.filter((rule): rule is SynchronizationRule => rule !== undefined);
+        if (updatedSyncRules.length === 0) return;
+
         await compositionRoot.rules.save(updatedSyncRules);
         logger.info(
             "scheduler",
-            `Disabled schedulingFrequencyNeedsUpdate for rules with ids ${syncRulesToUpdate
+            `Disabled schedulingFrequencyNeedsUpdate for rules with ids ${updatedSyncRules
                 .map(({ id }) => id)
                 .join(", ")}`
         );

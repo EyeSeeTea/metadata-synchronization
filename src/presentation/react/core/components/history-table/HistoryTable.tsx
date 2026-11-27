@@ -96,12 +96,15 @@ export const HistoryTable: React.FC<HistoryTableProps> = React.memo(props => {
     );
 
     useEffect(() => {
-        compositionRoot.rules.list({ filters: { types }, paging: false }).then(({ rows }) => setSyncRules(rows));
+        compositionRoot.rules
+            .list({ filters: { types }, paging: false })
+            .then(({ rows }) => setSyncRules(rows))
+            .catch(error => snackbar.error(error instanceof Error ? error.message : String(error)));
 
         if (id) compositionRoot.reports.get(id).then(setSyncReport);
 
         isAppConfigurator(api).then(setAppConfigurator);
-    }, [api, id, types, compositionRoot]);
+    }, [api, id, types, compositionRoot, snackbar]);
 
     useEffect(() => {
         updateTable();

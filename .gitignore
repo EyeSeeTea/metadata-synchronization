@@ -35,6 +35,8 @@ src/react-app-env.d.ts
 bak
 .eslintcache
 config.json
+/docs/
+/.journal/
 
 # IntelliJ
 .idea/*

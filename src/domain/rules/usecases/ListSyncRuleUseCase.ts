@@ -20,7 +20,6 @@ export interface ListSyncRuleUseCaseParams {
         lastExecutedFilter?: Date | null;
         types?: SynchronizationType[];
         search?: string;
-        allProperties?: boolean;
     };
 }
 
@@ -45,11 +44,10 @@ export class ListSyncRuleUseCase implements UseCase {
             lastExecutedFilter = null,
             types,
             search,
-            allProperties = false,
             schedulerTypeFilter,
         } = filters;
 
-        const rawData = await this.repositoryFactory.rulesRepository(this.localInstance).list(allProperties);
+        const rawData = await this.repositoryFactory.rulesRepository(this.localInstance).list();
 
         const filteredData = search
             ? _.filter(rawData, item =>
@@ -77,22 +75,11 @@ export class ListSyncRuleUseCase implements UseCase {
             })
             .filter(rule => (targetInstanceFilter ? rule.targetInstances.includes(targetInstanceFilter) : true))
             .filter(rule => {
-                const useAggregatedDataExchangeDhis2Job = schedulerTypeFilter
-                    ? schedulerTypeFilter === "dhis2"
-                        ? true
-                        : false
-                    : undefined;
-
-                if (!schedulerEnabledFilter) return true;
+                const schedulerStatus = rule.enabled ? "enabled" : "disabled";
+                const schedulerType = rule.useAggregatedDataExchangeDhis2Job ? "dhis2" : "metadataSync";
                 return (
-                    (rule.enabled &&
-                        schedulerEnabledFilter === "enabled" &&
-                        (!useAggregatedDataExchangeDhis2Job ||
-                            rule.useAggregatedDataExchangeDhis2Job === useAggregatedDataExchangeDhis2Job)) ||
-                    (!rule.enabled &&
-                        schedulerEnabledFilter === "disabled" &&
-                        (!useAggregatedDataExchangeDhis2Job ||
-                            rule.useAggregatedDataExchangeDhis2Job === useAggregatedDataExchangeDhis2Job))
+                    (!schedulerEnabledFilter || schedulerEnabledFilter === schedulerStatus) &&
+                    (!schedulerTypeFilter || schedulerTypeFilter === schedulerType)
                 );
             })
             .filter(rule =>
