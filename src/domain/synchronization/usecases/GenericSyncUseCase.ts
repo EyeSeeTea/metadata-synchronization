@@ -245,34 +245,26 @@ export abstract class GenericSyncUseCase {
             yield { syncReport };
         }
 
-        // Phase 4: Update sync rule last executed date and last executed user name and id
-        if (syncRule) {
-            const oldRule = await this.repositoryFactory.rulesRepository(this.localInstance).getById(syncRule);
+        const status = syncReport.hasErrors() ? "FAILURE" : "DONE";
 
-            if (oldRule) {
+        if (syncRule) {
+            const rulesRepository = this.repositoryFactory.rulesRepository(this.localInstance);
+            const rule = await rulesRepository.getById(syncRule);
+
+            if (rule) {
                 const currentUser = await this.api.currentUser.get({ fields: { username: true, id: true } }).getData();
 
-                const updatedRule = oldRule.updateLastExecuted(executionDate, {
+                const executedRule = rule.updateLastExecuted(executionDate, {
                     id: currentUser.id,
                     name: currentUser.username,
                 });
-                await this.repositoryFactory.rulesRepository(this.localInstance).save([updatedRule]);
+                const updatedRule =
+                    status === "DONE" ? executedRule.updateLastSuccessfulSync(executionDate) : executedRule;
+                await rulesRepository.save([updatedRule]);
             }
         }
 
-        // Phase 5: Update parent task status
-        syncReport.setStatus(syncReport.hasErrors() ? "FAILURE" : "DONE");
-
-        // Phase 6: if sync report is DONE, update sync rule last successful sync date
-        if (syncReport.status === "DONE" && syncRule) {
-            const syncRulesRepository = this.repositoryFactory.rulesRepository(this.localInstance);
-            const rule = await syncRulesRepository.getById(syncRule);
-
-            if (rule) {
-                const updatedRule = rule.updateLastSuccessfulSync(executionDate);
-                await syncRulesRepository.save([updatedRule]);
-            }
-        }
+        syncReport.setStatus(status);
 
         yield { syncReport, done: true };
 
