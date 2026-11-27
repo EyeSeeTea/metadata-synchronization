@@ -1,4 +1,4 @@
-import { getChildrenIds, getCurrentTypeIds } from "../utils";
+import { findRowsByIds, getChildrenIds, getCurrentTypeIds } from "../utils";
 
 const dataStores = [
     {
@@ -87,5 +87,29 @@ describe("getCurrentTypeIds", () => {
 
     it("returns the id list unchanged when no children keys are given", () => {
         expect(getCurrentTypeIds(["program1"], programRows, [])).toEqual(["program1"]);
+    });
+});
+
+describe("findRowsByIds", () => {
+    const childrenKeys = ["dataElements", "programIndicators", "stages"];
+
+    it("finds top-level rows", () => {
+        expect(findRowsByIds(trackerProgramRows, ["program1"], childrenKeys).map(({ id }) => id)).toEqual(["program1"]);
+    });
+
+    it("finds child rows so that their own children can be selected", () => {
+        const stages = findRowsByIds(trackerProgramRows, ["program1-stage1"], childrenKeys);
+
+        expect(getChildrenIds(stages, childrenKeys)).toEqual(["program1-stage1-dataElement1"]);
+    });
+
+    it("finds a group inside a group set", () => {
+        const groups = findRowsByIds(dataElementGroupSets, ["group1"], ["dataElements", "dataElementGroups"]);
+
+        expect(getChildrenIds(groups, ["dataElements", "dataElementGroups"])).toEqual(["dataElement1", "dataElement2"]);
+    });
+
+    it("returns no rows for unknown ids", () => {
+        expect(findRowsByIds(trackerProgramRows, ["unknown"], childrenKeys)).toEqual([]);
     });
 });

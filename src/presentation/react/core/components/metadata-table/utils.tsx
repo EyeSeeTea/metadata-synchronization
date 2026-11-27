@@ -53,10 +53,23 @@ export function getMergedSelection({
 const isRef = (value: unknown): value is Ref => _.isString(_.get(value, "id"));
 
 // Walks every level, because the table shows nested children (e.g. group set > group > data element).
-export function getChildrenIds(objects: ReadonlyArray<object>, childrenKeys: ReadonlyArray<string>): Id[] {
+function getDescendants(objects: ReadonlyArray<object>, childrenKeys: ReadonlyArray<string>): Ref[] {
     const children = _.flattenDeep(objects.map(object => _.values(_.pick(object, childrenKeys)))).filter(isRef);
 
-    return children.length === 0 ? [] : [...children.map(({ id }) => id), ...getChildrenIds(children, childrenKeys)];
+    return children.length === 0 ? [] : [...children, ...getDescendants(children, childrenKeys)];
+}
+
+export function getChildrenIds(objects: ReadonlyArray<object>, childrenKeys: ReadonlyArray<string>): Id[] {
+    return getDescendants(objects, childrenKeys).map(({ id }) => id);
+}
+
+// A selected row can be a child row (e.g. a program stage), so look for it in every level.
+export function findRowsByIds<T extends Ref>(
+    rows: ReadonlyArray<T>,
+    ids: ReadonlyArray<Id>,
+    childrenKeys: ReadonlyArray<string>
+): Ref[] {
+    return _.uniqBy([...rows, ...getDescendants(rows, childrenKeys)], "id").filter(({ id }) => ids.includes(id));
 }
 
 // Some children (e.g. program data elements) only exist after the model transform, often with

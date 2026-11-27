@@ -28,7 +28,14 @@ import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
 import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
-import { getChildrenIds, getCurrentTypeIds, getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
+import {
+    findRowsByIds,
+    getChildrenIds,
+    getCurrentTypeIds,
+    getFilterData,
+    getMergedSelection,
+    getOrgUnitSubtree,
+} from "./utils";
 import { Toggle } from "../toggle/Toggle";
 import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 import { useSelection } from "./useSelection";
@@ -616,11 +623,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
 
-        const parseChildren = (ids: string[]) =>
-            getChildrenIds(
-                rows.filter(({ id }) => ids.includes(id)),
-                childrenKeys
-            );
+        const parseChildren = (ids: string[]) => getChildrenIds(findRowsByIds(rows, ids, childrenKeys), childrenKeys);
 
         if (model.getMetadataType() === "dataStore") {
             const result = computeDataStoreSelection({
@@ -727,10 +730,11 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     const childrenSelection: TableSelection[] = useMemo(() => {
         if (!showIndeterminateSelection) return [];
 
-        const selectedRows = _.intersectionBy(rows, selection, "id");
         const selectionIds = selection.map(({ id }) => id);
+        const selectedRows = findRowsByIds(rows, selectionIds, childrenKeys);
 
         return _(getChildrenIds(selectedRows, childrenKeys))
+            .uniq()
             .difference(selectionIds)
             .difference(excludedIds)
             .map(id => ({ id, checked: true, indeterminate: !_.find(selection, { id }) }))
