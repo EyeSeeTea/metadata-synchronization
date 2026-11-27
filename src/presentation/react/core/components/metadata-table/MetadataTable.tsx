@@ -28,7 +28,14 @@ import { MetadataType } from "../../../../../utils/d2";
 import { useAppContext } from "../../contexts/AppContext";
 import Dropdown from "../dropdown/Dropdown";
 import { ResponsibleDialog } from "../responsible-dialog/ResponsibleDialog";
-import { getFilterData, getMergedSelection, getOrgUnitSubtree } from "./utils";
+import {
+    findRowsByIds,
+    getChildrenIds,
+    getCurrentTypeIds,
+    getFilterData,
+    getMergedSelection,
+    getOrgUnitSubtree,
+} from "./utils";
 import { Toggle } from "../toggle/Toggle";
 import { computeDataStoreSelection } from "../../../../../domain/data-store/DataStoreSelectionUtils";
 import { useSelection } from "./useSelection";
@@ -69,6 +76,8 @@ export interface MetadataTableProps extends Omit<ObjectsTableProps<MetadataType>
     externalFilterComponents?: ReactNode;
     viewFilters?: MetadataTableFilters[];
 }
+
+const noChildrenKeys: string[] = [];
 
 const useStyles = makeStyles({
     checkbox: {
@@ -124,7 +133,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     notifyNewModel = _.noop,
     notifyRowsChange = _.noop,
     notifyModelSyncAllChange = _.noop,
-    childrenKeys = [],
+    childrenKeys = noChildrenKeys,
     additionalColumns = [],
     additionalActions = [],
     loading: providedLoading,
@@ -209,6 +218,7 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
     const [categoryFilterData, setCategoryFilterData] = useState<NamedRef[]>([]);
 
     const [rows, setRows] = useState<MetadataType[]>([]);
+    const currentTypeIds = useMemo(() => getCurrentTypeIds(ids, rows, childrenKeys), [ids, rows, childrenKeys]);
     const [pager, setPager] = useState<Partial<TablePagination>>({});
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -521,12 +531,12 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         compositionRoot.metadata
             .listAll({ ...filters, filterRows, fields: { id: true }, selectedIds }, remoteInstance)
             .then(objects => {
-                updateIds(objects.map(({ id }) => id));
+                updateIds([...objects.map(({ id }) => id), ...getChildrenIds(objects, childrenKeys)]);
             })
             .catch(error => {
                 if (!isCancel(error)) console.error(error);
             });
-    }, [filters, filterRows, model, compositionRoot, remoteInstance, selectedIds]);
+    }, [filters, filterRows, model, compositionRoot, remoteInstance, selectedIds, childrenKeys]);
 
     useEffect(() => {
         if (model.getCollectionName() !== "organisationUnits") return;
@@ -608,18 +618,12 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         const { sorting, pagination, selection } = tableState;
 
         const included = _.reject(selection, { indeterminate: true }).map(({ id }) => id);
-        const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => ids.includes(id));
+        const [prevMetadataTypeIds, otherMetadataTypeIds] = _.partition(selectedIds, id => currentTypeIds.includes(id));
 
         const newlySelectedIds = _.difference(included, prevMetadataTypeIds);
         const newlyUnselectedIds = _.difference(prevMetadataTypeIds, included);
 
-        const parseChildren = (ids: string[]) =>
-            _(rows)
-                .filter(({ id }) => !!ids.includes(id))
-                .map(row => _.values(_.pick(row, childrenKeys)) as unknown as MetadataType)
-                .flattenDeep()
-                .map(({ id }) => id)
-                .value();
+        const parseChildren = (ids: string[]) => getChildrenIds(findRowsByIds(rows, ids, childrenKeys), childrenKeys);
 
         if (model.getMetadataType() === "dataStore") {
             const result = computeDataStoreSelection({
@@ -684,10 +688,9 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
         );
 
     const idsAreComplete = model.getCollectionName() !== "organisationUnits" && !filterRestrictsIds;
-    const exclusion = excludedIds.map(id => ({ id }));
     const { selection, crossTypeCount } = useSelection(
         model.getCollectionName(),
-        ids,
+        currentTypeIds,
         selectedIds,
         remoteInstance,
         idsAreComplete
@@ -724,26 +727,19 @@ const MetadataTable: React.FC<MetadataTableProps> = ({
               ]
             : [];
 
-    const childrenSelection: TableSelection[] = useMemo(
-        () =>
-            showIndeterminateSelection
-                ? _(rows)
-                      .intersectionBy(selection, "id")
-                      .map(row => _.values(_.pick(row, childrenKeys)) as unknown as MetadataType[])
-                      .flattenDeep()
-                      .differenceBy(selection, "id")
-                      .differenceBy(exclusion, "id")
-                      .map(({ id }) => {
-                          return {
-                              id,
-                              checked: true,
-                              indeterminate: !_.find(selection, { id }),
-                          };
-                      })
-                      .value()
-                : [],
-        [childrenKeys, exclusion, rows, selection, showIndeterminateSelection]
-    );
+    const childrenSelection: TableSelection[] = useMemo(() => {
+        if (!showIndeterminateSelection) return [];
+
+        const selectionIds = selection.map(({ id }) => id);
+        const selectedRows = findRowsByIds(rows, selectionIds, childrenKeys);
+
+        return _(getChildrenIds(selectedRows, childrenKeys))
+            .uniq()
+            .difference(selectionIds)
+            .difference(excludedIds)
+            .map(id => ({ id, checked: true, indeterminate: !_.find(selection, { id }) }))
+            .value();
+    }, [childrenKeys, excludedIds, rows, selection, showIndeterminateSelection]);
 
     const responsibleField = showResponsibles
         ? {
